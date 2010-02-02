@@ -1,0 +1,17 @@
+*~
+\#*
+.\#*
+*.[oad]
+*.so
+*.swp
+*.swo
+tags
+dump
+dump.*
+*.log
+*.gz
+/cmake
+/testbin
+help
+*.save
+*.orig
