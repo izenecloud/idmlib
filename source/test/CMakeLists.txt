@@ -27,6 +27,6 @@ IF(Boost_FOUND)
 
   SET(RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/testbin)
 
-  ADD_SUBDIRECTORY(holder)
+  ADD_SUBDIRECTORY(keyphrase-extraction)
 
 ENDIF(Boost_FOUND)

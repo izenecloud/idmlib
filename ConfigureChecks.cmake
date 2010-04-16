@@ -1,60 +1,45 @@
 ##################################################
-# Load Modules
-#####
-INCLUDE(CheckIncludeFile)
+
 
 ##################################################
-# Int Types
+# Our Proprietary Libraries
 #####
-CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
-CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
-CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
-CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
-CHECK_INCLUDE_FILE(stddef.h HAVE_STDDEF_H)
+FIND_PACKAGE(izenelib REQUIRED COMPONENTS
+  message_framework
+  index_manager
+  febird
+  udt3
+  izene_log
+  bigint
+  procmeminfo
+  luxio
+  jemalloc
+  )
+
+
+FIND_PACKAGE(wiselib REQUIRED)
+
 
 ##################################################
-# Doxygen
-#####
-FIND_PACKAGE(Doxygen)
-IF(DOXYGEN_DOT_EXECUTABLE)
-  OPTION(USE_DOT "use dot in doxygen?" FLASE)
-ENDIF(DOXYGEN_DOT_EXECUTABLE)
-
-SET(USE_DOT_YESNO NO)
-IF(USE_DOT)
-  SET(USE_DOT_YESNO YES)
-ENDIF(USE_DOT)
-
-##################################################
-# Boost
+# Other Libraries
 #####
 
-# Only required header only library
-# set BOOST_ROOT to select a boost installation
+FIND_PACKAGE(Threads REQUIRED)
 
-# This is required to enable the new version
 SET(Boost_ADDITIONAL_VERSIONS 1.40 1.40.0 1.39 1.39.0 1.38 1.38.0 1.37 1.37.0)
-FIND_PACKAGE(Boost 1.36)
+FIND_PACKAGE(Boost 1.38 REQUIRED
+  COMPONENTS
+  system
+  program_options
+  thread
+  regex
+  date_time
+  serialization
+  filesystem
+  unit_test_framework
+  iostreams
+  )
 
-##################################################
-# Threads
-#####
-FIND_PACKAGE(Threads)
+FIND_PACKAGE(TokyoCabinet 1.4.29 REQUIRED)
+FIND_PACKAGE(Glog REQUIRED)
 
-##################################################
-# bzip2 & zlib
-#####
-
-FIND_PACKAGE(BZip2)
-FIND_PACKAGE(ZLIB)
-
-##################################################
-# Glog
-#####
-FIND_PACKAGE(Glog)
-
-##################################################
-# Other common libraries
-#####
-FIND_LIBRARY(DL_LIBRARIES NAMES dl)
-FIND_LIBRARY(M_LIBRARIES NAMES m)
