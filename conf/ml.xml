@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ml>
+
+<classifier>
+	<!-- naive bayes parameters -->
+	<nb></nb>
+	
+	<!-- snnb parameters -->
+	<snnb></snnb>
+	
+	<!-- knn parameters-->
+	<knn>
+		<k>30</k>
+		<threshold>0.3</threshold>
+	</knn>
+	
+	<!-- logistic regression parameters -->
+	<lr>
+		<epochs>100</epochs>
+		<lamda>0.01</lamda>
+	</lr>
+	
+	<!-- svm_light parameters -->
+	<svm_light>
+		<C>200</C>
+		<eps>0.1</eps>
+	</svm_light>
+	
+	<!-- svm_sgd parameters -->
+	<svm_sgd>
+		<epochs>10</epochs>
+		<lambda>1</lambda>
+	</svm_sgd>
+	
+	<!-- dag_svm parameters -->
+	<dag_svm>
+		<!-- Name of the binary classifier. It can be one of "SVM", "SVM_SGD", "KNN", "LR", "NB", and "SNNB". -->
+		<classifier>SVM</classifier>
+		<!-- Number of the threads for running training routine. -->
+		<!-- It is MUST be 1, for some core classes in ml2 library and the SVM_light library are not thread safe right now. -->
+		<threads>1</threads>
+	</dag_svm>
+
+</classifier>
+
+<fs>
+	<!-- document frequency method -->
+	<df></df>
+	
+	<!-- chi-square method -->
+	<chi></chi>
+	
+	<!-- information gain method -->
+	<ig></ig>
+</fs>
+
+</ml>

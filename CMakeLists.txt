@@ -200,6 +200,9 @@ ${IDMLIB_SOURCE_DIR}/include"
 ${izenelib_INCLUDE_DIRS}
 ${wiselib_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
+${la_INCLUDE_DIRS}
+${imllib_INCLUDE_DIRS}
+${xml2_INCLUDE_DIRS}
 )
 
 # User can decide which to build using:
@@ -209,17 +212,16 @@ SET_PROPERTY(GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 MARK_AS_ADVANCED(BUILD_COMPONENTS NON_BUILD_COMPONENTS)
 
 SET(LIBRARY_OUTPUT_PATH "${IDMLIB_SOURCE_DIR}/lib")
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/testbin)
 
-# holder libraries
-#ADD_SUBDIRECTORY(source/holder holder)
-
+ADD_SUBDIRECTORY(source)
 
 GET_PROPERTY(REAL_BUILD_COMPONENTS GLOBAL PROPERTY BUILD_COMPONENTS)
 GET_PROPERTY(REAL_NON_BUILD_COMPONENTS GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 
 # Test cases and applications
 IF(ENABLE_TEST)
-  ADD_SUBDIRECTORY(source/test test)
+  ADD_SUBDIRECTORY(test)
 ENDIF(ENABLE_TEST)
 
 ##################################################
@@ -244,6 +246,23 @@ IF(VERBOSE)
     MESSAGE(STATUS "BOOST: not found")
   ENDIF(Boost_FOUND)
 
+  IF(lalib_FOUND)
+    MESSAGE(STATUS "la library:")
+    MESSAGE(STATUS "  header: ${lalib_INCLUDE_DIRS}")
+    MESSAGE(STATUS "  lib: ${lalib_LIBRARIES}")
+  ELSE(lalib_FOUND)
+    MESSAGE(STATUS "la library: not found")
+  ENDIF(lalib_FOUND)
+  
+  IF(imllib_FOUND)
+    MESSAGE(STATUS "imllib:")
+    MESSAGE(STATUS "  header: ${imllib_INCLUDE_DIRS}")
+    MESSAGE(STATUS "  lib: ${imllib_LIBRARIES}")
+  ELSE(imllib_FOUND)
+    MESSAGE(STATUS "imllib: not found")
+  ENDIF(imllib_FOUND)
+
+
   IF(BZIP2_FOUND)
     MESSAGE(STATUS "BZIP2:")
     MESSAGE(STATUS "  header: ${BZIP2_INCLUDE_DIR}")
@@ -251,6 +270,14 @@ IF(VERBOSE)
   ELSE(BZIP2_FOUND)
     MESSAGE(STATUS "BZIP2: not found")
   ENDIF(BZIP2_FOUND)
+  
+  IF(xml2_FOUND)
+    MESSAGE(STATUS "xml2:")
+    MESSAGE(STATUS "  header: ${xml2_INCLUDE_DIR}")
+    MESSAGE(STATUS "  libs: ${xml2_LIBRARIES}")
+  ELSE(xml2_FOUND)
+    MESSAGE(STATUS "xml2: not found")
+  ENDIF(xml2_FOUND)
 
   IF(ZLIB_FOUND)
     MESSAGE(STATUS "ZLIB:")
@@ -273,6 +300,7 @@ IF(VERBOSE)
   ELSE(Glog_FOUND)
     MESSAGE(STATUS "Google Glog: not found")
   ENDIF(Glog_FOUND)
+  
 
   MESSAGE(STATUS "----------------------------------------")
   MESSAGE(STATUS "COMPONENTS BUILD:")

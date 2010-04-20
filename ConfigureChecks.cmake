@@ -18,7 +18,9 @@ FIND_PACKAGE(izenelib REQUIRED COMPONENTS
 
 
 FIND_PACKAGE(wiselib REQUIRED)
-
+FIND_PACKAGE(lalib REQUIRED)
+FIND_PACKAGE(imllib REQUIRED)
+FIND_PACKAGE(xml2 REQUIRED)
 
 ##################################################
 # Other Libraries

@@ -1,0 +1,9 @@
+######### Parameters of DupDetector#############
+# The parameter that indicates the basic probabilistic ranking functions to use.
+#    0: Broder algorithm
+#    1: Charikar algorithm
+
+  dup_alg=1
+
+
+
