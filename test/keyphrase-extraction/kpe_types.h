@@ -54,12 +54,27 @@ bool isKP(uint32_t termId)
 
 void getAnalysisTermIdList(const wiselib::UString& str, std::vector<uint32_t>& termIdList)
 {
-    
+    std::vector<wiselib::UString> termList;
+    std::vector<char> posInfoList;
+    std::vector<uint32_t> positionList;
+
+    getAnalysisTermIdList( str, termList, termIdList, posInfoList, positionList );
 }
 
 void getAnalysisTermIdList(const wiselib::UString& str, std::vector<wiselib::UString>& termList, std::vector<uint32_t>& idList, std::vector<char>& posInfoList, std::vector<uint32_t>& positionList)
 {
-    
+    size_t len = str.length();
+    char pos = 'C';
+    for( size_t i = 0; i < len; ++i )
+    {
+        wiselib::UString term = str.substr( i, 1 );
+        termList.push_back( term );
+        uint32_t termId;
+        getTermIdByTermString( term, termId );
+        idList.push_back( termId );
+        posInfoList.push_back( pos );
+        positionList.push_back( static_cast<uint32_t>( i ) );
+    }
 }
 
 void flush()
