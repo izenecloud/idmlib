@@ -32,6 +32,7 @@ public:
     , lastDocId_(0), allTermCount_(0), docCount_(0)
     , scorer_(NULL)
     {
+        boost::filesystem::create_directories(dir_);
         pTermListWriter_ = new TermListWriter(dir_+"/pInputItemWriter");
         pTermListWriter_->open();
         pHashWriter_ = new HashWriter(dir_+"/pHashItemWriter");
@@ -111,11 +112,16 @@ public:
         delete pHashWriter_;
         pHashWriter_ = NULL;
         uint32_t docCount = getDocCount();
-        minFreq_ = (uint32_t)std::floor( std::log( (double)docCount )/2 );
-        if( minFreq_ < 3 ) minFreq_ = 3;
-        
-        minDocFreq_ = (uint32_t)std::floor( std::log( (double)docCount )/4 );
-        if( minDocFreq_ < 2 ) minDocFreq_ = 2;
+        minFreq_ = 1;
+        minDocFreq_ = 1;
+        if( docCount >=10 )
+        {
+            minFreq_ = (uint32_t)std::floor( std::log( (double)docCount )/2 );
+            if( minFreq_ < 3 ) minFreq_ = 3;
+            
+            minDocFreq_ = (uint32_t)std::floor( std::log( (double)docCount )/4 );
+            if( minDocFreq_ < 2 ) minDocFreq_ = 2;
+        }
         uint64_t p = 0;
         typename HashSSFType::SorterType hsorter;
         hsorter.sort(hashItemPath);
@@ -421,7 +427,9 @@ public:
                         continue;
                     }
                     double logL = SS::logL(f,f1,f2,n);
-                    if( logL>=10 && SS::mi(f,f1,f2,n)>=5 )
+                    double mi = SS::mi(f,f1,f2,n);
+//                     std::cout<<"LogL: "<<logL<<" , MI: "<<mi<<std::endl;
+                    if( logL>=10 && mi>=5 )
                     {
                         std::vector<uint32_t> docIdList = boost::get<1>(hlItem);
                         std::vector<uint32_t> tfInDocList = boost::get<2>(hlItem);

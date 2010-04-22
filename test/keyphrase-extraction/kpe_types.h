@@ -9,6 +9,7 @@ public:
 TestIDManager(const std::string& path):path_(path)
 /*:strStorage_(path+"/id_ustring_map")*/
 {
+    boost::filesystem::create_directories(path_);
     strStorage_=new izenelib::ir::idmanager::HDBIDStorage< wiselib::UString, uint32_t>(path+"/id_ustring_map");
 }
 
