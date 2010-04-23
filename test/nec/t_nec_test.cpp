@@ -18,14 +18,14 @@ int main()
 {
 
 
-	std::string org_path = "../db/ner/train/org.txt";
-	std::string loc_path = "../db/ner/train/loc.txt";
-	std::string peop_path = "../db/ner/train/peop.txt";
-	std::string other_path = "../db/ner/train/other.txt";
-	std::string noise_path = "../db/ner/train/noise.txt";
-	std::string test_path = "../db/ner/test/test.txt";
+	std::string org_path = "../db/nec/train/org.txt";
+	std::string loc_path = "../db/nec/train/loc.txt";
+	std::string peop_path = "../db/nec/train/peop.txt";
+	std::string other_path = "../db/nec/train/other.txt";
+	std::string noise_path = "../db/nec/train/noise.txt";
+	std::string test_path = "../db/nec/test/test.txt";
 
-	std::string res_path = "../resource/ner/res/";
+	std::string res_path = "../resource/nec/res/";
 	std::string loc_suffix_path = res_path + "loc_s.txt";
 	std::string org_suffix_path = res_path + "org_s.txt";
 	std::string peop_suffix_path = res_path + "peop_s.txt";
@@ -57,7 +57,7 @@ int main()
 	loadNameEntities(entities, other_path, "OTHER");
 	loadNameEntities(entities, noise_path, "NOISE");
 
-	std::string path = "../resource/ner/";
+	std::string path = "../resource/nec/";
 	NameEntityManager neMgr(path);
 
 	cout << "loading entities..." << endl;
