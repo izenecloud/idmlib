@@ -15,14 +15,14 @@ int main()
 {
 
 
-	std::string org_path = "/home/eric/test/corpus/ner/train/org2.txt";
-	std::string loc_path = "/home/eric/test/corpus/ner/train/loc2.txt";
-	std::string peop_path = "/home/eric/test/corpus/ner/train/peop2.txt";
-	std::string other_path = "/home/eric/test/corpus/ner/train/other.txt";
-	std::string noise_path = "/home/eric/test/corpus/ner/train/noise.txt";
-	std::string test_path = "/home/eric/test/corpus/ner/test/test.txt";
+	std::string org_path = "../db/ner/train/org.txt";
+	std::string loc_path = "../db/ner/train/loc.txt";
+	std::string peop_path = "../db/ner/train/peop.txt";
+	std::string other_path = "../db/ner/train/other.txt";
+	std::string noise_path = "../db/ner/train/noise.txt";
+	std::string test_path = "../db/ner/test/test.txt";
 
-	std::string res_path = "/home/eric/Dataset/ch/";
+	std::string res_path = "../resource/ner/res/";
 	std::string loc_suffix_path = res_path + "loc_s.txt";
 	std::string org_suffix_path = res_path + "org_s.txt";
 	std::string peop_suffix_path = res_path + "peop_s.txt";
@@ -54,7 +54,7 @@ int main()
 	loadNameEntities(entities, other_path, "OTHER");
 	loadNameEntities(entities, noise_path, "NOISE");
 
-	std::string path = "./ner/";
+	std::string path = "../resource/ner/";
 	NameEntityManager neMgr(path);
 	neMgr.train(entities);
 
