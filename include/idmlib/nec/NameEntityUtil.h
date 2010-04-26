@@ -11,7 +11,7 @@
 #include <ml/ClassificationDataUtil.h>
 #include "util/Vectors.h"
 #include "NameEntity.h"
-#include <idmlib/util/IdMgrFactory.h>
+#include <idmlib/util/IntIdMgr.h>
 #include "NameEntityDict.h"
 
 using namespace idmlib;
@@ -22,7 +22,7 @@ namespace ml
 	template<>
 	void ClassificationDataUtil<NameEntity>::transform(NameEntity& entity, ml::Schema& schema, ml::Instance& inst)
 	{
-		IdManager* idMgr = IdMgrFactory::getIdManager();
+//		IdManager* idMgr = IdMgrFactory::getIdManager();
 
 		UString pre = entity.pre;
 		UString suc = entity.suc;
@@ -49,13 +49,13 @@ namespace ml
 		std::vector<UString> f_cur_u_e;
 		std::vector<UString> f_all;
 
-		std::vector<unsigned int> id_cur_u_b;
-		std::vector<unsigned int> id_cur_u_a;
-		std::vector<unsigned int> id_cur_b_a;
+		std::vector<int> id_cur_u_b;
+		std::vector<int> id_cur_u_a;
+		std::vector<int> id_cur_b_a;
 //		std::vector<unsigned int> id_cur_t_a;
-		std::vector<unsigned int> id_cur_b_e;
-		std::vector<unsigned int> id_cur_t_e;
-		std::vector<unsigned int> id_cur_u_e;
+		std::vector<int> id_cur_b_e;
+		std::vector<int> id_cur_t_e;
+		std::vector<int> id_cur_u_e;
 
 
 		double w_cur_u_b = 6;
@@ -80,14 +80,14 @@ namespace ml
 			f_cur_u_e.push_back(cur_e);  // the last unigram of current sequence
 			f_all.push_back(cur_e);
 
-			idMgr->getTermIdListByTermStringList(f_cur_u_b, id_cur_u_b);
+			IntIdMgr::getTermIdListByTermStringList(f_cur_u_b, id_cur_u_b);
 			for (size_t i=0; i<id_cur_u_b.size(); ++i)
 			{
 				inst.x.set(id_cur_u_b[i], w_cur_u_b);
 				schema.setAttr(id_cur_u_b[i], 1);
 			}
 
-			idMgr->getTermIdListByTermStringList(f_cur_u_e, id_cur_u_e);
+			IntIdMgr::getTermIdListByTermStringList(f_cur_u_e, id_cur_u_e);
 			for (size_t i=0; i<id_cur_u_e.size(); ++i)
 			{
 				inst.x.set(id_cur_u_e[i], w_cur_u_e);
@@ -103,7 +103,7 @@ namespace ml
 				f_all.push_back(cur_a);
 			}
 
-			idMgr->getTermIdListByTermStringList(f_cur_u_a, id_cur_u_a);
+			IntIdMgr::getTermIdListByTermStringList(f_cur_u_a, id_cur_u_a);
 			for (size_t i=0; i<id_cur_u_a.size(); ++i)
 			{
 				inst.x.set(id_cur_u_a[i], w_cur_u_a);
@@ -126,7 +126,7 @@ namespace ml
 			f_cur_b_e.push_back(b_cur_e);  // the last bigram of current sequence
 			f_all.push_back(b_cur_e);
 
-			idMgr->getTermIdListByTermStringList(f_cur_b_e, id_cur_b_e);
+			IntIdMgr::getTermIdListByTermStringList(f_cur_b_e, id_cur_b_e);
 			for (size_t i=0; i<id_cur_b_e.size(); ++i)
 			{
 				inst.x.set(id_cur_b_e[i], w_cur_b_e);
@@ -142,7 +142,7 @@ namespace ml
 
 			}
 
-			idMgr->getTermIdListByTermStringList(f_cur_b_a, id_cur_b_a);
+			IntIdMgr::getTermIdListByTermStringList(f_cur_b_a, id_cur_b_a);
 
 			for (size_t i=0; i<id_cur_b_a.size(); ++i)
 			{
@@ -160,7 +160,7 @@ namespace ml
 			f_cur_t_e.push_back(t_cur_e);  // the last trigram of current sequence
 			f_all.push_back(t_cur_e);
 
-			idMgr->getTermIdListByTermStringList(f_cur_t_e, id_cur_t_e);
+			IntIdMgr::getTermIdListByTermStringList(f_cur_t_e, id_cur_t_e);
 			for (size_t i=0; i<id_cur_t_e.size(); ++i)
 			{
 				inst.x.set(id_cur_t_e[i], w_cur_t_e);
@@ -186,15 +186,15 @@ namespace ml
 		}
 
 		std::vector<UString> f_cur_loc;
-		std::vector<unsigned int> id_cur_loc;
+		std::vector<int> id_cur_loc;
 		double w_cur_loc = 4;
 
 		std::vector<UString> f_cur_loc2;
-		std::vector<unsigned int> id_cur_loc2;
+		std::vector<int> id_cur_loc2;
 		double w_cur_loc2 = 16;
 
 		std::vector<UString> f_cur_loc3;
-		std::vector<unsigned int> id_cur_loc3;
+		std::vector<int> id_cur_loc3;
 		double w_cur_loc3 = 32;
 
 
@@ -213,7 +213,7 @@ namespace ml
 			{
 				f_cur_loc.push_back(utag_cure_loc);
 				f_all.push_back(utag_cure_loc);
-				idMgr->getTermIdListByTermStringList(f_cur_loc, id_cur_loc);
+				IntIdMgr::getTermIdListByTermStringList(f_cur_loc, id_cur_loc);
 
 				for (size_t i=0; i<id_cur_loc.size(); ++i)
 				{
@@ -228,7 +228,7 @@ namespace ml
 				{
 					f_cur_loc2.push_back(btag_cure_loc);
 					f_all.push_back(btag_cure_loc);
-					idMgr->getTermIdListByTermStringList(f_cur_loc2, id_cur_loc2);
+					IntIdMgr::getTermIdListByTermStringList(f_cur_loc2, id_cur_loc2);
 
 					for (size_t i =0; i<id_cur_loc2.size(); ++i)
 					{
@@ -244,7 +244,7 @@ namespace ml
 				{
 					f_cur_loc3.push_back(ttag_cure_loc);
 					f_all.push_back(ttag_cure_loc);
-					idMgr->getTermIdListByTermStringList(f_cur_loc3, id_cur_loc3);
+					IntIdMgr::getTermIdListByTermStringList(f_cur_loc3, id_cur_loc3);
 
 					for (size_t i =0; i<id_cur_loc3.size(); ++i)
 					{
@@ -260,15 +260,15 @@ namespace ml
 
 	//
 		std::vector<UString> f_cur_org;
-		std::vector<unsigned int> id_cur_org;
+		std::vector<int> id_cur_org;
 		double w_cur_org = 4;
 
 		std::vector<UString> f_cur_org2;
-		std::vector<unsigned int> id_cur_org2;
+		std::vector<int> id_cur_org2;
 		double w_cur_org2 = 16;
 
 		std::vector<UString> f_cur_org3;
-		std::vector<unsigned int> id_cur_org3;
+		std::vector<int> id_cur_org3;
 		double w_cur_org3 = 32;
 
 		// whether is org suffix
@@ -286,8 +286,7 @@ namespace ml
 			{
 				f_cur_org.push_back(utag_cure_org);
 				f_all.push_back(utag_cure_org);
-				idMgr->getTermIdListByTermStringList(f_cur_org, id_cur_org);
-
+				IntIdMgr::getTermIdListByTermStringList(f_cur_org, id_cur_org);
 				for (size_t i=0; i<id_cur_org.size(); ++i)
 				{
 					inst.x.set(id_cur_org[i], w_cur_org);
@@ -301,7 +300,7 @@ namespace ml
 				{
 					f_cur_org2.push_back(btag_cure_org);
 					f_all.push_back(btag_cure_org);
-					idMgr->getTermIdListByTermStringList(f_cur_org2, id_cur_org2);
+					IntIdMgr::getTermIdListByTermStringList(f_cur_org2, id_cur_org2);
 
 					for (size_t i =0; i<id_cur_org2.size(); ++i)
 					{
@@ -317,7 +316,7 @@ namespace ml
 				{
 					f_cur_org3.push_back(ttag_cure_org);
 					f_all.push_back(ttag_cure_org);
-					idMgr->getTermIdListByTermStringList(f_cur_org3, id_cur_org3);
+					IntIdMgr::getTermIdListByTermStringList(f_cur_org3, id_cur_org3);
 
 					for (size_t i =0; i<id_cur_org3.size(); ++i)
 					{
@@ -329,15 +328,15 @@ namespace ml
 		}
 
 		std::vector<UString> f_cur_peop;
-		std::vector<unsigned int> id_cur_peop;
+		std::vector<int> id_cur_peop;
 		double w_cur_peop = 4;
 
 		std::vector<UString> f_cur_peop2;
-		std::vector<unsigned int> id_cur_peop2;
+		std::vector<int> id_cur_peop2;
 		double w_cur_peop2 = 16;
 
 		std::vector<UString> f_cur_peop3;
-		std::vector<unsigned int> id_cur_peop3;
+		std::vector<int> id_cur_peop3;
 		double w_cur_peop3 = 32;
 
 		// whether is org suffix
@@ -355,7 +354,7 @@ namespace ml
 			{
 				f_cur_peop.push_back(utag_cure_peop);
 				f_all.push_back(utag_cure_peop);
-				idMgr->getTermIdListByTermStringList(f_cur_peop, id_cur_peop);
+				IntIdMgr::getTermIdListByTermStringList(f_cur_peop, id_cur_peop);
 
 				for (size_t i=0; i<id_cur_peop.size(); ++i)
 				{
@@ -370,7 +369,7 @@ namespace ml
 				{
 					f_cur_peop2.push_back(btag_cure_peop);
 					f_all.push_back(btag_cure_peop);
-					idMgr->getTermIdListByTermStringList(f_cur_peop2, id_cur_peop2);
+					IntIdMgr::getTermIdListByTermStringList(f_cur_peop2, id_cur_peop2);
 
 					for (size_t i =0; i<id_cur_peop2.size(); ++i)
 					{
@@ -386,7 +385,7 @@ namespace ml
 				{
 					f_cur_peop3.push_back(ttag_cure_peop);
 					f_all.push_back(ttag_cure_peop);
-					idMgr->getTermIdListByTermStringList(f_cur_peop3, id_cur_peop3);
+					IntIdMgr::getTermIdListByTermStringList(f_cur_peop3, id_cur_peop3);
 
 					for (size_t i =0; i<id_cur_peop3.size(); ++i)
 					{
@@ -613,7 +612,7 @@ namespace ml
 	void ClassificationDataUtil<NameEntity>::transform(std::vector<NameEntity>& entities, ml::InstanceBag& instBag)
 	{
 		std::vector<UString> features;
-		std::vector<unsigned int> featureIds;
+		std::vector<int> featureIds;
 		std::vector<NameEntity>::const_iterator it;
 		ml::Schema schema;
 		for (it = entities.begin(); it != entities.end(); ++it)

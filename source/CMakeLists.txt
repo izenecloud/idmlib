@@ -13,8 +13,15 @@ FILE(GLOB nec_SRC
   "nec/*.cc"
 )
 
+FILE(GLOB dc_SRC
+  "dc/*.cpp"
+  "dc/*.cc"
+)
+
+
 ADD_LIBRARY(idmlib 
 ${duplicate-detection_SRC}
 ${nec_SRC}
+${dc_SRC}
 ${util_SRC}
 )
