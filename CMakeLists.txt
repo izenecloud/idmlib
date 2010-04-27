@@ -195,15 +195,17 @@ INSTALL(
 INCLUDE(MacroCheckShouldBuild)
 
 # all headers
-INCLUDE_DIRECTORIES("
-${IDMLIB_SOURCE_DIR}/include"
+include_directories(
+${IDMLIB_SOURCE_DIR}/include
 ${izenelib_INCLUDE_DIRS}
 ${wiselib_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
-${la_INCLUDE_DIRS}
+${lalib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
 ${xml2_INCLUDE_DIRS}
 )
+
+MESSAGE(STATUS "include path: ${include_directories}")
 
 # User can decide which to build using:
 # USER_BUILD_LIST, USER_IGNORE_LIST
