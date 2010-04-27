@@ -13,8 +13,14 @@ FILE(GLOB nec_SRC
   "nec/*.cc"
 )
 
+FILE(GLOB keyphrase_extraction_SRC
+  "keyphrase-extraction/*.cpp"
+  "keyphrase-extraction/*.cc"
+)
+
 ADD_LIBRARY(idmlib 
 ${duplicate-detection_SRC}
 ${nec_SRC}
 ${util_SRC}
+${keyphrase_extraction_SRC}
 )
