@@ -36,6 +36,7 @@ bool Recommender::indexLog(const std::list<std::pair<wiselib::UString,int> >& lo
 	if(!logProcessor_->rankQuery(logItems,scoreItems))
 		return false;
 	int indexedRealNum=realTimeNum_<scoreItems.size() ? realTimeNum_:scoreItems.size();
+	realQueries_.clear();
 	for(uint32_t i=0;i<indexedRealNum;i++)
 	{
 		realQueries_.push_back(scoreItems[i].itemId_);

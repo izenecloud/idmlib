@@ -67,7 +67,7 @@ int main()
     	std::cout<<"entering inside"<<std::endl;
         boost::filesystem::directory_iterator item_begin(path);
         boost::filesystem::directory_iterator item_end;
-        for (;item_begin != item_end&& count<5;item_begin++, count++)
+        for (;item_begin != item_end&& count<10;item_begin++, count++)
         {
         	std::cout<<"parsing file"<<item_begin -> path().file_string()<<std::endl;
             if (boost::filesystem::is_directory(*item_begin))

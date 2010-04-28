@@ -72,7 +72,7 @@ private:
 
 private:
 
-	static const int DEFAULT_REAL_TIME_QUERY_NUM=5;
+	static const int DEFAULT_REAL_TIME_QUERY_NUM=10;
 	static const int DEFAULT_POPULAR_QUERY_NUM=50;
 
 
