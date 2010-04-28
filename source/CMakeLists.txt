@@ -18,10 +18,17 @@ FILE(GLOB query-suggestion_SRC
   "query-suggestion/*.cc"
 )
 
+FILE(GLOB dc_SRC
+  "dc/*.cpp"
+  "dc/*.cc"
+)
+
+
 ADD_LIBRARY(idmlib 
 ${duplicate-detection_SRC}
 ${nec_SRC}
 ${query-suggestion_SRC}
+${dc_SRC}
 ${util_SRC}
 )
 

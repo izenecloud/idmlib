@@ -195,8 +195,8 @@ INSTALL(
 INCLUDE(MacroCheckShouldBuild)
 
 # all headers
-INCLUDE_DIRECTORIES("
-${IDMLIB_SOURCE_DIR}/include"
+include_directories(
+${IDMLIB_SOURCE_DIR}/include
 ${izenelib_INCLUDE_DIRS}
 ${wiselib_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
@@ -213,6 +213,8 @@ SET(libs
   ${Glog_LIBRARIES}
   )
   
+MESSAGE(STATUS "include path: ${include_directories}")
+
 # User can decide which to build using:
 # USER_BUILD_LIST, USER_IGNORE_LIST
 SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
