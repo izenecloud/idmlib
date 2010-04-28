@@ -203,6 +203,7 @@ ${Boost_INCLUDE_DIRS}
 ${lalib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
 ${libxml2_INCLUDE_DIRS}
+${Glog_INCLUDE_DIRS}
 )
 
 SET(libs
