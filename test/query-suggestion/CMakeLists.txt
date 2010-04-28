@@ -5,7 +5,7 @@ SET(libs
   ${wiselib_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${xml2_LIBRARIES}
+  xml2
   ${Glog_LIBRARIES}
   )
 
