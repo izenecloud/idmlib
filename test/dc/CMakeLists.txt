@@ -2,16 +2,14 @@
 # if a dpendes b, a must precede b
 SET(libs
   ${imllib_LIBRARIES}
-  ${lalib_LIBRARIES}
   ${wiselib_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${Glog_LIBRARIES}
   xml2
+  ${Glog_LIBRARIES}
   )
 
-ADD_EXECUTABLE(t_nec_train t_nec_train.cpp)
-ADD_EXECUTABLE(t_nec_test t_nec_test.cpp)
+ADD_EXECUTABLE(t_dc t_dc.cpp)
 
 TARGET_LINK_LIBRARIES(t_nec_train
 ${IDMLIB_SOURCE_DIR}/lib/libidmlib.so

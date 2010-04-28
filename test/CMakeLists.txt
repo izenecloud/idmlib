@@ -23,6 +23,7 @@ IF(Boost_FOUND)
 
   ADD_SUBDIRECTORY(keyphrase-extraction)
   ADD_SUBDIRECTORY(nec)
+#  ADD_SUBDIRECTORY(dc)
 #  ADD_SUBDIRECTORY(duplicate-detection)
 
 ENDIF(Boost_FOUND)
