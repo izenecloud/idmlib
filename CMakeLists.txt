@@ -205,6 +205,14 @@ ${imllib_INCLUDE_DIRS}
 ${xml2_INCLUDE_DIRS}
 )
 
+SET(libs
+  ${wiselib_LIBRARIES}
+  ${izenelib_LIBRARIES}
+  ${lalib_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${Glog_LIBRARIES}
+  )
+  
 MESSAGE(STATUS "include path: ${include_directories}")
 
 # User can decide which to build using:
