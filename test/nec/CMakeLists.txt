@@ -1,6 +1,7 @@
 # sequences is important for some linker
 # if a dpendes b, a must precede b
 SET(libs
+  ${lalib_LIBRARIES}
   ${imllib_LIBRARIES}
   ${lalib_LIBRARIES}
   ${wiselib_LIBRARIES}
