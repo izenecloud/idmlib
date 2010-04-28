@@ -13,8 +13,18 @@ FILE(GLOB nec_SRC
   "nec/*.cc"
 )
 
+FILE(GLOB query-suggestion_SRC
+  "query-suggestion/*.cpp"
+  "query-suggestion/*.cc"
+)
+
 ADD_LIBRARY(idmlib 
 ${duplicate-detection_SRC}
 ${nec_SRC}
+${query-suggestion_SRC}
 ${util_SRC}
+)
+
+TARGET_LINK_LIBRARIES(idmlib
+	${libs}
 )

@@ -200,11 +200,19 @@ ${IDMLIB_SOURCE_DIR}/include"
 ${izenelib_INCLUDE_DIRS}
 ${wiselib_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
-${la_INCLUDE_DIRS}
+${lalib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
 ${xml2_INCLUDE_DIRS}
 )
 
+SET(libs
+  ${wiselib_LIBRARIES}
+  ${izenelib_LIBRARIES}
+  ${lalib_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${Glog_LIBRARIES}
+  )
+  
 # User can decide which to build using:
 # USER_BUILD_LIST, USER_IGNORE_LIST
 SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
