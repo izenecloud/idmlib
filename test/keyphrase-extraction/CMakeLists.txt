@@ -12,6 +12,8 @@ SET(libs
   ${izenelib_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
+  ${imllib_LIBRARIES}
+  ${xml2_LIBRARIES}
   )
 
 FILE(GLOB kpe_SRC "*.cpp")
@@ -21,7 +23,8 @@ ADD_EXECUTABLE(t_KPE ${kpe_SRC})
 
   
 TARGET_LINK_LIBRARIES(t_KPE
-	${libs}
+${IDMLIB_SOURCE_DIR}/lib/libidmlib.so
+${libs}	
 )
    
 SET_TARGET_PROPERTIES(

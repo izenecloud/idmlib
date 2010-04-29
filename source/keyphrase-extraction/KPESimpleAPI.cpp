@@ -9,14 +9,35 @@
 #include <idmlib/keyphrase-extraction/SimpleIDManager.hpp>
 #include <idmlib/keyphrase-extraction/fwd.h>
 
+#include <boost/bind.hpp>
 
 NS_IDMLIB_KPE_BEGIN
 
-KPEDataInterator::~KPEDataInterator()
+/**
+ * Boost::bind is applied here to hold return value
+ */
+class RetHolder
 {
-}
+public:
+    RetHolder( std::vector<std::string>* ret )
+        : ret_ ( ret )
+    {
+    }
 
-void test_func(const wiselib::UString& ustr, const std::vector<std::pair<uint32_t, uint32_t> >& id2countList, uint8_t score)
+    void process_ret(const wiselib::UString& ustr,
+            const std::vector<std::pair<uint32_t, uint32_t> >& id2countList, uint8_t score)
+    {
+        std::string str;
+        ustr.convertString(str, wiselib::UString::UTF_8);
+        ret_->push_back( str );
+    }
+
+public:
+    std::vector<std::string>* ret_;
+};
+
+void test_func(const wiselib::UString& ustr,
+        const std::vector<std::pair<uint32_t, uint32_t> >& id2countList, uint8_t score)
 {
     std::string str;
     ustr.convertString(str, wiselib::UString::UTF_8);
@@ -29,7 +50,11 @@ void perform_kpe( const string& resPath, KPEDataInterator& inputItr,
 {
 
     SimpleIDManager idManager( idDataPath );
-    KPE_ALL<SimpleIDManager>::function_type func = &test_func;
+
+    RetHolder rh( &kpeVec );
+
+    KPE_ALL<SimpleIDManager>::function_type func = boost::bind( &RetHolder::process_ret,
+            boost::ref(rh), _1, _2, _3 );
     KPE_ALL<SimpleIDManager> kpe( &idManager, func, kpeDataPath );
     kpe.load(resPath);
 
@@ -41,6 +66,7 @@ void perform_kpe( const string& resPath, KPEDataInterator& inputItr,
         wiselib::UString article( input.c_str(), wiselib::UString::UTF_8);
         kpe.insert( article, docId );
     }
+
     kpe.close();
 
 }

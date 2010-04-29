@@ -1,5 +1,5 @@
 /*
- * \file KPESimpleAPI.h
+ * \file KPESimpleAPI.hpp
  * \brief 
  * \date Apr 27, 2010
  * \author Vernkin Chen
@@ -19,7 +19,9 @@ using std::string;
 class KPEDataInterator
 {
 public:
-    virtual ~KPEDataInterator();
+    virtual ~KPEDataInterator()
+    {
+    }
 
     /**
      * \param outStr to get the output string
