@@ -5,8 +5,8 @@
  *      Author: eric
  */
 
-#ifndef LAMGRFACTORY_H_
-#define LAMGRFACTORY_H_
+#ifndef DM_LAMGRFACTORY_H_
+#define DM_LAMGRFACTORY_H_
 
 #include <LA.h>
 

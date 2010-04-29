@@ -5,8 +5,8 @@
  *      Author: eric
  */
 
-#ifndef NAMEENTITY_H_
-#define NAMEENTITY_H_
+#ifndef DM_NAMEENTITY_H_
+#define DM_NAMEENTITY_H_
 
 #include <ml/ClassificationData.h>
 #include <ml/Taxonomy.h>

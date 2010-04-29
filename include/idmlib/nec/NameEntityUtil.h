@@ -5,8 +5,8 @@
  *      Author: eric
  */
 
-#ifndef IDM_NAMEENTITYUTIL_H_
-#define IDM_NAMEENTITYUTIL_H_
+#ifndef DM_NAMEENTITYUTIL_H_
+#define DM_NAMEENTITYUTIL_H_
 
 #include <ml/ClassificationDataUtil.h>
 #include "util/Vectors.h"

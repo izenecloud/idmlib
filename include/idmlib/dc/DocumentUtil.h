@@ -4,7 +4,8 @@
  *  Created on: Mar 19, 2010
  *      Author: eric
  */
-
+#ifndef DM_DOCUMENT_UTIL_H_
+#define DM_DOCUMENT_UTIL_H_
 
 #include <ml/ClassificationDataUtil.h>
 #include "ScdDocument.h"

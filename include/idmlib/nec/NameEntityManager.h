@@ -5,8 +5,8 @@
  *      Author: eric
  */
 
-#ifndef NAMEENTITYMANAGER_H_
-#define NAMEENTITYMANAGER_H_
+#ifndef DM_NAMEENTITYMANAGER_H_
+#define DM_NAMEENTITYMANAGER_H_
 
 #include "NameEntity.h"
 #include <ml/ClassificationManager.h>

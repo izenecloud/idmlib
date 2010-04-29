@@ -5,8 +5,8 @@
  *      Author: eric
  */
 
-#ifndef SCDDOCUMENT_H_
-#define SCDDOCUMENT_H_
+#ifndef DM_SCDDOCUMENT_H_
+#define DM_SCDDOCUMENT_H_
 
 #include <ml/ClassificationData.h>
 #include <vector>
