@@ -13,6 +13,11 @@ FILE(GLOB nec_SRC
   "nec/*.cc"
 )
 
+FILE(GLOB keyphrase_extraction_SRC
+  "keyphrase-extraction/*.cpp"
+  "keyphrase-extraction/*.cc"
+)
+
 FILE(GLOB query-suggestion_SRC
   "query-suggestion/*.cpp"
   "query-suggestion/*.cc"
@@ -30,6 +35,7 @@ ${nec_SRC}
 ${query-suggestion_SRC}
 ${dc_SRC}
 ${util_SRC}
+${keyphrase_extraction_SRC}
 )
 
 TARGET_LINK_LIBRARIES(idmlib
