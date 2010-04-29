@@ -13,7 +13,7 @@ SET(libs
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   ${imllib_LIBRARIES}
-  ${xml2_LIBRARIES}
+  xml2
   )
 
 FILE(GLOB kpe_SRC "*.cpp")
