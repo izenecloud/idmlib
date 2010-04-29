@@ -15,7 +15,7 @@ namespace idmlib
 
 ml::ClassificationManager<NameEntity>* NameEntityManager::classifier_ = 0;
 
-NameEntityManager::NameEntityManager(std::string& path): path_(path)
+NameEntityManager::NameEntityManager(const std::string& path): path_(path)
 {
 	if (!classifier_)
 	{

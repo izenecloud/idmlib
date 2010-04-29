@@ -1,15 +1,16 @@
 # sequences is important for some linker
 # if a dpendes b, a must precede b
 SET(libs
+  ${lalib_LIBRARIES}
   ${imllib_LIBRARIES}
+  ${lalib_LIBRARIES}
   ${wiselib_LIBRARIES}
   ${izenelib_LIBRARIES}
+  ${lalib_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${xml2_LIBRARIES}
   ${Glog_LIBRARIES}
+  xml2
   )
-
-MESSAGE(STATUS "xml2: ${xml2_LIBRARIES}")
 
 ADD_EXECUTABLE(t_nec_train t_nec_train.cpp)
 ADD_EXECUTABLE(t_nec_test t_nec_test.cpp)

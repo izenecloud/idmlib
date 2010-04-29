@@ -18,9 +18,26 @@ FILE(GLOB keyphrase_extraction_SRC
   "keyphrase-extraction/*.cc"
 )
 
+FILE(GLOB query-suggestion_SRC
+  "query-suggestion/*.cpp"
+  "query-suggestion/*.cc"
+)
+
+FILE(GLOB dc_SRC
+  "dc/*.cpp"
+  "dc/*.cc"
+)
+
+
 ADD_LIBRARY(idmlib 
 ${duplicate-detection_SRC}
 ${nec_SRC}
+${query-suggestion_SRC}
+${dc_SRC}
 ${util_SRC}
 ${keyphrase_extraction_SRC}
+)
+
+TARGET_LINK_LIBRARIES(idmlib
+	${libs}
 )

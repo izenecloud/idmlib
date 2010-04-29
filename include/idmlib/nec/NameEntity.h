@@ -12,18 +12,30 @@
 #include <ml/Taxonomy.h>
 #include <wiselib/ustring/UString.h>
 
-using namespace wiselib;
 
 namespace idmlib
 {
 
 class NameEntity : public ml::ClassificationData
 {
-
+typedef wiselib::UString string_type;
+typedef ml::ClassificationData base_type;
 public:
-	UString cur;
-	UString pre;
-	UString suc;
+    NameEntity():base_type()
+    {
+    }
+    NameEntity(const string_type& curStr):base_type(),cur(curStr)
+    {
+    }
+    NameEntity(const string_type& curStr
+    ,const string_type& preStr,const string_type& sucStr)
+    :base_type(),cur(curStr), pre(preStr), suc(sucStr)
+    {
+    }
+public:
+    string_type cur;
+    string_type pre;
+    string_type suc;
 
 };
 

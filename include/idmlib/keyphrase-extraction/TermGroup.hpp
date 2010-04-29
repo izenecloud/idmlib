@@ -87,27 +87,27 @@ class TermGroup
             vec.resize(0);
         }
        
-        void insert(termid_t termId, termid_t groupId)
+        void insert(uint32_t termId, uint32_t groupId)
         {
             groupMapping_.insert(termId, groupId);
             
         }
         
-        void insert(const wiselib::UString& ustr, char tag, termid_t groupId)
+        void insert(const wiselib::UString& ustr, char tag, uint32_t groupId)
         {
             uint32_t termId = 0;
             idManager_->getTermIdByTermString( ustr, tag, termId);
             insert(termId, groupId);
         }
         
-        void filter(const std::vector<termid_t>& contextTermIdList, const std::vector<uint32_t>& contextCountList,
+        void filter(const std::vector<uint32_t>& contextTermIdList, const std::vector<uint32_t>& contextCountList,
         std::vector<uint32_t>& resultCountList)
         {
             resultCountList.reserve(contextCountList.size());
             std::vector<uint32_t> inGroupCount(0, 0);
             for( uint32_t i=0;i<contextTermIdList.size();i++)
             {
-                termid_t* groupId = groupMapping_.find(contextTermIdList[i]);
+                uint32_t* groupId = groupMapping_.find(contextTermIdList[i]);
                 if( groupId == NULL )
                 {
                     resultCountList.push_back( contextCountList[i] );
@@ -133,7 +133,7 @@ class TermGroup
                 
     private:
         IDManager* idManager_;
-        izenelib::am::rde_hash<termid_t, termid_t> groupMapping_;
+        izenelib::am::rde_hash<uint32_t, uint32_t> groupMapping_;
 };
     
 
