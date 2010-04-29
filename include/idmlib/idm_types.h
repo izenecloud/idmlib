@@ -19,9 +19,9 @@ typedef unsigned __int64  uint64_t;
 
 #endif //end of WIN32
 
-typedef uint32_t termid_t;
-typedef uint32_t docid_t;
-typedef uint32_t count_t;
+// typedef uint32_t termid_t;
+// typedef uint32_t docid_t;
+// typedef uint32_t count_t;
 
 #define NS_IDMLIB_BEGIN namespace idmlib{
 #define NS_IDMLIB_END }

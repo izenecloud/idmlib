@@ -17,7 +17,7 @@ namespace idmlib
 class NameEntityManager
 {
 public:
-	NameEntityManager(std::string& path);
+	NameEntityManager(const std::string& path);
 
 	void loadModels();
 

@@ -7,8 +7,8 @@
 ///  --- Log
 
 
-#ifndef MEMORYTRIE_H_
-#define MEMORYTRIE_H_
+#ifndef IDMUTIL_MEMORYTRIE_H_
+#define IDMUTIL_MEMORYTRIE_H_
 #include <string>
 #include <am/sdb_btree/sdb_bptree.h>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
@@ -242,7 +242,7 @@ class MemoryTrie
             }
             if( REVERSE )
             {
-                std::vector<termid_t> reverseVec(label);
+                std::vector<uint32_t> reverseVec(label);
                 std::reverse(reverseVec.begin(), reverseVec.end());
                 reverse_.insert(reverseVec, labelId);
             }

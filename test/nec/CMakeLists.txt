@@ -4,6 +4,7 @@ SET(libs
   ${imllib_LIBRARIES}
   ${wiselib_LIBRARIES}
   ${izenelib_LIBRARIES}
+  ${lalib_LIBRARIES}
   ${Boost_LIBRARIES}
   ${xml2_LIBRARIES}
   ${Glog_LIBRARIES}

@@ -2,6 +2,7 @@
 #include <iostream>
 
 using namespace idmlib;
+using namespace wiselib;
 
 void loadNameEntities(std::vector<NameEntity>& entities, string file, Label label)
 {

@@ -32,11 +32,17 @@ public:
     , lastDocId_(0), allTermCount_(0), docCount_(0)
     , scorer_(NULL)
     {
-        boost::filesystem::create_directories(dir_);
-        pTermListWriter_ = new TermListWriter(dir_+"/pInputItemWriter");
-        pTermListWriter_->open();
-        pHashWriter_ = new HashWriter(dir_+"/pHashItemWriter");
-        pHashWriter_->open();
+        init_();
+    }
+    
+    ~Algorithm1()
+    {
+        release_();
+        if( scorer_ != NULL)
+        {
+            delete scorer_;
+            scorer_ = NULL;
+        }
     }
     
     void tune(uint8_t maxLen)
@@ -72,7 +78,7 @@ public:
     void insert(const std::vector<string_type>& termList, const std::vector<pos_type>& posInfoList, const std::vector<uint32_t>& positionList, uint32_t docId = 1)
     {
         if( termList.size() == 0 ) return;
-        std::vector<string_type> idList(termList.size());
+        std::vector<id_type> idList(termList.size());
         for(uint32_t i=0;i<termList.size();i++)
         {
             bool b = idManager_->getTermIdByTermString(termList[i], posInfoList[i], idList[i] );
@@ -458,6 +464,12 @@ public:
                 }
             }
         }
+        //do clean
+        {
+            scorer_->flush();
+            release_();
+            init_();
+        }
     }
     
     uint32_t getDocCount()
@@ -466,6 +478,30 @@ public:
     }
     
 private:
+    
+    void init_()
+    {
+        boost::filesystem::create_directories(dir_);
+        pTermListWriter_ = new TermListWriter(dir_+"/pInputItemWriter");
+        pTermListWriter_->open();
+        pHashWriter_ = new HashWriter(dir_+"/pHashItemWriter");
+        pHashWriter_->open();
+    }
+    
+    void release_()
+    {
+        if( pTermListWriter_!= NULL)
+        {
+            delete pTermListWriter_;
+            pTermListWriter_ = NULL;
+        }
+        if( pHashWriter_!= NULL)
+        {
+            delete pHashWriter_;
+            pHashWriter_ = NULL;
+        }
+        boost::filesystem::remove_all(dir_);
+    }
     
     
     bool addTerms_(uint32_t docId, const std::vector<string_type>& termList, const std::vector<uint32_t>& idList, const std::vector<pos_type>& posList, const std::vector<uint32_t>& positionList, uint32_t& iBegin)
@@ -515,7 +551,7 @@ private:
             bLastTerm = !splitVec.back().first;
             
         }
-        std::vector<termid_t> terms( splitVec.size() );
+        std::vector<uint32_t> terms( splitVec.size() );
         for(uint32_t p=_begin;p<_begin+splitVec.size();p++)
         {
             uint32_t _index = p-_begin;
@@ -532,7 +568,7 @@ private:
     }
     
     
-    void addTerms_(uint32_t docId, const std::vector<termid_t>& termList, bool bFirstTerm = true, bool bLastTerm = true)
+    void addTerms_(uint32_t docId, const std::vector<uint32_t>& termList, bool bFirstTerm = true, bool bLastTerm = true)
     {
         
         if( termList.size() == 0 ) return;
@@ -572,7 +608,7 @@ private:
         for(uint32_t i=start; i<end; i++)
         {
             uint32_t len = std::min(end-i,(uint32_t)(maxLen_+1));
-            std::vector<termid_t> frag( termList.begin()+i, termList.begin()+i+len );
+            std::vector<uint32_t> frag( termList.begin()+i, termList.begin()+i+len );
             frag.push_back(0);
             frag.push_back(docId);
             if( i!= 0 )
@@ -586,7 +622,7 @@ private:
             for(uint32_t j= i+1; j<= end; j++)
             {
                 if( j-i >= maxLen_ ) continue;
-                std::vector<termid_t> ifrag( termList.begin()+i, termList.begin()+j );
+                std::vector<uint32_t> ifrag( termList.begin()+i, termList.begin()+j );
                 pHashWriter_->append(hash_(ifrag));
             }
             
@@ -621,12 +657,12 @@ private:
         return allTermCount_;
     }
     
-    inline hash_t hash_(const std::vector<termid_t>& termIdList)
+    inline hash_t hash_(const std::vector<uint32_t>& termIdList)
     {
-        return izenelib::util::HashFunction<std::vector<termid_t> >::generateHash64BySer(termIdList);
+        return izenelib::util::HashFunction<std::vector<uint32_t> >::generateHash64BySer(termIdList);
     }
     
-    inline const bool AstartWithB(const std::vector<termid_t>& termIdList1, const std::vector<termid_t>& termIdList2)
+    inline const bool AstartWithB(const std::vector<uint32_t>& termIdList1, const std::vector<uint32_t>& termIdList2)
     {
         if(termIdList1.size()<termIdList2.size()) return false;
         for(uint32_t i=0;i<termIdList2.size();i++)
@@ -636,7 +672,7 @@ private:
         return true;
     }
     
-    bool makeKPStr_(const std::vector<termid_t>& termIdList,
+    bool makeKPStr_(const std::vector<uint32_t>& termIdList,
         std::vector<wiselib::UString>& strList,
         wiselib::UString& result)
     {
@@ -647,7 +683,7 @@ private:
         return true;
     }
     
-    bool makeKPStr_(const std::vector<termid_t>& termIdList, std::vector<wiselib::UString>& strList)
+    bool makeKPStr_(const std::vector<uint32_t>& termIdList, std::vector<wiselib::UString>& strList)
     {
         if ( termIdList.empty() ) return false;//if empty
         strList.resize(termIdList.size());
@@ -708,7 +744,7 @@ private:
         return (uint8_t)(ceil(score)+1);
     }
 
-    void insertKP_(const std::vector<termid_t>& terms, const std::vector<docid_t>& docIdList, 
+    void insertKP_(const std::vector<uint32_t>& terms, const std::vector<uint32_t>& docIdList, 
                         const std::vector<uint32_t>& tfInDocList,  uint8_t score)
     {
         assert(docIdList.size()==tfInDocList.size());

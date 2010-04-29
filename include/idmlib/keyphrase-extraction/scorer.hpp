@@ -26,7 +26,7 @@
 #include "../util/StopWordContainer.hpp"
 #include "../util/Util.hpp"
 #include "TermGroup.hpp"
-
+#include "../idm_types.h"
 NS_IDMLIB_KPE_BEGIN
 
 class NullIDManager : public boost::noncopyable
@@ -83,7 +83,7 @@ class NullTermGroup : public boost::noncopyable
 
         }
         
-        void filter(const std::vector<termid_t>& contextTermIdList, const std::vector<uint32_t>& contextCountList,
+        void filter(const std::vector<uint32_t>& contextTermIdList, const std::vector<uint32_t>& contextCountList,
         std::vector<uint32_t>& resultCountList)
         {
         }
@@ -100,15 +100,15 @@ class ScorerContextItem
         {
         }
         
-        ScorerContextItem(const std::vector<termid_t>& termIdList, 
-        const std::vector<count_t>& contextCountList, 
+        ScorerContextItem(const std::vector<uint32_t>& termIdList, 
+        const std::vector<uint32_t>& contextCountList, 
         uint32_t f, bool isPrefix = true):
         termIdList_(termIdList),contextCountList_(contextCountList),weightList_(contextCountList.size(), 1.0)
         , f_(f),isPrefix_(isPrefix)
         {
         }
         
-        ScorerContextItem(const std::vector<termid_t>& termIdList, const std::vector<count_t>& contextCountList, 
+        ScorerContextItem(const std::vector<uint32_t>& termIdList, const std::vector<uint32_t>& contextCountList, 
         const std::vector<double>& weightList, 
         uint32_t f, bool isPrefix = true):
         termIdList_(termIdList),contextCountList_(contextCountList),weightList_(weightList), f_(f),isPrefix_(isPrefix)
@@ -159,8 +159,8 @@ class ScorerContextItem
         
         
     public:
-        std::vector<termid_t> termIdList_;
-        std::vector<count_t> contextCountList_;
+        std::vector<uint32_t> termIdList_;
+        std::vector<uint32_t> contextCountList_;
         std::vector<double> weightList_;
         uint32_t f_;
         bool isPrefix_;
@@ -174,7 +174,7 @@ class ScorerItem
         {
         }
         
-        ScorerItem(const std::vector<termid_t>& termIdList, 
+        ScorerItem(const std::vector<uint32_t>& termIdList, 
         uint32_t f):
         termIdList_(termIdList), f_(f)
         {
@@ -218,7 +218,7 @@ class ScorerItem
         }
         
     public:
-        std::vector<termid_t> termIdList_;
+        std::vector<uint32_t> termIdList_;
         uint32_t f_;
         
 };
@@ -235,7 +235,7 @@ public:
         }
         double cd(const SCI& item)
         {
-            count_t s = 0;
+            uint32_t s = 0;
             double r = 0;
             double sum = item.f_;
             std::vector<uint32_t> countList;
@@ -256,7 +256,7 @@ public:
         }
         double cd2(const SCI& item)
         {
-            count_t s = 0;
+            uint32_t s = 0;
             double r = 0;
             double sum = item.f_;
             std::vector<uint32_t> countList;
@@ -361,14 +361,14 @@ class LanguageScorer : public boost::noncopyable
             delete termGroup_;
         }
         
-        termid_t getArabicNumber() const
+        uint32_t getArabicNumber() const
         {
             return arabicNumber_;
         }
         
-        int prefixTest(const std::vector<termid_t>& termIdList) 
+        int prefixTest(const std::vector<uint32_t>& termIdList) 
         {
-            termid_t termId = termIdList.back();
+            uint32_t termId = termIdList.back();
             int result = KPStatus::CANDIDATE;
             if( termId == arabicNumber_ || termId == singleEnglishChar_ )
             {
@@ -380,8 +380,8 @@ class LanguageScorer : public boost::noncopyable
             }
             else
             {
-                termid_t b1 = termIdList[0];
-                termid_t b2 = termIdList[1];
+                uint32_t b1 = termIdList[0];
+                uint32_t b2 = termIdList[1];
                 uint64_t b1_b2 = idmlib::util::make64UInt(b1, b2);
                 boost::tuple<float, float, float, float>* v = bigramStat_.find(b1_b2);
                 if( v!= NULL )
@@ -425,7 +425,7 @@ class LanguageScorer : public boost::noncopyable
                 result.first = false;
             }
 
-            termid_t maxCountId = 0;
+            uint32_t maxCountId = 0;
             uint32_t maxCount = 0;
             for(uint32_t i=0;i<citem.termIdList_.size();i++)
             {
@@ -600,8 +600,8 @@ class LanguageScorer : public boost::noncopyable
         }
     private:
         IDManagerType* idManager_;
-        termid_t arabicNumber_;
-        termid_t singleEnglishChar_;
+        uint32_t arabicNumber_;
+        uint32_t singleEnglishChar_;
         izenelib::am::rde_hash<uint64_t, boost::tuple<float, float, float, float> > bigramStat_;
         izenelib::am::rde_hash<uint32_t, boost::tuple<float, float, float, float> > unigramStat_;
         TermGroupType* termGroup_;
@@ -618,8 +618,8 @@ class Scorer : public boost::noncopyable
         Scorer(IDManagerType* idManager)
         :idManager_(idManager), langScorer_(NULL), swContainer_(NULL),
         invalidChnBigram_(new izenelib::am::rde_hash<uint64_t, bool>()), 
-        nonAppearTerms_(new izenelib::am::rde_hash<termid_t, bool>()), 
-        midAppearTerms_(new izenelib::am::rde_hash<termid_t, bool>())
+        nonAppearTerms_(new izenelib::am::rde_hash<uint32_t, bool>()), 
+        midAppearTerms_(new izenelib::am::rde_hash<uint32_t, bool>())
         {
             
         }
@@ -657,7 +657,7 @@ class Scorer : public boost::noncopyable
                             boost::algorithm::to_lower<std::string> ( word );
                             if ( word.length() >0 )
                             {
-                                std::vector<termid_t> termIdList;
+                                std::vector<uint32_t> termIdList;
                                 idManager_->getAnalysisTermIdList(wiselib::UString(word,wiselib::UString::UTF_8), termIdList);
 
                                 if( termIdList.size() > 0 )
@@ -703,13 +703,13 @@ class Scorer : public boost::noncopyable
             ifs.close();
         }
         
-        int prefixTest(const std::vector<termid_t>& termIdList)
+        int prefixTest(const std::vector<uint32_t>& termIdList)
         {
             uint32_t termCount = termIdList.size();
             if( termCount == 0 ) return KPStatus::NON_KP;
             if(termCount == 1)
             {
-                termid_t termId = termIdList[0];
+                uint32_t termId = termIdList[0];
                 
                 //check if single korean noun
                 if( idManager_->isKP(termId) )
@@ -752,31 +752,31 @@ class Scorer : public boost::noncopyable
             return KPStatus::CANDIDATE;
         }
        
-        void insertNonAppearTerm( termid_t termId )
+        void insertNonAppearTerm( uint32_t termId )
         {
             if( nonAppearTerms_ == NULL )
             {
-                nonAppearTerms_ = new izenelib::am::rde_hash<termid_t, bool>();
+                nonAppearTerms_ = new izenelib::am::rde_hash<uint32_t, bool>();
             }
             nonAppearTerms_->insert(termId, 0);
         }
         
-        bool isNonAppearTerm( termid_t termId)
+        bool isNonAppearTerm( uint32_t termId)
         {
             if( nonAppearTerms_ == NULL ) return false;
             return (nonAppearTerms_->find(termId)!=NULL);
         }
         
-        void insertMidAppearTerm( termid_t termId )
+        void insertMidAppearTerm( uint32_t termId )
         {
             if( midAppearTerms_ == NULL )
             {
-                midAppearTerms_ = new izenelib::am::rde_hash<termid_t, bool>();
+                midAppearTerms_ = new izenelib::am::rde_hash<uint32_t, bool>();
             }
             midAppearTerms_->insert(termId, 0);
         }
         
-        bool isMidAppearTerm( termid_t termId)
+        bool isMidAppearTerm( uint32_t termId)
         {
             if( midAppearTerms_ == NULL ) return false;
             return (midAppearTerms_->find(termId)!=NULL);
@@ -784,7 +784,7 @@ class Scorer : public boost::noncopyable
         
         bool isSplitTerm(const wiselib::UString& ustr, char tag, uint32_t termId, uint32_t& insertTermId)
         {
-            termid_t indicateId = termId;
+            uint32_t indicateId = termId;
             insertTermId = termId;
             bool result = false;
 
@@ -872,8 +872,8 @@ class Scorer : public boost::noncopyable
         LanguageScorerType* langScorer_;
         idmlib::util::StopWordContainer* swContainer_;
         izenelib::am::rde_hash<uint64_t, bool>* invalidChnBigram_;
-        izenelib::am::rde_hash<termid_t, bool>* nonAppearTerms_;//never occur in label
-        izenelib::am::rde_hash<termid_t, bool>* midAppearTerms_;//can occur in the middle of labels
+        izenelib::am::rde_hash<uint32_t, bool>* nonAppearTerms_;//never occur in label
+        izenelib::am::rde_hash<uint32_t, bool>* midAppearTerms_;//can occur in the middle of labels
         
 };
 

@@ -18,39 +18,39 @@ NS_IDMLIB_UTIL_BEGIN
 class StopWordContainer
 {
     public:
-        typedef MemoryTrie<std::vector<termid_t>, uint32_t, uint32_t, false, true> DBType;
+        typedef MemoryTrie<std::vector<uint32_t>, uint32_t, uint32_t, false, true> DBType;
         
         StopWordContainer():db_(), stopWordId_(1)
         {
             
         }
        
-        void insert(const std::vector<termid_t>& termIdList)
+        void insert(const std::vector<uint32_t>& termIdList)
         {
             db_.insert(termIdList, stopWordId_);
             stopWordId_++;
         }
         
-        void insert(termid_t termId)
+        void insert(uint32_t termId)
         {
-            std::vector<termid_t> termIdList(1, termId);
+            std::vector<uint32_t> termIdList(1, termId);
             insert(termIdList);
         }
         
-        bool isStopWord(termid_t termId)
+        bool isStopWord(uint32_t termId)
         {
             uint32_t child = 0;
             std::pair<bool, bool> r = db_.isSuffix(termId, db_.getRootID(), child);
             return r.second;
         }
         
-        bool endWithStopWord(const std::vector<termid_t>& termIdList)
+        bool endWithStopWord(const std::vector<uint32_t>& termIdList)
         {
             if( termIdList.size() == 0 ) return false;
             if( termIdList.size() == 1 ) return isStopWord(termIdList[0]);
             uint32_t parent = db_.getRootID();
             uint32_t child = 0;
-            std::vector<termid_t>::const_reverse_iterator it = termIdList.rbegin();
+            std::vector<uint32_t>::const_reverse_iterator it = termIdList.rbegin();
             std::pair<bool, bool> r;
             while( it != termIdList.rend() )
             {
