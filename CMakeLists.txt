@@ -202,9 +202,18 @@ ${wiselib_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
 ${lalib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
-${xml2_INCLUDE_DIRS}
+${libxml2_INCLUDE_DIRS}
+${Glog_INCLUDE_DIRS}
 )
 
+SET(libs
+  ${wiselib_LIBRARIES}
+  ${izenelib_LIBRARIES}
+  ${lalib_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${Glog_LIBRARIES}
+  )
+  
 MESSAGE(STATUS "include path: ${include_directories}")
 
 # User can decide which to build using:
@@ -273,13 +282,12 @@ IF(VERBOSE)
     MESSAGE(STATUS "BZIP2: not found")
   ENDIF(BZIP2_FOUND)
   
-  IF(xml2_FOUND)
-    MESSAGE(STATUS "xml2:")
-    MESSAGE(STATUS "  header: ${xml2_INCLUDE_DIR}")
-    MESSAGE(STATUS "  libs: ${xml2_LIBRARIES}")
-  ELSE(xml2_FOUND)
-    MESSAGE(STATUS "xml2: not found")
-  ENDIF(xml2_FOUND)
+  IF(libxml2_FOUND)
+	MESSAGE(STATUS "LIBXML2:")
+    MESSAGE(STATUS " header: ${libxml2_INCLUDE_DIRS}")
+  ELSE(libxml2_FOUND)
+    MESSAGE(STATUS "LIBXML2: not found")
+  ENDIF(libxml2_FOUND)
 
   IF(ZLIB_FOUND)
     MESSAGE(STATUS "ZLIB:")

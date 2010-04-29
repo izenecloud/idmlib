@@ -20,7 +20,16 @@ FIND_PACKAGE(izenelib REQUIRED COMPONENTS
 FIND_PACKAGE(wiselib REQUIRED)
 FIND_PACKAGE(lalib REQUIRED)
 FIND_PACKAGE(imllib REQUIRED)
-FIND_PACKAGE(xml2 REQUIRED)
+# find libxml2
+SET(libxml2_FOUND FALSE)
+IF(IS_DIRECTORY "$ENV{LIBXML2}")
+	SET(libxml2_FOUND TRUE)
+	SET(libxml2_INCLUDE_DIRS "$ENV{LIBXML2}")
+ENDIF(IS_DIRECTORY "$ENV{LIBXML2}")
+
+IF(NOT libxml2_FOUND)
+	MESSAGE(FATAL_ERROR "cannot found libxml2, please set env variable LIBXML2 (e.g. -DLIBXML2=/usr/include/libxml2)")
+ENDIF(NOT libxml2_FOUND)
 
 ##################################################
 # Other Libraries
@@ -28,8 +37,8 @@ FIND_PACKAGE(xml2 REQUIRED)
 
 FIND_PACKAGE(Threads REQUIRED)
 
-SET(Boost_ADDITIONAL_VERSIONS 1.40 1.40.0 1.39 1.39.0 1.38 1.38.0 1.37 1.37.0)
-FIND_PACKAGE(Boost 1.38 REQUIRED
+SET(Boost_ADDITIONAL_VERSIONS 1.40 1.40.0 1.39 1.39.0 1.38 1.38.0 1.37 1.37.0 1.36 1.36.0)
+FIND_PACKAGE(Boost 1.36 REQUIRED
   COMPONENTS
   system
   program_options
