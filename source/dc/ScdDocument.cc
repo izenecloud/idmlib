@@ -30,7 +30,7 @@ void ScdDocument::setContent(const string& cont, bool process)
 	{
 
 		std::vector<UString> terms;
-		std::vector<int> termIds;
+		std::vector<ml::AttrID> termIds;
 		la::LA* laMgr = LaMgrFactory::getLaMgr();
 		la::TermList termList;
 		std::list<la::Term>::const_iterator it;
@@ -44,7 +44,7 @@ void ScdDocument::setContent(const string& cont, bool process)
 		IntIdMgr::getTermIdListByTermStringList(terms, termIds);
 
 
-		for (std::vector<int>::const_iterator it = termIds.begin();
+		for (std::vector<ml::AttrID>::const_iterator it = termIds.begin();
 				it != termIds.end(); ++it)
 		{
 			tfMap[*it]++;

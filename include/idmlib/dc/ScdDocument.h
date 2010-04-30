@@ -36,7 +36,7 @@ class ScdDocument : public ml::ClassificationData
 public:
 
 	// term frequency map
-	hash_map<int, int> tfMap;
+	hash_map<ml::AttrID, int> tfMap;
 
 	DocId id;
 	LangType lang;
