@@ -5,8 +5,8 @@
  *      Author: eric
  */
 
-#ifndef NAMEENTITYDICT_H_
-#define NAMEENTITYDICT_H_
+#ifndef DM_NAMEENTITYDICT_H_
+#define DM_NAMEENTITYDICT_H_
 
 #include <ext/hash_set>
 

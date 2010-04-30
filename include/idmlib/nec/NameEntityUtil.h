@@ -5,8 +5,8 @@
  *      Author: eric
  */
 
-#ifndef IDM_NAMEENTITYUTIL_H_
-#define IDM_NAMEENTITYUTIL_H_
+#ifndef DM_NAMEENTITYUTIL_H_
+#define DM_NAMEENTITYUTIL_H_
 
 #include <ml/ClassificationDataUtil.h>
 #include "util/Vectors.h"
@@ -49,13 +49,13 @@ namespace ml
 		std::vector<UString> f_cur_u_e;
 		std::vector<UString> f_all;
 
-		std::vector<int> id_cur_u_b;
-		std::vector<int> id_cur_u_a;
-		std::vector<int> id_cur_b_a;
-//		std::vector<unsigned int> id_cur_t_a;
-		std::vector<int> id_cur_b_e;
-		std::vector<int> id_cur_t_e;
-		std::vector<int> id_cur_u_e;
+		std::vector<ml::AttrID> id_cur_u_b;
+		std::vector<ml::AttrID> id_cur_u_a;
+		std::vector<ml::AttrID> id_cur_b_a;
+//		std::vector<ml::AttrID> id_cur_t_a;
+		std::vector<ml::AttrID> id_cur_b_e;
+		std::vector<ml::AttrID> id_cur_t_e;
+		std::vector<ml::AttrID> id_cur_u_e;
 
 
 		double w_cur_u_b = 6;
@@ -186,15 +186,15 @@ namespace ml
 		}
 
 		std::vector<UString> f_cur_loc;
-		std::vector<int> id_cur_loc;
+		std::vector<ml::AttrID> id_cur_loc;
 		double w_cur_loc = 4;
 
 		std::vector<UString> f_cur_loc2;
-		std::vector<int> id_cur_loc2;
+		std::vector<ml::AttrID> id_cur_loc2;
 		double w_cur_loc2 = 16;
 
 		std::vector<UString> f_cur_loc3;
-		std::vector<int> id_cur_loc3;
+		std::vector<ml::AttrID> id_cur_loc3;
 		double w_cur_loc3 = 32;
 
 
@@ -260,15 +260,15 @@ namespace ml
 
 	//
 		std::vector<UString> f_cur_org;
-		std::vector<int> id_cur_org;
+		std::vector<ml::AttrID> id_cur_org;
 		double w_cur_org = 4;
 
 		std::vector<UString> f_cur_org2;
-		std::vector<int> id_cur_org2;
+		std::vector<ml::AttrID> id_cur_org2;
 		double w_cur_org2 = 16;
 
 		std::vector<UString> f_cur_org3;
-		std::vector<int> id_cur_org3;
+		std::vector<ml::AttrID> id_cur_org3;
 		double w_cur_org3 = 32;
 
 		// whether is org suffix
@@ -328,15 +328,15 @@ namespace ml
 		}
 
 		std::vector<UString> f_cur_peop;
-		std::vector<int> id_cur_peop;
+		std::vector<ml::AttrID> id_cur_peop;
 		double w_cur_peop = 4;
 
 		std::vector<UString> f_cur_peop2;
-		std::vector<int> id_cur_peop2;
+		std::vector<ml::AttrID> id_cur_peop2;
 		double w_cur_peop2 = 16;
 
 		std::vector<UString> f_cur_peop3;
-		std::vector<int> id_cur_peop3;
+		std::vector<ml::AttrID> id_cur_peop3;
 		double w_cur_peop3 = 32;
 
 		// whether is org suffix
@@ -612,7 +612,7 @@ namespace ml
 	void ClassificationDataUtil<NameEntity>::transform(std::vector<NameEntity>& entities, ml::InstanceBag& instBag)
 	{
 		std::vector<UString> features;
-		std::vector<int> featureIds;
+		std::vector<ml::AttrID> featureIds;
 		std::vector<NameEntity>::const_iterator it;
 		ml::Schema schema;
 		for (it = entities.begin(); it != entities.end(); ++it)

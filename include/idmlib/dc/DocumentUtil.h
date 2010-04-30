@@ -4,7 +4,8 @@
  *  Created on: Mar 19, 2010
  *      Author: eric
  */
-
+#ifndef DM_DOCUMENT_UTIL_H_
+#define DM_DOCUMENT_UTIL_H_
 
 #include <ml/ClassificationDataUtil.h>
 #include "ScdDocument.h"
@@ -19,9 +20,10 @@ namespace ml
 	void ClassificationDataUtil<ScdDocument>::transform(ScdDocument& doc, ml::Schema& schema, ml::Instance& inst)
 	{
 		hash_map<ml::AttrID, ml::AttrValue>& attrMap = schema.getAttrMap();
-		hash_map<int, int>::const_iterator it;
+		hash_map<ml::AttrID, int>::const_iterator it;
 
-		int id, tf;
+		ml::AttrID id;
+		int tf;
 
 		for (it = doc.tfMap.begin(); it != doc.tfMap.end(); ++it)
 		{
@@ -54,10 +56,10 @@ namespace ml
 			ml::Instance inst;
 			std::vector<Label> labels = (*doc_it).tagLabels;
 
-			for (hash_map<int, int>::const_iterator it = (*doc_it).tfMap.begin();
+			for (hash_map<ml::AttrID, int>::const_iterator it = (*doc_it).tfMap.begin();
 					it != (*doc_it).tfMap.end(); ++it)
 			{
-				int term = it->first;
+				ml::AttrID term = it->first;
 				int freq = it->second;
 
 				if (dfMap.find(term) != dfMap.end())
@@ -103,7 +105,7 @@ namespace ml
 			SVector s = inst.x;
 			for (const SVector::Pair *p = s; p->i >= 0; p++)
 			{
-				int id = p->i;
+				ml::AttrID id = p->i;
 				tf = p->v;
 				idf = schema.getAttr(id);
 				inst.x.set(id, tf*idf);
@@ -128,3 +130,5 @@ namespace ml
 	}
 
 }
+
+#endif

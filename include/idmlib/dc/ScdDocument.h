@@ -5,8 +5,8 @@
  *      Author: eric
  */
 
-#ifndef SCDDOCUMENT_H_
-#define SCDDOCUMENT_H_
+#ifndef DM_SCDDOCUMENT_H_
+#define DM_SCDDOCUMENT_H_
 
 #include <ml/ClassificationData.h>
 #include <vector>
@@ -36,7 +36,7 @@ class ScdDocument : public ml::ClassificationData
 public:
 
 	// term frequency map
-	hash_map<int, int> tfMap;
+	hash_map<ml::AttrID, int> tfMap;
 
 	DocId id;
 	LangType lang;

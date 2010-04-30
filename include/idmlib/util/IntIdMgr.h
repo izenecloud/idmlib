@@ -26,12 +26,12 @@ public:
 	/*!
 	 * \brief get a singleton IDManager
 	 */
-	static void getTermIdListByTermStringList(std::vector<UString>& terms, std::vector<int>& ids)
+	static void getTermIdListByTermStringList(std::vector<UString>& terms, std::vector<ml::AttrID>& ids)
 	{
-		std::vector<unsigned int> termIds;
+		std::vector<ml::AttrID> termIds;
 		IdManager* idMgr = IdMgrFactory::getIdManager();
 		idMgr->getTermIdListByTermStringList(terms, termIds);
-		for (std::vector<unsigned int>::iterator it = termIds.begin();
+		for (std::vector<ml::AttrID>::iterator it = termIds.begin();
 				it != termIds.end(); ++it)
 		{
 			ids.push_back((*it)/2+1);
