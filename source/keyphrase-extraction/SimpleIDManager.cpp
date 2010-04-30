@@ -64,11 +64,20 @@ void SimpleIDManager::getAnalysisTermIdList(const wiselib::UString& str, std::ve
     for( size_t i = 0; i < len; ++i )
     {
         wiselib::UString term = str.substr( i, 1 );
+        if( term.isPunctuationChar( 0 ) )
+            continue;
+        else if( term.isNumericChar( 0 ) )
+            posInfoList.push_back( 'N' );
+        else if( term.isSpaceChar( 0 ) )
+            continue;
+        else
+            posInfoList.push_back( pos );
+
         termList.push_back( term );
         uint32_t termId;
         getTermIdByTermString( term, termId );
         idList.push_back( termId );
-        posInfoList.push_back( pos );
+
         positionList.push_back( static_cast<uint32_t>( i ) );
     }
 }
