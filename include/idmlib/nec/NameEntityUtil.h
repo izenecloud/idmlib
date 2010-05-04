@@ -61,14 +61,14 @@ namespace ml
 		std::vector<ml::AttrID> id_cur_u_e;
 
 
-		double w_cur_u_b = 6;
+		double w_cur_u_b = 2;
 		double w_cur_b_b = 2;
 		double w_cur_u_a = 1;
 		double w_cur_b_a = 2;
 //		double w_cur_t_a = 2;
-		double w_cur_b_e = 8;
-		double w_cur_t_e = 8;
-		double w_cur_u_e = 4;
+		double w_cur_b_e = 4;
+		double w_cur_t_e = 4;
+		double w_cur_u_e = 2;
 
 		if (curLength >= 1)
 		{
@@ -431,13 +431,13 @@ namespace ml
 
 
 		// current sequence length
-		string length;
-		std::stringstream ss;
-		ss << curLength;
-		ss >> length;
-		UString cur_l(length, UString::UTF_8);
-		cur_l.append(utag_curl);
-		features.push_back(cur_l);
+//		string length;
+//		std::stringstream ss;
+//		ss << curLength;
+//		ss >> length;
+//		UString cur_l(length, UString::UTF_8);
+//		cur_l.append(utag_curl);
+//		features.push_back(cur_l);
 
 
 	//	size_t window = 3;

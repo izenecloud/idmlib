@@ -23,10 +23,17 @@ NameEntityManager::NameEntityManager(const std::string& path): path_(path)
 		std::string loc_suffix_path = res_path + "loc_s.txt";
 		std::string org_suffix_path = res_path + "org_s.txt";
 		std::string peop_suffix_path = res_path + "peop_s.txt";
+		std::string loc_list_path = res_path + "loc.txt";
+		std::string peop_list_path = res_path + "peop.txt";
+		std::string org_list_path = res_path + "org.txt";
 
 		NameEntityDict::loadLocSuffix(loc_suffix_path);
 		NameEntityDict::loadOrgSuffix(org_suffix_path);
 		NameEntityDict::loadPeopSuffix(peop_suffix_path);
+		NameEntityDict::loadLocList(loc_list_path);
+		NameEntityDict::loadOrgList(org_list_path);
+		NameEntityDict::loadPeopList(peop_list_path);
+
 
 		std::string model_path = path + "/model/";
 		ml::ClassifierType type = LR;
@@ -55,9 +62,28 @@ void NameEntityManager::loadModels()
 
 void NameEntityManager::predict(NameEntity& entity)
 {
+	//Now the labels in training and test are hard-coded.
+	// This needs to be make more configurable.
 	if (classifier_)
 	{
-		classifier_->predict(entity);
+		string strEntity;
+		//hard-coded encoding type, needs to be adjusted.
+		entity.cur.convertString(strEntity, wiselib::UString::UTF_8);
+//		std::cout<<"the entity: "<<strEntity<<std::endl;
+		if(NameEntityDict::isKownLoc(strEntity))
+		{
+			entity.predictLabels.push_back("LOC");
+		}
+		else if(NameEntityDict::isKownPeop(strEntity))
+		{
+			entity.predictLabels.push_back("PEOP");
+		}
+		else if(NameEntityDict::isKownOrg(strEntity))
+		{
+			entity.predictLabels.push_back("ORG");
+		}
+		else
+			classifier_->predict(entity);
 	}
 }
 
@@ -69,7 +95,7 @@ void NameEntityManager::predict(std::vector<NameEntity>& entities)
 		std::vector<NameEntity>::iterator it;
 		for (it = entities.begin(); it != entities.end(); ++it)
 		{
-			classifier_->predict(*it);
+			predict(*it);
 		}
 	}
 }

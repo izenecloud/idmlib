@@ -41,37 +41,30 @@ public:
 	static bool isPeopSuffix(std::string& str);
 	static bool isNamePrefix(std::string& str);
 
+	static bool isKownLoc( std::string& str);
+	static bool isKownPeop(std::string& str);
+	static bool isKownOrg(std::string& str);
 
-	static bool isU(std::string& str);
-	static bool isQ(std::string& str);
-	static bool isP(std::string& str);
-	static bool isX(std::string& str);
-	static bool isC(std::string& str);
-	static bool isD(std::string& str);
 
 	static void loadLocSuffix(std::string& path);
 	static void loadOrgSuffix(std::string& path);
 	static void loadPeopSuffix(std::string& path);
 	static void loadNamePrefix(std::string& path);
 
-	static void loadU(std::string& path);
-	static void loadQ(std::string& path);
-	static void loadP(std::string& path);
-	static void loadX(std::string& path);
-	static void loadC(std::string& path);
-	static void loadD(std::string& path);
+	static void loadLocList(std::string& path);
+	static void loadPeopList(std::string& path);
+	static void loadOrgList(std::string& path);
 
 
 	static hash_set<std::string> locSuffix;
 	static hash_set<std::string> orgSuffix;
 	static hash_set<std::string> peopSuffix;
 	static hash_set<std::string> namePrefix;
-	static hash_set<std::string> U;
-	static hash_set<std::string> Q;
-	static hash_set<std::string> P;
-	static hash_set<std::string> X;
-	static hash_set<std::string> C;
-	static hash_set<std::string> D;
+
+	static hash_set<std::string> locList_;
+	static hash_set<std::string> peopList_;
+	static hash_set<std::string> orgList_;
+
 
 private:
 	static void loadSuffix(std::string& path, hash_set<std::string>& suffixSet);
