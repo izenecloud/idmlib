@@ -30,8 +30,9 @@ namespace ml
 
 		// current character sequence
 		size_t curLength = cur.length();
-		UString cur_b, cur_e, cur_a, b_cur_a, b_cur_e, t_cur_a, t_cur_e;
+		UString cur_b, b_cur_b, cur_e, cur_a, b_cur_a, b_cur_e, t_cur_a, t_cur_e;
 		UString utag_curb("_UCB", UString::UTF_8); // the begin character of current character sequence
+		UString btag_curb("_BCB", UString::UTF_8); // the begin bigram of current character sequence
 		UString utag_cure("_UCE", UString::UTF_8); // the end character of current character sequence
 		UString utag_cura("_UCA", UString::UTF_8); // all characters of current character sequence
 		UString btag_cura("_BCA", UString::UTF_8); // all bigrams of current sequence
@@ -41,6 +42,7 @@ namespace ml
 		UString utag_curl("_UL", UString::UTF_8); // length
 
 		std::vector<UString> f_cur_u_b;
+		std::vector<UString> f_cur_b_b;
 		std::vector<UString> f_cur_u_a;
 		std::vector<UString> f_cur_b_a;
 //		std::vector<UString> f_cur_t_a;
@@ -50,6 +52,7 @@ namespace ml
 		std::vector<UString> f_all;
 
 		std::vector<ml::AttrID> id_cur_u_b;
+		std::vector<ml::AttrID> id_cur_b_b;
 		std::vector<ml::AttrID> id_cur_u_a;
 		std::vector<ml::AttrID> id_cur_b_a;
 //		std::vector<ml::AttrID> id_cur_t_a;
@@ -59,6 +62,7 @@ namespace ml
 
 
 		double w_cur_u_b = 6;
+		double w_cur_b_b = 2;
 		double w_cur_u_a = 1;
 		double w_cur_b_a = 2;
 //		double w_cur_t_a = 2;
@@ -118,6 +122,11 @@ namespace ml
 		if (curLength > 1)
 		{
 
+			cur.substr(b_cur_b, 0, 2);  // the first bigram of current sequence
+			b_cur_b.append(btag_curb);
+			f_cur_b_b.push_back(b_cur_b);
+			f_all.push_back(b_cur_b);
+
 			cur.substr(b_cur_e, curLength-2, 2);
 			b_cur_e.convertString(b_cur_e_str, UString::UTF_8);
 			b_cur_e.append(btag_cure);
@@ -125,6 +134,13 @@ namespace ml
 
 			f_cur_b_e.push_back(b_cur_e);  // the last bigram of current sequence
 			f_all.push_back(b_cur_e);
+
+			IntIdMgr::getTermIdListByTermStringList(f_cur_b_b, id_cur_b_b);
+			for (size_t i=0; i<id_cur_b_b.size(); ++i)
+			{
+				inst.x.set(id_cur_b_b[i], w_cur_b_b);
+				schema.setAttr(id_cur_b_b[i], 1);
+			}
 
 			IntIdMgr::getTermIdListByTermStringList(f_cur_b_e, id_cur_b_e);
 			for (size_t i=0; i<id_cur_b_e.size(); ++i)
@@ -414,14 +430,14 @@ namespace ml
 	//	}
 
 
-	//	// current sequence length
-	//	string length;
-	//	std::stringstream ss;
-	//	ss << curLength;
-	//	ss >> length;
-	//	UString cur_l(length, UString::UTF_8);
-	//	cur_l.append(utag_curl);
-	//	features.push_back(cur_l);
+		// current sequence length
+		string length;
+		std::stringstream ss;
+		ss << curLength;
+		ss >> length;
+		UString cur_l(length, UString::UTF_8);
+		cur_l.append(utag_curl);
+		features.push_back(cur_l);
 
 
 	//	size_t window = 3;
