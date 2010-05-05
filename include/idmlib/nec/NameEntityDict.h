@@ -41,9 +41,12 @@ public:
 	static bool isPeopSuffix(std::string& str);
 	static bool isNamePrefix(std::string& str);
 
+	static bool isKownNoise(std::string& path);
 	static bool isKownLoc( std::string& str);
 	static bool isKownPeop(std::string& str);
 	static bool isKownOrg(std::string& str);
+	static bool isKownOther(std::string& str);
+	static bool isNoun(std::string& str);
 
 
 	static void loadLocSuffix(std::string& path);
@@ -54,6 +57,9 @@ public:
 	static void loadLocList(std::string& path);
 	static void loadPeopList(std::string& path);
 	static void loadOrgList(std::string& path);
+	static void loadNoiseList(std::string& path);
+	static void loadOtherList(std::string& path);
+	static void loadNounList(std::string& path);
 
 
 	static hash_set<std::string> locSuffix;
@@ -64,6 +70,9 @@ public:
 	static hash_set<std::string> locList_;
 	static hash_set<std::string> peopList_;
 	static hash_set<std::string> orgList_;
+	static hash_set<std::string> noiseList_;
+	static hash_set<std::string> otherList_;
+	static hash_set<std::string> nounList_;
 
 
 private:

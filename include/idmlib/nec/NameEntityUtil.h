@@ -40,6 +40,8 @@ namespace ml
 		UString btag_cure("_BCE", UString::UTF_8); // the end bigram
 		UString ttag_cure("_TCE", UString::UTF_8); // the end trigram
 		UString utag_curl("_UL", UString::UTF_8); // length
+		UString btag_curn("_BN", UString::UTF_8); // has noise
+		UString btag_curo("_BO", UString::UTF_8); // has other bigram
 
 		std::vector<UString> f_cur_u_b;
 		std::vector<UString> f_cur_b_b;
@@ -49,6 +51,8 @@ namespace ml
 		std::vector<UString> f_cur_b_e;
 		std::vector<UString> f_cur_t_e;
 		std::vector<UString> f_cur_u_e;
+		std::vector<UString> f_cur_b_n;
+		std::vector<UString> f_cur_b_o;
 		std::vector<UString> f_cur_l;
 		std::vector<UString> f_all;
 
@@ -60,17 +64,22 @@ namespace ml
 		std::vector<ml::AttrID> id_cur_b_e;
 		std::vector<ml::AttrID> id_cur_t_e;
 		std::vector<ml::AttrID> id_cur_u_e;
+		std::vector<ml::AttrID> id_cur_b_n;
+		std::vector<ml::AttrID> id_cur_b_o;
 		std::vector<ml::AttrID> id_cur_l;
 
 
-		double w_cur_u_b = 2;
-		double w_cur_b_b = 2;
+		double w_cur_u_b = 4;
+		double w_cur_b_b = 4;
 		double w_cur_u_a = 1;
 		double w_cur_b_a = 2;
 //		double w_cur_t_a = 2;
-		double w_cur_b_e = 4;
-		double w_cur_t_e = 4;
-		double w_cur_u_e = 2;
+		double w_cur_b_e = 5;
+		double w_cur_t_e = 8;
+		double w_cur_u_e = 4;
+		double w_cur_b_n = 0.5;
+		double w_cur_b_o = 2;
+//		double w_cur_l =0.4;
 
 		if (curLength >= 1)
 		{
@@ -151,13 +160,31 @@ namespace ml
 				schema.setAttr(id_cur_b_e[i], 1);
 			}
 
+			bool hasNoiseBigram=false;
+			bool hasOtherBigram=false;
 			for (size_t i=0; i<curLength-1; ++i)
 			{
 				cur.substr(b_cur_a, i, 2);
+				std::string strBigram;
+				b_cur_a.convertString(strBigram, wiselib::UString::UTF_8);
 				b_cur_a.append(btag_cura);
 				f_cur_b_a.push_back(b_cur_a);  // bigram of current sequence
 				f_all.push_back(b_cur_a);
+				if(NameEntityDict::isKownNoise(strBigram))
+					hasNoiseBigram=true;
+				else if(NameEntityDict::isNoun(strBigram))
+					hasOtherBigram=true;
+			}
+			if(hasNoiseBigram)
+			{
+				f_cur_b_n.push_back(btag_curn);
+				f_all.push_back(btag_curn);
+			}
 
+			if(hasOtherBigram)
+			{
+				f_cur_b_o.push_back(btag_curo);
+				f_all.push_back(btag_curo);
 			}
 
 			IntIdMgr::getTermIdListByTermStringList(f_cur_b_a, id_cur_b_a);
@@ -167,6 +194,24 @@ namespace ml
 				inst.x.set(id_cur_b_a[i], w_cur_b_a);
 				schema.setAttr(id_cur_b_a[i], 1);
 			}
+
+			IntIdMgr::getTermIdListByTermStringList(f_cur_b_n, id_cur_b_n);
+
+			for (size_t i=0; i<id_cur_b_n.size(); ++i)
+			{
+				inst.x.set(id_cur_b_n[i], w_cur_b_n);
+				schema.setAttr(id_cur_b_n[i], 1);
+			}
+
+			IntIdMgr::getTermIdListByTermStringList(f_cur_b_o, id_cur_b_o);
+
+			for (size_t i=0; i<id_cur_b_o.size(); ++i)
+			{
+				inst.x.set(id_cur_b_o[i], w_cur_b_o);
+				schema.setAttr(id_cur_b_o[i], 1);
+			}
+
+
 		}
 
 		if (curLength > 2)
@@ -205,15 +250,15 @@ namespace ml
 
 		std::vector<UString> f_cur_loc;
 		std::vector<ml::AttrID> id_cur_loc;
-		double w_cur_loc = 4;
+		double w_cur_loc = 5;
 
 		std::vector<UString> f_cur_loc2;
 		std::vector<ml::AttrID> id_cur_loc2;
-		double w_cur_loc2 = 16;
+		double w_cur_loc2 = 12;
 
 		std::vector<UString> f_cur_loc3;
 		std::vector<ml::AttrID> id_cur_loc3;
-		double w_cur_loc3 = 32;
+		double w_cur_loc3 = 12;
 
 
 		// whether is locaction suffix
@@ -279,15 +324,15 @@ namespace ml
 	//
 		std::vector<UString> f_cur_org;
 		std::vector<ml::AttrID> id_cur_org;
-		double w_cur_org = 4;
+		double w_cur_org = 6;
 
 		std::vector<UString> f_cur_org2;
 		std::vector<ml::AttrID> id_cur_org2;
-		double w_cur_org2 = 16;
+		double w_cur_org2 = 12;
 
 		std::vector<UString> f_cur_org3;
 		std::vector<ml::AttrID> id_cur_org3;
-		double w_cur_org3 = 32;
+		double w_cur_org3 = 12;
 
 		// whether is org suffix
 		UString utag_cure_org("_UCEO", UString::UTF_8);
@@ -351,11 +396,11 @@ namespace ml
 
 		std::vector<UString> f_cur_peop2;
 		std::vector<ml::AttrID> id_cur_peop2;
-		double w_cur_peop2 = 16;
+		double w_cur_peop2 = 8;
 
 		std::vector<UString> f_cur_peop3;
 		std::vector<ml::AttrID> id_cur_peop3;
-		double w_cur_peop3 = 32;
+		double w_cur_peop3 = 8;
 
 		// whether is org suffix
 		UString utag_cure_peop("_UCEP", UString::UTF_8);
@@ -414,52 +459,63 @@ namespace ml
 			}
 
 		}
-	//
-	//	// whether is name prefix
-	//	UString utag_curb_name("_UCBN", UString::UTF_8);
-	//	if (curLength >= 1)
-	//	{
-	//		UString cur_b;
-	//		cur.substr(cur_b, 0, 1);
-	//		string name;
-	//		cur_b.convertString(name, UString::UTF_8);
-	//		if(NameEntityDict::isNamePrefix(name))
-	//		{
-	////			cur_b.append(utag_curb_name);
-	////			features.push_back(cur_b);
-	//			features.push_back(utag_curb_name);
-	//		}
-	//	}
 
 
-		UString lenStr;
-		// current sequence length
-		if (curLength == 2)
+	// whether is name prefix
+		std::vector<UString> f_cur_surname;
+		std::vector<ml::AttrID> id_cur_surname;
+		double w_cur_surname = 6;
+		UString utag_curb_name("_UCBN", UString::UTF_8);
+		if (curLength == 3||curLength ==2)
 		{
-			UString ustr("2", UString::UTF_8);
-			lenStr = ustr;
-		} else if (curLength == 3)
-		{
-			UString ustr("3", UString::UTF_8);
-			lenStr = ustr;
-		} else
-		{
-			UString ustr("L", UString::UTF_8);
-			lenStr = ustr;
+			UString cur_b;
+			cur.substr(cur_b, 0, 1);
+			string name;
+			cur_b.convertString(name, UString::UTF_8);
+			if(NameEntityDict::isNamePrefix(name))
+			{
+				f_cur_surname.push_back(utag_curb_name);
+				f_all.push_back(utag_curb_name);
+			}
 		}
 
-		cur_l.append(lenStr);
-		cur_l.append(utag_curl);
-		f_cur_l.push_back(cur_l);
-		f_all.push_back(cur_l);
+		IntIdMgr::getTermIdListByTermStringList(f_cur_surname, id_cur_surname);
 
-		IntIdMgr::getTermIdListByTermStringList(f_cur_l, id_cur_l);
-
-		for (size_t i =0; i<id_cur_l.size(); ++i)
+		for (size_t i=0; i<id_cur_surname.size(); ++i)
 		{
-			inst.x.set(id_cur_l[i], w_cur_l);
-			schema.setAttr(id_cur_l[i], 1);
+			inst.x.set(id_cur_surname[i], w_cur_surname);
+			schema.setAttr(id_cur_surname[i], 1);
 		}
+
+
+//		UString lenStr;
+//		// current sequence length
+//		if (curLength == 2)
+//		{
+//			UString ustr("2", UString::UTF_8);
+//			lenStr = ustr;
+//		} else  if (curLength == 3)
+//		{
+//			UString ustr("3", UString::UTF_8);
+//			lenStr = ustr;
+//		} else
+//		{
+//			UString ustr("L", UString::UTF_8);
+//			lenStr = ustr;
+//		}
+//
+//		cur_l.append(lenStr);
+//		cur_l.append(utag_curl);
+//		f_cur_l.push_back(cur_l);
+//		f_all.push_back(cur_l);
+//
+//		IntIdMgr::getTermIdListByTermStringList(f_cur_l, id_cur_l);
+//
+//		for (size_t i =0; i<id_cur_l.size(); ++i)
+//		{
+//			inst.x.set(id_cur_l[i], w_cur_l);
+//			schema.setAttr(id_cur_l[i], 1);
+//		}
 
 
 	//	size_t window = 3;

@@ -20,6 +20,9 @@ hash_set<std::string> NameEntityDict::namePrefix;
 hash_set<std::string> NameEntityDict::locList_;
 hash_set<std::string> NameEntityDict::orgList_;
 hash_set<std::string> NameEntityDict::peopList_;
+hash_set<std::string> NameEntityDict::noiseList_;
+hash_set<std::string> NameEntityDict::otherList_;
+hash_set<std::string> NameEntityDict::nounList_;
 
 void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffixSet)
 {
@@ -79,6 +82,21 @@ void NameEntityDict::loadOrgList( std::string& path)
 	loadSuffix(path, orgList_);
 }
 
+void NameEntityDict::loadNoiseList( std::string& path)
+{
+	loadSuffix(path, noiseList_);
+}
+
+void NameEntityDict::loadOtherList( std::string& path)
+{
+	loadSuffix(path, otherList_);
+}
+
+void NameEntityDict::loadNounList( std::string& path)
+{
+	loadSuffix(path, nounList_);
+}
+
 bool NameEntityDict::isLocSuffix(std::string& str)
 {
 	return locSuffix.find(str) != locSuffix.end();
@@ -114,4 +132,18 @@ bool NameEntityDict::isKownOrg( std::string& str)
 	return orgList_.find(str) != orgList_.end();
 }
 
+bool NameEntityDict::isKownNoise( std::string& str)
+{
+	return noiseList_.find(str) != noiseList_.end();
+}
+
+bool NameEntityDict::isKownOther( std::string& str)
+{
+	return otherList_.find(str) != otherList_.end();
+}
+
+bool NameEntityDict::isNoun( std::string& str)
+{
+	return nounList_.find(str) != nounList_.end();
+}
 }
