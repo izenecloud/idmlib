@@ -71,6 +71,7 @@ namespace ml
 		double w_cur_b_e = 4;
 		double w_cur_t_e = 4;
 		double w_cur_u_e = 2;
+		double w_cur_l = 1;
 
 		if (curLength >= 1)
 		{
@@ -432,34 +433,34 @@ namespace ml
 	//	}
 
 
-		UString lenStr;
-		// current sequence length
-		if (curLength == 2)
-		{
-			UString ustr("2", UString::UTF_8);
-			lenStr = ustr;
-		} else if (curLength == 3)
-		{
-			UString ustr("3", UString::UTF_8);
-			lenStr = ustr;
-		} else
-		{
-			UString ustr("L", UString::UTF_8);
-			lenStr = ustr;
-		}
-
-		cur_l.append(lenStr);
-		cur_l.append(utag_curl);
-		f_cur_l.push_back(cur_l);
-		f_all.push_back(cur_l);
-
-		IntIdMgr::getTermIdListByTermStringList(f_cur_l, id_cur_l);
-
-		for (size_t i =0; i<id_cur_l.size(); ++i)
-		{
-			inst.x.set(id_cur_l[i], w_cur_l);
-			schema.setAttr(id_cur_l[i], 1);
-		}
+//		UString lenStr;
+//		// current sequence length
+//		if (curLength == 2)
+//		{
+//			UString ustr("2", UString::UTF_8);
+//			lenStr = ustr;
+//		} else if (curLength == 3)
+//		{
+//			UString ustr("3", UString::UTF_8);
+//			lenStr = ustr;
+//		} else
+//		{
+//			UString ustr("L", UString::UTF_8);
+//			lenStr = ustr;
+//		}
+//
+//		cur_l.append(lenStr);
+//		cur_l.append(utag_curl);
+//		f_cur_l.push_back(cur_l);
+//		f_all.push_back(cur_l);
+//
+//		IntIdMgr::getTermIdListByTermStringList(f_cur_l, id_cur_l);
+//
+//		for (size_t i =0; i<id_cur_l.size(); ++i)
+//		{
+//			inst.x.set(id_cur_l[i], w_cur_l);
+//			schema.setAttr(id_cur_l[i], 1);
+//		}
 
 
 	//	size_t window = 3;
