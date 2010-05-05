@@ -460,7 +460,6 @@ namespace ml
 
 		}
 
-
 	// whether is name prefix
 		std::vector<UString> f_cur_surname;
 		std::vector<ml::AttrID> id_cur_surname;
@@ -486,6 +485,7 @@ namespace ml
 			inst.x.set(id_cur_surname[i], w_cur_surname);
 			schema.setAttr(id_cur_surname[i], 1);
 		}
+
 
 
 //		UString lenStr;
