@@ -69,16 +69,16 @@ namespace ml
 		std::vector<ml::AttrID> id_cur_l;
 
 
-		double w_cur_u_b = 4;
+		double w_cur_u_b = 3;
 		double w_cur_b_b = 4;
-		double w_cur_u_a = 1;
+		double w_cur_u_a = 2;
 		double w_cur_b_a = 2;
 //		double w_cur_t_a = 2;
-		double w_cur_b_e = 5;
-		double w_cur_t_e = 8;
-		double w_cur_u_e = 4;
+		double w_cur_b_e = 16;
+		double w_cur_t_e = 16;
+		double w_cur_u_e = 8;
 		double w_cur_b_n = 0.5;
-		double w_cur_b_o = 2;
+		double w_cur_b_o = 1.5;
 //		double w_cur_l =0.4;
 
 		if (curLength >= 1)
@@ -250,7 +250,7 @@ namespace ml
 
 		std::vector<UString> f_cur_loc;
 		std::vector<ml::AttrID> id_cur_loc;
-		double w_cur_loc = 5;
+		double w_cur_loc = 10;
 
 		std::vector<UString> f_cur_loc2;
 		std::vector<ml::AttrID> id_cur_loc2;
@@ -324,7 +324,7 @@ namespace ml
 	//
 		std::vector<UString> f_cur_org;
 		std::vector<ml::AttrID> id_cur_org;
-		double w_cur_org = 6;
+		double w_cur_org = 10;
 
 		std::vector<UString> f_cur_org2;
 		std::vector<ml::AttrID> id_cur_org2;
@@ -396,11 +396,11 @@ namespace ml
 
 		std::vector<UString> f_cur_peop2;
 		std::vector<ml::AttrID> id_cur_peop2;
-		double w_cur_peop2 = 8;
+		double w_cur_peop2 = 12;
 
 		std::vector<UString> f_cur_peop3;
 		std::vector<ml::AttrID> id_cur_peop3;
-		double w_cur_peop3 = 8;
+		double w_cur_peop3 = 12;
 
 		// whether is org suffix
 		UString utag_cure_peop("_UCEP", UString::UTF_8);
