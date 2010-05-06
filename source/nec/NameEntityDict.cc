@@ -17,14 +17,12 @@ hash_set<std::string> NameEntityDict::locSuffix;
 hash_set<std::string> NameEntityDict::orgSuffix;
 hash_set<std::string> NameEntityDict::peopSuffix;
 hash_set<std::string> NameEntityDict::namePrefix;
-
-hash_set<std::string> NameEntityDict::U;
-hash_set<std::string> NameEntityDict::Q;
-hash_set<std::string> NameEntityDict::P;
-hash_set<std::string> NameEntityDict::X;
-hash_set<std::string> NameEntityDict::C;
-hash_set<std::string> NameEntityDict::D;
-
+hash_set<std::string> NameEntityDict::locList_;
+hash_set<std::string> NameEntityDict::orgList_;
+hash_set<std::string> NameEntityDict::peopList_;
+hash_set<std::string> NameEntityDict::noiseList_;
+hash_set<std::string> NameEntityDict::otherList_;
+hash_set<std::string> NameEntityDict::nounList_;
 
 void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffixSet)
 {
@@ -47,40 +45,6 @@ void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffix
 		}
 }
 
-void NameEntityDict::loadU(std::string& path)
-{
-	loadSuffix(path, U);
-}
-
-void NameEntityDict::loadQ(std::string& path)
-{
-	loadSuffix(path, Q);
-}
-
-void NameEntityDict::loadP(std::string& path)
-{
-	loadSuffix(path, P);
-}
-
-
-void NameEntityDict::loadX(std::string& path)
-{
-	loadSuffix(path, X);
-}
-
-void NameEntityDict::loadC(std::string& path)
-{
-	loadSuffix(path, C);
-
-}
-
-
-void NameEntityDict::loadD(std::string& path)
-{
-
-	loadSuffix(path, D);
-
-}
 void NameEntityDict::loadLocSuffix(std::string& path)
 {
 	loadSuffix(path, locSuffix);
@@ -103,6 +67,36 @@ void NameEntityDict::loadNamePrefix(std::string& path)
 	loadSuffix(path, namePrefix);
 }
 
+void NameEntityDict::loadLocList(std::string& path)
+{
+	loadSuffix(path, locList_);
+}
+
+void NameEntityDict::loadPeopList( std::string& path)
+{
+	loadSuffix(path, peopList_);
+}
+
+void NameEntityDict::loadOrgList( std::string& path)
+{
+	loadSuffix(path, orgList_);
+}
+
+void NameEntityDict::loadNoiseList( std::string& path)
+{
+	loadSuffix(path, noiseList_);
+}
+
+void NameEntityDict::loadOtherList( std::string& path)
+{
+	loadSuffix(path, otherList_);
+}
+
+void NameEntityDict::loadNounList( std::string& path)
+{
+	loadSuffix(path, nounList_);
+}
+
 bool NameEntityDict::isLocSuffix(std::string& str)
 {
 	return locSuffix.find(str) != locSuffix.end();
@@ -123,39 +117,33 @@ bool NameEntityDict::isNamePrefix(std::string& str)
 	return namePrefix.find(str) != namePrefix.end();
 }
 
-bool NameEntityDict::isU(std::string& str)
+bool NameEntityDict::isKownLoc(std::string& str)
 {
-	return U.find(str) != U.end();
+	return locList_.find(str) != locList_.end();
 }
 
-bool NameEntityDict::isQ(std::string& str)
+bool NameEntityDict::isKownPeop(std::string& str)
 {
-	return Q.find(str) != Q.end();
+	return peopList_.find(str) != peopList_.end();
 }
 
-bool NameEntityDict::isP(std::string& str)
+bool NameEntityDict::isKownOrg( std::string& str)
 {
-	return P.find(str) != P.end();
+	return orgList_.find(str) != orgList_.end();
 }
 
-
-bool NameEntityDict::isX(std::string& str)
+bool NameEntityDict::isKownNoise( std::string& str)
 {
-	return X.find(str) != X.end();
+	return noiseList_.find(str) != noiseList_.end();
 }
 
-bool NameEntityDict::isC(std::string& str)
+bool NameEntityDict::isKownOther( std::string& str)
 {
-	return C.find(str) != C.end();
+	return otherList_.find(str) != otherList_.end();
 }
 
-bool NameEntityDict::isD(std::string& str)
+bool NameEntityDict::isNoun( std::string& str)
 {
-	return D.find(str) != D.end();
+	return nounList_.find(str) != nounList_.end();
 }
-
-
-
-
-
 }
