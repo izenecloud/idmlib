@@ -115,7 +115,7 @@ void NameEntityManager::personPostProcessing(NameEntity& entity)
 	{
 		if(entity.cur.length()==2)
 		{
-			if(NameEntityDict::isPeopSuffix(strEntity))
+			if(NameEntityDict::isPeopSuffix(strEntity)||NameEntityDict::isNoun(strEntity))
 			{
 				entity.predictLabels[0]="OTHER";
 			}
