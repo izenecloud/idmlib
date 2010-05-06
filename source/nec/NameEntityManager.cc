@@ -102,11 +102,11 @@ void NameEntityManager::predict(NameEntity& entity)
 		{
 			classifier_->predict(entity);
 		}
-		personPostProcessing(entity);
+		postProcessing(entity);
 	}
 }
 
-void NameEntityManager::personPostProcessing(NameEntity& entity)
+void NameEntityManager::postProcessing(NameEntity& entity)
 {
 	string strEntity;
 	//hard-coded encoding type, needs to be adjusted.
@@ -120,12 +120,41 @@ void NameEntityManager::personPostProcessing(NameEntity& entity)
 				entity.predictLabels[0]="OTHER";
 			}
 		}
-		else if(NameEntityDict::isNoun(strEntity))
+		if(NameEntityDict::isNoun(strEntity))
+		{
+			entity.predictLabels[0]="OTHER";
+		}
+	}
+	else if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="ORG")
+	{
+		if(entity.cur.length()==2)
+		{
+			if(NameEntityDict::isOrgSuffix(strEntity))
+			{
+				entity.predictLabels[0]="OTHER";
+			}
+		}
+		if(NameEntityDict::isNoun(strEntity))
+		{
+			entity.predictLabels[0]="OTHER";
+		}
+	}
+	else if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="LOC")
+	{
+		if(entity.cur.length()==2)
+		{
+			if(NameEntityDict::isOrgSuffix(strEntity))
+			{
+				entity.predictLabels[0]="OTHER";
+			}
+		}
+		if(NameEntityDict::isNoun(strEntity))
 		{
 			entity.predictLabels[0]="OTHER";
 		}
 	}
 }
+
 
 void NameEntityManager::predict(std::vector<NameEntity>& entities)
 {

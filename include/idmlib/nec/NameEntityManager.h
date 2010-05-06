@@ -24,7 +24,8 @@ public:
 	void train(std::vector<NameEntity>& entities);
 	void predict(NameEntity& entity);
 	void predict(std::vector<NameEntity>& entities);
-	void personPostProcessing(NameEntity& entity);
+	void postProcessing(NameEntity& entity);
+
 
 
 private:
