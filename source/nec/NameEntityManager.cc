@@ -101,8 +101,8 @@ void NameEntityManager::predict(NameEntity& entity)
 		else
 		{
 			classifier_->predict(entity);
-			personPostProcessing(entity);
 		}
+		personPostProcessing(entity);
 	}
 }
 
