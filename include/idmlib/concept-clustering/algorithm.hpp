@@ -62,7 +62,7 @@ public:
                       uint32_t totalDocCount, const Parameters& params, OutputType& output)
     {
         string_type emptyQuery;
-        doClustering(inputPairList, emptyQuery, params, output);
+        doClustering(inputPairList, emptyQuery,docIdList,totalDocCount, params, output);
     }
     
     void doClustering(input_type& inputPairList, const string_type& query, 
@@ -534,6 +534,7 @@ private:
         boost::shared_ptr<ClusterRep> cluster ( new ClusterRep() );
     //             cluster->termIdList_ = labels[label_id].termIdList_;
         cluster->name_ = concepts[index].name_;
+        cluster->conceptId_ = concepts[index].conceptId_;
         boost::dynamic_bitset<> tmpDocInvert = concepts[index].docInvert_;
         if ( parent->level_==0 ) //top level
         {

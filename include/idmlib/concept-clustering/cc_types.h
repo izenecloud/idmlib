@@ -94,19 +94,6 @@ class ClusterRep
     public:
         ClusterRep(){}
         
-        ClusterRep(const ClusterRep& rhs):termIdList_(rhs.termIdList_), name_(rhs.name_), docInvert_(rhs.docInvert_), docContain_(rhs.docContain_), children_(rhs.children_)
-        {
-        }
-        
-        ClusterRep& operator=(const ClusterRep& rhs)
-        {
-            termIdList_ = rhs.termIdList_;
-            name_ = rhs.name_;
-            docInvert_ = rhs.docInvert_;
-            docContain_ = rhs.docContain_;
-            children_ = rhs.children_;
-            return *this;
-        }
         
         /// @brief To set whose doc id list that this taxonomy node has.
         /// 
@@ -148,6 +135,7 @@ class ClusterRep
         
     public:
         std::vector<uint32_t> termIdList_;
+        uint32_t conceptId_;
         wiselib::UString name_;
         boost::dynamic_bitset<> docInvert_;
         std::vector<uint32_t> docContain_;
