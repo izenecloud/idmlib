@@ -108,9 +108,22 @@ void NameEntityManager::predict(NameEntity& entity)
 
 void NameEntityManager::personPostProcessing(NameEntity& entity)
 {
+	string strEntity;
+	//hard-coded encoding type, needs to be adjusted.
+	entity.cur.convertString(strEntity, wiselib::UString::UTF_8);
 	if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="PEOP")
 	{
-
+		if(entity.cur.length()==2)
+		{
+			if(NameEntityDict::isPeopSuffix(strEntity))
+			{
+				entity.predictLabels[0]="OTHER";
+			}
+//			else if()
+//			{
+//
+//			}
+		}
 	}
 }
 
