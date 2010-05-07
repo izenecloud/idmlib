@@ -417,11 +417,15 @@ public:
                 std::vector<uint32_t> termIdList = boost::get<0>(hlItem);
                 
                 uint32_t f = boost::get<3>(hlItem);
+                idvec_t& leftTermIdList = hlItem.get<4>();
+                idvec_t& leftTermCountList = hlItem.get<5>();
+                idvec_t& rightTermIdList = hlItem.get<6>();
+                idvec_t& rightTermCountList = hlItem.get<7>();
                 if( termIdList.size()==1 )
                 {
                     std::vector<uint32_t> docIdList = boost::get<1>(hlItem);
                     std::vector<uint32_t> tfInDocList = boost::get<2>(hlItem);
-                    insertKP_( termIdList, docIdList, tfInDocList, getScore(f, termIdList.size(),0.0));
+                    insertKP_( termIdList, docIdList, tfInDocList, getScore(f, termIdList.size(),0.0) , leftTermIdList, leftTermCountList,rightTermIdList, rightTermCountList);
                 }
                 else if(termIdList.size()==2 )
                 {
@@ -439,7 +443,7 @@ public:
                     {
                         std::vector<uint32_t> docIdList = boost::get<1>(hlItem);
                         std::vector<uint32_t> tfInDocList = boost::get<2>(hlItem);
-                        insertKP_( termIdList, docIdList, tfInDocList, getScore(f, termIdList.size(),logL));
+                        insertKP_( termIdList, docIdList, tfInDocList, getScore(f, termIdList.size(),logL) , leftTermIdList, leftTermCountList,rightTermIdList, rightTermCountList);
                     }
                 }
                 else if(termIdList.size()>2)
@@ -459,7 +463,7 @@ public:
                     {
                         std::vector<uint32_t> docIdList = boost::get<1>(hlItem);
                         std::vector<uint32_t> tfInDocList = boost::get<2>(hlItem);
-                        insertKP_( termIdList, docIdList,  tfInDocList, getScore(f, termIdList.size(),logL));
+                        insertKP_( termIdList, docIdList,  tfInDocList, getScore(f, termIdList.size(),logL) , leftTermIdList, leftTermCountList,rightTermIdList, rightTermCountList);
                     }
                 }
             }
@@ -745,7 +749,9 @@ private:
     }
 
     void insertKP_(const std::vector<uint32_t>& terms, const std::vector<uint32_t>& docIdList, 
-                        const std::vector<uint32_t>& tfInDocList,  uint8_t score)
+                        const std::vector<uint32_t>& tfInDocList,  uint8_t score 
+                        ,const idvec_t& leftTermIdList,const idvec_t& leftTermCountList
+                        ,const idvec_t& rightTermIdList, const idvec_t& rightTermCountList)
     {
         assert(docIdList.size()==tfInDocList.size());
         std::vector<wiselib::UString> strList;
@@ -759,7 +765,7 @@ private:
                 toInsert[i].first = docIdList[i];
                 toInsert[i].second = tfInDocList[i];
             }
-            output_.output(KPStr, toInsert, toInsert.size(), score);
+            output_.output(KPStr, toInsert, toInsert.size(), score , leftTermIdList, leftTermCountList,rightTermIdList, rightTermCountList);
         }
     }
     
@@ -849,7 +855,7 @@ private:
                 }
                 if( status == KPStatus::KP )
                 {
-                    insertKP_( termIdList, docIdList, tfInDocList, f);
+                    insertKP_( termIdList, docIdList, tfInDocList, f, leftTermIdList, leftTermCountList, rightTermIdList, rightTermCountList );
                     continue;
                 }
                 std::pair<bool, double> lcdResult = scorer_->test(lri, leftLC);
@@ -876,7 +882,7 @@ private:
 //                         std::cout<<"{TEST-RCD} "<<rightLC.getString(idManager_)<<" ("<<rcdResult.second<<")"<<std::endl;
 //                     }
                 
-                CandidateItem htList(termIdList, docIdList, tfInDocList, f);
+                CandidateItem htList(termIdList, docIdList, tfInDocList, f, leftTermIdList, leftTermCountList,rightTermIdList, rightTermCountList );
                 hash_t hashId = hash_(termIdList);
                 htlWriter->append(hashId , htList );
                 if( termIdList.size() >= 2 )

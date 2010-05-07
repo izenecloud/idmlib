@@ -17,13 +17,20 @@
 
 NS_IDMLIB_KPE_BEGIN
 
-template <bool DF = true, bool DOC = true>
+template <bool DF = true, bool DOC = true, bool CONTEXT = true>
 class OutputType
 {
 typedef std::pair<uint32_t, uint32_t> id2count_t;
 public:
     typedef wiselib::UString string_type;
-    typedef boost::function<void (const string_type&, const std::vector<id2count_t>&, uint8_t) > function_type;
+    typedef boost::function<void 
+    (const string_type&
+    , const std::vector<id2count_t>&
+    , uint8_t
+    , const std::vector<uint32_t>& leftTermIdList
+    , const std::vector<uint32_t>& leftTermCountList
+    , const std::vector<uint32_t>& rightTermIdList
+    , const std::vector<uint32_t>& rightTermCountList) > function_type;
     enum {NEED_DF = true};
     enum {NEED_DOC = true};
     OutputType(function_type function)
@@ -31,16 +38,24 @@ public:
         function_ = function;
     }
     
-    void output(const string_type& str, const std::vector<id2count_t>& id2countList, uint32_t df, uint8_t score)
+    void output(
+    const string_type& str
+    , const std::vector<id2count_t>& id2countList
+    , uint32_t df
+    , uint8_t score
+    , const std::vector<uint32_t>& leftTermIdList
+    , const std::vector<uint32_t>& leftTermCountList
+    , const std::vector<uint32_t>& rightTermIdList
+    , const std::vector<uint32_t>& rightTermCountList)
     {
-        function_(str, id2countList, score);
+        function_(str, id2countList, score, leftTermIdList, leftTermCountList, rightTermIdList, rightTermCountList);
     }
 private:    
     function_type function_;
 };
 
 template <>
-class OutputType<false, false>
+class OutputType<false, false, false>
 {
 typedef std::pair<uint32_t, uint32_t> id2count_t;
 public:
@@ -53,7 +68,15 @@ public:
         function_ = function;
     }
     
-    void output(const string_type& str, const std::vector<id2count_t>& id2countList, uint32_t df, uint8_t score)
+    void output(
+    const string_type& str
+    , const std::vector<id2count_t>& id2countList
+    , uint32_t df
+    , uint8_t score
+    , const std::vector<uint32_t>& leftTermIdList
+    , const std::vector<uint32_t>& leftTermCountList
+    , const std::vector<uint32_t>& rightTermIdList
+    , const std::vector<uint32_t>& rightTermCountList)
     {
         function_(str, score);
     }
@@ -62,7 +85,7 @@ private:
 };
 
 template <>
-class OutputType<true, false> 
+class OutputType<true, false, false> 
 {
 typedef std::pair<uint32_t, uint32_t> id2count_t;
 public:
@@ -75,7 +98,15 @@ public:
         function_ = function;
     }
     
-    void output(const string_type& str, const std::vector<id2count_t>& id2countList, uint32_t df, uint8_t score)
+    void output(
+    const string_type& str
+    , const std::vector<id2count_t>& id2countList
+    , uint32_t df
+    , uint8_t score
+    , const std::vector<uint32_t>& leftTermIdList
+    , const std::vector<uint32_t>& leftTermCountList
+    , const std::vector<uint32_t>& rightTermIdList
+    , const std::vector<uint32_t>& rightTermCountList)
     {
         function_(str, df, score);
     }

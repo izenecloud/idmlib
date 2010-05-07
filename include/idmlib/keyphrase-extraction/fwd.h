@@ -19,7 +19,7 @@ template <class IDManagerType>
 class KPE_ALL : public Algorithm1< IDManagerType , OutputType<true, true> >
 {
 typedef Algorithm1< IDManagerType , OutputType<true, true> > BaseType;
-typedef OutputType<true, true> ThisOutputType;
+typedef OutputType<true, true, true> ThisOutputType;
 
 public:
 typedef ThisOutputType::function_type function_type;
@@ -33,7 +33,7 @@ template <class IDManagerType>
 class KPE_DF : public Algorithm1< IDManagerType , OutputType<true, false> >
 {
 typedef Algorithm1< IDManagerType , OutputType<true, false> > BaseType;
-typedef OutputType<true, false> ThisOutputType;
+typedef OutputType<true, false, false> ThisOutputType;
 public:
 typedef ThisOutputType::function_type function_type;
     KPE_DF(IDManagerType* idManager, function_type func, const std::string& working)
@@ -47,7 +47,7 @@ class KPE_NONE : public Algorithm1< IDManagerType , OutputType<false, false> >
 {
 typedef Algorithm1< IDManagerType , OutputType<false, false> > BaseType;
 
-typedef OutputType<false, false> ThisOutputType;
+typedef OutputType<false, false, false> ThisOutputType;
 public:
 typedef ThisOutputType::function_type function_type;
     KPE_NONE(IDManagerType* idManager, function_type func, const std::string& working)
