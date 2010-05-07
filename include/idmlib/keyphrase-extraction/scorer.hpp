@@ -157,6 +157,30 @@ class ScorerContextItem
             return result;
         }
         
+        template <class IDManager>
+        std::string getString2(IDManager* idManager) const
+        {
+            std::string direct = "R";
+            if( isPrefix_ ) direct = "L";
+            std::string result = "";
+            if( termIdList_.size() > 0 )
+            {
+                for(uint32_t i=0;i<termIdList_.size();i++)
+                {
+                    wiselib::UString ustr;
+                    bool b = idManager->getTermStringByTermId(termIdList_[i], ustr);
+                    if(b)
+                    {
+                        std::string str;
+                        ustr.convertString(str, wiselib::UString::UTF_8);
+                        result += direct+"_"+str+"_"+boost::lexical_cast<std::string>(contextCountList_[i])+" ";
+                    }
+                }
+                
+            }
+            return result;
+        }
+        
         
     public:
         std::vector<uint32_t> termIdList_;

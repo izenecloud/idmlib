@@ -72,7 +72,7 @@ inline static void print( const wiselib::UString& ustr)
     std::cout<<str;
 }
 
-static void getIdAndCountList(std::vector<id2count_t>& input, std::vector<uint32_t>& idList, std::vector<uint32_t>& countList)
+inline static void getIdAndCountList(std::vector<id2count_t>& input, std::vector<uint32_t>& idList, std::vector<uint32_t>& countList)
 {
     std::sort(input.begin(), input.end());
     for(uint32_t i=0;i<input.size();i++)
