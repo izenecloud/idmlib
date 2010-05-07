@@ -21,7 +21,7 @@ NS_IDMLIB_KPE_BEGIN
 #define LOG_PRINT(item, count) if( p % count == 0 ) { std::cout << "\r"; std::cout<<item<<" read "<<p<<" items"<<std::flush;}
 #define LOG_END() std::cout<<std::endl;
 typedef uint64_t hash_t;
-
+typedef std::vector<uint32_t> idvec_t;
 typedef izenelib::am::SSFType<uint32_t, uint32_t, uint16_t, true> TermListSSFType;
 
 typedef TermListSSFType::WriterType TermListWriter;
@@ -35,7 +35,7 @@ typedef std::pair<uint32_t, uint32_t> id2count_t;
 typedef boost::tuple<uint32_t, std::vector<uint32_t> ,std::vector<id2count_t>, 
         uint32_t, std::vector<id2count_t > > data_t;
 
-typedef boost::tuple<std::vector<uint32_t>, std::vector<uint32_t>, std::vector<uint32_t>, uint32_t > CandidateItem;
+typedef boost::tuple<idvec_t, idvec_t, idvec_t, uint32_t, idvec_t, idvec_t, idvec_t, idvec_t > CandidateItem;
     
 typedef izenelib::am::SSFType<hash_t, CandidateItem, uint32_t> CandidateSSFType;
 
