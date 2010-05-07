@@ -48,6 +48,13 @@ public:
 	static bool isKownOther(std::string& str);
 	static bool isNoun(std::string& str);
 
+	static bool isLocLeft(std::string& path);
+	static bool isLocRight( std::string& str);
+	static bool isOrgLeft(std::string& str);
+	static bool isOrgRight(std::string& str);
+	static bool isPeopLeft(std::string& str);
+	static bool isPeopRight(std::string& str);
+
 
 	static void loadLocSuffix(std::string& path);
 	static void loadOrgSuffix(std::string& path);
@@ -61,6 +68,13 @@ public:
 	static void loadOtherList(std::string& path);
 	static void loadNounList(std::string& path);
 
+	static void loadLocLeft(std::string& path);
+	static void loadLocRight(std::string& path);
+	static void loadOrgLeft(std::string& path);
+	static void loadOrgRight(std::string& path);
+	static void loadPeopLeft(std::string& path);
+	static void loadPeopRight(std::string& path);
+
 
 	static hash_set<std::string> locSuffix;
 	static hash_set<std::string> orgSuffix;
@@ -73,6 +87,13 @@ public:
 	static hash_set<std::string> noiseList_;
 	static hash_set<std::string> otherList_;
 	static hash_set<std::string> nounList_;
+
+	static hash_set<std::string> locLeft_;
+	static hash_set<std::string> locRight_;
+	static hash_set<std::string> orgLeft_;
+	static hash_set<std::string> orgRight_;
+	static hash_set<std::string> peopLeft_;
+	static hash_set<std::string> peopRight_;
 
 
 private:

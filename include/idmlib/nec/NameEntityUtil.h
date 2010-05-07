@@ -24,13 +24,13 @@ namespace ml
 	{
 //		IdManager* idMgr = IdMgrFactory::getIdManager();
 
-		UString pre = entity.pre;
-		UString suc = entity.suc;
 		UString cur = entity.cur;
+		std::vector<UString> suc = entity.suc;
+		std::vector<UString> pre = entity.pre;
 
 		// current character sequence
 		size_t curLength = cur.length();
-		UString cur_b, b_cur_b, cur_e, cur_a, b_cur_a, b_cur_e, t_cur_a, t_cur_e, cur_l;
+		UString cur_b, b_cur_b, cur_e, cur_a, b_cur_a, b_cur_e, t_cur_a, t_cur_e, cur_l, left, right;
 		UString utag_curb("_UCB", UString::UTF_8); // the begin character of current character sequence
 		UString btag_curb("_BCB", UString::UTF_8); // the begin bigram of current character sequence
 		UString utag_cure("_UCE", UString::UTF_8); // the end character of current character sequence
@@ -42,6 +42,8 @@ namespace ml
 		UString utag_curl("_UL", UString::UTF_8); // length
 		UString btag_curn("_BN", UString::UTF_8); // has noise
 		UString btag_curo("_BO", UString::UTF_8); // has other bigram
+		UString utag_left("_LEFT", UString::UTF_8); // has left context
+		UString utag_right("_RIGHT", UString::UTF_8); // has left context
 
 		std::vector<UString> f_cur_u_b;
 		std::vector<UString> f_cur_b_b;
@@ -54,6 +56,8 @@ namespace ml
 		std::vector<UString> f_cur_b_n;
 		std::vector<UString> f_cur_b_o;
 		std::vector<UString> f_cur_l;
+		std::vector<UString> f_left;
+		std::vector<UString> f_right;
 		std::vector<UString> f_all;
 
 		std::vector<ml::AttrID> id_cur_u_b;
@@ -67,6 +71,8 @@ namespace ml
 		std::vector<ml::AttrID> id_cur_b_n;
 		std::vector<ml::AttrID> id_cur_b_o;
 		std::vector<ml::AttrID> id_cur_l;
+		std::vector<ml::AttrID> id_left;
+		std::vector<ml::AttrID> id_right;
 
 
 		double w_cur_u_b = 3;
@@ -79,6 +85,8 @@ namespace ml
 		double w_cur_u_e = 8;
 		double w_cur_b_n = 0.5;
 		double w_cur_b_o = 1.5;
+		double w_left = 3;
+		double w_right = 3;
 //		double w_cur_l =0.4;
 
 		if (curLength >= 1)
@@ -517,6 +525,79 @@ namespace ml
 //			schema.setAttr(id_cur_l[i], 1);
 //		}
 
+		UString peopTag("_PEOP", wiselib::UString::UTF_8);
+		UString locTag("_LOC", wiselib::UString::UTF_8);
+		UString orgTag("_ORG", wiselib::UString::UTF_8);
+		if(pre.size()>0)
+		{
+			for(size_t i=0;i<pre.size();i++)
+			{
+				UString preChar=pre[i];
+				preChar.append(utag_left);
+				std::string strItem;
+				pre[i].convertString(strItem, wiselib::UString::UTF_8);
+				if(NameEntityDict::isPeopLeft(strItem))
+				{
+                   	preChar.append(peopTag);
+					f_left.push_back(preChar);
+					f_all.push_back(preChar);
+				}
+				else if(NameEntityDict::isLocLeft(strItem))
+				{
+                   	preChar.append(locTag);
+					f_left.push_back(preChar);
+					f_all.push_back(preChar);
+				}
+				else if(NameEntityDict::isOrgLeft(strItem))
+				{
+                   	preChar.append(orgTag);
+					f_left.push_back(preChar);
+					f_all.push_back(preChar);
+				}
+			}
+
+			IntIdMgr::getTermIdListByTermStringList(f_left, id_left);
+			for (size_t i =0; i<id_left.size(); ++i)
+			{
+				inst.x.set(id_left[i], w_left);
+				schema.setAttr(id_left[i], 1);
+			}
+		}
+		if(suc.size()>0)
+		{
+			for(size_t i=0;i<suc.size();i++)
+			{
+				UString preChar=suc[i];
+				preChar.append(utag_right);
+				std::string strItem;
+				suc[i].convertString(strItem, wiselib::UString::UTF_8);
+				if(NameEntityDict::isPeopRight(strItem))
+				{
+                   	preChar.append(peopTag);
+					f_right.push_back(preChar);
+					f_all.push_back(preChar);
+				}
+				else if(NameEntityDict::isLocRight(strItem))
+				{
+                   	preChar.append(locTag);
+					f_right.push_back(preChar);
+					f_all.push_back(preChar);
+				}
+				else if(NameEntityDict::isOrgRight(strItem))
+				{
+                   	preChar.append(orgTag);
+					f_right.push_back(preChar);
+					f_all.push_back(preChar);
+				}
+			}
+
+			IntIdMgr::getTermIdListByTermStringList(f_right, id_right);
+			for (size_t i =0; i<id_right.size(); ++i)
+			{
+				inst.x.set(id_right[i], w_right);
+				schema.setAttr(id_right[i], 1);
+			}
+		}
 
 	//	size_t window = 3;
 

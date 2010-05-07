@@ -11,6 +11,7 @@
 #include <ml/ClassificationData.h>
 #include <ml/Taxonomy.h>
 #include <wiselib/ustring/UString.h>
+#include <vector>
 
 
 namespace idmlib
@@ -28,14 +29,14 @@ public:
     {
     }
     NameEntity(const string_type& curStr
-    ,const string_type& preStr,const string_type& sucStr)
+    ,const std::vector<string_type>& preStr,const std::vector<string_type>& sucStr)
     :base_type(),cur(curStr), pre(preStr), suc(sucStr)
     {
     }
 public:
     string_type cur;
-    string_type pre;
-    string_type suc;
+    std::vector<string_type> pre;
+    std::vector<string_type> suc;
 
 };
 

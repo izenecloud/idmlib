@@ -23,6 +23,12 @@ hash_set<std::string> NameEntityDict::peopList_;
 hash_set<std::string> NameEntityDict::noiseList_;
 hash_set<std::string> NameEntityDict::otherList_;
 hash_set<std::string> NameEntityDict::nounList_;
+hash_set<std::string> NameEntityDict::locLeft_;
+hash_set<std::string> NameEntityDict::locRight_;
+hash_set<std::string> NameEntityDict::orgLeft_;
+hash_set<std::string> NameEntityDict::orgRight_;
+hash_set<std::string> NameEntityDict::peopLeft_;
+hash_set<std::string> NameEntityDict::peopRight_;
 
 void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffixSet)
 {
@@ -97,6 +103,38 @@ void NameEntityDict::loadNounList( std::string& path)
 	loadSuffix(path, nounList_);
 }
 
+
+void NameEntityDict::loadLocLeft(std::string& path)
+{
+	loadSuffix(path, locLeft_);
+}
+
+void NameEntityDict::loadLocRight( std::string& path)
+{
+	loadSuffix(path, locRight_);
+}
+
+void NameEntityDict::loadOrgLeft( std::string& path)
+{
+	loadSuffix(path, orgLeft_);
+}
+
+void NameEntityDict::loadOrgRight( std::string& path)
+{
+	loadSuffix(path, orgRight_);
+}
+
+void NameEntityDict::loadPeopLeft( std::string& path)
+{
+	loadSuffix(path, peopLeft_);
+}
+
+void NameEntityDict::loadPeopRight( std::string& path)
+{
+	loadSuffix(path, peopRight_);
+}
+
+
 bool NameEntityDict::isLocSuffix(std::string& str)
 {
 	return locSuffix.find(str) != locSuffix.end();
@@ -146,4 +184,35 @@ bool NameEntityDict::isNoun( std::string& str)
 {
 	return nounList_.find(str) != nounList_.end();
 }
+
+bool NameEntityDict::isLocLeft(std::string& str)
+{
+	return locLeft_.find(str) != locLeft_.end();
+}
+
+bool NameEntityDict::isLocRight(std::string& str)
+{
+	return locRight_.find(str) != locRight_.end();
+}
+
+bool NameEntityDict::isOrgLeft(std::string& str)
+{
+	return orgLeft_.find(str) != orgLeft_.end();
+}
+
+bool NameEntityDict::isOrgRight( std::string& str)
+{
+	return orgRight_.find(str) != orgRight_.end();
+}
+
+bool NameEntityDict::isPeopLeft( std::string& str)
+{
+	return peopLeft_.find(str) != peopLeft_.end();
+}
+
+bool NameEntityDict::isPeopRight( std::string& str)
+{
+	return peopRight_.find(str) != peopRight_.end();
+}
+
 }

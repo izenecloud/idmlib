@@ -21,31 +21,18 @@ int main()
 	std::string other_path = "../db/nec/train/other.txt";
 	std::string noise_path = "../db/nec/train/noise.txt";
 	std::string test_path = "../db/nec/test/test.txt";
-
-	std::string res_path = "../resource/nec/res/";
-	std::string loc_suffix_path = res_path + "loc_s.txt";
-	std::string org_suffix_path = res_path + "org_s.txt";
-	std::string peop_suffix_path = res_path + "peop_s.txt";
-//	std::string name_prefix_path = "/home/eric/Dataset/ch/name_p.txt";
 //
-//	std::string u_path = "/home/eric/Dataset/ch/pfr_u.txt";
-//	std::string q_path = "/home/eric/Dataset/ch/pfr_q.txt";
-//	std::string p_path = "/home/eric/Dataset/ch/pfr_p.txt";
-//	std::string x_path = "/home/eric/Dataset/ch/pfr_x.txt";
-//	std::string c_path = "/home/eric/Dataset/ch/pfr_c.txt";
-//	std::string d_path = "/home/eric/Dataset/ch/pfr_d.txt";
+//	std::string res_path = "../resource/nec/res/";
+//	std::string loc_suffix_path = res_path + "loc_s.txt";
+//	std::string org_suffix_path = res_path + "org_s.txt";
+//	std::string peop_suffix_path = res_path + "peop_s.txt";
+//	std::string name_prefix_path = res_path + "surname.txt";
 //
-	NameEntityDict::loadLocSuffix(loc_suffix_path);
-	NameEntityDict::loadOrgSuffix(org_suffix_path);
-	NameEntityDict::loadPeopSuffix(peop_suffix_path);
+//
+//	NameEntityDict::loadLocSuffix(loc_suffix_path);
+//	NameEntityDict::loadOrgSuffix(org_suffix_path);
+//	NameEntityDict::loadPeopSuffix(peop_suffix_path);
 //	NameEntityDict::loadNamePrefix(name_prefix_path);
-//
-//	NameEntityDict::loadU(u_path);
-//	NameEntityDict::loadQ(q_path);
-//	NameEntityDict::loadP(p_path);
-//	NameEntityDict::loadX(x_path);
-//	NameEntityDict::loadC(c_path);
-//	NameEntityDict::loadD(d_path);
 
 	std::vector<NameEntity> entities;
 	loadNameEntities(entities, org_path, "ORG");
@@ -53,7 +40,6 @@ int main()
 	loadNameEntities(entities, peop_path, "PEOP");
 	loadNameEntities(entities, other_path, "OTHER");
 	loadNameEntities(entities, noise_path, "NOISE");
-
 	std::string path = "../resource/nec/";
 	NameEntityManager neMgr(path);
 	neMgr.train(entities);

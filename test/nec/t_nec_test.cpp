@@ -48,9 +48,7 @@ void loadDict(const std::string& dictName, std::map<std::string, int>& dict, int
 			int posEnd=line.find(" ");
 			string cur = line.substr(0, posEnd);
 			string strlabel=line.substr(posEnd+1, line.size()-posEnd-1);
-//			std::cout<<cur<<" "<<strlabel<<std::endl;
 			int count=atoi(strlabel.c_str());
-//			std::cout<<"coutn: "<<count<<std::endl;
 			if(count>=thresh)
 				dict.insert(make_pair(cur, count));
 		}
@@ -61,54 +59,54 @@ void loadDict(const std::string& dictName, std::map<std::string, int>& dict, int
 int main()
 {
 
-//    std::ofstream testOut("necResult.txt");
-//	std::string test_path = "../db/nec/test/test.txt";
-//	std::string path = "../resource/nec/";
-//	NameEntityManager neMgr(path);
-//
-//	cout << "loading entities..." << endl;
-//	std::vector<NameEntity> entities2;
-//	loadNameEntities(entities2, test_path, "NONE");
-//	cout << "#enties2: " << entities2.size() << endl;
-//
-//	neMgr.loadModels();
-//	neMgr.predict(entities2);
-//
-//	int posCount=0;
-//	for (size_t i=0; i<entities2.size(); ++i)
-//	{
-////		cout << i+1 << "\t";
-//		testOut<<i+1 << "\t";
-//		string cur="", pre="", suc="";
-//
-//		entities2[i].cur.convertString(cur, UString::UTF_8);
-//
-////		cout << cur << "\t";
-//		testOut<<cur << "\t";
-//
-//		std::vector<Label> labels = entities2[i].predictLabels;
-//		if(labels.size()>0)
-//		{
-//			if(labels[0]==entities2[i].tagLabels[0])
-//				posCount++;
-//			else
-//				std::cout<<cur<<entities2[i].tagLabels[0]<<","<<labels[0]<<std::endl;
-//		}
-//		else if(entities2[i].tagLabels[0]=="OTHER")
-//			posCount++;
-//		else
-//		{
-//			std::cout<<cur<<entities2[i].tagLabels[0]<<","<<"NONE"<<std::endl;
-//		}
-//		for (size_t j=0; j<labels.size(); ++j)
-//		{
-////			cout << labels[j] << " ";
-//			testOut<<labels[j] << " ";
-//		}
-////		cout << endl;
-//		testOut<<std::endl;
-//	}
-//	std::cout<<"The classification rate: "<<(float)posCount/entities2.size()<<std::endl;
+    std::ofstream testOut("necResult.txt");
+	std::string test_path = "../db/nec/test/test.txt";
+	std::string path = "../resource/nec/";
+	NameEntityManager neMgr(path);
+
+	cout << "loading entities..." << endl;
+	std::vector<NameEntity> entities2;
+	loadNameEntities(entities2, test_path, "NONE");
+	cout << "#enties2: " << entities2.size() << endl;
+
+	neMgr.loadModels();
+	neMgr.predict(entities2);
+
+	int posCount=0;
+	for (size_t i=0; i<entities2.size(); ++i)
+	{
+//		cout << i+1 << "\t";
+		testOut<<i+1 << "\t";
+		string cur="", pre="", suc="";
+
+		entities2[i].cur.convertString(cur, UString::UTF_8);
+
+//		cout << cur << "\t";
+		testOut<<cur << "\t";
+
+		std::vector<Label> labels = entities2[i].predictLabels;
+		if(labels.size()>0)
+		{
+			if(labels[0]==entities2[i].tagLabels[0])
+				posCount++;
+			else
+				std::cout<<cur<<entities2[i].tagLabels[0]<<","<<labels[0]<<std::endl;
+		}
+		else if(entities2[i].tagLabels[0]=="OTHER")
+			posCount++;
+		else
+		{
+			std::cout<<cur<<entities2[i].tagLabels[0]<<","<<"NONE"<<std::endl;
+		}
+		for (size_t j=0; j<labels.size(); ++j)
+		{
+//			cout << labels[j] << " ";
+			testOut<<labels[j] << " ";
+		}
+//		cout << endl;
+		testOut<<std::endl;
+	}
+	std::cout<<"The classification rate: "<<(float)posCount/entities2.size()<<std::endl;
 
 /**extracting word groups */
 //    std::string path="/home/jinglei/199801.txt";
@@ -242,40 +240,42 @@ int main()
 //	    	adj<<vecOut[i].second<<" "<<vecOut[i].first<<std::endl;
 //	    }
 
-	typedef std::map<std::string, int> dict_type;
-	dict_type loc_l, loc_r, org_l, org_r, peop_l, peop_r, all_l, all_r;
-	loadDict("pattern_loc_l.txt", loc_l);
-	loadDict("pattern_org_l.txt", org_l);
-    loadDict("pattern_peop_l.txt", peop_l);
-    ofstream outf("p_all.txt");
-    for(dict_type::iterator it=loc_l.begin();it!=loc_l.end();it++)
-    {
-//    	if(peop_l.find(it->first)==peop_l.end()&&org_l.find(it->first)==org_l.end())
-//    		outf<<it->first<<" "<<it->second<<std::endl;
-    	if(all_l.find(it->first)==all_l.end())
-    	{
-    		all_l.insert(std::make_pair(it->first, 1));
-    	}
-    }
-    for(dict_type::iterator it=org_l.begin();it!=org_l.end();it++)
-    {
-    	if(all_l.find(it->first)==all_l.end())
-    	{
-    		all_l.insert(std::make_pair(it->first, 1));
-    	}
-    }
-    for(dict_type::iterator it=peop_l.begin();it!=peop_l.end();it++)
-    {
-    	if(all_l.find(it->first)==all_l.end())
-    	{
-    		all_l.insert(std::make_pair(it->first, 1));
-    	}
-    }
-
-    for(dict_type::iterator it=all_l.begin();it!=all_l.end();it++)
-    {
-    	outf<<it->first<<std::endl;
-    }
-
+	/** select the words to output*/
+//	typedef std::map<std::string, int> dict_type;
+//	dict_type loc_l, loc_r, org_l, org_r, peop_l, peop_r, all_l, all_r;
+//	loadDict("pattern_loc_l.txt", loc_l);
+//	loadDict("pattern_org_l.txt", org_l);
+//    loadDict("pattern_peop_l.txt", peop_l);
+//    ofstream outf("p_all.txt");
+//    for(dict_type::iterator it=loc_l.begin();it!=loc_l.end();it++)
+//    {
+////    	if(peop_l.find(it->first)==peop_l.end()&&org_l.find(it->first)==org_l.end())
+////    		outf<<it->first<<" "<<it->second<<std::endl;
+//    	if(all_l.find(it->first)==all_l.end())
+//    	{
+//    		all_l.insert(std::make_pair(it->first, 1));
+//    	}
+//    }
+//    for(dict_type::iterator it=org_l.begin();it!=org_l.end();it++)
+//    {
+//    	if(all_l.find(it->first)==all_l.end())
+//    	{
+//    		all_l.insert(std::make_pair(it->first, 1));
+//    	}
+//    }
+//    for(dict_type::iterator it=peop_l.begin();it!=peop_l.end();it++)
+//    {
+//    	if(all_l.find(it->first)==all_l.end())
+//    	{
+//    		all_l.insert(std::make_pair(it->first, 1));
+//    	}
+//    }
+//
+//    for(dict_type::iterator it=all_l.begin();it!=all_l.end();it++)
+//    {
+//    	outf<<it->first<<std::endl;
+//    }
+//	std::vector<NameEntity> entities;
+//	loadNameEntities(entities, "peop.txt", "NONE");
 
 }
