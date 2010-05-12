@@ -28,18 +28,40 @@ Recommender::~Recommender()
 		delete logProcessor_;
 }
 
-bool Recommender::indexLog(const std::list<std::pair<wiselib::UString,int> >& logItems)
+bool Recommender::indexLog(uint32_t timeId, const std::list<std::pair<wiselib::UString,int> >& logItems)
 {
-	if(!logProcessor_->constructSliceLangModel(logItems))
+	if(!logProcessor_->constructSliceLangModel(timeId, logItems))
 		return false;
+	flush();
+	return true;
+
+}
+
+bool Recommender::indexRealTimeQuery(const std::list<std::pair<wiselib::UString,int> >& logItems)
+{
 	std::vector<LogScoreItem> scoreItems;
-	if(!logProcessor_->rankQuery(logItems,scoreItems))
+	if(!logProcessor_->rankRealTimeQuery(logItems,scoreItems))
 		return false;
-	int indexedRealNum=realTimeNum_<scoreItems.size() ? realTimeNum_:scoreItems.size();
+	size_t indexedRealNum=realTimeNum_<scoreItems.size() ? realTimeNum_:scoreItems.size();
 	realQueries_.clear();
 	for(uint32_t i=0;i<indexedRealNum;i++)
 	{
 		realQueries_.push_back(scoreItems[i].itemId_);
+	}
+	flush();
+	return true;
+}
+
+bool Recommender::indexPopularQuery(const std::list<std::pair<wiselib::UString,int> >& logItems)
+{
+	std::vector<LogScoreItem> scoreItems;
+	if(!logProcessor_->rankPopularQuery(logItems, scoreItems))
+		return false;
+	size_t indexedPopularNum=popularNum_<scoreItems.size() ? popularNum_:scoreItems.size();
+	popularQueries_.clear();
+	for(uint32_t i=0;i<indexedPopularNum;i++)
+	{
+		popularQueries_.push_back(scoreItems[i].itemId_);
 	}
 	flush();
 	return true;
@@ -54,6 +76,7 @@ bool Recommender::getRealTimeQuery(std::vector<wiselib::UString>& realTimeQuerie
 
 bool Recommender::getPopularQuery(std::vector<wiselib::UString>& popularQueries)
 {
+	popularQueries=popularQueries_;
 	return true;
 }
 

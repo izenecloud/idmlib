@@ -43,7 +43,13 @@ public:
 	/**
 	 *
 	 */
-	bool indexLog(const std::list<std::pair<wiselib::UString,int> >& logItems);
+	bool indexLog(
+			uint32_t timeId,
+			const std::list<std::pair<wiselib::UString,int> >& logItems);
+
+	bool indexRealTimeQuery(const std::list<std::pair<wiselib::UString,int> >& logItems);
+
+	bool indexPopularQuery(const std::list<std::pair<wiselib::UString,int> >& logItems);
 
 	/**
 	 *
@@ -66,13 +72,14 @@ private:
 private:
 //	boost::shared_ptr<LogProcessor> logProcessor_;
 	LogProcessor* logProcessor_;
-	int realTimeNum_;
-	int popularNum_;
+	size_t realTimeNum_;
+	size_t popularNum_;
 	std::vector<wiselib::UString> realQueries_;
+	std::vector<wiselib::UString> popularQueries_;
 
 private:
 
-	static const int DEFAULT_REAL_TIME_QUERY_NUM=10;
+	static const int DEFAULT_REAL_TIME_QUERY_NUM=50;
 	static const int DEFAULT_POPULAR_QUERY_NUM=50;
 
 

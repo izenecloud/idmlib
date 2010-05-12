@@ -542,13 +542,13 @@ namespace ml
 					f_left.push_back(preChar);
 					f_all.push_back(preChar);
 				}
-				else if(NameEntityDict::isLocLeft(strItem))
+				if(NameEntityDict::isLocLeft(strItem))
 				{
                    	preChar.append(locTag);
 					f_left.push_back(preChar);
 					f_all.push_back(preChar);
 				}
-				else if(NameEntityDict::isOrgLeft(strItem))
+				if(NameEntityDict::isOrgLeft(strItem))
 				{
                    	preChar.append(orgTag);
 					f_left.push_back(preChar);
