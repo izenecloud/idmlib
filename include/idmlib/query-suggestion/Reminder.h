@@ -110,9 +110,9 @@ public:
 	 * @param logItems the <string, frequency> pair of the set of queries in this time slice.
 	 * @param isLatestTimeId whether the current slice log updated is the latest one.
 	 */
-	bool indexQueryLog(uint32_t timeId, const std::list<std::pair<wiselib::UString,int> >& logItems, bool isLastestTimeId=false)
+	bool indexQueryLog(uint32_t timeId, const std::list<std::pair<wiselib::UString,uint32_t> >& logItems, bool isLastestTimeId=false)
 	{
-		std::list<std::pair<wiselib::UString,int> >::const_iterator iter=logItems.begin();
+		std::list<std::pair<wiselib::UString,uint32_t> >::const_iterator iter=logItems.begin();
 		for(;iter!=logItems.end();iter++)
 		{
 			std::vector<uint32_t> termList;
@@ -213,7 +213,7 @@ private:
 	/**
 	 * @brief Update the statistics of the background language model.
 	 */
-	bool updateBackGroundLangModel(uint32_t key, int value)
+	bool updateBackGroundLangModel(uint32_t key, uint32_t value)
 	{
 	    uint32_t freq=0;
 	    backgroundLangModel_->get(key, freq);
@@ -336,7 +336,7 @@ private:
 
 	}
 
-	bool rankPopularQuery(const wiselib::UString& query, int freq, float& score)
+	bool rankPopularQuery(const wiselib::UString& query, uint32_t freq, float& score)
 	{
 		std::vector<uint32_t> termIdList;
 	    idManager_->getAnalysisTermIdList(query, termIdList);
@@ -346,7 +346,7 @@ private:
 	    return true;
 	}
 
-	bool rankRealTimeQuery(const wiselib::UString& query, int freq, float& score)
+	bool rankRealTimeQuery(const wiselib::UString& query, uint32_t freq, float& score)
 	{
 		std::vector<uint32_t> termIdList;
 		idManager_->getAnalysisTermIdList(query, termIdList);
@@ -445,7 +445,7 @@ private:
 
 	bool computeReferEntropyScore(uint32_t key, const TIME_SERIES_FREQ_TYPE& vecFreq, float& score)
 	{
-	    int totalCount=0;
+	    uint32_t totalCount=0;
 	    for(uint32_t i=0;i<vecFreq.size();i++)
 	    {
 	    	totalCount+=vecFreq[i].second;

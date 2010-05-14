@@ -24,18 +24,18 @@
 using namespace idmlib;
 
 
-const int MAX_READ_BUF_SIZE=1024;
-const int MAX_TIME_SERIRES=2;
+const uint32_t MAX_READ_BUF_SIZE=1024;
+const uint32_t MAX_TIME_SERIRES=2;
 
 
-void parseFile(const std::string& fileName, std::list<std::pair<wiselib::UString,int> >& logItems)
+void parseFile(const std::string& fileName, std::list<std::pair<wiselib::UString,uint32_t> >& logItems)
 {
     fstream fileIn(fileName.c_str(), ios::in | ios::binary);
     if (!fileIn.good())
     {
         return;
     }
-    boost::unordered_map<std::string, int> queryFreqMap;
+    boost::unordered_map<std::string, uint32_t> queryFreqMap;
 	while(!fileIn.eof())
 	{
 		string strLine;
@@ -45,11 +45,11 @@ void parseFile(const std::string& fileName, std::list<std::pair<wiselib::UString
 		std::string strQuery=strLine.substr(posBegin+1, posEnd-posBegin-1);
 		queryFreqMap[strQuery]+=1;
 	}
-	boost::unordered_map<std::string, int>::iterator iter=queryFreqMap.begin();
+	boost::unordered_map<std::string, uint32_t>::iterator iter=queryFreqMap.begin();
 	for(;iter!=queryFreqMap.end();iter++)
 	{
 		wiselib::UString ustrQuery(iter->first, wiselib::UString::GB2312);
-		std::pair<wiselib::UString, int> item(ustrQuery, iter->second);
+		std::pair<wiselib::UString, uint32_t> item(ustrQuery, iter->second);
 		logItems.push_back(item);
 	}
 }
@@ -95,7 +95,7 @@ bool test()
     Reminder<TestIDManager> reminder(idManager, basicPath);
 
 	//Control the experiment log slice number.
-	int count=0;
+	uint32_t count=0;
     try
     {
         boost::filesystem::directory_iterator item_begin(path);
@@ -116,7 +116,7 @@ bool test()
         for (size_t i=0;i<fileNames.size();i++, count++)
         {
         	std::cout<<fileNames[i]<<std::endl;
-            std::list<std::pair<wiselib::UString,int> > logItems;
+            std::list<std::pair<wiselib::UString,uint32_t> > logItems;
             parseFile(fileNames[i], logItems);
             if(i==fileNames.size()-1)
             	reminder.indexQueryLog(timeId, logItems, true);
