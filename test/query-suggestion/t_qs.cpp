@@ -6,6 +6,7 @@
  */
 
 #include <idmlib/query-suggestion/Reminder.h>
+#include "qs_types.h"
 
 #include <sdb/SequentialDB.h>
 
@@ -90,7 +91,8 @@ bool test()
 	std::cout<<"Test for query suggestion!"<<std::endl;
     std::string path("/home/jinglei/sohuq");
     std::string basicPath(".");
-    Reminder reminder(basicPath);
+	TestIDManager* idManager= new TestIDManager(".");
+    Reminder<TestIDManager> reminder(idManager, basicPath);
 
 	//Control the experiment log slice number.
 	int count=0;
@@ -146,6 +148,8 @@ bool test()
     	std::cout<<std::endl;
     }
 
+    if(idManager)
+    	delete idManager;
 
 	return 0;
 
@@ -200,6 +204,7 @@ bool testPopularQuery()
 
 int main()
 {
+
 //	testRealTimeQuery();
 //	testPopularQuery();
 	test();

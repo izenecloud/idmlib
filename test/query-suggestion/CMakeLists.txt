@@ -7,6 +7,7 @@ SET(libs
   ${Boost_LIBRARIES}
   xml2
   ${Glog_LIBRARIES}
+  ${lalib_LIBRARIES}
   )
 
 MESSAGE(STATUS "xml2: ${xml2_LIBRARIES}")
