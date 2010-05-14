@@ -117,14 +117,13 @@ public:
 		std::list<std::pair<wiselib::UString,uint32_t> >::const_iterator iter=logItems.begin();
 		for(;iter!=logItems.end();iter++)
 		{
+            std::vector<wiselib::UString> strList;
 			std::vector<uint32_t> termList;
-			idManager_->getAnalysisTermIdList(iter->first, termList);
+			idManager_->getAnalysisTermIdList(iter->first, strList, termList);
 
 	        for(uint32_t j=0;j<termList.size();j++)
 	        {
-	        	wiselib::UString ustrTerm;
-	        	idManager_->getTermStringByTermId(termList[j], ustrTerm);
-
+	        	wiselib::UString& ustrTerm = strList[j];
 	        	if(ustrTerm.isChineseChar(0))
 	        	{
 	        		uint32_t key=termList[j];

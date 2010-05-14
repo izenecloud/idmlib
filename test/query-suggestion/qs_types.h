@@ -60,6 +60,22 @@ public:
 	    	termIdList.push_back(termId);
 	    }
 	}
+    
+    void getAnalysisTermIdList(const wiselib::UString& str, std::vector<wiselib::UString>& strList, std::vector<uint32_t>& termIdList)
+    {
+        la::TermList laTermList;
+        la_.process_search( str, laTermList);
+        for (la::TermList::iterator p = laTermList.begin(); p != laTermList.end(); p++)
+        {
+            strList.push_back(p->text_);
+        }
+        for(size_t i=0;i<strList.size();i++)
+        {
+            uint32_t termId;
+            getTermIdByTermString( strList[i], termId );
+            termIdList.push_back(termId);
+        }
+    }
 
 	void flush()
 	{
