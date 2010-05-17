@@ -54,6 +54,65 @@ void parseFile(const std::string& fileName, std::list<std::pair<wiselib::UString
 	}
 }
 
+void parseTosf1v5LogFile(const std::string& fileName, const std::string& logFileName)
+{
+    std::ifstream fileIn(fileName.c_str());
+    if (!fileIn.good())
+    {
+        return;
+    }
+    std::ofstream fileOut(logFileName.c_str());
+    string strLine;
+    while( getline(fileIn,strLine) )
+    {
+//         std::cout<<"Have "<<strLine<<std::endl;
+        
+        std::vector<std::string> items;
+        boost::algorithm::split( items, strLine, boost::algorithm::is_any_of("\t") );
+//         std::cout<<"size "<<items.size()<<" "<<items[2]<<std::endl;
+        if(items.size()!=4) continue;
+        std::vector<std::string> subItems;
+        boost::algorithm::split( subItems, items[2], boost::algorithm::is_any_of(" ") );
+        if( subItems.size()!=2 ) continue;
+        if( subItems[1] != "1" ) continue;
+        std::string outputLine = "Query\t";
+        outputLine += items[0] + "\t20100517T151422\t00:00:01.027035\t";
+        std::string query = items[1];
+        query = query.substr(1, query.length()-2);
+        wiselib::UString uquery(query, wiselib::UString::GB2312);
+        std::string tmp;
+        uquery.convertString(tmp, wiselib::UString::UTF_8);
+//         std::cout<<"append "<<tmp<<std::endl;
+        
+        
+        outputLine += tmp + "\t100\t0\t10";
+        fileOut<<outputLine<<std::endl;
+    }
+    fileIn.close();
+    fileOut.close();
+
+}
+
+void convertLog(const std::string& sogouPath, const std::string& objPath)
+{
+    boost::filesystem::create_directories(objPath);
+    boost::posix_time::ptime time = boost::posix_time::second_clock::local_time();
+    boost::gregorian::days oneday(1);
+    for(uint32_t i=20060831;i>=20060801;i--)
+    {
+        std::string fileName = sogouPath+"/"+"access_log."+boost::lexical_cast<std::string>(i)+".decode.filter";
+        if( !boost::filesystem::exists(fileName) )
+        {
+            continue;
+        }
+        std::string dateTimeStr = boost::posix_time::to_iso_string(time).substr(0,8);
+        std::string outputFileName = objPath+"/"+dateTimeStr+".log";
+        std::cout<<"Converting "<<fileName<<" to "<<outputFileName<<std::endl;
+        parseTosf1v5LogFile( fileName, outputFileName);
+        time -= oneday;
+    }
+}
+
 //void parseDirectory(const std::string& path, std::list<std::pair<wiselib::UString,int> >& logItems)
 //{
 //    boost::filesystem::directory_iterator item_begin(path);
@@ -204,7 +263,7 @@ bool testPopularQuery()
 
 int main()
 {
-
+    convertLog("/home/jarvis/data/SogouQ", "/home/jarvis/data/SogouQ/sf1v5");
 //	testRealTimeQuery();
 //	testPopularQuery();
 	test();
