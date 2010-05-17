@@ -50,6 +50,10 @@ class Reminder
 	} REMIND_TYPE;
 	typedef izenelib::am::sdb_btree<int, std::vector<wiselib::UString>,
 			izenelib::util::ReadWriteLock> REMIND_INDEX_TYPE;
+	typedef std::pair<wiselib::UString, float> VALUE_TYPE;
+	typedef std::vector<VALUE_TYPE> SEQUENCE_TYPE;
+	typedef izenelib::util::second_greater<VALUE_TYPE> greater_than;
+	typedef std::priority_queue<VALUE_TYPE, SEQUENCE_TYPE, greater_than> QUEUE_TYPE;
 
 public:
 
@@ -266,11 +270,8 @@ private:
 	 */
 	bool indexPopularQuery()
 	{
-		typedef std::pair<wiselib::UString, float> value_type;
-		typedef std::vector<value_type> sequence_type;
-		typedef izenelib::util::second_greater<value_type> greater_than;
-		std::priority_queue<value_type, sequence_type, greater_than> queue;
-
+		const size_t candidateNum=popularNum_*5;
+		QUEUE_TYPE queue;
 		QUERY_COUNT_CURSORTYPE locn = periodCount_->get_first_locn();
 		wiselib::UString key;
 		uint32_t val;
@@ -279,8 +280,8 @@ private:
 			periodCount_->seq(locn);
 			float rankScore = 0;
 			rankPopularQuery(key, val, rankScore);
-			value_type element(key, rankScore);
-			if (queue.size() < popularNum_)
+			VALUE_TYPE element(key, rankScore);
+			if (queue.size() <candidateNum )
 			{
 				queue.push(element);
 			}
@@ -307,6 +308,7 @@ private:
 				popularQueryResult.push_back(result[i - 1]);
 			}
 		}
+		deduplicate(popularQueryResult, popularNum_);
 		remindQueryIndex_.update(static_cast<int> (POP), popularQueryResult);
 		return true;
 
@@ -317,11 +319,8 @@ private:
 	 */
 	bool indexRealTimeQuery()
 	{
-		typedef std::pair<wiselib::UString, float> value_type;
-		typedef std::vector<value_type> sequence_type;
-		typedef izenelib::util::second_greater<value_type> greater_than;
-		std::priority_queue<value_type, sequence_type, greater_than> queue;
-
+		const size_t candidateNum=realTimeNum_*10;
+		QUEUE_TYPE queue;
 		QUERY_COUNT_CURSORTYPE locn = latestSliceCount_->get_first_locn();
 		wiselib::UString key;
 		uint32_t val;
@@ -330,8 +329,8 @@ private:
 			latestSliceCount_->seq(locn);
 			float rankScore = 0;
 			rankRealTimeQuery(key, val, rankScore);
-			value_type element(key, rankScore);
-			if (queue.size() < realTimeNum_)
+			VALUE_TYPE element(key, rankScore);
+			if (queue.size() < candidateNum)
 			{
 				queue.push(element);
 			}
@@ -358,10 +357,13 @@ private:
 				realTimeQueryResult.push_back(result[i - 1]);
 			}
 		}
+		deduplicate(realTimeQueryResult, realTimeNum_);
 		remindQueryIndex_.update(static_cast<int> (REAL), realTimeQueryResult);
 		return true;
 
 	}
+
+//	bool deduplicate(QUEUE_TYPE)
 
 	bool rankPopularQuery(const wiselib::UString& query, uint32_t freq,
 			float& score)
@@ -531,6 +533,57 @@ private:
 
 		score = avgScore;
 		return true;
+	}
+
+	bool deduplicate(std::vector<wiselib::UString>& candidates, size_t resultNum)
+	{
+        std::vector<wiselib::UString> selectedItems;
+        for(size_t i=0;i<candidates.size()&&selectedItems.size()<resultNum;i++)
+        {
+        	if(!isDuplicate(candidates[i], selectedItems))
+        	{
+        		selectedItems.push_back(candidates[i]);
+        	}
+        }
+        candidates.swap(selectedItems);
+		return true;
+	}
+
+	bool isDuplicate(const wiselib::UString& candidate, const std::vector<wiselib::UString>& selectedItems)
+	{
+		for(size_t i=0;i<selectedItems.size();i++)
+		{
+			if(isDuplicate(candidate, selectedItems[i]))
+				return true;
+		}
+		return false;
+	}
+
+	bool isDuplicate(const wiselib::UString& candidate1, const wiselib::UString& candidate2)
+	{
+		std::vector<uint32_t> termIdList1;
+		idManager_->getAnalysisTermIdList(candidate1, termIdList1);
+		std::vector<uint32_t> termIdList2;
+		idManager_->getAnalysisTermIdList(candidate2, termIdList2);
+		{
+			for(size_t i=0;i<termIdList1.size();i++)
+			{
+				if(isDuplicate(termIdList1[i], termIdList2))
+					return true;
+			}
+		}
+		return false;
+
+	}
+
+	bool isDuplicate(uint32_t term, const std::vector<uint32_t>& referTerms)
+	{
+		for(size_t i=0;i<referTerms.size();i++)
+		{
+			if(term==referTerms[i])
+				return true;
+		}
+		return false;
 	}
 
 private:
