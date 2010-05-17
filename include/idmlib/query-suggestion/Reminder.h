@@ -371,7 +371,8 @@ private:
 		std::vector<uint32_t> termIdList;
 		idManager_->getAnalysisTermIdList(query, termIdList);
 		rankPopularQuery(termIdList, score);
-		score = score * freq;
+//		score = score * freq;
+		score=score*sqrt(freq+0.01);
 
 		return true;
 	}
@@ -385,8 +386,8 @@ private:
 		score *= freq;
 		float novelty = 0;
 		getNoveltyScore(termIdList, novelty);
-		score *= novelty;
-		//	    score=novelty*log(score+0.01);
+//		score *= novelty;
+		score=novelty*sqrt(score+0.01);
 		return true;
 	}
 
