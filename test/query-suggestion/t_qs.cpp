@@ -25,7 +25,9 @@ using namespace idmlib;
 
 
 const uint32_t MAX_READ_BUF_SIZE=1024;
-const uint32_t MAX_TIME_SERIRES=2;
+const uint32_t MAX_TIME_SERIRES=7;
+const uint32_t REAL_NUM=10;
+const uint32_t POP_NUM=20;
 
 
 void parseFile(const std::string& fileName, std::list<std::pair<wiselib::UString,uint32_t> >& logItems)
@@ -49,6 +51,7 @@ void parseFile(const std::string& fileName, std::list<std::pair<wiselib::UString
 	for(;iter!=queryFreqMap.end();iter++)
 	{
 		wiselib::UString ustrQuery(iter->first, wiselib::UString::GB2312);
+//		wiselib::UString ustrQuery(iter->first, wiselib::UString::UTF_8);
 		std::pair<wiselib::UString, uint32_t> item(ustrQuery, iter->second);
 		logItems.push_back(item);
 	}
@@ -151,7 +154,7 @@ bool test()
     std::string path("/home/jinglei/sohuq");
     std::string basicPath(".");
 	TestIDManager* idManager= new TestIDManager(".");
-    Reminder<TestIDManager> reminder(idManager, basicPath);
+    Reminder<TestIDManager> reminder(idManager, basicPath, REAL_NUM, POP_NUM);
 
 	//Control the experiment log slice number.
 	uint32_t count=0;
