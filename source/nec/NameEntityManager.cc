@@ -68,6 +68,14 @@ void NameEntityManager::loadModels()
 	}
 }
 
+void NameEntityManager::destroyModels()
+{
+	if (classifier_)
+	{
+		classifier_->destroyModels();
+	}
+}
+
 
 void NameEntityManager::predict(NameEntity& entity)
 {

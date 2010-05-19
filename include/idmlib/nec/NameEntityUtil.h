@@ -42,6 +42,8 @@ namespace ml
 		UString utag_curl("_UL", UString::UTF_8); // length
 		UString btag_curn("_BN", UString::UTF_8); // has noise
 		UString btag_curo("_BO", UString::UTF_8); // has other bigram
+		UString btag_curl("_BL", UString::UTF_8); // has location bigram
+		UString btag_curg("_BG", UString::UTF_8); // has orgnization bigram
 		UString utag_left("_LEFT", UString::UTF_8); // has left context
 		UString utag_right("_RIGHT", UString::UTF_8); // has left context
 
@@ -55,6 +57,8 @@ namespace ml
 		std::vector<UString> f_cur_u_e;
 		std::vector<UString> f_cur_b_n;
 		std::vector<UString> f_cur_b_o;
+		std::vector<UString> f_cur_b_l;
+		std::vector<UString> f_cur_b_g;
 		std::vector<UString> f_cur_l;
 		std::vector<UString> f_left;
 		std::vector<UString> f_right;
@@ -70,6 +74,8 @@ namespace ml
 		std::vector<ml::AttrID> id_cur_u_e;
 		std::vector<ml::AttrID> id_cur_b_n;
 		std::vector<ml::AttrID> id_cur_b_o;
+		std::vector<ml::AttrID> id_cur_b_l;
+		std::vector<ml::AttrID> id_cur_b_g;
 		std::vector<ml::AttrID> id_cur_l;
 		std::vector<ml::AttrID> id_left;
 		std::vector<ml::AttrID> id_right;
@@ -78,13 +84,15 @@ namespace ml
 		double w_cur_u_b = 3;
 		double w_cur_b_b = 4;
 		double w_cur_u_a = 2;
-		double w_cur_b_a = 2;
+		double w_cur_b_a = 4;
 //		double w_cur_t_a = 2;
 		double w_cur_b_e = 16;
-		double w_cur_t_e = 16;
-		double w_cur_u_e = 8;
-		double w_cur_b_n = 0.5;
-		double w_cur_b_o = 1.5;
+		double w_cur_t_e = 32;
+		double w_cur_u_e = 10;
+		double w_cur_b_n = 1.0;
+		double w_cur_b_o = 2;
+		double w_cur_b_l=3;
+		double w_cur_b_g=3;
 		double w_left = 3;
 		double w_right = 3;
 //		double w_cur_l =0.4;
@@ -170,6 +178,8 @@ namespace ml
 
 			bool hasNoiseBigram=false;
 			bool hasOtherBigram=false;
+			bool hasLocBigram=false;
+			bool hasOrgBigram=false;
 			for (size_t i=0; i<curLength-1; ++i)
 			{
 				cur.substr(b_cur_a, i, 2);
@@ -182,6 +192,10 @@ namespace ml
 					hasNoiseBigram=true;
 				else if(NameEntityDict::isNoun(strBigram))
 					hasOtherBigram=true;
+				else if(NameEntityDict::isKownLoc(strBigram))
+					hasLocBigram=true;
+				else if(NameEntityDict::isKownOrg(strBigram))
+					hasOrgBigram=true;
 			}
 			if(hasNoiseBigram)
 			{
@@ -193,6 +207,18 @@ namespace ml
 			{
 				f_cur_b_o.push_back(btag_curo);
 				f_all.push_back(btag_curo);
+			}
+
+			if(hasLocBigram)
+			{
+				f_cur_b_l.push_back(btag_curl);
+				f_all.push_back(btag_curl);
+			}
+
+			if(hasOrgBigram)
+			{
+				f_cur_b_g.push_back(btag_curg);
+				f_all.push_back(btag_curg);
 			}
 
 			IntIdMgr::getTermIdListByTermStringList(f_cur_b_a, id_cur_b_a);
@@ -217,6 +243,22 @@ namespace ml
 			{
 				inst.x.set(id_cur_b_o[i], w_cur_b_o);
 				schema.setAttr(id_cur_b_o[i], 1);
+			}
+
+			IntIdMgr::getTermIdListByTermStringList(f_cur_b_n, id_cur_b_n);
+
+			for (size_t i=0; i<id_cur_b_l.size(); ++i)
+			{
+				inst.x.set(id_cur_b_l[i], w_cur_b_l);
+				schema.setAttr(id_cur_b_l[i], 1);
+			}
+
+			IntIdMgr::getTermIdListByTermStringList(f_cur_b_g, id_cur_b_g);
+
+			for (size_t i=0; i<id_cur_b_g.size(); ++i)
+			{
+				inst.x.set(id_cur_b_g[i], w_cur_b_g);
+				schema.setAttr(id_cur_b_g[i], 1);
 			}
 
 
@@ -494,6 +536,105 @@ namespace ml
 			schema.setAttr(id_cur_surname[i], 1);
 		}
 
+// Add the contextual features.
+
+		UString peopLeftTag("_PEOP_L", wiselib::UString::UTF_8);
+		UString locLeftTag("_LOC_L", wiselib::UString::UTF_8);
+		UString orgLeftTag("_ORG_L", wiselib::UString::UTF_8);
+		if(pre.size()>0)
+		{
+			bool havePeopLeft=false;
+			bool haveLocLeft=false;
+			bool haveOrgLeft=false;
+			for(size_t i=0;i<pre.size();i++)
+			{
+				std::string strItem;
+				pre[i].convertString(strItem, wiselib::UString::UTF_8);
+				if(NameEntityDict::isPeopLeft(strItem))
+				{
+					havePeopLeft=true;
+				}
+				if(NameEntityDict::isLocLeft(strItem))
+				{
+					haveLocLeft=true;
+				}
+				if(NameEntityDict::isOrgLeft(strItem))
+				{
+					haveOrgLeft=true;
+				}
+			}
+			if(havePeopLeft)
+			{
+				f_left.push_back(peopLeftTag);
+				f_all.push_back(peopLeftTag);
+			}
+			if(haveLocLeft)
+			{
+				f_left.push_back(locLeftTag);
+				f_all.push_back(locLeftTag);
+			}
+			if(haveOrgLeft)
+			{
+				f_left.push_back(orgLeftTag);
+				f_all.push_back(orgLeftTag);
+			}
+		}
+
+		IntIdMgr::getTermIdListByTermStringList(f_left, id_left);
+		for (size_t i =0; i<id_left.size(); ++i)
+		{
+				inst.x.set(id_left[i], w_left);
+				schema.setAttr(id_left[i], 1);
+		}
+
+		UString peopRightTag("_PEOP_R", wiselib::UString::UTF_8);
+		UString locRightTag("_LOC_R", wiselib::UString::UTF_8);
+		UString orgRightTag("_ORG_R", wiselib::UString::UTF_8);
+		if(suc.size()>0)
+		{
+			bool havePeopRight=false;
+			bool haveLocRight=false;
+			bool haveOrgRight=false;
+			for(size_t i=0;i<suc.size();i++)
+			{
+				std::string strItem;
+				suc[i].convertString(strItem, wiselib::UString::UTF_8);
+				if(NameEntityDict::isPeopRight(strItem))
+				{
+					havePeopRight=true;
+				}
+				if(NameEntityDict::isLocRight(strItem))
+				{
+					haveLocRight=true;
+				}
+				if(NameEntityDict::isOrgRight(strItem))
+				{
+					haveOrgRight=true;
+				}
+			}
+			if(havePeopRight)
+			{
+				f_right.push_back(peopRightTag);
+				f_all.push_back(peopRightTag);
+			}
+			if(haveLocRight)
+			{
+				f_left.push_back(locRightTag);
+				f_all.push_back(locRightTag);
+			}
+			if(haveOrgRight)
+			{
+				f_left.push_back(orgRightTag);
+				f_all.push_back(orgRightTag);
+			}
+		}
+
+		IntIdMgr::getTermIdListByTermStringList(f_right, id_right);
+		for (size_t i =0; i<id_right.size(); ++i)
+		{
+				inst.x.set(id_right[i], w_right);
+				schema.setAttr(id_right[i], 1);
+		}
 
 
 //		UString lenStr;
@@ -530,6 +671,8 @@ namespace ml
 		UString orgTag("_ORG", wiselib::UString::UTF_8);
 		if(pre.size()>0)
 		{
+			f_left.clear();
+			id_left.clear();
 			for(size_t i=0;i<pre.size();i++)
 			{
 				UString preChar=pre[i];
@@ -565,6 +708,8 @@ namespace ml
 		}
 		if(suc.size()>0)
 		{
+			f_right.clear();
+			id_right.clear();
 			for(size_t i=0;i<suc.size();i++)
 			{
 				UString preChar=suc[i];
@@ -598,6 +743,8 @@ namespace ml
 				schema.setAttr(id_right[i], 1);
 			}
 		}
+
+
 
 	//	size_t window = 3;
 
