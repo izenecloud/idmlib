@@ -2,11 +2,20 @@
 #include <idmlib/util/StringUtil.hpp>
 #include <iostream>
 #include <string>
+#include <set>
 
 using namespace idmlib;
 using namespace wiselib;
 
 
+class NameEntityContextType
+{
+
+public:
+    std::set<std::string> pre_;
+    std::set<std::string> suc_;
+
+};
 //
 //void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters)
 //{
@@ -143,7 +152,17 @@ void loadNameEntities(std::vector<NameEntity>& entities, string file, Label labe
 				trimLeft(tokens[i], blank.c_str());
 				trimRight(tokens[i], blank.c_str());
 				if(i==0)
-					entity.cur=UString(tokens[i], UString::UTF_8);
+				{
+					std::vector<std::string> inTokens;
+					tokenize(tokens[i], inTokens, "_");
+					std::string newToken="";
+					for(size_t j=0;j<inTokens.size();j++)
+					{
+						newToken=newToken+inTokens[j]+" ";
+					}
+					trimRight(newToken, blank.c_str());
+					entity.cur=UString(newToken, UString::UTF_8);
+				}
 				else
 				{
 					std::string strTag, strChar, strCount;

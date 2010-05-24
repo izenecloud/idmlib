@@ -31,7 +31,6 @@ NameEntityManager::NameEntityManager(const std::string& path): path_(path)
 		std::string noun_list_path = res_path + "noun.txt";
 		std::string name_prefix_path =res_path + "surname.txt";
 
-
 		NameEntityDict::loadLocSuffix(loc_suffix_path);
 		NameEntityDict::loadOrgSuffix(org_suffix_path);
 		NameEntityDict::loadPeopSuffix(peop_suffix_path);
@@ -42,7 +41,6 @@ NameEntityManager::NameEntityManager(const std::string& path): path_(path)
 		NameEntityDict::loadOtherList(other_list_path);
 		NameEntityDict::loadNamePrefix(name_prefix_path);
 		NameEntityDict::loadNounList(noun_list_path);
-
 
 		std::string model_path = path + "/model/";
 		ml::ClassifierType type = LR;

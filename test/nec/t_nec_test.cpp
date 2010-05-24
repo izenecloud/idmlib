@@ -13,6 +13,7 @@
 #include <fstream.h>
 #include <string>
 #include <set>
+#include <idmlib/util/StringUtil.hpp>
 
 using namespace idmlib;
 
@@ -56,11 +57,11 @@ void loadDict(const std::string& dictName, std::map<std::string, int>& dict, int
 
 }
 
-int main()
+void testNec()
 {
-
     std::ofstream testOut("necResult.txt");
 	std::string test_path = "../db/nec/test/test.txt";
+//    std::string test_path = "../db/nec/test/engtest";
 	std::string path = "../resource/nec/";
 	NameEntityManager neMgr(path);
 
@@ -107,6 +108,7 @@ int main()
 		testOut<<std::endl;
 	}
 	std::cout<<"The classification rate: "<<(float)posCount/entities2.size()<<std::endl;
+}
 
 /**extracting word groups */
 //    std::string path="/home/jinglei/199801.txt";
@@ -278,4 +280,126 @@ int main()
 //	std::vector<NameEntity> entities;
 //	loadNameEntities(entities, "peop.txt", "NONE");
 
+bool isEntityLabel(const std::string& strLabel)
+{
+	if(strLabel=="PER"||strLabel=="LOC"||strLabel=="ORG")
+//	if(strLabel=="PER")
+	{
+		return true;
+	}
+	return false;
 }
+
+
+void processEngCorpus()
+{
+    std::string path="train.txt";
+    std::ifstream corpus(path.c_str());
+    std::ofstream trainPattern("train_pattern.txt");
+//    std::ofstream trainPattern_org("train_pattern_org.txt");
+//    std::ofstream trainPattern_peop("train_pattern_peop.txt");
+//    std::ofstream trainPattern_loc("train_pattern_loc.txt");
+//    std::ofstream trainPattern("train_pattern_peop.txt");
+    std::string line;
+    std::string delimiters=" ";
+    std::string trim="_";
+
+    typedef std::map<std::string, NameEntityContextType> EntityListType;
+    EntityListType entities;
+    std::string lastEntity="";
+    std::string lastLabel="";
+    std::string lastContext="";
+    std::string lastWord="";
+    while(std::getline(corpus, line))
+    {
+    	if(line.length()>0)
+    	{
+    		std::vector<std::string> tokens;
+    		tokenize(line, tokens, delimiters);
+    		if(tokens.size()!=3)
+    			continue;
+    		{
+//    			std::cout<<tokens[0]<<" "<<tokens[1]<<" "<<tokens[2]<<std::endl;
+    			std::string strWord=tokens[0];
+    			std::string strLabel=tokens[2];
+    			if(strLabel!=lastLabel)
+    			{
+    				if(isEntityLabel(lastLabel))
+    				{
+    					trimRight(lastEntity, trim.c_str());
+                        EntityListType::iterator it=entities.find(lastEntity);
+                        if(it==entities.end())
+                        {
+                        	NameEntityContextType context;
+                        	if(strWord.length()>0)
+                                context.suc_.insert(strWord);
+                        	if(lastContext.length()>0)
+                                context.pre_.insert(lastContext);
+                            entities.insert(std::make_pair(lastEntity, context));
+                         }
+                        else
+                        {
+                        	if(strWord.length()>0)
+                        	    it->second.suc_.insert(strWord);
+                        	if(lastContext.length()>0)
+                        	    it->second.pre_.insert(lastContext);
+                        }
+
+                        lastEntity="";
+                        lastLabel="";
+                        lastContext="";
+    				}
+    				if(isEntityLabel(strLabel))
+    				{
+    					lastEntity=strWord+"_";
+    					lastLabel=strLabel;
+    					lastContext=lastWord;
+    				}
+
+    			}
+    			else
+    			{
+    				if(isEntityLabel(strLabel))
+    				{
+    					lastEntity=lastEntity+strWord+"_";
+    				}
+    			}
+    			lastWord=strWord;
+     		}
+    	}
+    }//end while
+
+    EntityListType::iterator it=entities.begin();
+    for(;it!=entities.end();it++)
+    {
+        trainPattern<<it->first<<" ";
+        if(it->second.pre_.size()>0)
+        {
+        	std::set<std::string>::iterator iterLeft=it->second.pre_.begin();
+            for(;iterLeft!=it->second.pre_.end();iterLeft++)
+            {
+            	if(*iterLeft!="_")
+            	    trainPattern<<"L_"<<*iterLeft<<"_x ";
+            }
+        }
+        if(it->second.suc_.size()>0)
+        {
+        	std::set<std::string>::iterator iterRight=it->second.suc_.begin();
+            for(;iterRight!=it->second.suc_.end();iterRight++)
+            {
+            	if(*iterRight!="_")
+            	    trainPattern<<"R_"<<*iterRight<<"_x ";
+            }
+        }
+
+        trainPattern<<std::endl;
+    }
+
+}
+
+int main()
+{
+//	processEngCorpus();
+	testNec();
+}
+
