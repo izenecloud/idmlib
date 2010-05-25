@@ -25,6 +25,7 @@ public:
 	void predict(NameEntity& entity);
 	void predict(std::vector<NameEntity>& entities);
 	void postProcessing(NameEntity& entity);
+	void destroyModels();
 
 
 
