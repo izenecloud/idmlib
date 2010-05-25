@@ -332,6 +332,7 @@ namespace ml
 		UString peopTag("_PEOP", wiselib::UString::UTF_8);
 		UString locTag("_LOC", wiselib::UString::UTF_8);
 		UString orgTag("_ORG", wiselib::UString::UTF_8);
+		UString theTag("_THE", wiselib::UString::UTF_8);
 		if(pre.size()>0)
 		{
 			f_left.clear();
@@ -339,6 +340,12 @@ namespace ml
 			{
 				std::string strItem;
 				pre[i].convertString(strItem, wiselib::UString::UTF_8);
+				if(NameEntityDict::isThe(strItem))
+				{
+					UString preChar=theTag;
+					f_left.push_back(preChar);
+					f_all.push_back(preChar);
+				}
 				if(NameEntityDict::isPeopLeft(strItem))
 				{
 					UString preChar=pre[i];

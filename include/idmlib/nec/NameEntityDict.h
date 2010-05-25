@@ -74,6 +74,7 @@ public:
 	static void loadOrgRight(std::string& path);
 	static void loadPeopLeft(std::string& path);
 	static void loadPeopRight(std::string& path);
+	static bool isThe(std::string& str);
 
 
 	static hash_set<std::string> locSuffix;

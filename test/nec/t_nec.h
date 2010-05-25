@@ -16,6 +16,15 @@ public:
     std::set<std::string> suc_;
 
 };
+
+//class NameEntityContextType2
+//{
+//
+//public:
+//    std::map<std::string, int> pre_;
+//    std::map<std::string, int> suc_;
+//
+//};
 //
 //void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters)
 //{
@@ -211,6 +220,8 @@ void loadNameEntities(std::vector<NameEntity>& entities, string file, Label labe
 	inStream.close();
 
 }
+
+
 
 
 
