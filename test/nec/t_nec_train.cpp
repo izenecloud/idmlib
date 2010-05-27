@@ -18,9 +18,13 @@ int main()
 	std::string org_path = "../db/nec/train/org.txt";
 	std::string loc_path = "../db/nec/train/loc.txt";
 	std::string peop_path = "../db/nec/train/peop.txt";
+//	std::string org_path = "../db/nec/train/train_pattern_org.txt";
+//	std::string loc_path = "../db/nec/train/train_pattern_loc.txt";
+//	std::string peop_path = "../db/nec/train/train_pattern_peop.txt";
 	std::string other_path = "../db/nec/train/other.txt";
 	std::string noise_path = "../db/nec/train/noise.txt";
 	std::string test_path = "../db/nec/test/test.txt";
+//	std::string test_path = "../db/nec/test/engtest.txt";
 //
 //	std::string res_path = "../resource/nec/res/";
 //	std::string loc_suffix_path = res_path + "loc_s.txt";

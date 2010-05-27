@@ -44,6 +44,7 @@ void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffix
 			{
 				if (line.length() > 0)
 				{
+					std::transform(line.begin(), line.end(), line.begin(), ::tolower);
 					suffixSet.insert(line);
 				}
 			}
@@ -137,27 +138,37 @@ void NameEntityDict::loadPeopRight( std::string& path)
 
 bool NameEntityDict::isLocSuffix(std::string& str)
 {
-	return locSuffix.find(str) != locSuffix.end();
+	std::string tempStr(str);
+	std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	return locSuffix.find(tempStr) != locSuffix.end();
 }
 
 bool NameEntityDict::isOrgSuffix(std::string& str)
 {
-	return orgSuffix.find(str) != orgSuffix.end();
+	std::string tempStr(str);
+	std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	return orgSuffix.find(tempStr) != orgSuffix.end();
 }
 
 bool NameEntityDict::isPeopSuffix(std::string& str)
 {
-	return peopSuffix.find(str) != peopSuffix.end();
+	std::string tempStr(str);
+	std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	return peopSuffix.find(tempStr) != peopSuffix.end();
 }
 
 bool NameEntityDict::isNamePrefix(std::string& str)
 {
-	return namePrefix.find(str) != namePrefix.end();
+	std::string tempStr(str);
+	std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	return namePrefix.find(tempStr) != namePrefix.end();
 }
 
 bool NameEntityDict::isKownLoc(std::string& str)
 {
-	return locList_.find(str) != locList_.end();
+	std::string tempStr(str);
+	std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	return locList_.find(tempStr) != locList_.end();
 }
 
 bool NameEntityDict::isKownPeop(std::string& str)
@@ -167,22 +178,30 @@ bool NameEntityDict::isKownPeop(std::string& str)
 
 bool NameEntityDict::isKownOrg( std::string& str)
 {
-	return orgList_.find(str) != orgList_.end();
+	std::string tempStr(str);
+	std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	return orgList_.find(tempStr) != orgList_.end();
 }
 
 bool NameEntityDict::isKownNoise( std::string& str)
 {
-	return noiseList_.find(str) != noiseList_.end();
+	std::string tempStr(str);
+	std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	return noiseList_.find(tempStr) != noiseList_.end();
 }
 
 bool NameEntityDict::isKownOther( std::string& str)
 {
-	return otherList_.find(str) != otherList_.end();
+	std::string tempStr(str);
+    std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	return otherList_.find(tempStr) != otherList_.end();
 }
 
 bool NameEntityDict::isNoun( std::string& str)
 {
-	return nounList_.find(str) != nounList_.end();
+	std::string tempStr(str);
+	std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	return nounList_.find(tempStr) != nounList_.end();
 }
 
 bool NameEntityDict::isLocLeft(std::string& str)
@@ -213,6 +232,15 @@ bool NameEntityDict::isPeopLeft( std::string& str)
 bool NameEntityDict::isPeopRight( std::string& str)
 {
 	return peopRight_.find(str) != peopRight_.end();
+}
+
+bool NameEntityDict::isThe(std::string& str)
+{
+	std::string tempStr(str);
+	std::transform(tempStr.begin(), tempStr.end(), tempStr.begin(), ::tolower);
+	if(tempStr=="the")
+		return true;
+	return false;
 }
 
 }
