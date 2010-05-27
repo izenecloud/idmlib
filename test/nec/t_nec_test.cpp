@@ -60,8 +60,8 @@ void loadDict(const std::string& dictName, std::map<std::string, int>& dict, int
 void testNec()
 {
     std::ofstream testOut("necResult.txt");
-	std::string test_path = "../db/nec/test/test.txt";
-//    std::string test_path = "../db/nec/test/engtest";
+//	std::string test_path = "../db/nec/test/test.txt";
+    std::string test_path = "../db/nec/test/engtest";
 	std::string path = "../resource/nec/";
 	NameEntityManager neMgr(path);
 
@@ -531,27 +531,80 @@ void processWordNet()
 
 void extractNames()
 {
-	ifstream inStream("noise.txt");
-	ofstream testOut("dict_noise.txt");
+	ifstream sNoun("eng_noun");
+	ifstream sOrg("org.txt");
+	ifstream sLoc("loc.txt");
+	ofstream testOut("out_noun.txt");
 	string line ="";
 	string blank=" ";
+	std::set<std::string> orgLexicon;
+	while(std::getline(sOrg, line))
+	{
+		std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+		if(line.length()>0)
+		{
+			std::vector<std::string> inTokens;
+			tokenize(line, inTokens, " ");
+			for(size_t i=0;i<inTokens.size();i++)
+			{
+//				std::cout<<inTokens[i];
+				orgLexicon.insert(inTokens[i]);
+			}
+		}
+	}
+	while(std::getline(sLoc, line))
+	{
+		if(line.length()>0)
+		{
+			std::vector<std::string> inTokens;
+			tokenize(line, inTokens, " ");
+			for(size_t i=0;i<inTokens.size();i++)
+			{
+//				std::cout<<inTokens[i];
+				orgLexicon.insert(inTokens[i]);
+			}
+		}
+
+	}
+	while(std::getline(sNoun, line))
+	{
+		if(line.length()>0)
+		{
+			std::vector<std::string> inTokens;
+			tokenize(line, inTokens, " ");
+			bool needInsert=true;
+			for(size_t i=0;i<inTokens.size();i++)
+			{
+//				std::cout<<inTokens[i];
+				if(orgLexicon.find(inTokens[i])!=orgLexicon.end())
+				{
+					needInsert=false;
+					break;
+				}
+
+			}
+			if(needInsert)
+			{
+				testOut<<line<<std::endl;
+			}
+		}
+
+	}
+}
+
+void simpleProcess()
+{
+	ifstream inStream("other.txt");
+	ofstream testOut("newother.txt");
+	string line ="";
 	while (std::getline(inStream, line))
 	{
 		if (line.length() > 0)
 		{
-                int pos=line.find(" ");
+                int pos=line.find("_");
                 if(pos!=std::string::npos)
                 {
-                	string strKey=line.substr(0, pos);
-					std::vector<std::string> inTokens;
-					tokenize(strKey, inTokens, "_");
-					std::string newToken="";
-					for(size_t j=0;j<inTokens.size();j++)
-					{
-						newToken=newToken+inTokens[j]+" ";
-					}
-					trimRight(newToken, blank.c_str());
-					testOut<<newToken<<std::endl;
+					testOut<<line<<std::endl;
                 }
 
 		}
@@ -560,6 +613,7 @@ void extractNames()
 
 int main()
 {
+//	simpleProcess();
 //	processEngCorpus();
 	testNec();
 //	processEngCorpus2();

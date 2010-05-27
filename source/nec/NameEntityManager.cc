@@ -164,13 +164,17 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 				if(!NameEntityDict::isNamePrefix(strSurname))
 					entity.predictLabels[0]="OTHER";
 			}
-			if(vecCur.size()>1&&entity.cur.isChineseChar(0))
+			if(vecCur.size()>1&&!entity.cur.isChineseChar(0))
 			{
 				string strLast;
 				vecCur[vecCur.size()-1].convertString(strLast, wiselib::UString::UTF_8);
-				if(NameEntityDict::isOrgSuffix(strLast)||NameEntityDict::isLocSuffix(strLast))
+				if(NameEntityDict::isOrgSuffix(strLast))
 				{
-					entity.predictLabels[0]="OTHER";
+					entity.predictLabels[0]="ORG";
+				}
+				else if (NameEntityDict::isLocSuffix(strLast))
+				{
+					entity.predictLabels[0]="LOC";
 				}
 			}
 		}
@@ -201,13 +205,13 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 			{
 				entity.predictLabels[0]="OTHER";
 			}
-			if(vecCur.size()>1&&entity.cur.isChineseChar(0))
+			if(vecCur.size()>1&&!entity.cur.isChineseChar(0))
 			{
 				string strLast;
 				vecCur[vecCur.size()-1].convertString(strLast, wiselib::UString::UTF_8);
 				if(NameEntityDict::isOrgSuffix(strLast))
 				{
-					entity.predictLabels[0]="OTHER";
+					entity.predictLabels[0]="ORG";
 				}
 			}
 		}
