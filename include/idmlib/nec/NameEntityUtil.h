@@ -39,8 +39,10 @@ namespace ml
 		std::vector<wiselib::UString> suc = entity.suc;
 		std::vector<wiselib::UString> pre = entity.pre;
 		std::vector<wiselib::UString> vecCur;
+		bool isChinese=false;
 		if(entity.cur.length()>0&&entity.cur.isChineseChar(0))
 		{
+			isChinese=true;
 			wiselib::UString tempStr;
 			for(size_t i=0;i<entity.cur.length();i++)
 			{
@@ -63,11 +65,15 @@ namespace ml
 		UString btag_cura("_BCA", UString::UTF_8); // all bigrams of current sequence
 		UString btag_cure("_BCE", UString::UTF_8); // the end bigram
 		UString ttag_cure("_TCE", UString::UTF_8); // the end trigram
-		UString utag_curl("_UL", UString::UTF_8); // length
+//		UString utag_curl("_UL", UString::UTF_8); // length
 		UString btag_curn("_BN", UString::UTF_8); // has noise
 		UString btag_curo("_BO", UString::UTF_8); // has other bigram
 		UString btag_curl("_BL", UString::UTF_8); // has location bigram
 		UString btag_curg("_BG", UString::UTF_8); // has orgnization bigram
+		UString utag_curn("_UN", UString::UTF_8); // has noise
+		UString utag_curo("_UO", UString::UTF_8); // has other bigram
+		UString utag_curl("_UL", UString::UTF_8); // has location bigram
+		UString utag_curg("_UG", UString::UTF_8); // has orgnization bigram
 		UString utag_left("_LEFT", UString::UTF_8); // has left context
 		UString utag_right("_RIGHT", UString::UTF_8); // has left context
 		UString blank(" ", UString::UTF_8);
@@ -83,6 +89,10 @@ namespace ml
 		std::vector<UString> f_cur_b_o;
 		std::vector<UString> f_cur_b_l;
 		std::vector<UString> f_cur_b_g;
+		std::vector<UString> f_cur_u_n;
+		std::vector<UString> f_cur_u_o;
+		std::vector<UString> f_cur_u_l;
+		std::vector<UString> f_cur_u_g;
 		std::vector<UString> f_cur_l;
 		std::vector<UString> f_left;
 		std::vector<UString> f_right;
@@ -99,6 +109,10 @@ namespace ml
 		double w_cur_b_o = 2;
 		double w_cur_b_l=3;
 		double w_cur_b_g=3;
+		double w_cur_u_n = 0.8;
+		double w_cur_u_o = 2;
+		double w_cur_u_l=3;
+		double w_cur_u_g=3;
 		double w_left = 3;
 		double w_right = 3;
 
@@ -121,14 +135,55 @@ namespace ml
 			f_all.push_back(cur_e);
 			addData(f_cur_u_e, schema, inst, w_cur_u_e);
 
+			bool hasNoiseUnigram=false;
+			bool hasOtherUnigram=false;
+			bool hasLocUnigram=false;
+			bool hasOrgUnigram=false;
 			for (size_t i=0; i<curLength; ++i)
 			{
 				cur_a=vecCur[i];
+				std::string strUnigram;
+				cur_a.convertString(strUnigram, wiselib::UString::UTF_8);
 				cur_a.append(utag_cura);
 				f_cur_u_a.push_back(cur_a);	  // unigram of current sequence
 				f_all.push_back(cur_a);
+				if(!isChinese&&NameEntityDict::isKownNoise(strUnigram))
+					hasNoiseUnigram=true;
+				else if(!isChinese&&NameEntityDict::isNoun(strUnigram))
+					hasOtherUnigram=true;
+				else if(!isChinese&&NameEntityDict::isKownLoc(strUnigram))
+					hasLocUnigram=true;
+				else if(!isChinese&&NameEntityDict::isKownOrg(strUnigram))
+					hasOrgUnigram=true;
 			}
 			addData(f_cur_u_a, schema, inst, w_cur_u_a);
+			if(hasNoiseUnigram)
+			{
+				f_cur_u_n.push_back(utag_curn);
+				f_all.push_back(utag_curn);
+				addData(f_cur_u_n, schema, inst, w_cur_u_n);
+			}
+
+			if(hasOtherUnigram)
+			{
+				f_cur_u_o.push_back(utag_curo);
+				f_all.push_back(utag_curo);
+				addData(f_cur_u_o, schema, inst, w_cur_u_o);
+			}
+
+			if(hasLocUnigram)
+			{
+				f_cur_u_l.push_back(utag_curl);
+				f_all.push_back(utag_curl);
+				addData(f_cur_u_l, schema, inst, w_cur_u_l);
+			}
+
+			if(hasOrgUnigram)
+			{
+				f_cur_u_g.push_back(utag_curg);
+				f_all.push_back(utag_curg);
+				addData(f_cur_u_g, schema, inst, w_cur_u_g);
+			}
 		}
 
 		if (curLength > 1)
@@ -171,7 +226,7 @@ namespace ml
 					hasOrgBigram=true;
 			}
 			addData(f_cur_b_a, schema, inst, w_cur_b_a);
-			if(hasNoiseBigram)
+			if(isChinese&&hasNoiseBigram)
 			{
 				f_cur_b_n.push_back(btag_curn);
 				f_all.push_back(btag_curn);
@@ -225,11 +280,11 @@ namespace ml
 		UString btag_cure_loc("_BCEL", UString::UTF_8);
 		UString ttag_cure_loc("_TCEL", UString::UTF_8);
 		std::vector<UString> f_cur_org;
-		double w_cur_org = 10;
+		double w_cur_org = 16;
 		std::vector<UString> f_cur_org2;
-		double w_cur_org2 = 12;
+		double w_cur_org2 = 16;
 		std::vector<UString> f_cur_org3;
-		double w_cur_org3 = 12;
+		double w_cur_org3 = 16;
 		// whether is org suffix
 		UString utag_cure_org("_UCEO", UString::UTF_8);
 		UString btag_cure_org("_BCEO", UString::UTF_8);
@@ -313,7 +368,7 @@ namespace ml
 	// whether is name prefix
 		std::vector<UString> f_cur_surname;
 		std::vector<ml::AttrID> id_cur_surname;
-		double w_cur_surname = 6;
+		double w_cur_surname = 16;
 		UString utag_curb_name("_UCBN", UString::UTF_8);
 		if (curLength == 3||curLength ==2)
 		{
