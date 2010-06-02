@@ -104,7 +104,7 @@ namespace ml
 		double w_cur_b_a = 4;
 		double w_cur_b_e = 16;
 		double w_cur_t_e = 32;
-		double w_cur_u_e = 10;
+		double w_cur_u_e = 8;
 		double w_cur_b_n = 1.0;
 		double w_cur_b_o = 2;
 		double w_cur_b_l=3;
@@ -113,8 +113,8 @@ namespace ml
 		double w_cur_u_o = 2;
 		double w_cur_u_l=3;
 		double w_cur_u_g=3;
-		double w_left = 3;
-		double w_right = 3;
+		double w_left = 2;
+		double w_right = 2;
 
         string u_cur_e_str;
 		string b_cur_e_str;
