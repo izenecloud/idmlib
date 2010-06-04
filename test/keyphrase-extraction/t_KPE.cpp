@@ -63,7 +63,7 @@ int main()
         vector<string> kpeVec;
         OneStringData osd(input);
 
-        perform_kpe( "../resource/kpe", osd, kpeVec,
+        perform_kpe( "../resource/kpe", osd, kpeVec, NULL,
                 "./id", "./tmp");
 
         cout << "##############\n Number of results: " << kpeVec.size() << endl;

@@ -1,8 +1,13 @@
 #include <idmlib/keyphrase-extraction/SimpleIDManager.hpp>
 
+#include <idmlib/keyphrase-extraction/KPESimpleAPI.hpp>
+
 NS_IDMLIB_KPE_BEGIN
 
-SimpleIDManager::SimpleIDManager(const std::string& path):path_(path)
+using std::vector;
+
+SimpleIDManager::SimpleIDManager( const std::string& path, KPEAnalyzer* analyzer )
+    : path_(path), analyzer_( analyzer )
 {
     boost::filesystem::create_directories(path_);
     strStorage_=new izenelib::ir::idmanager::HDBIDStorage< wiselib::UString, uint32_t>(path+"/id_ustring_map");
@@ -57,24 +62,51 @@ void SimpleIDManager::getAnalysisTermIdList(const wiselib::UString& str, std::ve
     getAnalysisTermIdList( str, termList, termIdList, posInfoList, positionList );
 }
 
-void SimpleIDManager::getAnalysisTermIdList(const wiselib::UString& str, std::vector<wiselib::UString>& termList, std::vector<uint32_t>& idList, std::vector<char>& posInfoList, std::vector<uint32_t>& positionList)
+void SimpleIDManager::getAnalysisTermIdList(
+        const wiselib::UString& str,
+        std::vector<wiselib::UString>& termList,
+        std::vector<uint32_t>& idList,
+        std::vector<char>& posInfoList,
+        std::vector<uint32_t>& positionList
+        )
 {
-    size_t len = str.length();
-    char pos = 'C';
-    for( size_t i = 0; i < len; ++i )
+    if( analyzer_ == NULL )
     {
-        wiselib::UString term = str.substr( i, 1 );
-        // Only handle Chinese Characters
-        if( term.isChineseChar( 0 ) == false )
-            continue;
+        size_t len = str.length();
+        char pos = 'C';
+        for( size_t i = 0; i < len; ++i )
+        {
+            wiselib::UString term = str.substr( i, 1 );
+            // Only handle Chinese Characters
+            if( term.isChineseChar( 0 ) == false )
+                continue;
 
-        posInfoList.push_back( pos );
-        termList.push_back( term );
-        uint32_t termId;
-        getTermIdByTermString( term, termId );
-        idList.push_back( termId );
+            posInfoList.push_back( pos );
+            termList.push_back( term );
+            uint32_t termId;
+            getTermIdByTermString( term, termId );
+            idList.push_back( termId );
 
-        positionList.push_back( static_cast<uint32_t>( i ) );
+            positionList.push_back( static_cast<uint32_t>( i ) );
+        }
+    }
+    else
+    {
+        string strForm;
+        str.convertString( strForm, wiselib::UString::UTF_8 );
+        vector< string > strTerms;
+        analyzer_->analyze( strForm.c_str(), strTerms, posInfoList, positionList );
+
+        // convert terms from string to UString and update termId
+        for( vector< string >::iterator itr = strTerms.begin(); itr != strTerms.end(); ++itr )
+        {
+            wiselib::UString term;
+            term.assign( itr->c_str(), wiselib::UString::UTF_8 );
+            termList.push_back( term );
+            uint32_t termId;
+            getTermIdByTermString( term, termId );
+            idList.push_back( termId );
+        }
     }
 }
 

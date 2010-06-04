@@ -10,11 +10,13 @@
 
 NS_IDMLIB_KPE_BEGIN
 
+class KPEAnalyzer;
+
 class SimpleIDManager : public boost::noncopyable
 {
 public:
 
-SimpleIDManager(const std::string& path);
+SimpleIDManager(const std::string& path, KPEAnalyzer* analyzer = NULL );
 
 ~SimpleIDManager();
 
@@ -30,8 +32,13 @@ bool isKP(uint32_t termId);
 
 void getAnalysisTermIdList(const wiselib::UString& str, std::vector<uint32_t>& termIdList);
 
-void getAnalysisTermIdList(const wiselib::UString& str, std::vector<wiselib::UString>& termList,
-        std::vector<uint32_t>& idList, std::vector<char>& posInfoList, std::vector<uint32_t>& positionList);
+void getAnalysisTermIdList(
+        const wiselib::UString& str,
+        std::vector<wiselib::UString>& termList,
+        std::vector<uint32_t>& idList,
+        std::vector<char>& posInfoList,
+        std::vector<uint32_t>& positionList
+        );
 
 void flush();
 
@@ -41,6 +48,7 @@ private:
     izenelib::ir::idmanager::HDBIDStorage< wiselib::UString, uint32_t>* strStorage_;
     boost::mutex mutex_;
     std::string path_;
+    KPEAnalyzer* analyzer_;
         
 };
 

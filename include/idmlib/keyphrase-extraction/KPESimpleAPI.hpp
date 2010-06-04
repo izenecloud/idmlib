@@ -34,9 +34,29 @@ public:
     }
 };
 
-void perform_kpe( const string& resPath, KPEDataInterator& inputItr,
-        std::vector<std::string>& kpeVec, const string idDataPath = "./id",
-        const string kpeDataPath = "./tmp");
+class KPEAnalyzer
+{
+public:
+    virtual ~KPEAnalyzer()
+    {
+    }
+
+    virtual void analyze(
+            const char* str,
+            std::vector< std::string >& termList,
+            std::vector< char >& posInfoList,
+            std::vector<uint32_t>& positionList
+            ) = 0;
+};
+
+void perform_kpe(
+        const string& resPath,
+        KPEDataInterator& inputItr,
+        std::vector<std::string>& kpeVec,
+        KPEAnalyzer* analyzer = NULL,
+        const string idDataPath = "./id",
+        const string kpeDataPath = "./tmp"
+        );
 
 
 NS_IDMLIB_KPE_END
