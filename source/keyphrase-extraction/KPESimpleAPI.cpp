@@ -44,12 +44,17 @@ void test_func(const wiselib::UString& ustr,
     std::cout<<"Find KP: "<<str<<std::endl;
 }
 
-void perform_kpe( const string& resPath, KPEDataInterator& inputItr,
-        std::vector<std::string>& kpeVec, const string idDataPath,
-        const string kpeDataPath )
+void perform_kpe(
+        const string& resPath,
+        KPEDataInterator& inputItr,
+        std::vector<std::string>& kpeVec,
+        KPEAnalyzer* analyzer,
+        const string idDataPath,
+        const string kpeDataPath
+        )
 {
 
-    SimpleIDManager idManager( idDataPath );
+    SimpleIDManager idManager( idDataPath, analyzer );
 
     RetHolder rh( &kpeVec );
 
