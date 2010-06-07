@@ -18,6 +18,37 @@
 
 NS_IDMLIB_KPE_BEGIN
 
+struct TERM_TAG
+{
+    static const char CHN = 'C';
+    static const char ENG = 'F';
+    static const char KOR = '?';
+    static const char KOR_NOUN = 'N';
+    static const char KOR_COMP_NOUN = 'Z';
+    static const char NUM = 'S';
+    static const char OTHER = '@';
+};
+
+class Term
+{
+    public:
+        Term(const wiselib::UString& text, uint32_t id, char tag, uint32_t position)
+        :text_(text), id_(id), tag_(tag), position_(position)
+        {
+        }
+        
+        Term(const wiselib::UString& text, char tag, uint32_t position)
+        :text_(text), id_(0), tag_(tag), position_(position)
+        {
+        }
+        
+    public:
+        wiselib::UString text_;
+        mutable uint32_t id_;
+        char tag_;
+        uint32_t position_;
+};
+
 template < class IDManager >
 class IDInputType
 {

@@ -74,6 +74,30 @@ public:
         while( addTerms_(docId, termList, idList, posInfoList, positionList, begin) ) {}
         
     }
+
+
+    void insert(const std::vector<Term>& termList, uint32_t docId = 1 )
+    {
+        if( termList.size() == 0 ) return;
+        std::vector<id_type> idList(termList.size());
+        for(uint32_t i=0;i<termList.size();i++)
+        {
+            if( termList[i].id_ == 0 )
+            {
+                bool b = idManager_->getTermIdByTermString(termList[i].text_, termList[i].tag_, termList[i].id_ );
+                if(!b)
+                {
+                    std::string str;
+                    termList[i].text_.convertString(str, wiselib::UString::UTF_8);
+                    std::cout<<"Can not get term id for string : "<<str<<std::endl;
+                    return;
+                }
+            }
+        }
+        
+        uint32_t begin = 0;
+        while( addTerms_(docId, termList, begin) ) {}
+    }
     
     void insert(const std::vector<string_type>& termList, const std::vector<pos_type>& posInfoList, const std::vector<uint32_t>& positionList, uint32_t docId = 1)
     {
@@ -563,6 +587,72 @@ private:
             if( !splitVec[_index].first )
             {
                 idManager_->put(terms[_index], termList[p]);
+            }
+        }
+        addTerms_(docId, terms, bFirstTerm, bLastTerm);
+        return true;
+
+
+    }
+    
+    bool addTerms_(uint32_t docId, const std::vector<Term>& termList, uint32_t& iBegin)
+    {
+        
+        if(iBegin >= termList.size()) return false;
+        std::vector<std::pair<bool,uint32_t> > splitVec;
+        uint32_t i=iBegin;
+        uint32_t _begin = iBegin;
+        uint32_t insertTermId;
+        for ( ;i<termList.size();i++ )
+        {
+            bool bSplit = scorer_->isSplitTerm(termList[i].text_, termList[i].tag_, termList[i].id_, insertTermId);
+            splitVec.push_back(std::make_pair(bSplit, insertTermId));
+            if( i == iBegin ) //first term
+            {
+                continue;
+            }
+            else
+            {
+                if(bSplit)
+                {
+                    break;
+                }
+                if( termList[i].position_ != termList[i-1].position_+1 )
+                {
+                    splitVec.erase( splitVec.end()-1 );
+                    break;
+                }
+            }
+            
+        }
+        iBegin = i;
+        if( splitVec.size() == 0 ) return false;
+        bool bFirstTerm = true;
+        bool bLastTerm = true;
+        if( splitVec.size() == 1 ) 
+        {
+            if( splitVec[0].first == true )
+            {
+                return true;
+            }
+        }
+        else
+        {
+            bFirstTerm = !splitVec.front().first;
+            bLastTerm = !splitVec.back().first;
+            
+        }
+        std::vector<uint32_t> terms( splitVec.size() );
+        for(uint32_t p=_begin;p<_begin+splitVec.size();p++)
+        {
+            uint32_t _index = p-_begin;
+            terms[_index] = splitVec[_index].second;
+            if( !idManager_->isAutoInsert() )
+            {
+                if( !splitVec[_index].first )
+                {
+                    idManager_->put(terms[_index], termList[p].text_);
+                }
             }
         }
         addTerms_(docId, terms, bFirstTerm, bLastTerm);

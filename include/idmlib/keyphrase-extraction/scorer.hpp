@@ -707,7 +707,7 @@ class Scorer : public boost::noncopyable
             {
                 if ( word.length() >0 )
                 {
-                    if( word[0] == '@' ) break;
+                    if( word[0] == idmlib::kpe::TERM_TAG::OTHER ) break;
                     wiselib::UString ustr(word, wiselib::UString::UTF_8);
                     if( ustr.length()!= 2 ) continue;
                     if( !ustr.isChineseChar(0) ) continue;
@@ -718,8 +718,8 @@ class Scorer : public boost::noncopyable
                     ustr.substr(ustr2, 1,1);
                     uint32_t id1 = 0;
                     uint32_t id2 = 0;
-                    idManager_->getTermIdByTermString( ustr1, 'C', id1);
-                    idManager_->getTermIdByTermString( ustr2, 'C', id2);
+                    idManager_->getTermIdByTermString( ustr1, idmlib::kpe::TERM_TAG::CHN, id1);
+                    idManager_->getTermIdByTermString( ustr2, idmlib::kpe::TERM_TAG::CHN, id2);
                     uint64_t key = idmlib::util::make64UInt(id1, id2);
                     invalidChnBigram_->insert(key, 0);
                 }
@@ -812,12 +812,12 @@ class Scorer : public boost::noncopyable
             insertTermId = termId;
             bool result = false;
 
-            if( tag == 'S')
+            if( tag == idmlib::kpe::TERM_TAG::NUM)
             {
                 insertTermId = langScorer_->getArabicNumber();
                 return true;
             }
-            if( tag == 'F')
+            if( tag == idmlib::kpe::TERM_TAG::ENG)
             {
                 
                 wiselib::UString lower = ustr;
@@ -836,7 +836,7 @@ class Scorer : public boost::noncopyable
                     return true;
                 }
             }
-            if( tag == 'C')
+            if( tag == idmlib::kpe::TERM_TAG::CHN)
             {
                 if( isNonAppearTerm(indicateId) )
                 {
@@ -846,24 +846,24 @@ class Scorer : public boost::noncopyable
             
             if( swContainer_->isStopWord( indicateId ) )
             {
-                if( tag == 'F')
+                if( tag == idmlib::kpe::TERM_TAG::ENG)
                 {
                     insertTermId = indicateId;
                 }
                 return true;
             }
 
-            if ( tag == '?' && ustr.isDigitChar(0) )
+            if ( tag == idmlib::kpe::TERM_TAG::KOR && ustr.isDigitChar(0) )
             {
                 insertNonAppearTerm(termId);
                 result = true;
             }
-            else if( (tag == '?'||tag == 'N') && ustr.length()==1 )
+            else if( (tag == idmlib::kpe::TERM_TAG::KOR||tag == idmlib::kpe::TERM_TAG::KOR_NOUN) && ustr.length()==1 )
             {
                 insertNonAppearTerm(termId);
                 result = true;
             }
-            else if( tag == '?' )
+            else if( tag == idmlib::kpe::TERM_TAG::KOR )
             {
                 insertMidAppearTerm(termId);
             }

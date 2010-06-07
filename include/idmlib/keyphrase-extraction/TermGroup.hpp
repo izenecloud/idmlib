@@ -10,6 +10,8 @@
 #ifndef IDMKPETERMGROUP_H_
 #define IDMKPETERMGROUP_H_
 
+#include "input.hpp"
+
 NS_IDMLIB_KPE_BEGIN
 
 template <class IDManager >
@@ -42,7 +44,7 @@ class TermGroup
             for(uint32_t i=0;i<vec.size();i++)
             {
                 uint32_t id = 0;
-                idManager_->getTermIdByTermString( vec[i], 'C', id);
+                idManager_->getTermIdByTermString( vec[i], idmlib::kpe::TERM_TAG::CHN, id);
                 insert(id, groupId);
             }
             vec.resize(0);
@@ -81,7 +83,7 @@ class TermGroup
             for(uint32_t i=0;i<vec.size();i++)
             {
                 uint32_t id = 0;
-                idManager_->getTermIdByTermString( vec[i], 'F', id);
+                idManager_->getTermIdByTermString( vec[i], idmlib::kpe::TERM_TAG::ENG, id);
                 insert(id, groupId);
             }
             vec.resize(0);
