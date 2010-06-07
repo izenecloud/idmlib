@@ -13,6 +13,14 @@ home=`dirname "$0"`
 home=`cd "$home"; pwd`
 
 datestr=`date +%Y%m%d%H%M%S`
+
+if [ -d "$home/resource" ]
+then
+    a=1
+else
+    mkdir "$home/resource"
+fi
+
 cp -r "$home"/resource "$home/resource-$datestr"
 
 rsync -avP "$1"@izenesoft.cn:/data/sf1r-resource/"$2"/resource/nec/ "$home"/resource/nec/
