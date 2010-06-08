@@ -79,7 +79,6 @@ public:
     void insert(const std::vector<Term>& termList, uint32_t docId = 1 )
     {
         if( termList.size() == 0 ) return;
-        std::vector<id_type> idList(termList.size());
         for(uint32_t i=0;i<termList.size();i++)
         {
             if( termList[i].id_ == 0 )
@@ -94,7 +93,14 @@ public:
                 }
             }
         }
-        
+//         std::cout<<"{$$$insert} ";
+//         for(uint32_t i=0;i<termList.size();i++)
+//         {
+//             std::string str;
+//             termList[i].text_.convertString(str, wiselib::UString::UTF_8);
+//             std::cout<<"["<<str<<","<<termList[i].tag_<<","<<termList[i].id_<<","<<termList[i].position_<<"]";
+//         }
+//         std::cout<<std::endl;
         uint32_t begin = 0;
         while( addTerms_(docId, termList, begin) ) {}
     }
@@ -348,6 +354,7 @@ public:
             typename Hash2CountSSFType::SorterType sorter;
             sorter.sort( h2cWriter.getPath() );
         }
+//         sleep(1000);
         typename HashCountListSSFType::WriterType hcltWriter( dir_+"/HCLTWRITER" );
         hcltWriter.open();
         {
@@ -664,7 +671,7 @@ private:
     
     void addTerms_(uint32_t docId, const std::vector<uint32_t>& termList, bool bFirstTerm = true, bool bLastTerm = true)
     {
-        
+//         std::cout<<"### "<<termList.size()<<" "<<(int)bFirstTerm<<" "<<(int)bLastTerm<<std::endl;
         if( termList.size() == 0 ) return;
         if( termList.size() == 1 ) 
         {
