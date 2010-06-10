@@ -10,6 +10,7 @@ FIND_PACKAGE(izenelib REQUIRED COMPONENTS
   febird
   udt3
   izene_log
+  izene_util
   bigint
   procmeminfo
   luxio
