@@ -61,7 +61,7 @@ public:
 	    }
 	}
     
-    void getAnalysisTermIdList(const wiselib::UString& str, std::vector<wiselib::UString>& strList, std::vector<uint32_t>& termIdList)
+    void getAnalysisTermList(const wiselib::UString& str, std::vector<wiselib::UString>& strList, std::vector<uint32_t>& termIdList)
     {
         la::TermList laTermList;
         la_.process_search( str, laTermList);
