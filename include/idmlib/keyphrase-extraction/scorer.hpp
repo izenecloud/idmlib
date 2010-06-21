@@ -42,27 +42,27 @@ class NullIDManager : public boost::noncopyable
 
         }
         
-        bool getTermIdByTermString(const wiselib::UString& ustr, uint32_t& termId)
+        bool getTermIdByTermString(const izenelib::util::UString& ustr, uint32_t& termId)
         {
             return false;
         }
         
-        bool getTermIdByTermString(const wiselib::UString& ustr, char pos, uint32_t& termId)
+        bool getTermIdByTermString(const izenelib::util::UString& ustr, char pos, uint32_t& termId)
         {
             return false;
         }
         
-        bool getTermStringByTermId(uint32_t termId, wiselib::UString& ustr)
+        bool getTermStringByTermId(uint32_t termId, izenelib::util::UString& ustr)
         {
             return false;
         }
         
-        void put(uint32_t termId, const wiselib::UString& ustr)
+        void put(uint32_t termId, const izenelib::util::UString& ustr)
         {
             
         }
         
-        void getAnalysisTermIdList(const wiselib::UString& str, std::vector<uint32_t>& termIdList)
+        void getAnalysisTermIdList(const izenelib::util::UString& str, std::vector<uint32_t>& termIdList)
         {
             
         }
@@ -128,12 +128,12 @@ class ScorerContextItem
                 result += "|";
                 for(uint32_t i=0;i<termIdList_.size()-1;i++)
                 {
-                    wiselib::UString ustr;
+                    izenelib::util::UString ustr;
                     bool b = idManager->getTermStringByTermId(termIdList_[i], ustr);
                     if(b)
                     {
                         std::string str;
-                        ustr.convertString(str, wiselib::UString::UTF_8);
+                        ustr.convertString(str, izenelib::util::UString::UTF_8);
                         result += str+":"+boost::lexical_cast<std::string>(contextCountList_[i])+"|";
                     }
                     else
@@ -141,12 +141,12 @@ class ScorerContextItem
                         result += boost::lexical_cast<std::string>(termIdList_[i])+":"+boost::lexical_cast<std::string>(contextCountList_[i])+"|";
                     }
                 }
-                wiselib::UString ustr;
+                izenelib::util::UString ustr;
                 bool b = idManager->getTermStringByTermId(termIdList_.back(), ustr);
                 if(b)
                 {
                     std::string str;
-                    ustr.convertString(str, wiselib::UString::UTF_8);
+                    ustr.convertString(str, izenelib::util::UString::UTF_8);
                     result += str+":"+boost::lexical_cast<std::string>(contextCountList_.back());
                 }
                 else
@@ -167,12 +167,12 @@ class ScorerContextItem
             {
                 for(uint32_t i=0;i<termIdList_.size();i++)
                 {
-                    wiselib::UString ustr;
+                    izenelib::util::UString ustr;
                     bool b = idManager->getTermStringByTermId(termIdList_[i], ustr);
                     if(b)
                     {
                         std::string str;
-                        ustr.convertString(str, wiselib::UString::UTF_8);
+                        ustr.convertString(str, izenelib::util::UString::UTF_8);
                         result += direct+"_"+str+"_"+boost::lexical_cast<std::string>(contextCountList_[i])+" ";
                     }
                 }
@@ -212,12 +212,12 @@ class ScorerItem
             {
                 for(uint32_t i=0;i<termIdList_.size()-1;i++)
                 {
-                    wiselib::UString ustr;
+                    izenelib::util::UString ustr;
                     bool b = idManager->getTermStringByTermId(termIdList_[i], ustr);
                     if(b)
                     {
                         std::string str;
-                        ustr.convertString(str, wiselib::UString::UTF_8);
+                        ustr.convertString(str, izenelib::util::UString::UTF_8);
                         result += str+split;
                     }
                     else
@@ -225,12 +225,12 @@ class ScorerItem
                         result += boost::lexical_cast<std::string>(termIdList_[i])+split;
                     }
                 }
-                wiselib::UString ustr;
+                izenelib::util::UString ustr;
                 bool b = idManager->getTermStringByTermId(termIdList_.back(), ustr);
                 if(b)
                 {
                     std::string str;
-                    ustr.convertString(str, wiselib::UString::UTF_8);
+                    ustr.convertString(str, izenelib::util::UString::UTF_8);
                     result += str;
                 }
                 else
@@ -583,8 +583,8 @@ class LanguageScorer : public boost::noncopyable
     private:
         void init_(const std::string& resPath)
         {
-            idManager_->getTermIdByTermString(wiselib::UString("ARABICNUMBER",wiselib::UString::UTF_8), arabicNumber_);
-            idManager_->getTermIdByTermString(wiselib::UString("SINGLEENGLISHCHAR",wiselib::UString::UTF_8), singleEnglishChar_);
+            idManager_->getTermIdByTermString(izenelib::util::UString("ARABICNUMBER",izenelib::util::UString::UTF_8), arabicNumber_);
+            idManager_->getTermIdByTermString(izenelib::util::UString("SINGLEENGLISHCHAR",izenelib::util::UString::UTF_8), singleEnglishChar_);
             {
 //                 if ( !boost::filesystem::exists ( resPath + "/ubtrain" ) )
 //                 {
@@ -682,7 +682,7 @@ class Scorer : public boost::noncopyable
                             if ( word.length() >0 )
                             {
                                 std::vector<uint32_t> termIdList;
-                                idManager_->getAnalysisTermIdList(wiselib::UString(word,wiselib::UString::UTF_8), termIdList);
+                                idManager_->getAnalysisTermIdList(izenelib::util::UString(word,izenelib::util::UString::UTF_8), termIdList);
 
                                 if( termIdList.size() > 0 )
                                 {
@@ -708,12 +708,12 @@ class Scorer : public boost::noncopyable
                 if ( word.length() >0 )
                 {
                     if( word[0] == idmlib::kpe::TERM_TAG::OTHER ) break;
-                    wiselib::UString ustr(word, wiselib::UString::UTF_8);
+                    izenelib::util::UString ustr(word, izenelib::util::UString::UTF_8);
                     if( ustr.length()!= 2 ) continue;
                     if( !ustr.isChineseChar(0) ) continue;
                     if( !ustr.isChineseChar(1) ) continue;
-                    wiselib::UString ustr1;
-                    wiselib::UString ustr2;
+                    izenelib::util::UString ustr1;
+                    izenelib::util::UString ustr2;
                     ustr.substr(ustr1, 0,1);
                     ustr.substr(ustr2, 1,1);
                     uint32_t id1 = 0;
@@ -806,7 +806,7 @@ class Scorer : public boost::noncopyable
             return (midAppearTerms_->find(termId)!=NULL);
         }
         
-        bool isSplitTerm(const wiselib::UString& ustr, char tag, uint32_t termId, uint32_t& insertTermId)
+        bool isSplitTerm(const izenelib::util::UString& ustr, char tag, uint32_t termId, uint32_t& insertTermId)
         {
             uint32_t indicateId = termId;
             insertTermId = termId;
@@ -820,7 +820,7 @@ class Scorer : public boost::noncopyable
             if( tag == idmlib::kpe::TERM_TAG::ENG)
             {
                 
-                wiselib::UString lower = ustr;
+                izenelib::util::UString lower = ustr;
                 lower.toLowerString();
                 idManager_->getTermIdByTermString( lower, tag, indicateId);
                 

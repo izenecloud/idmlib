@@ -35,7 +35,7 @@ template <class ConceptManagerType, class IDManagerType>
 class Algorithm : public boost::noncopyable
 {
 typedef uint32_t id_type;
-typedef wiselib::UString string_type;
+typedef izenelib::util::UString string_type;
 typedef std::pair<uint32_t, uint32_t> id_pair;
 typedef std::vector<id_pair> input_type;
 typedef std::vector<boost::shared_ptr<ClusterRep> > OutputType;
@@ -527,7 +527,7 @@ private:
         if( distance_type::isDuplicate(concepts[index], acquiredConcepts) )
             return false;
     //     std::string _str;
-    //     labels[label_id].name_.convertString(_str, wiselib::UString::UTF_8);
+    //     labels[label_id].name_.convertString(_str, izenelib::util::UString::UTF_8);
     //     std::cout<<"inserting "<<label_id<<" "<<_str<<std::endl;
         acquiredConcepts.push_back(concepts[index]);
         ConceptNode* parent = allConceptNode[parent_index];
@@ -632,9 +632,9 @@ private:
 //             for(unsigned int i=0;i<score_labelId.size();i++)
 //             {
 //     //             std::cout<<"insert sibling for ";
-//     //             labels[label_id].name_.displayStringValue(wiselib::UString::UTF_8);
+//     //             labels[label_id].name_.displayStringValue(izenelib::util::UString::UTF_8);
 //     //             std::cout<<" : ";
-//     //             labels[score_labelId[i].second].name_.displayStringValue(wiselib::UString::UTF_8);
+//     //             labels[score_labelId[i].second].name_.displayStringValue(izenelib::util::UString::UTF_8);
 //     //             std::cout<<" "<<score_labelId[i].first;
 //     //             std::cout<<std::endl;
 // 

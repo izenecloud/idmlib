@@ -23,7 +23,7 @@ class Algorithm1 : public boost::noncopyable
 {
 typedef uint32_t id_type;
 typedef char pos_type;
-typedef wiselib::UString string_type;
+typedef izenelib::util::UString string_type;
 typedef Scorer<IDManagerType> ScorerType;
 public:
 
@@ -87,7 +87,7 @@ public:
                 if(!b)
                 {
                     std::string str;
-                    termList[i].text_.convertString(str, wiselib::UString::UTF_8);
+                    termList[i].text_.convertString(str, izenelib::util::UString::UTF_8);
                     std::cout<<"Can not get term id for string : "<<str<<std::endl;
                     return;
                 }
@@ -97,7 +97,7 @@ public:
 //         for(uint32_t i=0;i<termList.size();i++)
 //         {
 //             std::string str;
-//             termList[i].text_.convertString(str, wiselib::UString::UTF_8);
+//             termList[i].text_.convertString(str, izenelib::util::UString::UTF_8);
 //             std::cout<<"["<<str<<","<<termList[i].tag_<<","<<termList[i].id_<<","<<termList[i].position_<<"]";
 //         }
 //         std::cout<<std::endl;
@@ -115,7 +115,7 @@ public:
             if(!b)
             {
                 std::string str;
-                termList[i].convertString(str, wiselib::UString::UTF_8);
+                termList[i].convertString(str, izenelib::util::UString::UTF_8);
                 std::cout<<"Can not get term id for string : "<<str<<std::endl;
                 return;
             }
@@ -126,7 +126,7 @@ public:
         
     }
     
-    void insert( const wiselib::UString& article, uint32_t docId = 1)
+    void insert( const izenelib::util::UString& article, uint32_t docId = 1)
     {
         std::vector<string_type> termList;
         std::vector<uint32_t> idList;
@@ -774,8 +774,8 @@ private:
     }
     
     bool makeKPStr_(const std::vector<uint32_t>& termIdList,
-        std::vector<wiselib::UString>& strList,
-        wiselib::UString& result)
+        std::vector<izenelib::util::UString>& strList,
+        izenelib::util::UString& result)
     {
         bool b = makeKPStr_(termIdList, strList);
         if(!b) return false;
@@ -784,11 +784,11 @@ private:
         return true;
     }
     
-    bool makeKPStr_(const std::vector<uint32_t>& termIdList, std::vector<wiselib::UString>& strList)
+    bool makeKPStr_(const std::vector<uint32_t>& termIdList, std::vector<izenelib::util::UString>& strList)
     {
         if ( termIdList.empty() ) return false;//if empty
         strList.resize(termIdList.size());
-        wiselib::UString ustr;
+        izenelib::util::UString ustr;
         bool bb = true;
         bb = idManager_->getTermStringByTermId(termIdList[0], strList[0]);
         if(!bb)
@@ -807,7 +807,7 @@ private:
         return true;
     }
         
-    bool makeKPStr_(const std::vector<wiselib::UString>& strList, wiselib::UString& result)
+    bool makeKPStr_(const std::vector<izenelib::util::UString>& strList, izenelib::util::UString& result)
     {
         result.clear();
         if(strList.size()>0)
@@ -823,7 +823,7 @@ private:
                 }
                 else
                 {
-                    result.append(wiselib::UString(" ", wiselib::UString::UTF_8));
+                    result.append(izenelib::util::UString(" ", izenelib::util::UString::UTF_8));
                 }
                 result.append(strList[i]);
             }
@@ -851,8 +851,8 @@ private:
                         ,const idvec_t& rightTermIdList, const idvec_t& rightTermCountList)
     {
         assert(docIdList.size()==tfInDocList.size());
-        std::vector<wiselib::UString> strList;
-        wiselib::UString KPStr;
+        std::vector<izenelib::util::UString> strList;
+        izenelib::util::UString KPStr;
         bool validKP = makeKPStr_(terms, strList, KPStr);
         if(validKP)
         {

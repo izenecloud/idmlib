@@ -20,21 +20,21 @@ SimpleIDManager(const std::string& path, KPEAnalyzer* analyzer = NULL );
 
 ~SimpleIDManager();
 
-bool getTermIdByTermString(const wiselib::UString& ustr, uint32_t& termId);
+bool getTermIdByTermString(const izenelib::util::UString& ustr, uint32_t& termId);
 
-bool getTermIdByTermString(const wiselib::UString& ustr, char pos, uint32_t& termId);
+bool getTermIdByTermString(const izenelib::util::UString& ustr, char pos, uint32_t& termId);
 
-bool getTermStringByTermId(uint32_t termId, wiselib::UString& ustr);
+bool getTermStringByTermId(uint32_t termId, izenelib::util::UString& ustr);
 
-void put(uint32_t termId, const wiselib::UString& ustr);
+void put(uint32_t termId, const izenelib::util::UString& ustr);
 
 bool isKP(uint32_t termId);
 
-void getAnalysisTermIdList(const wiselib::UString& str, std::vector<uint32_t>& termIdList);
+void getAnalysisTermIdList(const izenelib::util::UString& str, std::vector<uint32_t>& termIdList);
 
 void getAnalysisTermIdList(
-        const wiselib::UString& str,
-        std::vector<wiselib::UString>& termList,
+        const izenelib::util::UString& str,
+        std::vector<izenelib::util::UString>& termList,
         std::vector<uint32_t>& idList,
         std::vector<char>& posInfoList,
         std::vector<uint32_t>& positionList
@@ -45,7 +45,7 @@ void flush();
 void close();
 
 private:        
-    izenelib::ir::idmanager::HDBIDStorage< wiselib::UString, uint32_t>* strStorage_;
+    izenelib::ir::idmanager::HDBIDStorage< izenelib::util::UString, uint32_t>* strStorage_;
     boost::mutex mutex_;
     std::string path_;
     KPEAnalyzer* analyzer_;

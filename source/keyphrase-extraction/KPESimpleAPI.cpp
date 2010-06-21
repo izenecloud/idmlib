@@ -24,11 +24,11 @@ public:
     {
     }
 
-    void process_ret(const wiselib::UString& ustr,
+    void process_ret(const izenelib::util::UString& ustr,
             const std::vector<std::pair<uint32_t, uint32_t> >& id2countList, uint8_t score)
     {
         std::string str;
-        ustr.convertString(str, wiselib::UString::UTF_8);
+        ustr.convertString(str, izenelib::util::UString::UTF_8);
         ret_->push_back( str );
     }
 
@@ -36,11 +36,11 @@ public:
     std::vector<std::string>* ret_;
 };
 
-void test_func(const wiselib::UString& ustr,
+void test_func(const izenelib::util::UString& ustr,
         const std::vector<std::pair<uint32_t, uint32_t> >& id2countList, uint8_t score)
 {
     std::string str;
-    ustr.convertString(str, wiselib::UString::UTF_8);
+    ustr.convertString(str, izenelib::util::UString::UTF_8);
     std::cout<<"Find KP: "<<str<<std::endl;
 }
 
@@ -68,7 +68,7 @@ void perform_kpe(
 
     while( inputItr.next( input, docId ) == true )
     {
-        wiselib::UString article( input.c_str(), wiselib::UString::UTF_8);
+        izenelib::util::UString article( input.c_str(), izenelib::util::UString::UTF_8);
         kpe.insert( article, docId );
     }
 

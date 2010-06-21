@@ -12,7 +12,7 @@ public:
 	/*:strStorage_(path+"/id_ustring_map")*/
 	{
 	    boost::filesystem::create_directories(path_);
-	    strStorage_=new izenelib::ir::idmanager::HDBIDStorage< wiselib::UString, uint32_t>(path+"/id_ustring_map");
+	    strStorage_=new izenelib::ir::idmanager::HDBIDStorage< izenelib::util::UString, uint32_t>(path+"/id_ustring_map");
 	    initializeLa();
 	}
 
@@ -22,31 +22,31 @@ public:
 	        delete strStorage_;
 	}
 
-	bool getTermIdByTermString(const wiselib::UString& ustr, uint32_t& termId)
+	bool getTermIdByTermString(const izenelib::util::UString& ustr, uint32_t& termId)
 	{
-	    termId = izenelib::util::HashFunction<wiselib::UString>::generateHash32(ustr);
+	    termId = izenelib::util::HashFunction<izenelib::util::UString>::generateHash32(ustr);
 	    boost::mutex::scoped_lock lock(mutex_);
 	    strStorage_->put(termId, ustr);
 	    return true;
 	}
 
 
-	bool getTermStringByTermId(uint32_t termId, wiselib::UString& ustr)
+	bool getTermStringByTermId(uint32_t termId, izenelib::util::UString& ustr)
 	{
 	    boost::mutex::scoped_lock lock(mutex_);
 	    return strStorage_->get(termId, ustr);
 	}
 
-	void put(uint32_t termId, const wiselib::UString& ustr)
+	void put(uint32_t termId, const izenelib::util::UString& ustr)
 	{
 	    boost::mutex::scoped_lock lock(mutex_);
 	    strStorage_->put(termId, ustr);
 
 	}
 
-	void getAnalysisTermIdList(const wiselib::UString& str, std::vector<uint32_t>& termIdList)
+	void getAnalysisTermIdList(const izenelib::util::UString& str, std::vector<uint32_t>& termIdList)
 	{
-	    std::vector<wiselib::UString> termList;
+	    std::vector<izenelib::util::UString> termList;
 	    la::TermList laTermList;
 	    la_.process_search( str, laTermList);
 	    for (la::TermList::iterator p = laTermList.begin(); p != laTermList.end(); p++)
@@ -61,7 +61,7 @@ public:
 	    }
 	}
     
-    void getAnalysisTermList(const wiselib::UString& str, std::vector<wiselib::UString>& strList, std::vector<uint32_t>& termIdList)
+    void getAnalysisTermList(const izenelib::util::UString& str, std::vector<izenelib::util::UString>& strList, std::vector<uint32_t>& termIdList)
     {
         la::TermList laTermList;
         la_.process_search( str, laTermList);
@@ -101,7 +101,7 @@ public:
 	}
 
 private:        
-	izenelib::ir::idmanager::HDBIDStorage< wiselib::UString, uint32_t>* strStorage_;
+	izenelib::ir::idmanager::HDBIDStorage< izenelib::util::UString, uint32_t>* strStorage_;
 	boost::mutex mutex_;
 	std::string path_;
 	la::LA la_;

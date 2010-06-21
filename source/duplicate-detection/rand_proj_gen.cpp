@@ -5,7 +5,6 @@
  */
 #include <idmlib/duplicate-detection/rand_proj_gen.h>
 #include <idmlib/duplicate-detection/IntergerHashFunction.h>
-#include <idmlib/duplicate-detection/TokenGen.h>
 #include <util/hashFunction.h>
 
 namespace sf1v5{

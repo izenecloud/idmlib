@@ -25,16 +25,16 @@
 #include "rand_proj.h"
 #include "rand_proj_gen.h"
 
-#include <wiselib/CBitArray.h>
+#include <util/CBitArray.h>
 #include <vector>
-#include "NearDuplicateAlgorithm.h"
 
 namespace sf1v5{
 /**
    @class CharikarAlgo
  * @brief Charikar alogrithm
  */
-class CharikarAlgo : public NearDuplicateAlgorithm {
+class CharikarAlgo 
+{
 private:
     
     RandProjGen rpEngine;//!< random projection engine     */
@@ -76,7 +76,7 @@ public:
      *
      * @return the duplicate score
      */
-    int neardup_score(NearDuplicateSignature& sig1, NearDuplicateSignature& sig2);
+    //int neardup_score(NearDuplicateSignature& sig1, NearDuplicateSignature& sig2);
     /**
      * @brief get score of 2 documents
      *
@@ -85,12 +85,12 @@ public:
      *
      * @return the duplicate score
      */
-    int neardup_score(const wiselib::CBitArray& sig1, const wiselib::CBitArray& sig2);
-
-    void generate_document_signature(const wiselib::DynamicArray<wiselib::ub8>& docTokens, wiselib::CBitArray& bitArray)
+    //int neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2);
+/*
+    void generate_document_signature(const wiselib::DynamicArray<wiselib::ub8>& docTokens, izenelib::util::CBitArray& bitArray)
     {
     }
-    
+  */  
 
     /**
      * @brief generate document signature from document string, not store the document tokens
@@ -98,10 +98,10 @@ public:
      * @param[in] document document content
      * @param[out] bitArray document signature
      */
-    void generate_document_signature(const wiselib::YString& document, wiselib::CBitArray& bitArray)
+    /*void generate_document_signature(const wiselib::YString& document, izenelib::util::CBitArray& bitArray)
     {
     }
-    
+    */
 
     /**
      * @brief generate document signature
@@ -109,7 +109,7 @@ public:
      * @param[in] docTokens term id sequence of a document
      * @param[out] bitArray sequent of bits as a document signature
      */
-    void generate_document_signature(const std::vector<unsigned int>& docTokens, wiselib::CBitArray& bitArray)
+    void generate_document_signature(const std::vector<unsigned int>& docTokens, izenelib::util::CBitArray& bitArray)
     {
     }
     
@@ -120,7 +120,7 @@ public:
      * @param[in] docTokens input source, a term id array
      * @param[out] bitArray signature
      */
-    void generate_document_signature(const std::vector<std::string>& docTokens, wiselib::CBitArray& bitArray);
+    void generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray);
     /**
      * @brief check if is near duplicate
      *
@@ -128,10 +128,10 @@ public:
      *
      * @return true, if is near duplicate, false else.
      */
-    bool is_neardup(float neardupScore) {
+    /*bool is_neardup(float neardupScore) {
         return (double)neardupScore/(double)nDimensions > threshold;
     }
-
+*/
     /**
      * @brief set threshold
      *

@@ -11,13 +11,13 @@
 #include <sf1v5/document-manager/duplicate-detection-submanager/CharikarAlgorithm.h>
 #include <sf1v5/document-manager/duplicate-detection-submanager/BloomFilter.h>
 
-#include <wiselib/CBitArray.h>
+#include <util/CBitArray.h>
 #include <wiselib/StopWatch.h>
 
 #include <utility>
 
 using namespace std;
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace boost;
 using namespace sf1v5;
 

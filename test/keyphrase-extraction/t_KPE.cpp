@@ -7,10 +7,10 @@
 
 using namespace idmlib::kpe;
 
-void test_func(const wiselib::UString& ustr, const std::vector<std::pair<uint32_t, uint32_t> >& id2countList, uint8_t score)
+void test_func(const izenelib::util::UString& ustr, const std::vector<std::pair<uint32_t, uint32_t> >& id2countList, uint8_t score)
 {
     std::string str;
-    ustr.convertString(str, wiselib::UString::UTF_8);
+    ustr.convertString(str, izenelib::util::UString::UTF_8);
     std::cout<<"Find KP: "<<str<<std::endl;
 }
 
@@ -77,7 +77,7 @@ int main()
         KPE_ALL<TestIDManager>::function_type func = &test_func;
         KPE_ALL<TestIDManager> kpe( &idManager, func, "./tmp");
         kpe.load("../resource/kpe");
-        wiselib::UString article( input.c_str(), wiselib::UString::UTF_8);
+        izenelib::util::UString article( input.c_str(), izenelib::util::UString::UTF_8);
         kpe.insert(article, 1);
         kpe.close();
         */
