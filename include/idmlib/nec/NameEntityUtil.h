@@ -104,15 +104,15 @@ namespace ml
 		double w_cur_b_a = 4;
 		double w_cur_b_e = 16;
 		double w_cur_t_e = 32;
-		double w_cur_u_e = 8;
+		double w_cur_u_e = 4;
 		double w_cur_b_n = 1.0;
 		double w_cur_b_o = 2;
-		double w_cur_b_l=3;
-		double w_cur_b_g=3;
-		double w_cur_u_n = 0.8;
-		double w_cur_u_o = 2;
-		double w_cur_u_l=3;
-		double w_cur_u_g=3;
+		double w_cur_b_l=2;
+		double w_cur_b_g=2;
+		double w_cur_u_n = 1;
+		double w_cur_u_o = 1;
+		double w_cur_u_l=1;
+		double w_cur_u_g=1;
 		double w_left = 2;
 		double w_right = 2;
 
