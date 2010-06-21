@@ -10,6 +10,7 @@ FIND_PACKAGE(izenelib REQUIRED COMPONENTS
   febird
   udt3
   izene_log
+  izene_util
   bigint
   procmeminfo
   luxio
@@ -20,16 +21,7 @@ FIND_PACKAGE(izenelib REQUIRED COMPONENTS
 FIND_PACKAGE(wiselib REQUIRED)
 FIND_PACKAGE(lalib REQUIRED)
 FIND_PACKAGE(imllib REQUIRED)
-# find libxml2
-SET(libxml2_FOUND FALSE)
-IF(IS_DIRECTORY "$ENV{LIBXML2}")
-	SET(libxml2_FOUND TRUE)
-	SET(libxml2_INCLUDE_DIRS "$ENV{LIBXML2}")
-ENDIF(IS_DIRECTORY "$ENV{LIBXML2}")
-
-IF(NOT libxml2_FOUND)
-	MESSAGE(FATAL_ERROR "cannot found libxml2, please set env variable LIBXML2 (e.g. -DLIBXML2=/usr/include/libxml2)")
-ENDIF(NOT libxml2_FOUND)
+FIND_PACKAGE(xml2 REQUIRED)
 
 ##################################################
 # Other Libraries
