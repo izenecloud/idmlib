@@ -611,11 +611,28 @@ void simpleProcess()
 	}
 }
 
+void processSCD()
+{
+    ifstream in("dmoz.SCD");
+    ofstream out("new_dmoz.SCD");
+    string line="";
+    string newLine="<Category>";
+    while(std::getline(in, line))
+    {
+    	if(line.find("<Topic>")!=std::string::npos)
+    	{
+    		line.replace(0,7,newLine, 0, 10);
+    	}
+    	out<<line<<std::endl;
+    }
+}
+
 int main()
 {
 //	simpleProcess();
 //	processEngCorpus();
 	testNec();
+//	processSCD();
 //	processEngCorpus2();
 //	selectPatterns();
 //	processWordNet();

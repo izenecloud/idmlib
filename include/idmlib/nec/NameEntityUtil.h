@@ -368,9 +368,9 @@ namespace ml
 	// whether is name prefix
 		std::vector<UString> f_cur_surname;
 		std::vector<ml::AttrID> id_cur_surname;
-		double w_cur_surname = 16;
+		double w_cur_surname = 32;
 		UString utag_curb_name("_UCBN", UString::UTF_8);
-		if (curLength == 3||curLength ==2)
+		if (curLength>1&&curLength <5)
 		{
 			UString cur_b=vecCur[0];
 			string name;
