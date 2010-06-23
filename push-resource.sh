@@ -11,6 +11,6 @@ then
 fi
 home=`dirname "$0"`
 home=`cd "$home"; pwd`
-rsync -avP "$home"/resource/nec/ "$1"@izenesoft.cn:/data/sf1r-resource/"$2"/resource/nec/
-rsync -avP "$home"/resource/kpe/ "$1"@izenesoft.cn:/data/sf1r-resource/"$2"/resource/kpe/
+rsync -avP --delete "$home"/resource/nec/ "$1"@izenesoft.cn:/data/sf1r-resource/"$2"/resource/nec/
+rsync -avP --delete "$home"/resource/kpe/ "$1"@izenesoft.cn:/data/sf1r-resource/"$2"/resource/kpe/
 
