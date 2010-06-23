@@ -198,7 +198,7 @@ INCLUDE(MacroCheckShouldBuild)
 include_directories(
 ${IDMLIB_SOURCE_DIR}/include
 ${izenelib_INCLUDE_DIRS}
-${wiselib_INCLUDE_DIRS}
+#${wiselib_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
 ${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
@@ -207,7 +207,7 @@ ${Glog_INCLUDE_DIRS}
 )
 
 SET(libs
-  ${wiselib_LIBRARIES}
+  #${wiselib_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${ilplib_LIBRARIES}
   ${Boost_LIBRARIES}
