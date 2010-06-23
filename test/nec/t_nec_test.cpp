@@ -594,37 +594,32 @@ void extractNames()
 
 void simpleProcess()
 {
-	ifstream inStream("other.txt");
-	ofstream testOut("newother.txt");
+	ifstream inStream("person.dic.txt");
+	ofstream testOut("new.person.dic.txt");
 	string line ="";
+	int i=0;
 	while (std::getline(inStream, line))
 	{
-		if (line.length() > 0)
+		if (i%4==0)
 		{
-                int pos=line.find("_");
-                if(pos!=std::string::npos)
-                {
-					testOut<<line<<std::endl;
-                }
-
+			testOut<<line<<std::endl;
 		}
+		i++;
 	}
 }
 
 void processSCD()
 {
-    ifstream in("dmoz.SCD");
-    ofstream out("new_dmoz.SCD");
-    string line="";
-    string newLine="<Category>";
-    while(std::getline(in, line))
-    {
-    	if(line.find("<Topic>")!=std::string::npos)
-    	{
-    		line.replace(0,7,newLine, 0, 10);
-    	}
-    	out<<line<<std::endl;
-    }
+//    ifstream in("dmoz_kr.SCD");
+//    ofstream out("new_dmoz_kr.SCD");
+//    string line="";
+//    while(std::getline(in, line))
+//    {
+//        wiselib::UString uline(line, wiselib::UString::UTF_8);
+//        std::string utfLine;
+//        uline.convertString(utfLine, wiselib::UString::UTF_8);
+//        out<<utfLine<<std::endl;
+//    }
 }
 
 int main()

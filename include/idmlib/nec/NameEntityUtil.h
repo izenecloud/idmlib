@@ -40,7 +40,7 @@ namespace ml
 		std::vector<izenelib::util::UString> pre = entity.pre;
 		std::vector<izenelib::util::UString> vecCur;
 		bool isChinese=false;
-		if(entity.cur.length()>0&&entity.cur.isChineseChar(0))
+		if(entity.cur.length()>0&&(entity.cur.isChineseChar(0)||entity.cur.isKoreanChar(0)))
 		{
 			isChinese=true;
 			izenelib::util::UString tempStr;
