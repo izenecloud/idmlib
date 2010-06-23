@@ -3,10 +3,8 @@
 SET(libs
   ${lalib_LIBRARIES}
   ${imllib_LIBRARIES}
-  ${lalib_LIBRARIES}
-  ${wiselib_LIBRARIES}
+  ${ilplib_LIBRARIES}
   ${izenelib_LIBRARIES}
-  ${lalib_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   xml2

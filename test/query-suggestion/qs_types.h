@@ -3,7 +3,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/filesystem.hpp>
-#include <LA.h>
+#include <la/LA.h>
 #include <util/functional.h>
 class TestIDManager : public boost::noncopyable
 {

@@ -2,7 +2,7 @@
 # if a dpendes b, a must precede b
 SET(libs
   ${imllib_LIBRARIES}
-  ${wiselib_LIBRARIES}
+  ${ilplib_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${Boost_LIBRARIES}
   xml2

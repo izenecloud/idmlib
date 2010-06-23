@@ -1,18 +1,17 @@
 INCLUDE_DIRECTORIES(		 
   ${CMAKE_CURRENT_SOURCE_DIR}/common
   ${izenelib_INCLUDE_DIRS}
-  ${wiselib_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   )
 
 # sequences is important for some linker
 # if a dpendes b, a must precede b
 SET(libs
-  ${wiselib_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   ${imllib_LIBRARIES}
+  ${ilplib_LIBRARIES}
   xml2
   )
 

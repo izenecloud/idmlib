@@ -8,7 +8,7 @@
 #ifndef DM_LAMGRFACTORY_H_
 #define DM_LAMGRFACTORY_H_
 
-#include <LA.h>
+#include <la/LA.h>
 
 namespace idmlib {
 

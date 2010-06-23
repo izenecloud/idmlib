@@ -200,7 +200,7 @@ ${IDMLIB_SOURCE_DIR}/include
 ${izenelib_INCLUDE_DIRS}
 ${wiselib_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
-${lalib_INCLUDE_DIRS}
+${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
 ${libxml2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
@@ -209,7 +209,7 @@ ${Glog_INCLUDE_DIRS}
 SET(libs
   ${wiselib_LIBRARIES}
   ${izenelib_LIBRARIES}
-  ${lalib_LIBRARIES}
+  ${ilplib_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   )
@@ -257,13 +257,13 @@ IF(VERBOSE)
     MESSAGE(STATUS "BOOST: not found")
   ENDIF(Boost_FOUND)
 
-  IF(lalib_FOUND)
-    MESSAGE(STATUS "la library:")
-    MESSAGE(STATUS "  header: ${lalib_INCLUDE_DIRS}")
-    MESSAGE(STATUS "  lib: ${lalib_LIBRARIES}")
-  ELSE(lalib_FOUND)
-    MESSAGE(STATUS "la library: not found")
-  ENDIF(lalib_FOUND)
+  IF(ilplib_FOUND)
+    MESSAGE(STATUS "ilplib library:")
+    MESSAGE(STATUS "  header: ${ilplib_INCLUDE_DIRS}")
+    MESSAGE(STATUS "  lib: ${ilplib_LIBRARIES}")
+  ELSE(ilplib_FOUND)
+    MESSAGE(STATUS "ilplib library: not found")
+  ENDIF(ilplib_FOUND)
   
   IF(imllib_FOUND)
     MESSAGE(STATUS "imllib:")
