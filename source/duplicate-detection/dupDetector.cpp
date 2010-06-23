@@ -1,9 +1,6 @@
 #include <idmlib/duplicate-detection/DupDetector.h>
-#include <idmlib/duplicate-detection/UtilTool.h>
-#include <idmlib/duplicate-detection/BloomFilter.h>
 #include <util/izene_log.h>
-#include <wiselib/CBitArray.h>
-#include <wiselib/StopWatch.h>
+#include <util/CBitArray.h>
 
 #include <utility>
 
@@ -127,7 +124,7 @@ bool DupDetector::insertDocuments(const std::vector<unsigned int>& docIdList, co
       //if(!fp_index_->exist(docIdList[i]))
         {
             std::cout<<documentList[i].size();
-            wiselib::CBitArray bitArray;
+            izenelib::util::CBitArray bitArray;
             ndAlgo->generate_document_signature(documentList[i], bitArray);
             read_write_mutex_.lock_shared();
             fp_index_->add_doc(docIdList[i], VectorFP((const char*)bitArray.GetBuffer(), bitArray.GetLength()));
@@ -145,7 +142,7 @@ bool DupDetector::insertDocument(uint32_t docid, const std::vector<std::string >
   if (fp_index_->exist(docid))
     return false;
   
-    wiselib::CBitArray bitArray;
+    izenelib::util::CBitArray bitArray;
     //  CharikarAlgorithm algo;
     ndAlgo->generate_document_signature(term_list, bitArray);
 
@@ -163,7 +160,7 @@ bool DupDetector::updateDocument(uint32_t docid, const std::vector<std::string >
   if (!fp_index_->exist(docid))
     return false;
   
-    wiselib::CBitArray bitArray;
+    izenelib::util::CBitArray bitArray;
     if (ndAlgo == NULL)
       ndAlgo = new CharikarAlgo(nm_.c_str());
 

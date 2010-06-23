@@ -82,7 +82,7 @@ public:
    * @param docName document name
    * @param bitArry docuemnt signature
    */
-  void add_near_duplicate_signatures(const string& docName, wiselib::CBitArray& bitArry);
+  void add_near_duplicate_signatures(const string& docName, izenelib::util::CBitArray& bitArry);
   /**
    * @brief add near duplicate signatures from the document token set.
    *

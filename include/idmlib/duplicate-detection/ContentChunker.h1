@@ -10,7 +10,7 @@
 
 #include <types.h>
 //#include <wiselib/IntTypes.h>
-#include <wiselib/YString.h>
+#include <YString.h>
 #include <vector>
 #include <utility>
 

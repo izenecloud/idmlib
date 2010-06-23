@@ -10,7 +10,7 @@
 
 #include <UHashTable.h>
 #include <PrimeHashTable.h>
-#include <wiselib/DArray.h>
+#include <util/DArray.h>
 #include <fstream>
 #include <iostream>
 

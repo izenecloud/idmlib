@@ -28,7 +28,7 @@ void test1()
 	// construct collection meta
 	CollectionMeta meta;
 	meta.setName("dc");
-	meta.setEncoding(wiselib::UString::UTF_8);
+	meta.setEncoding(izenelib::util::UString::UTF_8);
 	meta.setRankingMethod("ranker1");
 	meta.setDateFormat("none_time_t");
 	meta.setCollectionPath(path);

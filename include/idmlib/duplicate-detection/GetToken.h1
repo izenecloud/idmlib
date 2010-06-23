@@ -9,7 +9,7 @@
 #define __GETTOKEN_H__
 
 #include <types.h>
-#include <wiselib/YString.h>
+#include <YString.h>
 //#include <wiselib/IntTypes.h>
 
 namespace sf1v5{

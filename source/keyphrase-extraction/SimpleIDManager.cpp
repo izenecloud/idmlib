@@ -10,7 +10,7 @@ SimpleIDManager::SimpleIDManager( const std::string& path, KPEAnalyzer* analyzer
     : path_(path), analyzer_( analyzer )
 {
     boost::filesystem::create_directories(path_);
-    strStorage_=new izenelib::ir::idmanager::HDBIDStorage< wiselib::UString, uint32_t>(path+"/id_ustring_map");
+    strStorage_=new izenelib::ir::idmanager::HDBIDStorage< izenelib::util::UString, uint32_t>(path+"/id_ustring_map");
 }
 
 SimpleIDManager::~SimpleIDManager()
@@ -19,29 +19,29 @@ SimpleIDManager::~SimpleIDManager()
         delete strStorage_;
 }
 
-bool SimpleIDManager::getTermIdByTermString(const wiselib::UString& ustr, uint32_t& termId)
+bool SimpleIDManager::getTermIdByTermString(const izenelib::util::UString& ustr, uint32_t& termId)
 {
-    termId = izenelib::util::HashFunction<wiselib::UString>::generateHash32(ustr);
+    termId = izenelib::util::HashFunction<izenelib::util::UString>::generateHash32(ustr);
     boost::mutex::scoped_lock lock(mutex_);
     strStorage_->put(termId, ustr);
     return true;
 }
 
-bool SimpleIDManager::getTermIdByTermString(const wiselib::UString& ustr, char pos, uint32_t& termId)
+bool SimpleIDManager::getTermIdByTermString(const izenelib::util::UString& ustr, char pos, uint32_t& termId)
 {
-    termId = izenelib::util::HashFunction<wiselib::UString>::generateHash32(ustr);
+    termId = izenelib::util::HashFunction<izenelib::util::UString>::generateHash32(ustr);
     boost::mutex::scoped_lock lock(mutex_);
     strStorage_->put(termId, ustr);
     return true;
 }
 
-bool SimpleIDManager::getTermStringByTermId(uint32_t termId, wiselib::UString& ustr)
+bool SimpleIDManager::getTermStringByTermId(uint32_t termId, izenelib::util::UString& ustr)
 {
     boost::mutex::scoped_lock lock(mutex_);
     return strStorage_->get(termId, ustr);
 }
 
-void SimpleIDManager::put(uint32_t termId, const wiselib::UString& ustr)
+void SimpleIDManager::put(uint32_t termId, const izenelib::util::UString& ustr)
 {
     boost::mutex::scoped_lock lock(mutex_);
     strStorage_->put(termId, ustr);
@@ -53,9 +53,9 @@ bool SimpleIDManager::isKP(uint32_t termId)
     return false;
 }
 
-void SimpleIDManager::getAnalysisTermIdList(const wiselib::UString& str, std::vector<uint32_t>& termIdList)
+void SimpleIDManager::getAnalysisTermIdList(const izenelib::util::UString& str, std::vector<uint32_t>& termIdList)
 {
-    std::vector<wiselib::UString> termList;
+    std::vector<izenelib::util::UString> termList;
     std::vector<char> posInfoList;
     std::vector<uint32_t> positionList;
 
@@ -63,8 +63,8 @@ void SimpleIDManager::getAnalysisTermIdList(const wiselib::UString& str, std::ve
 }
 
 void SimpleIDManager::getAnalysisTermIdList(
-        const wiselib::UString& str,
-        std::vector<wiselib::UString>& termList,
+        const izenelib::util::UString& str,
+        std::vector<izenelib::util::UString>& termList,
         std::vector<uint32_t>& idList,
         std::vector<char>& posInfoList,
         std::vector<uint32_t>& positionList
@@ -76,7 +76,7 @@ void SimpleIDManager::getAnalysisTermIdList(
         char pos = 'C';
         for( size_t i = 0; i < len; ++i )
         {
-            wiselib::UString term = str.substr( i, 1 );
+            izenelib::util::UString term = str.substr( i, 1 );
             // Only handle Chinese Characters
             if( term.isChineseChar( 0 ) == false )
                 continue;
@@ -93,15 +93,15 @@ void SimpleIDManager::getAnalysisTermIdList(
     else
     {
         string strForm;
-        str.convertString( strForm, wiselib::UString::UTF_8 );
+        str.convertString( strForm, izenelib::util::UString::UTF_8 );
         vector< string > strTerms;
         analyzer_->analyze( strForm.c_str(), strTerms, posInfoList, positionList );
 
         // convert terms from string to UString and update termId
         for( vector< string >::iterator itr = strTerms.begin(); itr != strTerms.end(); ++itr )
         {
-            wiselib::UString term;
-            term.assign( itr->c_str(), wiselib::UString::UTF_8 );
+            izenelib::util::UString term;
+            term.assign( itr->c_str(), izenelib::util::UString::UTF_8 );
             termList.push_back( term );
             uint32_t termId;
             getTermIdByTermString( term, termId );

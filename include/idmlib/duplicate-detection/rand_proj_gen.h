@@ -8,7 +8,6 @@
 #define RAND_PROJ_GEN_H
 
 #include "rand_proj.h"
-#include "TokenGen.h"
 
 #include "boost/random/linear_congruential.hpp"
 #include "boost/random/uniform_real.hpp"

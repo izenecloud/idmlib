@@ -127,9 +127,9 @@ void testNec()
 //    		{
 //    			std::string strWord;
 //    			std::string strLabel;
-//    			wiselib::UString uToken(tokens[i], wiselib::UString::GB2312);
+//    			izenelib::util::UString uToken(tokens[i], izenelib::util::UString::GB2312);
 //    			std::string utfToken;
-//    			uToken.convertString(utfToken, wiselib::UString::UTF_8);
+//    			uToken.convertString(utfToken, izenelib::util::UString::UTF_8);
 //    			if(utfToken[utfToken.length()-1]==' ')
 //    				utfToken=utfToken.substr(0, utfToken.length()-1);
 //    			int pos=utfToken.find("/");
@@ -180,9 +180,9 @@ void testNec()
 //	    		{
 //	    			std::string strWord;
 //	    			std::string strLabel;
-//	    			wiselib::UString uToken(tokens[i], wiselib::UString::GB2312);
+//	    			izenelib::util::UString uToken(tokens[i], izenelib::util::UString::GB2312);
 //	    			std::string utfToken;
-//	    			uToken.convertString(utfToken, wiselib::UString::UTF_8);
+//	    			uToken.convertString(utfToken, izenelib::util::UString::UTF_8);
 //	    			if(utfToken[utfToken.length()-1]==' ')
 //	    				utfToken=utfToken.substr(0, utfToken.length()-1);
 //	    			int pos=utfToken.find("/");
@@ -205,7 +205,7 @@ void testNec()
 //	    			if(vecWordLabel[i].second=="nr"&&i<vecWordLabel.size()-1)
 ////	    			if(vecWordLabel[i].second=="nr"&&i>0)
 //	    			{
-//    				     wiselib::UString ustrTemp(vecWordLabel[i+1].first, wiselib::UString::UTF_8);
+//    				     izenelib::util::UString ustrTemp(vecWordLabel[i+1].first, izenelib::util::UString::UTF_8);
 //                        if(ustrTemp.length()==1&&vecWordLabel[i+1].second!="nr")
 //                        {
 ////     	    				std::cout<<vecWordLabel[i-1].first.length()<<std::endl;

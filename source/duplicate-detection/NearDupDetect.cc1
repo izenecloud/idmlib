@@ -1,9 +1,22 @@
-#include <idmlib/duplicate-detection/NearDuplicateClustering.h>
+/*
+ * NearDupDetect.cpp
+ *
+ *  Created on: 2008-12-19
+ *      Author: jinglei
+ */
+
+#include <idmlib/duplicate-detection/NearDupDetect.h>
+
 #include <wiselib/StopWatch.h>
+
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
+
 #include <vector>
-#include <set>
 #include <algorithm>
 #include <utility>
+using namespace std;
+
 namespace sf1v5{
 
 /********************************************************************************
@@ -27,13 +40,15 @@ namespace sf1v5{
                  Initial Revision
 ********************************************************************************/
 
-const int NearDuplicateClustering::ONEWORD_DIVISION_FACTOR = 2^16; // convervatively half the size of word.
-const int NearDuplicateClustering::MIN_NUM_ONEWORD_CLUSTERS = 1000;
 /********************************************************************************
   Description: Returns true iff the document pair has already been compared.
   Comments   :
 ********************************************************************************/
-bool NearDuplicateClustering::has_already_compared(int docID1, int docID2)
+const int DBdegree=16;
+const char* indexFile = "dupdb.dat";
+//SDB NearDupDetect::sdb(DBdegree,indexFile);
+
+bool NearDupDetect::has_already_compared(int docID1, int docID2)
 {
     uint64_t key;
     // construct a unique key given two docIDs.
@@ -55,36 +70,22 @@ bool NearDuplicateClustering::has_already_compared(int docID1, int docID2)
     }
 }
 
-void NearDuplicateClustering::add_near_duplicate_signatures(const string& docName, wiselib::CBitArray& bitArray) {
-    std::set<NearDuplicateSignature> sigSet;
+
+void NearDupDetect::add_near_duplicate_signatures(const std::string& docName, izenelib::util::CBitArray& bitArray) {
+    wiselib::DynamicArray<NearDuplicateSignature> sigSet;
     // generate NearDuplicateSignature objects from this bit pattern
+/*
     NearDuplicateSignature::
         generate_near_duplicate_signatures(ndAlgo.num_dimensions(),
                 bitArray,
                 docName,
                 sigSet);
-    std::set<NearDuplicateSignature>::iterator it=sigSet.begin();
-    for (; it != sigSet.end(); it++) {
-      mKeySet.insert(it->get_sub_key().key);
-      mMultiMap.insert(make_pair(it->get_sub_key().key,*it));
+   for (int i = 0; i < sigSet.size(); i++) {
+	   //mKeySet.insert(sigSet[i].get_sub_key().key);
+      //mMultiMap.insert(make_pair(sigSet[i].get_sub_key().key,make_pair(sigSet[i].get_doc_id(),sigSet[i])));
     }
+*/
 }
-/********************************************************************************
-  Description: Adds a set of signatures from a document token set.
-               First generates a signature from a document and construct
-                 n number of NearDuplicateSignature objects from the signature
-                 where n is num_dimensions()/sizeof(ub4)*8.
-  Comments   :
-********************************************************************************/
-void NearDuplicateClustering::add_near_duplicate_signatures(const string& docName,
-							    const wiselib::DynamicArray<uint64_t>& tokens)
-{
-    wiselib::CBitArray bitArray;
-    ndAlgo.generate_document_signature(tokens, bitArray);
-
-    add_near_duplicate_signatures(docName, bitArray);
-}
-
 
 
 /********************************************************************************
@@ -94,41 +95,39 @@ void NearDuplicateClustering::add_near_duplicate_signatures(const string& docNam
                  objects.
   Comments   :
 ********************************************************************************/
-void NearDuplicateClustering::
+void NearDupDetect::
 find_near_duplicate_pairs(wiselib::DynamicArray<NearDuplicatePair>& results)
 {
-    // initial pairTable
-    // pairTable is used to avoid dupliate pairs.
-    typedef MULTI_MAP_T::iterator CIT;
-    typedef pair<CIT,CIT> RANGE;
-    int count=1;
-    cout<<mKeySet.size()<<endl;
-    for(std::set<uint32_t>::iterator iterKey=mKeySet.begin();iterKey!=mKeySet.end();iterKey++,count++)
-    {
-    	if(count%512==0) cout<<".";
-    	if(count%5120==0) cout<<endl;
-    	RANGE range=mMultiMap.equal_range(*iterKey);
-     	for(CIT iter1=range.first;iter1!=range.second;iter1++)
-    	{
-    		CIT iter2=iter1;
-    		++iter2;
-    		for(;iter2!=range.second;iter2++)
-    	    {
-    			int neardupScore=ndAlgo.neardup_score(iter1->second, iter2->second);
-    			bool needCompare=ndAlgo.is_neardup(neardupScore);
-    		    if (needCompare&&!has_already_compared(iter1->second.get_doc_id(), iter2->second.get_doc_id()))
-    		    {
-    			    NearDuplicatePair ndPair;
-    		       ndPair.sigFirst = &(iter1->second);
-    		       ndPair.sigSecond = &(iter2->second);
-    		       ndPair.neardupScore.key = neardupScore;
-    		       results.push_back(ndPair);
-    		    }
-    	    }
-    	}
-    }
-    cout<<pairTable.num_items()<<endl;
+//    typedef MULTI_MAP_T::iterator CIT;
+//    typedef pair<CIT,CIT> RANGE;
+//    int count=1;
+//    for(std::set<ub4>::iterator iterKey=mKeySet.begin();iterKey!=mKeySet.end();iterKey++,count++)
+//    {
+//    	if(count%512==0) cout<<".";
+//    	if(count%5120==0) cout<<endl;
+//    	RANGE range=mMultiMap.equal_range(*iterKey);
+//     	for(CIT iter1=range.first;iter1!=range.second;iter1++)
+//    	{
+//    		CIT iter2=iter1;
+//    		++iter2;
+//    		for(;iter2!=range.second;iter2++)
+//    	    {
+//    		    if (!has_already_compared(iter1->second.first, iter2->second.first))
+//    		    {
+//    			    NearDuplicatePair ndPair;
+//    		       ndPair.sigFirst = &(iter1->second.second);
+//    		       ndPair.sigSecond = &(iter2->second.second);
+//    		       //ndPair.neardupScore=0;
+//    		       ndPair.neardupScore = ndAlgo.neardup_score(iter1->second.second, iter2->second.second);
+//    		       if(ndAlgo.is_neardup(ndPair.neardupScore.key))
+//    		    	   results.push_back(ndPair);
+//    		    }
+//
+//    	    }
+//    	}
+//    }
 }
+
 
 
 /********************************************************************************
@@ -136,28 +135,23 @@ find_near_duplicate_pairs(wiselib::DynamicArray<NearDuplicatePair>& results)
                  and shows the near duplicate pairs and clusters to standard out.
   Comments   :
 ********************************************************************************/
-void NearDuplicateClustering::test_near_duplicate_algorithm(const wiselib::DynamicArray<wiselib::YString>& docNames,
+void NearDupDetect::test_near_duplicate_algorithm(const wiselib::DynamicArray<wiselib::YString>& docNames,
 							    const wiselib::DynamicArray<wiselib::YString>& documents)
 {
     // now generate near duplicate signatures from the documents.
   wiselib::StopWatch sw1;
 	cout<<"Generate near duplicate signatures from the documents."<<endl;
     for (int i = 0; i < documents.size(); i++) {
-        //wiselib::DynamicArray<uint64_t> tokens;
-        //TokenGen::generate_tokens_from_document(documents[i], tokens);
-        //add_near_duplicate_signatures(docNames[i], tokens);
-        wiselib::CBitArray bitArray;
+        izenelib::util::CBitArray bitArray;
         ndAlgo.generate_document_signature(documents[i], bitArray);
-       // cout<<"BitArray size:"<<sizeof(bitArray)<<endl;
         add_near_duplicate_signatures(docNames[i], bitArray);
         if(i%512==0) cout<<".";
         if(i%5120==0) cout<<endl;
      }
-
     cout<<"sketching time:"<<endl;
     sw1.show();
     wiselib::StopWatch sw2;
-    // now find the near duplicate pairs.
+    // now find the near duplicate clustering resutls.
     cout<<"Find the near duplicate pairs."<<endl;
     wiselib::DynamicArray<NearDuplicatePair> results;
     find_near_duplicate_pairs(results);
@@ -200,11 +194,8 @@ void NearDuplicateClustering::test_near_duplicate_algorithm(const wiselib::Dynam
     fClusters << "Total number of clusters: " << num << endl;
     for (vector<int>::size_type i = 0; i != component.size(); ++i)
         fClusters << "Document <" << NearDuplicateSignature::get_doc_string(i)
-    	//fClusters << "Document <" << i
             << "> is in cluster {" << component[i] << "}" << endl;
     fClusters << endl;
-#else
-
 #endif
 }
 

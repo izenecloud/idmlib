@@ -10,7 +10,7 @@
 
 #include <ml/ClassificationData.h>
 #include <ml/Taxonomy.h>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include <vector>
 
 
@@ -19,7 +19,7 @@ namespace idmlib
 
 class NameEntity : public ml::ClassificationData
 {
-typedef wiselib::UString string_type;
+typedef izenelib::util::UString string_type;
 typedef ml::ClassificationData base_type;
 public:
     NameEntity():base_type()

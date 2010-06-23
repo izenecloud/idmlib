@@ -13,7 +13,7 @@
 #include "../idm_types.h"
 #include <list>
 
-#include <wiselib/ustring/algo.hpp>
+#include <util/ustring/algo.hpp>
 #include <vector>
 #include <algorithm>
 
@@ -28,11 +28,11 @@ public:
      * @ brief Compute UString-based edit distance.
      */
     static float getDistance(
-            const wiselib::UString& s1,
-            const wiselib::UString& s2)
+            const izenelib::util::UString& s1,
+            const izenelib::util::UString& s2)
     {
-        wiselib::UString ls1(s1);
-        wiselib::UString ls2(s2);
+        izenelib::util::UString ls1(s1);
+        izenelib::util::UString ls2(s2);
         ls1.toLowerString();
         ls2.toLowerString();
         const unsigned int HEIGHT = ls1.length() + 1;
@@ -68,37 +68,37 @@ template< class T >
 class NameGetter
 {
 public:
-    static wiselib::UString getTerm(const T& data, uint32_t i) 
+    static izenelib::util::UString getTerm(const T& data, uint32_t i) 
     {
         return data.getTerm(i);
     }
     
-    static std::vector<wiselib::UString> getTermList(const T& data) 
+    static std::vector<izenelib::util::UString> getTermList(const T& data) 
     {
         return data.getTermList();
     }
     
-    static wiselib::UString getName(const T& data) 
+    static izenelib::util::UString getName(const T& data) 
     {
         return data.getName();
     }
 };
 
 template<>
-class NameGetter<std::vector<wiselib::UString> >
+class NameGetter<std::vector<izenelib::util::UString> >
 {
 public:
-    static wiselib::UString& getTerm(std::vector<wiselib::UString>& data, uint32_t i)
+    static izenelib::util::UString& getTerm(std::vector<izenelib::util::UString>& data, uint32_t i)
     {
         return data[i];
     }
     
-    static std::vector<wiselib::UString>& getTermList(std::vector<wiselib::UString>& data)
+    static std::vector<izenelib::util::UString>& getTermList(std::vector<izenelib::util::UString>& data)
     {
         return data;
     }
     
-    static wiselib::UString& getName(std::vector<wiselib::UString>& data)
+    static izenelib::util::UString& getName(std::vector<izenelib::util::UString>& data)
     {
         return data[0];
     }
@@ -119,7 +119,7 @@ public:
     {
         
         if(str.size()==0) return true;
-        wiselib::UString firstTerm = NameGetter<T>::getTerm(str, 0);
+        izenelib::util::UString firstTerm = NameGetter<T>::getTerm(str, 0);
         if(firstTerm.length()==0) return true;
         if(firstTerm.isChineseChar(0))
             return isChineseDuplicate_(str,strList);
@@ -150,15 +150,15 @@ public:
      */
     static inline bool isDuplicate(
             const T& str,
-            const std::vector<wiselib::UString>& normalizedQueryTermList,
-            const wiselib::UString& queryStr)
+            const std::vector<izenelib::util::UString>& normalizedQueryTermList,
+            const izenelib::util::UString& queryStr)
     {
         uint32_t size = str.size();
         if(size==0)
             return true;
-        wiselib::UString firstTerm = NameGetter<T>::getTerm(str, 0);
+        izenelib::util::UString firstTerm = NameGetter<T>::getTerm(str, 0);
         if(firstTerm.length()==0) return true;
-        wiselib::UString name = NameGetter<T>::getName(str);
+        izenelib::util::UString name = NameGetter<T>::getName(str);
         if(firstTerm.isChineseChar(0))
         {
             
@@ -169,7 +169,7 @@ public:
             }
             else if(size<queryStr.length())
             {
-                if(queryStr.find(name)!=wiselib::UString::NOT_FOUND)
+                if(queryStr.find(name)!=izenelib::util::UString::NOT_FOUND)
                     return true;
             }
             else if(size-queryStr.length()==1)
@@ -201,8 +201,8 @@ private:
      * @ brief Do pre-filtering for English label de-duplication.
      */
     static bool isFirstCharacterEqual_(
-            const std::vector<wiselib::UString>& label1,
-            const std::vector<wiselib::UString>& label2
+            const std::vector<izenelib::util::UString>& label1,
+            const std::vector<izenelib::util::UString>& label2
             )
     {
         assert(label1.size()==label2.size());
@@ -255,7 +255,7 @@ private:
         }
         else if(NameGetter<T>::getTermList(str1).size()<NameGetter<T>::getTermList(str2).size())
         {
-            if(NameGetter<T>::getName(str2).find(NameGetter<T>::getName(str1))!=wiselib::UString::NOT_FOUND)
+            if(NameGetter<T>::getName(str2).find(NameGetter<T>::getName(str1))!=izenelib::util::UString::NOT_FOUND)
                 return true;
         }
         return isChineseDuplicate_(NameGetter<T>::getTermList(str1), NameGetter<T>::getTermList(str2));
@@ -266,8 +266,8 @@ private:
      * @ brief check whether two Chinese labels are duplicates of each other.
      */
     static bool isChineseDuplicate_(
-            const std::vector<wiselib::UString>& label1,
-            const std::vector<wiselib::UString>& label2)
+            const std::vector<izenelib::util::UString>& label1,
+            const std::vector<izenelib::util::UString>& label2)
     {
         if(label1.size()==0||label2.size()==0)
         {
@@ -282,11 +282,11 @@ private:
         }
         if(label1.size()<=label2.size())
         {
-            std::vector<wiselib::UString> tempLabel1(label1.begin(), label1.end());
+            std::vector<izenelib::util::UString> tempLabel1(label1.begin(), label1.end());
             std::sort(tempLabel1.begin(), tempLabel1.end());
-            std::vector<wiselib::UString> tempLabel2(label2.begin(), label2.end());
+            std::vector<izenelib::util::UString> tempLabel2(label2.begin(), label2.end());
             std::sort(tempLabel2.begin(), tempLabel2.end());
-            wiselib::UString tempStr1, tempStr2;
+            izenelib::util::UString tempStr1, tempStr2;
             for(uint32_t i=0;i<tempLabel1.size();i++)
             {
                 tempStr1+=tempLabel1[i];

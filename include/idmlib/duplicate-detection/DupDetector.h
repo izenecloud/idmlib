@@ -6,7 +6,6 @@
 
 #ifndef DUPDETECTOR_H_
 #define DUPDETECTOR_H_
-#include "NearDuplicateAlgorithm.h"
 #include "DupTypes.h"
 #include <string>
 #include <vector>
@@ -148,7 +147,7 @@ protected:
 	/**
 	 * @brief the near duplicate detection algorithm chosen.
 	 */
-	NearDuplicateAlgorithm* ndAlgo;
+	CharikarAlgo* ndAlgo;
 
 	/**
 	 * @brief the number of documents

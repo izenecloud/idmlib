@@ -12,7 +12,7 @@
 #include <string>
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include "../idm_types.h"
 
 NS_IDMLIB_KPE_BEGIN
@@ -22,7 +22,7 @@ class OutputType
 {
 typedef std::pair<uint32_t, uint32_t> id2count_t;
 public:
-    typedef wiselib::UString string_type;
+    typedef izenelib::util::UString string_type;
     typedef boost::function<void 
     (const string_type&
     , const std::vector<id2count_t>&
@@ -59,7 +59,7 @@ class OutputType<false, false, false>
 {
 typedef std::pair<uint32_t, uint32_t> id2count_t;
 public:
-    typedef wiselib::UString string_type;
+    typedef izenelib::util::UString string_type;
     typedef boost::function<void (const string_type&, uint8_t) > function_type;
     enum {NEED_DF = false};
     enum {NEED_DOC = false};
@@ -89,7 +89,7 @@ class OutputType<true, false, false>
 {
 typedef std::pair<uint32_t, uint32_t> id2count_t;
 public:
-    typedef wiselib::UString string_type;
+    typedef izenelib::util::UString string_type;
     typedef boost::function<void (const string_type&, uint32_t, uint8_t) > function_type;
     enum {NEED_DF = true};
     enum {NEED_DOC = false};

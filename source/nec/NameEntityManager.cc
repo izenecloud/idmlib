@@ -82,7 +82,7 @@ void NameEntityManager::predict(NameEntity& entity)
 	{
 		string strEntity;
 		//hard-coded encoding type, needs to be adjusted.
-		entity.cur.convertString(strEntity, wiselib::UString::UTF_8);
+		entity.cur.convertString(strEntity, izenelib::util::UString::UTF_8);
 		if(NameEntityDict::isKownNoise(strEntity))
 		{
 			entity.predictLabels.push_back("NOISE");
@@ -109,7 +109,7 @@ void NameEntityManager::predict(NameEntity& entity)
 			for(size_t i=0;i<entity.pre.size();i++)
 			{
 				std::string strItem;
-				entity.pre[i].convertString(strItem, wiselib::UString::UTF_8);
+				entity.pre[i].convertString(strItem, izenelib::util::UString::UTF_8);
 				if(NameEntityDict::isThe(strItem))
 				{
 					if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="PEOP")
@@ -128,10 +128,10 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 {
 	if(entity.cur.length()>0)
 	{
-		std::vector<wiselib::UString> vecCur;
+		std::vector<izenelib::util::UString> vecCur;
 		if(entity.cur.isChineseChar(0))
 		{
-			wiselib::UString tempStr;
+			izenelib::util::UString tempStr;
 			for(size_t i=0;i<entity.cur.length();i++)
 			{
 				vecCur.push_back(entity.cur.substr(tempStr, i, 1));
@@ -140,10 +140,10 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 		else //languages with word segmentation identifier.
 		{
 			UString delimiter(" ", UString::UTF_8);
-			wiselib::Algorithm<wiselib::UString>::make_tokens_with_delimiter(entity.cur, delimiter, vecCur);
+			izenelib::util::Algorithm<izenelib::util::UString>::make_tokens_with_delimiter(entity.cur, delimiter, vecCur);
 		}
 		string strEntity;
-		entity.cur.convertString(strEntity, wiselib::UString::UTF_8);
+		entity.cur.convertString(strEntity, izenelib::util::UString::UTF_8);
 		if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="PEOP")
 		{
 			if(vecCur.size()==2)
@@ -160,14 +160,14 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 			if(vecCur.size()>2 &&!entity.cur.isChineseChar(0))
 			{
 				string strSurname;
-				vecCur[0].convertString(strSurname, wiselib::UString::UTF_8);
+				vecCur[0].convertString(strSurname, izenelib::util::UString::UTF_8);
 				if(!NameEntityDict::isNamePrefix(strSurname))
 					entity.predictLabels[0]="OTHER";
 			}
 			if(vecCur.size()>1&&!entity.cur.isChineseChar(0))
 			{
 				string strLast;
-				vecCur[vecCur.size()-1].convertString(strLast, wiselib::UString::UTF_8);
+				vecCur[vecCur.size()-1].convertString(strLast, izenelib::util::UString::UTF_8);
 				if(NameEntityDict::isOrgSuffix(strLast))
 				{
 					entity.predictLabels[0]="ORG";
@@ -208,7 +208,7 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 			if(vecCur.size()>1&&!entity.cur.isChineseChar(0))
 			{
 				string strLast;
-				vecCur[vecCur.size()-1].convertString(strLast, wiselib::UString::UTF_8);
+				vecCur[vecCur.size()-1].convertString(strLast, izenelib::util::UString::UTF_8);
 				if(NameEntityDict::isOrgSuffix(strLast))
 				{
 					entity.predictLabels[0]="ORG";

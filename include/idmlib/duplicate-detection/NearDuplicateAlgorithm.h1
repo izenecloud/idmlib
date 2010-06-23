@@ -7,8 +7,8 @@
 #define NearDuplicateAlgorithm_h 1
 
 #include <vector>
-#include <wiselib/YString.h>
-#include <wiselib/CBitArray.h>
+#include <YString.h>
+#include <util/CBitArray.h>
 
 namespace sf1v5{
 class NearDuplicateSignature;
@@ -38,7 +38,7 @@ public:
      *
      * @return score of these two documents
      */
-    virtual int neardup_score(const wiselib::CBitArray& sig1, const wiselib::CBitArray& sig2)=0;
+    virtual int neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2)=0;
     /**
      * @return true iff if the given neardup score is enough to be a near-duplicate
      */
@@ -50,7 +50,7 @@ public:
     /**
      * generate document signature given a sequent of tokens in a document
      */
-    virtual void generate_document_signature(const wiselib::DynamicArray<wiselib::ub8>& docTokens, wiselib::CBitArray& bitArray) = 0;
+    virtual void generate_document_signature(const wiselib::DynamicArray<wiselib::ub8>& docTokens, izenelib::util::CBitArray& bitArray) = 0;
 
     /**
      * @brief generate document signature from document string, not store the document tokens
@@ -58,7 +58,7 @@ public:
      * @param[in] document document content
      * @param[out] bitArray document signature
      */
-    virtual void generate_document_signature(const wiselib::YString& document, wiselib::CBitArray& bitArray) = 0;
+    virtual void generate_document_signature(const wiselib::YString& document, izenelib::util::CBitArray& bitArray) = 0;
 
     /**
      * @brief generate document signature
@@ -66,7 +66,7 @@ public:
      * @param[in] docTokens term id sequence of a document
      * @param[out] bitArray sequent of bits as a document signature
      */
-    virtual void generate_document_signature(const std::vector<unsigned int>& docTokens, wiselib::CBitArray& bitArray)=0;
+    virtual void generate_document_signature(const std::vector<unsigned int>& docTokens, izenelib::util::CBitArray& bitArray)=0;
 
      /**
      * @brief generate document signature
@@ -74,7 +74,7 @@ public:
      * @param[in] docTokens term id sequence of a document
      * @param[out] bitArray sequent of bits as a document signature
      */
-    virtual void generate_document_signature(const std::vector<std::string>& docTokens, wiselib::CBitArray& bitArray)=0;
+    virtual void generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray)=0;
 };
 }
 #endif

@@ -8,7 +8,7 @@
 
 #include "PrimeHashTable.h"
 //#include <wiselib/basics.h>
-#include <wiselib/DArray.h>
+#include <util/DArray.h>
 #include <wiselib/hash/ExtendibleHash.h>
 
 

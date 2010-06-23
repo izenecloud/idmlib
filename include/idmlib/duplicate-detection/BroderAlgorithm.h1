@@ -12,9 +12,9 @@
 
 //#include <wiselib/basics.h>
 //#include <wiselib/IntTypes.h>
-#include <wiselib/CBitArray.h>
+#include <util/CBitArray.h>
 #include <wiselib/Array.h>
-#include <wiselib/DArray.h>
+#include <util/DArray.h>
 
 namespace sf1v5{
 /**
@@ -152,28 +152,28 @@ public:
    *
    * @return similarity score
    */
-  int neardup_score(const wiselib::CBitArray& sig1, const wiselib::CBitArray& sig2);
+  int neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2);
   /**
    * generate document's signature
    *
    * @param[in] docTokens document tokens' id array
    * @param[out] bitArray document's signature
    */
-  void generate_document_signature(const wiselib::DynamicArray<wiselib::ub8>& docTokens, wiselib::CBitArray& bitArray);
+  void generate_document_signature(const wiselib::DynamicArray<wiselib::ub8>& docTokens, izenelib::util::CBitArray& bitArray);
   /**
    * generate document's signature
    *
    * @param[in] document document's string value
    * @param[out] bitArray document's signature
    */
-  void generate_document_signature(const wiselib::YString& document, wiselib::CBitArray& bitArray);
+  void generate_document_signature(const wiselib::YString& document, izenelib::util::CBitArray& bitArray);
   /**
    * generate document's signature
    *
    * @param docTokens a vector id of a document
    * @param bitArray signature of a document
    */
-  void generate_document_signature(const std::vector<unsigned int>& docTokens, wiselib::CBitArray& bitArray);
+  void generate_document_signature(const std::vector<unsigned int>& docTokens, izenelib::util::CBitArray& bitArray);
 
   /**
    * generate document's signature
@@ -181,7 +181,7 @@ public:
    * @param docTokens a vector id of a document
    * @param bitArray signature of a document
    */
-  void generate_document_signature(const std::vector<std::string>& docTokens, wiselib::CBitArray& bitArray);
+  void generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray);
 
   /**
    * check if 2 documents are duplicate or near duplicate

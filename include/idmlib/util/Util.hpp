@@ -12,8 +12,8 @@
 #include <string>
 
 #include <util/ProcMemInfo.h>
-#include <wiselib/ustring/UString.h>
-#include <wiselib/ustring/algo.hpp>
+#include <util/ustring/UString.h>
+#include <util/ustring/algo.hpp>
 
 NS_IDMLIB_UTIL_BEGIN
 
@@ -65,10 +65,10 @@ inline static void MEMINFO(const std::string& str = "")
     RSSINFO(str);
 }
 
-inline static void print( const wiselib::UString& ustr)
+inline static void print( const izenelib::util::UString& ustr)
 {
     std::string str;
-    ustr.convertString(str, wiselib::UString::UTF_8);
+    ustr.convertString(str, izenelib::util::UString::UTF_8);
     std::cout<<str;
 }
 

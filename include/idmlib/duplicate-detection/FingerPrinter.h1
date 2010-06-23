@@ -7,7 +7,7 @@
 #define FingerPrinter_h 1
 //#include <wiselib/basics.h>
 #include <types.h>
-#include <wiselib/MRandom.h>
+#include <util/MRandom.h>
 
 namespace sf1v5{
 /**

@@ -12,7 +12,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <sdb/SequentialDB.h>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include <util/izene_serialization.h>
 #include <util/functional.h>
 
@@ -40,17 +40,17 @@ class Reminder
 	typedef izenelib::am::sdb_btree<uint32_t, TIME_SERIES_FREQ_TYPE,
 			izenelib::util::ReadWriteLock>::SDBCursor
 			REFER_LANG_MODEL_CURSOR_TYPE;
-	typedef izenelib::am::sdb_btree<wiselib::UString, uint32_t>
+	typedef izenelib::am::sdb_btree<izenelib::util::UString, uint32_t>
 			QUERY_COUNT_TYPE;
-	typedef izenelib::am::sdb_btree<wiselib::UString, uint32_t>::SDBCursor
+	typedef izenelib::am::sdb_btree<izenelib::util::UString, uint32_t>::SDBCursor
 			QUERY_COUNT_CURSORTYPE;
 	typedef enum
 	{
 		POP = 0, REAL = 1
 	} REMIND_TYPE;
-	typedef izenelib::am::sdb_btree<int, std::vector<wiselib::UString>,
+	typedef izenelib::am::sdb_btree<int, std::vector<izenelib::util::UString>,
 			izenelib::util::ReadWriteLock> REMIND_INDEX_TYPE;
-	typedef std::pair<wiselib::UString, float> VALUE_TYPE;
+	typedef std::pair<izenelib::util::UString, float> VALUE_TYPE;
 	typedef std::vector<VALUE_TYPE> SEQUENCE_TYPE;
 	typedef izenelib::util::second_greater<VALUE_TYPE> greater_than;
 	typedef std::priority_queue<VALUE_TYPE, SEQUENCE_TYPE, greater_than> QUEUE_TYPE;
@@ -128,20 +128,20 @@ public:
 	 * @param isLatestTimeId whether the current slice log updated is the latest one.
 	 */
 	bool indexQueryLog(uint32_t timeId, const std::list<std::pair<
-			wiselib::UString, uint32_t> >& logItems, bool isLastestTimeId =
+			izenelib::util::UString, uint32_t> >& logItems, bool isLastestTimeId =
 			false)
 	{
-		std::list<std::pair<wiselib::UString, uint32_t> >::const_iterator iter =
+		std::list<std::pair<izenelib::util::UString, uint32_t> >::const_iterator iter =
 				logItems.begin();
 		for (; iter != logItems.end(); iter++)
 		{
-			std::vector<wiselib::UString> strList;
+			std::vector<izenelib::util::UString> strList;
 			std::vector<uint32_t> termList;
 			idManager_->getAnalysisTermList(iter->first, strList, termList);
 
 			for (uint32_t j = 0; j < termList.size(); j++)
 			{
-				wiselib::UString& ustrTerm = strList[j];
+				izenelib::util::UString& ustrTerm = strList[j];
 				if (ustrTerm.isChineseChar(0))
 				{
 					uint32_t key = termList[j];
@@ -208,7 +208,7 @@ public:
 	/**
 	 * @brief Get the result of realTimeQueries.
 	 */
-	bool getRealTimeQuery(std::vector<wiselib::UString>& realTimeQueries)
+	bool getRealTimeQuery(std::vector<izenelib::util::UString>& realTimeQueries)
 	{
 		return remindQueryIndex_.get(static_cast<int> (REAL), realTimeQueries);
 	}
@@ -216,7 +216,7 @@ public:
 	/**
 	 * @brief Get the result of popularQueries.
 	 */
-	bool getPopularQuery(std::vector<wiselib::UString>& popularQueries)
+	bool getPopularQuery(std::vector<izenelib::util::UString>& popularQueries)
 	{
 		return remindQueryIndex_.get(static_cast<int> (POP), popularQueries);
 	}
@@ -273,7 +273,7 @@ private:
 		const size_t candidateNum=popularNum_*5;
 		QUEUE_TYPE queue;
 		QUERY_COUNT_CURSORTYPE locn = periodCount_->get_first_locn();
-		wiselib::UString key;
+		izenelib::util::UString key;
 		uint32_t val;
 		while (periodCount_->get(locn, key, val))
 		{
@@ -292,14 +292,14 @@ private:
 			}
 		}
 
-		std::vector<wiselib::UString> result;
+		std::vector<izenelib::util::UString> result;
 		result.reserve(queue.size());
 		while (!queue.empty())
 		{
 			result.push_back(queue.top().first);
 			queue.pop();
 		}
-		std::vector<wiselib::UString> popularQueryResult;
+		std::vector<izenelib::util::UString> popularQueryResult;
 		popularQueryResult. reserve(result.size());
 		if (result.size() > 0)
 		{
@@ -322,7 +322,7 @@ private:
 		const size_t candidateNum=realTimeNum_*10;
 		QUEUE_TYPE queue;
 		QUERY_COUNT_CURSORTYPE locn = latestSliceCount_->get_first_locn();
-		wiselib::UString key;
+		izenelib::util::UString key;
 		uint32_t val;
 		while (latestSliceCount_->get(locn, key, val))
 		{
@@ -341,14 +341,14 @@ private:
 			}
 		}
 
-		std::vector<wiselib::UString> result;
+		std::vector<izenelib::util::UString> result;
 		result.reserve(queue.size());
 		while (!queue.empty())
 		{
 			result.push_back(queue.top().first);
 			queue.pop();
 		}
-		std::vector<wiselib::UString> realTimeQueryResult;
+		std::vector<izenelib::util::UString> realTimeQueryResult;
 		realTimeQueryResult. reserve(result.size());
 		if (result.size() > 0)
 		{
@@ -365,7 +365,7 @@ private:
 
 //	bool deduplicate(QUEUE_TYPE)
 
-	bool rankPopularQuery(const wiselib::UString& query, uint32_t freq,
+	bool rankPopularQuery(const izenelib::util::UString& query, uint32_t freq,
 			float& score)
 	{
 		std::vector<uint32_t> termIdList;
@@ -377,7 +377,7 @@ private:
 		return true;
 	}
 
-	bool rankRealTimeQuery(const wiselib::UString& query, uint32_t freq,
+	bool rankRealTimeQuery(const izenelib::util::UString& query, uint32_t freq,
 			float& score)
 	{
 		std::vector<uint32_t> termIdList;
@@ -536,9 +536,9 @@ private:
 		return true;
 	}
 
-	bool deduplicate(std::vector<wiselib::UString>& candidates, size_t resultNum)
+	bool deduplicate(std::vector<izenelib::util::UString>& candidates, size_t resultNum)
 	{
-        std::vector<wiselib::UString> selectedItems;
+        std::vector<izenelib::util::UString> selectedItems;
         for(size_t i=0;i<candidates.size()&&selectedItems.size()<resultNum;i++)
         {
         	if(!isDuplicate(candidates[i], selectedItems))
@@ -550,7 +550,7 @@ private:
 		return true;
 	}
 
-	bool isDuplicate(const wiselib::UString& candidate, const std::vector<wiselib::UString>& selectedItems)
+	bool isDuplicate(const izenelib::util::UString& candidate, const std::vector<izenelib::util::UString>& selectedItems)
 	{
 		for(size_t i=0;i<selectedItems.size();i++)
 		{
@@ -560,7 +560,7 @@ private:
 		return false;
 	}
 
-	bool isDuplicate(const wiselib::UString& candidate1, const wiselib::UString& candidate2)
+	bool isDuplicate(const izenelib::util::UString& candidate1, const izenelib::util::UString& candidate2)
 	{
 		std::vector<uint32_t> termIdList1;
 		idManager_->getAnalysisTermIdList(candidate1, termIdList1);

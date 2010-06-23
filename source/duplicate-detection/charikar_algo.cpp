@@ -4,8 +4,6 @@
    @date 2009.11.24
  */
 #include <idmlib/duplicate-detection/charikar_algo.h>
-#include <idmlib/duplicate-detection/NearDuplicateSignature.h>
-#include <idmlib/duplicate-detection/GetToken.h>
 
 namespace sf1v5{
 
@@ -30,7 +28,7 @@ namespace sf1v5{
   ********************************************************************************/
 
   void CharikarAlgo::
-  generate_document_signature(const std::vector<std::string>& docTokens, wiselib::CBitArray& bitArray)
+  generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray)
   {
     bitArray.SetLength(num_dimensions()/8);
 
@@ -49,15 +47,15 @@ namespace sf1v5{
 //       }
 //     }
   }
-
+/*
   int CharikarAlgo::neardup_score(NearDuplicateSignature& sig1,
                                   NearDuplicateSignature& sig2)
   {
     return sig1.get_bitarray().NumAgreedBits(nDimensions, sig2.get_bitarray());
   }
 
-  int CharikarAlgo::neardup_score(const wiselib::CBitArray& sig1, const wiselib::CBitArray& sig2) {
+  int CharikarAlgo::neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2) {
     return sig1.NumAgreedBits(nDimensions, sig2);
   }
-
+*/
 }

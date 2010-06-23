@@ -1,7 +1,7 @@
 #include <idmlib/duplicate-detection/GetToken.h>
 #include <idmlib/duplicate-detection/TokenGen.h>
 
-#include <wiselib/YString.h>
+#include <YString.h>
 namespace sf1v5
 {
   

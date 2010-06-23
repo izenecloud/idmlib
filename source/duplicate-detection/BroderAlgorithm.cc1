@@ -30,7 +30,7 @@ void BroderAlgorithm::set_fingerprinters() {
 ********************************************************************************/
 void BroderAlgorithm::
 generate_document_signature(const wiselib::DynamicArray<uint64_t>& docTokens,
-			    wiselib::CBitArray& bitArray)
+			    izenelib::util::CBitArray& bitArray)
 {
   bitArray.SetLength(num_dimensions()/8);
 
@@ -60,7 +60,7 @@ generate_document_signature(const wiselib::DynamicArray<uint64_t>& docTokens,
     uint64_t supershingle = fpSuperShingle.fp((const char*)&ltokens[0], l*sizeof(uint64_t));
 
     // set the bits by each supershingle
-    wiselib::CBitArray temp;
+    izenelib::util::CBitArray temp;
     temp.Init((uint8_t*)&supershingle, 8);
     int nCount = temp.GetCount();
     for (int nIndex = 0; nIndex < nCount; nIndex++)
@@ -68,7 +68,7 @@ generate_document_signature(const wiselib::DynamicArray<uint64_t>& docTokens,
   }
 }
 
-void BroderAlgorithm::generate_document_signature(const std::vector<unsigned int>& docTokens, wiselib::CBitArray& bitArray) {
+void BroderAlgorithm::generate_document_signature(const std::vector<unsigned int>& docTokens, izenelib::util::CBitArray& bitArray) {
     bitArray.SetLength(num_dimensions()/8);
     const int n = docTokens.size();
     wiselib::Array<uint64_t> minShingles(0, m, std::numeric_limits<uint64_t>::max());
@@ -90,7 +90,7 @@ void BroderAlgorithm::generate_document_signature(const std::vector<unsigned int
 
         uint64_t supershingle = fpSuperShingle.fp((const char*)&ltokens[0], l*sizeof(uint64_t));
 
-        wiselib::CBitArray temp;
+        izenelib::util::CBitArray temp;
         temp.Init((uint8_t*)&supershingle, 8);
         int nCount = temp.GetCount();
         for (int nIndex = 0; nIndex < nCount; nIndex++) {
@@ -99,7 +99,7 @@ void BroderAlgorithm::generate_document_signature(const std::vector<unsigned int
     }
 }
 
-void BroderAlgorithm::generate_document_signature(const std::vector<std::string>& docTokens, wiselib::CBitArray& bitArray)
+void BroderAlgorithm::generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray)
 {  
     bitArray.SetLength(num_dimensions()/8);
     const int n = docTokens.size();
@@ -125,7 +125,7 @@ void BroderAlgorithm::generate_document_signature(const std::vector<std::string>
 
         uint64_t supershingle = fpSuperShingle.fp((const char*)&ltokens[0], l*sizeof(uint64_t));
 
-        wiselib::CBitArray temp;
+        izenelib::util::CBitArray temp;
         temp.Init((uint8_t*)&supershingle, 8);
         int nCount = temp.GetCount();
         for (int nIndex = 0; nIndex < nCount; nIndex++) {
@@ -153,7 +153,7 @@ int BroderAlgorithm::neardup_score(NearDuplicateSignature& sig1,
   return cnt;
 }
 
-int BroderAlgorithm::neardup_score(const wiselib::CBitArray& sig1, const wiselib::CBitArray& sig2) {
+int BroderAlgorithm::neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2) {
     uint64_t* ptr1 = (uint64_t*)sig1.GetBuffer();
     uint64_t* ptr2 = (uint64_t*)sig2.GetBuffer();
     int cnt = 0;
@@ -166,7 +166,7 @@ int BroderAlgorithm::neardup_score(const wiselib::CBitArray& sig1, const wiselib
 
 }
 
-void BroderAlgorithm::generate_document_signature(const wiselib::YString& document, wiselib::CBitArray& bitArray) {
+void BroderAlgorithm::generate_document_signature(const wiselib::YString& document, izenelib::util::CBitArray& bitArray) {
     bitArray.SetLength(num_dimensions()/8);
     GetToken gt(document);
     uint64_t token_number = 0;
@@ -197,7 +197,7 @@ void BroderAlgorithm::generate_document_signature(const wiselib::YString& docume
 
         uint64_t supershingle = fpSuperShingle.fp((const char*)&ltokens[0], l*sizeof(uint64_t));
 
-        wiselib::CBitArray temp;
+        izenelib::util::CBitArray temp;
         temp.Init((uint8_t*)&supershingle, 8);
         int nCount = temp.GetCount();
         for (int nIndex = 0; nIndex < nCount; nIndex++) {

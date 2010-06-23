@@ -15,7 +15,7 @@ void RandProj::operator+=(const RandProj& rp)
     }
 }
 
-void RandProj::generate_bitarray(wiselib::CBitArray& bitArray)
+void RandProj::generate_bitarray(izenelib::util::CBitArray& bitArray)
 {
     bitArray.ResetAll();
     for (uint32_t i = 0; i < proj_.length(); i++) {

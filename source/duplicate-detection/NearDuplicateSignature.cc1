@@ -1,7 +1,7 @@
 #include <idmlib/duplicate-detection/NearDuplicateSignature.h>
 
 using namespace sf1v5;
-using namespace wiselib;
+using namespace izenelib::util;
 
 /********************************************************************************
   Description: NearDuplicateSignature is data structure used in

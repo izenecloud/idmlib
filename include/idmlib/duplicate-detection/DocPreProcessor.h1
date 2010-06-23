@@ -8,8 +8,8 @@
 #ifndef DOCPREPROCESSOR_H_
 #define DOCPREPROCESSOR_H_
 
-#include <wiselib/DArray.h>
-#include <wiselib/YString.h>
+#include <util/DArray.h>
+#include <YString.h>
 #include <fstream>
 #include <list>
 #include <string>

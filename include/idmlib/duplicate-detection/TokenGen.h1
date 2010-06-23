@@ -9,8 +9,8 @@
 #include "FingerPrinter.h"
 #include<types.h>
 //#include <wiselib/basics.h>
-#include <wiselib/YString.h>
-#include <wiselib/DArray.h>
+#include <YString.h>
+#include <util/DArray.h>
 
 #include <vector>
 namespace sf1v5{

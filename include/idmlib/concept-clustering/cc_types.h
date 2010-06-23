@@ -19,7 +19,7 @@
 #include <cmath>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/serialization.hpp>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 #include <am/cccr_hash/cccr_hash.h>
 
@@ -51,17 +51,17 @@ class ConceptInfo
             docInvert_.set(i);
         }
         
-        inline wiselib::UString getTerm(uint32_t i) const
+        inline izenelib::util::UString getTerm(uint32_t i) const
         {
             return termList_[i];
         }
         
-        inline wiselib::UString getName() const
+        inline izenelib::util::UString getName() const
         {
             return name_;
         }
         
-        inline std::vector<wiselib::UString> getTermList() const
+        inline std::vector<izenelib::util::UString> getTermList() const
         {
             return termList_;
         }
@@ -78,9 +78,9 @@ class ConceptInfo
         
         uint32_t index_;
         uint32_t conceptId_;
-        std::vector<wiselib::UString> termList_;
+        std::vector<izenelib::util::UString> termList_;
         std::vector<uint32_t> termIdList_;
-        wiselib::UString name_;
+        izenelib::util::UString name_;
         boost::dynamic_bitset<> docInvert_;
         double score_;
         uint32_t min_query_distance_;
@@ -118,16 +118,16 @@ class ClusterRep
         template <class T>
         void setIDManager(boost::shared_ptr<T> idManager)
         {
-//             name_ = wiselib::UString(" ",wiselib::UString::UTF_8);
+//             name_ = izenelib::util::UString(" ",izenelib::util::UString::UTF_8);
 //             return;
             name_.clear();
-            wiselib::UString str;
+            izenelib::util::UString str;
             idManager->getTermStringByTermId(termIdList_[0],str);
             name_ += str;
             for(std::size_t i=1;i<termIdList_.size();i++)
             {
                 idManager->getTermStringByTermId(termIdList_[i],str);
-                name_ += wiselib::UString(" ",wiselib::UString::UTF_8);
+                name_ += izenelib::util::UString(" ",izenelib::util::UString::UTF_8);
                 name_ += str;
             }
             
@@ -136,7 +136,7 @@ class ClusterRep
     public:
         std::vector<uint32_t> termIdList_;
         uint32_t conceptId_;
-        wiselib::UString name_;
+        izenelib::util::UString name_;
         boost::dynamic_bitset<> docInvert_;
         std::vector<uint32_t> docContain_;
         std::vector<boost::shared_ptr<ClusterRep> > children_;

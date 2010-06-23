@@ -34,7 +34,7 @@ namespace sf1v5{
   Comments   :
 ********************************************************************************/
 void CharikarAlgorithm::
-generate_document_signature(const wiselib::DynamicArray<uint64_t>& docTokens, wiselib::CBitArray& bitArray)
+generate_document_signature(const wiselib::DynamicArray<uint64_t>& docTokens, izenelib::util::CBitArray& bitArray)
 {
     bitArray.SetLength(num_dimensions()/8);
 
@@ -52,7 +52,7 @@ generate_document_signature(const wiselib::DynamicArray<uint64_t>& docTokens, wi
 }
 
 void CharikarAlgorithm::
-generate_document_signature(const wiselib::YString& document, wiselib::CBitArray& bitArray) {
+generate_document_signature(const wiselib::YString& document, izenelib::util::CBitArray& bitArray) {
     bitArray.SetLength(num_dimensions()/8);
 
     RandomProjection rpSum(nDimensions);
@@ -71,7 +71,7 @@ generate_document_signature(const wiselib::YString& document, wiselib::CBitArray
 }
 
 void CharikarAlgorithm::
-generate_document_signature(const std::vector<std::string>& docTokens, wiselib::CBitArray& bitArray)
+generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray)
 {
    bitArray.SetLength(num_dimensions()/8);
 
@@ -89,7 +89,7 @@ generate_document_signature(const std::vector<std::string>& docTokens, wiselib::
 }
 
 void CharikarAlgorithm::
-generate_document_signature(const std::vector<unsigned int>& docTokens, wiselib::CBitArray& bitArray)
+generate_document_signature(const std::vector<unsigned int>& docTokens, izenelib::util::CBitArray& bitArray)
 {
     bitArray.SetLength(num_dimensions()/8);
 
@@ -116,7 +116,7 @@ int CharikarAlgorithm::neardup_score(NearDuplicateSignature& sig1,
   return sig1.get_bitarray().NumAgreedBits(nDimensions, sig2.get_bitarray());
 }
 
-int CharikarAlgorithm::neardup_score(const wiselib::CBitArray& sig1, const wiselib::CBitArray& sig2) {
+int CharikarAlgorithm::neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2) {
     return sig1.NumAgreedBits(nDimensions, sig2);
 }
 

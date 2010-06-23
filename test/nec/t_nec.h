@@ -5,7 +5,7 @@
 #include <set>
 
 using namespace idmlib;
-using namespace wiselib;
+using namespace izenelib::util;
 
 
 class NameEntityContextType
@@ -190,11 +190,11 @@ void loadNameEntities(std::vector<NameEntity>& entities, string file, Label labe
 					count=atoi(strCount.c_str());
 					if(strTag=="L"&&count>0)
 					{
-						entity.pre.push_back(UString(strChar, wiselib::UString::UTF_8));
+						entity.pre.push_back(UString(strChar, izenelib::util::UString::UTF_8));
 					}
 					else if(strTag=="R"&&count>0)
 					{
-						entity.suc.push_back(UString(strChar, wiselib::UString::UTF_8));
+						entity.suc.push_back(UString(strChar, izenelib::util::UString::UTF_8));
 					}
 				}
 			}
@@ -204,15 +204,15 @@ void loadNameEntities(std::vector<NameEntity>& entities, string file, Label labe
 	}
 //	for(size_t i=0;i<entities.size();i++)
 //	{
-//		entities[i].cur.displayStringValue(wiselib::UString::UTF_8);
+//		entities[i].cur.displayStringValue(izenelib::util::UString::UTF_8);
 //		for(int j=0;j<entities[i].pre.size();j++)
 //		{
-//			entities[i].pre[j].displayStringValue(wiselib::UString::UTF_8);
+//			entities[i].pre[j].displayStringValue(izenelib::util::UString::UTF_8);
 //		}
 //		std::cout<<"..."<<std::endl;
 //		for(int j=0;j<entities[i].suc.size();j++)
 //		{
-//			entities[i].suc[j].displayStringValue(wiselib::UString::UTF_8);
+//			entities[i].suc[j].displayStringValue(izenelib::util::UString::UTF_8);
 //		}
 //		std::cout<<std::endl;
 //	}

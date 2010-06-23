@@ -9,10 +9,10 @@
 #define IDMGRFACTORY_H_
 
 #include <ir/id_manager/IDManager.h>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 using namespace izenelib::ir::idmanager;
-using namespace wiselib;
+using namespace izenelib::util;
 
 namespace idmlib {
 

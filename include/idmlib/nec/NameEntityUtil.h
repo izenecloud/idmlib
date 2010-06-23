@@ -13,14 +13,14 @@
 #include "NameEntity.h"
 #include <idmlib/util/IntIdMgr.h>
 #include "NameEntityDict.h"
-#include <wiselib/ustring/algo.hpp>
+#include <util/ustring/algo.hpp>
 
 using namespace idmlib;
 
 namespace ml
 {
     void addData(
-    		std::vector<wiselib::UString>& featureList,
+    		std::vector<izenelib::util::UString>& featureList,
     		ml::Schema& schema, ml::Instance& inst,
     		double featureWeight)
    {
@@ -36,14 +36,14 @@ namespace ml
 	template<>
 	void ClassificationDataUtil<NameEntity>::transform(NameEntity& entity, ml::Schema& schema, ml::Instance& inst)
 	{
-		std::vector<wiselib::UString> suc = entity.suc;
-		std::vector<wiselib::UString> pre = entity.pre;
-		std::vector<wiselib::UString> vecCur;
+		std::vector<izenelib::util::UString> suc = entity.suc;
+		std::vector<izenelib::util::UString> pre = entity.pre;
+		std::vector<izenelib::util::UString> vecCur;
 		bool isChinese=false;
 		if(entity.cur.length()>0&&(entity.cur.isChineseChar(0)||entity.cur.isKoreanChar(0)))
 		{
 			isChinese=true;
-			wiselib::UString tempStr;
+			izenelib::util::UString tempStr;
 			for(size_t i=0;i<entity.cur.length();i++)
 			{
 				vecCur.push_back(entity.cur.substr(tempStr, i, 1));
@@ -52,7 +52,7 @@ namespace ml
 		else if(entity.cur.length()>0)
 		{
 			UString delimiter(" ", UString::UTF_8);
-			wiselib::Algorithm<wiselib::UString>::make_tokens_with_delimiter(entity.cur, delimiter, vecCur);
+			izenelib::util::Algorithm<izenelib::util::UString>::make_tokens_with_delimiter(entity.cur, delimiter, vecCur);
 		}
 
 		// current character sequence
@@ -143,7 +143,7 @@ namespace ml
 			{
 				cur_a=vecCur[i];
 				std::string strUnigram;
-				cur_a.convertString(strUnigram, wiselib::UString::UTF_8);
+				cur_a.convertString(strUnigram, izenelib::util::UString::UTF_8);
 				cur_a.append(utag_cura);
 				f_cur_u_a.push_back(cur_a);	  // unigram of current sequence
 				f_all.push_back(cur_a);
@@ -212,7 +212,7 @@ namespace ml
 				b_cur_a=vecCur[i];
 				b_cur_a.append(vecCur[i+1]);
 				std::string strBigram;
-				b_cur_a.convertString(strBigram, wiselib::UString::UTF_8);
+				b_cur_a.convertString(strBigram, izenelib::util::UString::UTF_8);
 				b_cur_a.append(btag_cura);
 				f_cur_b_a.push_back(b_cur_a);  // bigram of current sequence
 				f_all.push_back(b_cur_a);
@@ -384,17 +384,17 @@ namespace ml
 		addData(f_cur_surname, schema, inst, w_cur_surname);
 
 /// Add the contextual features.
-		UString peopTag("_PEOP", wiselib::UString::UTF_8);
-		UString locTag("_LOC", wiselib::UString::UTF_8);
-		UString orgTag("_ORG", wiselib::UString::UTF_8);
-		UString theTag("_THE", wiselib::UString::UTF_8);
+		UString peopTag("_PEOP", izenelib::util::UString::UTF_8);
+		UString locTag("_LOC", izenelib::util::UString::UTF_8);
+		UString orgTag("_ORG", izenelib::util::UString::UTF_8);
+		UString theTag("_THE", izenelib::util::UString::UTF_8);
 		if(pre.size()>0)
 		{
 			f_left.clear();
 			for(size_t i=0;i<pre.size();i++)
 			{
 				std::string strItem;
-				pre[i].convertString(strItem, wiselib::UString::UTF_8);
+				pre[i].convertString(strItem, izenelib::util::UString::UTF_8);
 				if(NameEntityDict::isThe(strItem))
 				{
 					UString preChar=theTag;
@@ -435,7 +435,7 @@ namespace ml
 			for(size_t i=0;i<suc.size();i++)
 			{
 				std::string strItem;
-				suc[i].convertString(strItem, wiselib::UString::UTF_8);
+				suc[i].convertString(strItem, izenelib::util::UString::UTF_8);
 				if(NameEntityDict::isPeopRight(strItem))
 				{
 					UString preChar=suc[i];

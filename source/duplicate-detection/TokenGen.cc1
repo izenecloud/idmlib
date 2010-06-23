@@ -2,8 +2,8 @@
 #include <idmlib/duplicate-detection/TokenGen.h>
 #include <idmlib/duplicate-detection/NumTokens.h>
 //#include "libstemmer_c/include/libstemmer.h"
-#include <wiselib/CBitArray.h>
-using namespace wiselib;
+#include <util/CBitArray.h>
+using namespace izenelib::util;
 using namespace sf1v5;
 // define RabinFP object dynamically run-time
 //FingerPrinter TokenGen::fprinter(2654435761UL);

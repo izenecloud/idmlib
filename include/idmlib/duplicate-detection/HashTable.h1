@@ -10,8 +10,8 @@
 #define HashTable_h
 
 //#include <wiselib/basics.h>
-#include <wiselib/DArray.h>
-#include <wiselib/YString.h>
+#include <util/DArray.h>
+#include <YString.h>
 #include <wiselib/hash/AccessMethods.h>
 #include <iostream>
 #include <iomanip>

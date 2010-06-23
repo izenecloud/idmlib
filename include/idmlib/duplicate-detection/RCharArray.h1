@@ -6,8 +6,8 @@
 #define RandCharArray_h
 
 #include <wiselib/basics.h>
-#include <wiselib/DArray.h>
-#include <wiselib/MRandom.h>
+#include <util/DArray.h>
+#include <util/MRandom.h>
 
 
 namespace wiselib {

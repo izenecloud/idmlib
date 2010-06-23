@@ -9,8 +9,8 @@
 #include "TypeKey.h"
 
 
-#include <wiselib/DArray.h>
-#include <wiselib/CBitArray.h>
+#include <util/DArray.h>
+#include <util/CBitArray.h>
 
 
 
@@ -84,7 +84,7 @@ public:
      * @param projection source
      * @param bitArray target
      */
-    static void generate_bitarray(const wiselib::DynamicArray<float>& projection, wiselib::CBitArray& bitArray);
+    static void generate_bitarray(const wiselib::DynamicArray<float>& projection, izenelib::util::CBitArray& bitArray);
 };
 //define ostream<<RandomProjection, reference <basics.h>
 DEF_DISPLAY(RandomProjection);

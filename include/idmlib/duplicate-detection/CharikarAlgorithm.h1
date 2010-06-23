@@ -26,7 +26,7 @@
 #include "RandomProjectionEngine.h"
 #include "NearDuplicateAlgorithm.h"
 
-#include <wiselib/CBitArray.h>
+#include <util/CBitArray.h>
 #include <boost/thread/mutex.hpp>
 #include <vector>
 
@@ -97,16 +97,16 @@ public:
      *
      * @return the duplicate score
      */
-    int neardup_score(const wiselib::CBitArray& sig1, const wiselib::CBitArray& sig2);
+    int neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2);
     /**
      * @brief Generates a Charikar document signature from a document tokens.
      *
      * @param[in] docTokens doc tokens array
      * @param[out] bitArray bit array to set
      */
-    void generate_document_signature(const wiselib::DynamicArray<wiselib::ub8>& docTokens, wiselib::CBitArray& bitArray);
+    void generate_document_signature(const wiselib::DynamicArray<wiselib::ub8>& docTokens, izenelib::util::CBitArray& bitArray);
 
-    void generate_document_signature(const wiselib::YString& document, wiselib::CBitArray& bitArray);
+    void generate_document_signature(const wiselib::YString& document, izenelib::util::CBitArray& bitArray);
 
     /**
      * @brief generate signature from a vector
@@ -114,7 +114,7 @@ public:
      * @param[in] docTokens input source, a term id array
      * @param[out] bitArray signature
      */
-    void generate_document_signature(const std::vector<unsigned int>& docTokens, wiselib::CBitArray& bitArray);
+    void generate_document_signature(const std::vector<unsigned int>& docTokens, izenelib::util::CBitArray& bitArray);
 
  /**
      * @brief generate signature from a vector
@@ -122,7 +122,7 @@ public:
      * @param[in] docTokens input source, a term id array
      * @param[out] bitArray signature
      */
-    void generate_document_signature(const std::vector<std::string>& docTokens, wiselib::CBitArray& bitArray);
+    void generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray);
     /**
      * @brief check if is near duplicate
      *

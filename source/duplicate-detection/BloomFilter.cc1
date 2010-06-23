@@ -20,7 +20,7 @@ void BloomFilter::set_fingerprinters() {
     }
 }
 
-void BloomFilter::generate_document_signature(const wiselib::YString& document, wiselib::CBitArray& bitArray)
+void BloomFilter::generate_document_signature(const wiselib::YString& document, izenelib::util::CBitArray& bitArray)
 {
     bitArray.SetLength(m);
     ContentChunker cdc;
@@ -43,9 +43,9 @@ int BloomFilter::neardup_score(NearDuplicateSignature& sig1,
   return neardup_score(sig1.get_bitarray(),sig2.get_bitarray());
 }
 
-int BloomFilter::neardup_score(const wiselib::CBitArray& sig1, const wiselib::CBitArray& sig2) {
-	MAX_ONES=max(const_cast<wiselib::CBitArray&>(sig1).GetCount(),const_cast<wiselib::CBitArray&>(sig2).GetCount());
-	return (const_cast<wiselib::CBitArray&>(sig1)&const_cast<wiselib::CBitArray&>(sig2)).GetCount();
+int BloomFilter::neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2) {
+	MAX_ONES=max(const_cast<izenelib::util::CBitArray&>(sig1).GetCount(),const_cast<izenelib::util::CBitArray&>(sig2).GetCount());
+	return (const_cast<izenelib::util::CBitArray&>(sig1)&const_cast<izenelib::util::CBitArray&>(sig2)).GetCount();
 }
 
 bool BloomFilter::is_neardup(float neardupScore)

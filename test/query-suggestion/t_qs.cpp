@@ -16,7 +16,7 @@
 #include <fstream>
 #include <algorithm>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/unordered_map.hpp>
@@ -30,7 +30,7 @@ const uint32_t REAL_NUM=10;
 const uint32_t POP_NUM=20;
 
 
-void parseFile(const std::string& fileName, std::list<std::pair<wiselib::UString,uint32_t> >& logItems)
+void parseFile(const std::string& fileName, std::list<std::pair<izenelib::util::UString,uint32_t> >& logItems)
 {
     fstream fileIn(fileName.c_str(), ios::in | ios::binary);
     if (!fileIn.good())
@@ -50,9 +50,9 @@ void parseFile(const std::string& fileName, std::list<std::pair<wiselib::UString
 	boost::unordered_map<std::string, uint32_t>::iterator iter=queryFreqMap.begin();
 	for(;iter!=queryFreqMap.end();iter++)
 	{
-		wiselib::UString ustrQuery(iter->first, wiselib::UString::GB2312);
-//		wiselib::UString ustrQuery(iter->first, wiselib::UString::UTF_8);
-		std::pair<wiselib::UString, uint32_t> item(ustrQuery, iter->second);
+		izenelib::util::UString ustrQuery(iter->first, izenelib::util::UString::GB2312);
+//		izenelib::util::UString ustrQuery(iter->first, izenelib::util::UString::UTF_8);
+		std::pair<izenelib::util::UString, uint32_t> item(ustrQuery, iter->second);
 		logItems.push_back(item);
 	}
 }
@@ -82,9 +82,9 @@ void parseTosf1v5LogFile(const std::string& fileName, const std::string& logFile
         outputLine += items[0] + "\t20100517T151422\t00:00:01.027035\t";
         std::string query = items[1];
         query = query.substr(1, query.length()-2);
-        wiselib::UString uquery(query, wiselib::UString::GB2312);
+        izenelib::util::UString uquery(query, izenelib::util::UString::GB2312);
         std::string tmp;
-        uquery.convertString(tmp, wiselib::UString::UTF_8);
+        uquery.convertString(tmp, izenelib::util::UString::UTF_8);
 //         std::cout<<"append "<<tmp<<std::endl;
         
         
@@ -157,7 +157,7 @@ void convertLog2(const std::string& testFile, const std::string& objPath)
     fileIn.close();
 }
 
-//void parseDirectory(const std::string& path, std::list<std::pair<wiselib::UString,int> >& logItems)
+//void parseDirectory(const std::string& path, std::list<std::pair<izenelib::util::UString,int> >& logItems)
 //{
 //    boost::filesystem::directory_iterator item_begin(path);
 //    boost::filesystem::directory_iterator item_end;
@@ -168,13 +168,13 @@ void convertLog2(const std::string& testFile, const std::string& objPath)
 //      	std::cout<<"parsing file"<<item_begin -> path().file_string()<<std::endl;
 //        if (boost::filesystem::is_directory(*item_begin))
 //            continue;
-//        std::list<std::pair<wiselib::UString,int> > tempItems;
+//        std::list<std::pair<izenelib::util::UString,int> > tempItems;
 //        parseFile(item_begin -> path().file_string(), tempItems);
-//        std::list<std::pair<wiselib::UString,int> >::iterator it=tempItems.begin();
+//        std::list<std::pair<izenelib::util::UString,int> >::iterator it=tempItems.begin();
 //        for(;it!=tempItems.end();it++)
 //        {
 //        	std::string strItem;
-//        	it->first.convertString(strItem,wiselib::UString::GB2312);
+//        	it->first.convertString(strItem,izenelib::util::UString::GB2312);
 //        	queryFreqMap[strItem]+=it->second;
 //        }
 //    }
@@ -182,8 +182,8 @@ void convertLog2(const std::string& testFile, const std::string& objPath)
 //	boost::unordered_map<std::string, int>::iterator iter=queryFreqMap.begin();
 //	for(;iter!=queryFreqMap.end();iter++)
 //	{
-//		wiselib::UString ustrQuery(iter->first, wiselib::UString::GB2312);
-//		std::pair<wiselib::UString, int> item(ustrQuery, iter->second);
+//		izenelib::util::UString ustrQuery(iter->first, izenelib::util::UString::GB2312);
+//		std::pair<izenelib::util::UString, int> item(ustrQuery, iter->second);
 //		logItems.push_back(item);
 //	}
 //}
@@ -219,7 +219,7 @@ bool test()
         for (size_t i=0;i<fileNames.size();i++, count++)
         {
         	std::cout<<fileNames[i]<<std::endl;
-            std::list<std::pair<wiselib::UString,uint32_t> > logItems;
+            std::list<std::pair<izenelib::util::UString,uint32_t> > logItems;
             parseFile(fileNames[i], logItems);
             if(i==fileNames.size()-1)
             	reminder.indexQueryLog(timeId, logItems, true);
@@ -233,21 +233,21 @@ bool test()
     }
 
     reminder.indexQuery();
-    std::vector<wiselib::UString> realItems;
+    std::vector<izenelib::util::UString> realItems;
     reminder.getRealTimeQuery(realItems);
     std::cout<<"realItems.size()"<<realItems.size()<<std::endl;
     for(uint32_t i=0;i<realItems.size();i++)
     {
-    	realItems[i].displayStringValue(wiselib::UString::UTF_8);
+    	realItems[i].displayStringValue(izenelib::util::UString::UTF_8);
     	std::cout<<std::endl;
     }
 
-    std::vector<wiselib::UString> popularItems;
+    std::vector<izenelib::util::UString> popularItems;
     reminder.getPopularQuery(popularItems);
     std::cout<<"popularItems.size()"<<popularItems.size()<<std::endl;
     for(uint32_t i=0;i<popularItems.size();i++)
     {
-    	popularItems[i].displayStringValue(wiselib::UString::UTF_8);
+    	popularItems[i].displayStringValue(izenelib::util::UString::UTF_8);
     	std::cout<<std::endl;
     }
 
@@ -279,12 +279,12 @@ bool testPopularQuery()
 //        	std::cout<<"parsing file"<<item_begin -> path().file_string()<<std::endl;
 //            if (boost::filesystem::is_directory(*item_begin))
 //                continue;
-//            std::list<std::pair<wiselib::UString,int> > logItems;
+//            std::list<std::pair<izenelib::util::UString,int> > logItems;
 //            parseFile(item_begin -> path().file_string(), logItems);
 //            recommender.indexLog(timeId, logItems);
 //            timeId++;
 //        }
-//        std::list<std::pair<wiselib::UString,int> > allLogItems;
+//        std::list<std::pair<izenelib::util::UString,int> > allLogItems;
 //        parseDirectory(path, allLogItems);
 //        recommender.indexPopularQuery(allLogItems);
 //    } catch (...)
@@ -292,11 +292,11 @@ bool testPopularQuery()
 //        std::cout << "Error : log built fail.\n";
 //    } // end - try-catch
 //
-//    std::vector<wiselib::UString> popularItems;
+//    std::vector<izenelib::util::UString> popularItems;
 //    recommender.getPopularQuery(popularItems);
 //    for(uint32_t i=0;i<popularItems.size();i++)
 //    {
-//    	popularItems[i].displayStringValue(wiselib::UString::UTF_8);
+//    	popularItems[i].displayStringValue(izenelib::util::UString::UTF_8);
 //    	std::cout<<std::endl;
 //    }
 

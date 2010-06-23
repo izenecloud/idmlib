@@ -8,7 +8,7 @@
 
 
 #include <am/graph_index/dyn_array.hpp>
-#include <wiselib/CBitArray.h>
+#include <util/CBitArray.h>
 #include <ostream>
 
 
@@ -102,7 +102,7 @@ public:
      * @param projection source
      * @param bitArray target
      */
-    void generate_bitarray(wiselib::CBitArray& bitArray);
+    void generate_bitarray(izenelib::util::CBitArray& bitArray);
 
     friend std::ostream& operator << (std::ostream& os, const RandProj& rj)
     {

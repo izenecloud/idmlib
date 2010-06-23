@@ -13,7 +13,7 @@
 #include <vector>
 #include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include "../idm_types.h"
 
 NS_IDMLIB_KPE_BEGIN
@@ -32,18 +32,18 @@ struct TERM_TAG
 class Term
 {
     public:
-        Term(const wiselib::UString& text, uint32_t id, char tag, uint32_t position)
+        Term(const izenelib::util::UString& text, uint32_t id, char tag, uint32_t position)
         :text_(text), id_(id), tag_(tag), position_(position)
         {
         }
         
-        Term(const wiselib::UString& text, char tag, uint32_t position)
+        Term(const izenelib::util::UString& text, char tag, uint32_t position)
         :text_(text), id_(0), tag_(tag), position_(position)
         {
         }
         
     public:
-        wiselib::UString text_;
+        izenelib::util::UString text_;
         mutable uint32_t id_;
         char tag_;
         uint32_t position_;
@@ -56,7 +56,7 @@ public:
     typedef uint32_t id_type;
     typedef uint32_t value_type;
     typedef std::vector<value_type> input_type;
-    typedef wiselib::UString string_type;
+    typedef izenelib::util::UString string_type;
     typedef IDManager IDManagerType;
     IDInputType(IDManager* idManager): idManager_(idManager)
     {
@@ -102,9 +102,9 @@ class StringInputType
 {
 public:
     typedef uint32_t id_type;
-    typedef wiselib::UString value_type;
+    typedef izenelib::util::UString value_type;
     typedef std::vector<value_type> input_type;
-    typedef wiselib::UString string_type;
+    typedef izenelib::util::UString string_type;
     typedef IDManager IDManagerType;
     StringInputType(IDManager* idManager): idManager_(idManager)
     {

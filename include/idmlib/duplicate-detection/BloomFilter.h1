@@ -13,8 +13,8 @@
 #include "NearDuplicateAlgorithm.h"
 
 #include <types.h>
-#include <wiselib/CBitArray.h>
-#include <wiselib/YString.h>
+#include <util/CBitArray.h>
+#include <YString.h>
 
 #include <vector>
 
@@ -67,13 +67,13 @@ public:
 	  * @param[in] document document's string value
 	  * @param[out] bitArray document's signature
 	  */
-	void generate_document_signature(const wiselib::YString& document, wiselib::CBitArray& bitArray);
+	void generate_document_signature(const wiselib::YString& document, izenelib::util::CBitArray& bitArray);
 	int neardup_score(NearDuplicateSignature& sig1, NearDuplicateSignature& sig2);
-	int neardup_score(const wiselib::CBitArray& sig1, const wiselib::CBitArray& sig2);
+	int neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2);
 	bool is_neardup(float neardupScore);
 	inline int num_dimensions()  {return m;}
-	inline void generate_document_signature(const wiselib::DynamicArray<uint64_t>& docTokens, wiselib::CBitArray& bitArray) {}
-	inline void generate_document_signature(const std::vector<unsigned int>& docTokens, wiselib::CBitArray& bitArray){}
+	inline void generate_document_signature(const wiselib::DynamicArray<uint64_t>& docTokens, izenelib::util::CBitArray& bitArray) {}
+	inline void generate_document_signature(const std::vector<unsigned int>& docTokens, izenelib::util::CBitArray& bitArray){}
 
 };
 }

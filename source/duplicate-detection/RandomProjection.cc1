@@ -29,7 +29,7 @@ void RandomProjection::display(ostream& stream) const
   Comments   :
  ********************************************************************************/
 void RandomProjection::generate_bitarray(const wiselib::DynamicArray<float>& projection,
-                                         wiselib::CBitArray& bitArray)
+                                         izenelib::util::CBitArray& bitArray)
 {
     bitArray.ResetAll();
     for (int i = 0; i < projection.size(); i++) {

@@ -14,8 +14,8 @@
 
 #include <wiselib/basics.h>
 #include <wiselib/IntTypes.h>
-#include <wiselib/CBitArray.h>
-#include <wiselib/DArray.h>
+#include <util/CBitArray.h>
+#include <util/DArray.h>
 
 #include <set>
 namespace sf1v5{
@@ -28,7 +28,7 @@ private:
      * @brief key of this NearDuplicateSignature
      */
     wiselib::TypeKey<wiselib::ub4> key;
-    wiselib::CBitArray bitArray;
+    izenelib::util::CBitArray bitArray;
     /**
      * document id of this signature
      */
@@ -58,7 +58,7 @@ public:
      * @param k key
      * @param ba bit array
      */
-    inline NearDuplicateSignature(wiselib::ub4 k, const wiselib::CBitArray& ba)
+    inline NearDuplicateSignature(wiselib::ub4 k, const izenelib::util::CBitArray& ba)
         : key(k), bitArray(ba) {}
     /**
      * @brief disconstructor
@@ -70,7 +70,7 @@ public:
      *
      * @return reference of bitArray
      */
-    inline wiselib::CBitArray& get_bitarray() { return bitArray; }
+    inline izenelib::util::CBitArray& get_bitarray() { return bitArray; }
 
     /**
      * @brief get sub key
@@ -119,12 +119,12 @@ public:
      * @param ndSignatureArray NearDuplicateSignature array to build
      */
     static void  generate_near_duplicate_signatures(int nDimensions,
-            const wiselib::CBitArray& bitArray,
+            const izenelib::util::CBitArray& bitArray,
             const std::string& docName,
             std::set<NearDuplicateSignature>& ndSignatureSet);
 
     static void  generate_near_duplicate_signatures(int nDimensions,
-           const wiselib::CBitArray& bitArray,
+           const izenelib::util::CBitArray& bitArray,
            unsigned int docID,
            std::set<NearDuplicateSignature>& ndSignatureSet);
 

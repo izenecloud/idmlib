@@ -23,23 +23,23 @@ class TermGroup
         TermGroup(IDManager* idManager):idManager_(idManager)
         {
             uint32_t groupId = 0;
-            std::vector<wiselib::UString> vec;
-            vec.push_back(wiselib::UString("首", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("零", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("一", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("二", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("三", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("四", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("五", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("六", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("七", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("八", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("九", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("十", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("百", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("千", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("万", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("亿", wiselib::UString::UTF_8) );
+            std::vector<izenelib::util::UString> vec;
+            vec.push_back(izenelib::util::UString("首", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("零", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("一", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("二", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("三", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("四", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("五", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("六", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("七", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("八", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("九", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("十", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("百", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("千", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("万", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("亿", izenelib::util::UString::UTF_8) );
             
             for(uint32_t i=0;i<vec.size();i++)
             {
@@ -48,38 +48,38 @@ class TermGroup
                 insert(id, groupId);
             }
             vec.resize(0);
-            vec.push_back(wiselib::UString("one", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("two", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("three", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("four", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("five", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("six", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("seven", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("eight", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("nine", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("ten", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("eleven", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("twelve", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("thirteen", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("fourteen", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("fifteen", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("sixteen", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("seventeen", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("eighteen", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("nighteen", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("twenty", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("thirty", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("fourty", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("fifty", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("fixty", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("sixty", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("seventy", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("eighty", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("ninety", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("hundred", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("thousand", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("million", wiselib::UString::UTF_8) );
-            vec.push_back(wiselib::UString("billion", wiselib::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("one", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("two", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("three", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("four", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("five", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("six", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("seven", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("eight", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("nine", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("ten", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("eleven", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("twelve", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("thirteen", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("fourteen", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("fifteen", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("sixteen", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("seventeen", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("eighteen", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("nighteen", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("twenty", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("thirty", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("fourty", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("fifty", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("fixty", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("sixty", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("seventy", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("eighty", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("ninety", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("hundred", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("thousand", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("million", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("billion", izenelib::util::UString::UTF_8) );
             for(uint32_t i=0;i<vec.size();i++)
             {
                 uint32_t id = 0;
@@ -95,7 +95,7 @@ class TermGroup
             
         }
         
-        void insert(const wiselib::UString& ustr, char tag, uint32_t groupId)
+        void insert(const izenelib::util::UString& ustr, char tag, uint32_t groupId)
         {
             uint32_t termId = 0;
             idManager_->getTermIdByTermString( ustr, tag, termId);

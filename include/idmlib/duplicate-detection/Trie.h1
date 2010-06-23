@@ -3,8 +3,8 @@
 
 #include <wiselib/hash/AccessMethods.h>
 #include <wiselib/Array.h>
-#include <wiselib/DArray.h>
-//using namespace wiselib::hashing_methods;
+#include <util/DArray.h>
+//using namespace izenelib::util::hashing_methods;
 namespace wiselib {
   typedef void (*ManipFuncType)(void* node);
 
