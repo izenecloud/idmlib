@@ -13,6 +13,8 @@ SET(libs
   ${izenelib_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
+  ${izenecma_LIBRARIES}
+  ${wisekma_LIBRARIES}
   xml2
   )
 
