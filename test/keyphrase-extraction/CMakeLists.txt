@@ -7,11 +7,12 @@ INCLUDE_DIRECTORIES(
 # sequences is important for some linker
 # if a dpendes b, a must precede b
 SET(libs
+  ${imllib_LIBRARIES}
+  ${ilplib_LIBRARIES}
+  ${wisekma_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
-  ${imllib_LIBRARIES}
-  ${ilplib_LIBRARIES}
   xml2
   )
 

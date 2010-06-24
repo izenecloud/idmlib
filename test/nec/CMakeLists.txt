@@ -1,10 +1,11 @@
 # sequences is important for some linker
 # if a dpendes b, a must precede b
 SET(libs
+  ${ilplib_LIBRARIES}
   ${lalib_LIBRARIES}
   ${imllib_LIBRARIES}
-  ${ilplib_LIBRARIES}
   ${izenelib_LIBRARIES}
+  ${wisekma_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   xml2
