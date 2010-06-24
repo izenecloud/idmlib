@@ -24,7 +24,8 @@ struct TERM_TAG
     static const char ENG = 'F';
     static const char KOR = '?';
     static const char KOR_NOUN = 'N';
-    static const char KOR_COMP_NOUN = 'Z';
+    static const char KOR_LOAN = 'Z';
+    static const char KOR_COMP_NOUN = 'P';
     static const char NUM = 'S';
     static const char OTHER = '@';
 };
