@@ -2,6 +2,7 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   COMPONENTS unit_test_framework serialization)
 FIND_PACKAGE(wisekma REQUIRED)
 FIND_PACKAGE(izenecma REQUIRED)
+FIND_PACKAGE(izenelib REQUIRED COMPONENTS procmeminfo am izene_util)
 
 INCLUDE_DIRECTORIES(
   ${wisekma_INCLUDE_DIRS}
