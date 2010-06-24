@@ -6,6 +6,7 @@ SET(libs
   ${imllib_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${wisekma_LIBRARIES}
+  ${izenecma_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   xml2

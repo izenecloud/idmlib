@@ -15,6 +15,7 @@ FIND_PACKAGE(izenelib REQUIRED COMPONENTS
   procmeminfo
   luxio
   jemalloc
+  am
   )
 
 

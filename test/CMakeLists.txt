@@ -1,7 +1,12 @@
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   COMPONENTS unit_test_framework serialization)
 FIND_PACKAGE(wisekma REQUIRED)
-#LIST(FIND REAL_BUILD_COMPONENTS "febird" _febird)
+FIND_PACKAGE(izenecma REQUIRED)
+
+INCLUDE_DIRECTORIES(
+  ${wisekma_INCLUDE_DIRS}
+  ${izenecma_INCLUDE_DIRS}
+  )
 
 IF(Boost_FOUND)
 
