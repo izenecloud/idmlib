@@ -23,6 +23,7 @@
 #include <util/izene_serialization.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include "../util/StopWordContainer.hpp"
 #include "../util/Util.hpp"
 #include "TermGroup.hpp"
@@ -678,7 +679,7 @@ class Scorer : public boost::noncopyable
                         std::string word;
                         while ( getline ( ifs,word ) )
                         {
-                            boost::algorithm::to_lower<std::string> ( word );
+                            boost::to_lower(word);
                             if ( word.length() >0 )
                             {
                                 std::vector<uint32_t> termIdList;
