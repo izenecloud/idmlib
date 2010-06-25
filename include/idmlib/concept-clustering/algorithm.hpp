@@ -39,7 +39,7 @@ typedef izenelib::util::UString string_type;
 typedef std::pair<uint32_t, uint32_t> id_pair;
 typedef std::vector<id_pair> input_type;
 typedef std::vector<boost::shared_ptr<ClusterRep> > OutputType;
-typedef idmlib::util::StringDistance<ConceptInfo, std::list> distance_type;
+typedef idmlib::util::StringDistance<ConceptInfo, std::list<ConceptInfo> > distance_type;
 public:
 
     Algorithm(ConceptManagerType* conceptManager, IDManagerType* idManager)
