@@ -105,7 +105,7 @@ public:
 };
 
 
-template <class T, template <class Z> class Container >
+template <class T, class Container>
 class StringDistance
 {
 typedef std::vector<T> T_LIST;
@@ -115,7 +115,7 @@ public:
      */
     static inline bool isDuplicate(
             const T& str,
-            const Container< T >& strList)
+            const Container& strList)
     {
         
         if(str.size()==0) return true;
@@ -124,8 +124,8 @@ public:
         if(firstTerm.isChineseChar(0))
             return isChineseDuplicate_(str,strList);
 
-        typename Container< T >::const_iterator it=strList.begin();
-        typename Container< T >::const_iterator itEnd= strList.end();
+        typename Container::const_iterator it=strList.begin();
+        typename Container::const_iterator itEnd= strList.end();
         for(;it!=itEnd;it++)
         {
             if(it->size()!=str.size() ||
@@ -224,11 +224,11 @@ private:
      */
     static bool isChineseDuplicate_(
             const T& str,
-            const Container< T >& lexicon
+            const Container& lexicon
             )
     {
-         typename Container< T >::const_iterator it=lexicon.begin();
-         typename Container< T >::const_iterator itEnd= lexicon.end();
+         typename Container::const_iterator it=lexicon.begin();
+         typename Container::const_iterator itEnd= lexicon.end();
          for(;it!=itEnd;it++)
          {
              bool ret=isChineseDuplicate_(str, *it);
