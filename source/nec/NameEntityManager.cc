@@ -20,16 +20,16 @@ NameEntityManager::NameEntityManager(const std::string& path): path_(path)
 	if (!classifier_)
 	{
 		std::string res_path = path + "/res/";
-		std::string loc_suffix_path = res_path + "loc_s.txt";
-		std::string org_suffix_path = res_path + "org_s.txt";
-		std::string peop_suffix_path = res_path + "peop_s.txt";
-		std::string loc_list_path = res_path + "loc.txt";
-		std::string peop_list_path = res_path + "peop.txt";
-		std::string org_list_path = res_path + "org.txt";
-		std::string noise_list_path = res_path + "noise.txt";
-		std::string other_list_path = res_path + "other.txt";
-		std::string noun_list_path = res_path + "noun.txt";
-		std::string name_prefix_path =res_path + "surname.txt";
+		std::string loc_suffix_path = res_path + "loc_s";
+		std::string org_suffix_path = res_path + "org_s";
+		std::string peop_suffix_path = res_path + "peop_s";
+		std::string loc_list_path = res_path + "loc";
+		std::string peop_list_path = res_path + "peop";
+		std::string org_list_path = res_path + "org";
+		std::string noise_list_path = res_path + "noise";
+		std::string other_list_path = res_path + "other";
+		std::string noun_list_path = res_path + "noun";
+		std::string name_prefix_path =res_path + "surname";
 
 		NameEntityDict::loadLocSuffix(loc_suffix_path);
 		NameEntityDict::loadOrgSuffix(org_suffix_path);

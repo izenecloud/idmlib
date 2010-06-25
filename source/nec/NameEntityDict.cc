@@ -9,7 +9,7 @@
 #include <fstream>
 #include <string>
 #include <idmlib/nec/NameEntityDict.h>
-
+#include <idmlib/util/Util.hpp>
 namespace idmlib
 {
 
@@ -34,13 +34,14 @@ void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffix
 {
 	if (suffixSet.size() == 0)
 		{
-			std::ifstream inStream(path.c_str());
+            std::istream* inStream = idmlib::util::getResourceStream(path);
+// 			std::ifstream inStream(path.c_str());
 			if (!inStream)
 			{
 				return;
 			}
 			std::string line;
-			while(std::getline(inStream, line))
+			while(std::getline(*inStream, line))
 			{
 				if (line.length() > 0)
 				{
@@ -48,7 +49,8 @@ void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffix
 					suffixSet.insert(line);
 				}
 			}
-			inStream.close();
+            delete inStream;
+// 			inStream.close();
 		}
 }
 
