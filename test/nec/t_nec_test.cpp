@@ -594,17 +594,17 @@ void extractNames()
 
 void simpleProcess()
 {
-	ifstream inStream("person.dic.txt");
-	ofstream testOut("new.person.dic.txt");
+	ifstream in("ned.list.MISC");
+	ofstream out("new.ned.list.MISC");
 	string line ="";
-	int i=0;
-	while (std::getline(inStream, line))
+	while (std::getline(in, line))
 	{
-		if (i%4==0)
+		if (line.length() > 0)
 		{
-			testOut<<line<<std::endl;
+			int posEnd=line.find(" ");
+			string cur = line.substr(posEnd+1,line.length()-posEnd);
+    			out<<cur<<std::endl;
 		}
-		i++;
 	}
 }
 
@@ -622,11 +622,25 @@ void processSCD()
 //    }
 }
 
+
+void testNamedDict()
+{
+	std::string strPath("/home/jinglei/jingleigit/iDMlib/resource/nec/res/loc.txt");
+	NameEntityDict::loadLocList(strPath);
+	std::string surname("곰네미");
+	std::cout<<"Now start to find the item in Lexicon"<<std::endl;
+	if(NameEntityDict::isKownLoc(surname))
+	{
+		std::cout<<"We have a surname in the lexicion"<<std::endl;
+	}
+}
+
 int main()
 {
 //	simpleProcess();
 //	processEngCorpus();
 	testNec();
+//	testNamedDict();
 //	processSCD();
 //	processEngCorpus2();
 //	selectPatterns();

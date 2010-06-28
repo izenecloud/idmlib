@@ -98,23 +98,23 @@ namespace ml
 		std::vector<UString> f_right;
 		std::vector<UString> f_all;
 
-		double w_cur_u_b = 3;
-		double w_cur_b_b = 4;
-		double w_cur_u_a = 2;
-		double w_cur_b_a = 4;
+		double w_cur_u_b = 4;
+		double w_cur_b_b = 2;
+		double w_cur_u_a = 1;
+		double w_cur_b_a = 2;
 		double w_cur_b_e = 16;
-		double w_cur_t_e = 32;
+		double w_cur_t_e = 48;
 		double w_cur_u_e = 4;
-		double w_cur_b_n = 1.0;
-		double w_cur_b_o = 2;
-		double w_cur_b_l=2;
-		double w_cur_b_g=2;
-		double w_cur_u_n = 1;
-		double w_cur_u_o = 1;
-		double w_cur_u_l=1;
-		double w_cur_u_g=1;
-		double w_left = 2;
-		double w_right = 2;
+		double w_cur_b_n = 1;
+		double w_cur_b_o = 1;
+		double w_cur_b_l=1;
+		double w_cur_b_g=1;
+		double w_cur_u_n = 0.5;
+		double w_cur_u_o = 0.5;
+		double w_cur_u_l=0.5;
+		double w_cur_u_g=0.5;
+		double w_left = 1;
+		double w_right = 1;
 
         string u_cur_e_str;
 		string b_cur_e_str;
@@ -273,28 +273,28 @@ namespace ml
 		std::vector<UString> f_cur_loc;
 		double w_cur_loc = 10;
 		std::vector<UString> f_cur_loc2;
-		double w_cur_loc2 = 12;
+		double w_cur_loc2 = 32;
     	std::vector<UString> f_cur_loc3;
-		double w_cur_loc3 = 12;
+		double w_cur_loc3 = 64;
 		UString utag_cure_loc("_UCEL", UString::UTF_8);
 		UString btag_cure_loc("_BCEL", UString::UTF_8);
 		UString ttag_cure_loc("_TCEL", UString::UTF_8);
 		std::vector<UString> f_cur_org;
 		double w_cur_org = 16;
 		std::vector<UString> f_cur_org2;
-		double w_cur_org2 = 16;
+		double w_cur_org2 = 32;
 		std::vector<UString> f_cur_org3;
-		double w_cur_org3 = 16;
+		double w_cur_org3 = 64;
 		// whether is org suffix
 		UString utag_cure_org("_UCEO", UString::UTF_8);
 		UString btag_cure_org("_BCEO", UString::UTF_8);
 		UString ttag_cure_org("_TCEO", UString::UTF_8);
 		std::vector<UString> f_cur_peop;
-		double w_cur_peop = 4;
+		double w_cur_peop = 1;
 		std::vector<UString> f_cur_peop2;
-		double w_cur_peop2 = 12;
+		double w_cur_peop2 = 2;
 		std::vector<UString> f_cur_peop3;
-		double w_cur_peop3 = 12;
+		double w_cur_peop3 = 2;
 		// whether is org suffix
 		UString utag_cure_peop("_UCEP", UString::UTF_8);
 		UString btag_cure_peop("_BCEP", UString::UTF_8);
@@ -370,7 +370,7 @@ namespace ml
 		std::vector<ml::AttrID> id_cur_surname;
 		double w_cur_surname = 32;
 		UString utag_curb_name("_UCBN", UString::UTF_8);
-		if (curLength>1&&curLength <5)
+		if (curLength>1&&curLength <4)
 		{
 			UString cur_b=vecCur[0];
 			string name;

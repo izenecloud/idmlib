@@ -160,6 +160,7 @@ void loadNameEntities(std::vector<NameEntity>& entities, string file, Label labe
 			{
 				trimLeft(tokens[i], blank.c_str());
 				trimRight(tokens[i], blank.c_str());
+				trimRight(tokens[i], "\r");
 				if(i==0)
 				{
 					std::vector<std::string> inTokens;

@@ -16,7 +16,6 @@ namespace idmlib
 hash_set<std::string> NameEntityDict::locSuffix;
 hash_set<std::string> NameEntityDict::orgSuffix;
 hash_set<std::string> NameEntityDict::peopSuffix;
-hash_set<std::string> NameEntityDict::namePrefix;
 hash_set<std::string> NameEntityDict::locList_;
 hash_set<std::string> NameEntityDict::orgList_;
 hash_set<std::string> NameEntityDict::peopList_;
@@ -29,6 +28,7 @@ hash_set<std::string> NameEntityDict::orgLeft_;
 hash_set<std::string> NameEntityDict::orgRight_;
 hash_set<std::string> NameEntityDict::peopLeft_;
 hash_set<std::string> NameEntityDict::peopRight_;
+hash_set<std::string> NameEntityDict::namePrefix;
 
 void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffixSet)
 {
@@ -45,6 +45,10 @@ void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffix
 				if (line.length() > 0)
 				{
 					std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+					if(line[line.length()-1]=='\r')
+					{
+						line=line.substr(0, line.length()-1);
+					}
 					suffixSet.insert(line);
 				}
 			}

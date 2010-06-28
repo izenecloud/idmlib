@@ -39,8 +39,8 @@ NameEntityManager::NameEntityManager(const std::string& path): path_(path)
 		NameEntityDict::loadPeopList(peop_list_path);
 		NameEntityDict::loadNoiseList(noise_list_path);
 		NameEntityDict::loadOtherList(other_list_path);
-		NameEntityDict::loadNamePrefix(name_prefix_path);
 		NameEntityDict::loadNounList(noun_list_path);
+		NameEntityDict::loadNamePrefix(name_prefix_path);
 
 		std::string model_path = path + "/model/";
 		ml::ClassifierType type = LR;
@@ -106,21 +106,8 @@ void NameEntityManager::predict(NameEntity& entity)
 		else
 		{
 			classifier_->predict(entity);
-			for(size_t i=0;i<entity.pre.size();i++)
-			{
-				std::string strItem;
-				entity.pre[i].convertString(strItem, izenelib::util::UString::UTF_8);
-				if(NameEntityDict::isThe(strItem))
-				{
-					if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="PEOP")
-					{
-						entity.predictLabels[0]=="OTHER";
-						break;
-					}
-				}
-			}
+			postProcessing(entity);
 		}
-		postProcessing(entity);
 	}
 }
 
@@ -129,7 +116,7 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 	if(entity.cur.length()>0)
 	{
 		std::vector<izenelib::util::UString> vecCur;
-		if(entity.cur.isChineseChar(0))
+		if(entity.cur.isChineseChar(0)||entity.cur.isKoreanChar(0))
 		{
 			izenelib::util::UString tempStr;
 			for(size_t i=0;i<entity.cur.length();i++)
@@ -157,7 +144,8 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 			{
 				entity.predictLabels[0]="OTHER";
 			}
-			if(vecCur.size()>2 &&!entity.cur.isChineseChar(0))
+//			if(vecCur.size()>2 &&!entity.cur.isChineseChar(0))
+			if(vecCur.size()>=2)
 			{
 				string strSurname;
 				vecCur[0].convertString(strSurname, izenelib::util::UString::UTF_8);
@@ -177,6 +165,10 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 					entity.predictLabels[0]="LOC";
 				}
 			}
+//			if(vecCur.size()>3&&entity.cur.isChineseChar(0)||entity.cur.isKoreanChar(0))
+//			{
+//				entity.predictLabels[0]="OTHER";
+//			}
 		}
 		else if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="ORG")
 		{
@@ -213,6 +205,19 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 				{
 					entity.predictLabels[0]="ORG";
 				}
+			}
+		}
+	}
+	for(size_t i=0;i<entity.pre.size();i++)
+	{
+		std::string strItem;
+		entity.pre[i].convertString(strItem, izenelib::util::UString::UTF_8);
+		if(NameEntityDict::isThe(strItem))
+		{
+			if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="PEOP")
+			{
+				entity.predictLabels[0]=="OTHER";
+				break;
 			}
 		}
 	}

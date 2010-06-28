@@ -98,63 +98,63 @@ void parseTosf1v5LogFile(const std::string& fileName, const std::string& logFile
 
 void convertLog(const std::string& sogouPath, const std::string& objPath)
 {
-    boost::filesystem::create_directories(objPath);
-    boost::posix_time::ptime time = boost::posix_time::second_clock::local_time();
-    boost::gregorian::days oneday(1);
-    for(uint32_t i=20060831;i>=20060801;i--)
-    {
-        std::string fileName = sogouPath+"/"+"access_log."+boost::lexical_cast<std::string>(i)+".decode.filter";
-        if( !boost::filesystem::exists(fileName) )
-        {
-            continue;
-        }
-        std::string dateTimeStr = boost::posix_time::to_iso_string(time).substr(0,8);
-        std::string outputFileName = objPath+"/"+dateTimeStr+".log";
-        std::cout<<"Converting "<<fileName<<" to "<<outputFileName<<std::endl;
-        parseTosf1v5LogFile( fileName, outputFileName);
-        time -= oneday;
-    }
+//    boost::filesystem::create_directories(objPath);
+//    boost::posix_time::ptime time = boost::posix_time::second_clock::local_time();
+//    boost::gregorian::days oneday(1);
+//    for(uint32_t i=20060831;i>=20060801;i--)
+//    {
+//        std::string fileName = sogouPath+"/"+"access_log."+boost::lexical_cast<std::string>(i)+".decode.filter";
+//        if( !boost::filesystem::exists(fileName) )
+//        {
+//            continue;
+//        }
+//        std::string dateTimeStr = boost::posix_time::to_iso_string(time).substr(0,8);
+//        std::string outputFileName = objPath+"/"+dateTimeStr+".log";
+//        std::cout<<"Converting "<<fileName<<" to "<<outputFileName<<std::endl;
+//        parseTosf1v5LogFile( fileName, outputFileName);
+//        time -= oneday;
+//    }
 }
 
 void convertLog2(const std::string& testFile, const std::string& objPath)
 {
-    boost::filesystem::create_directories(objPath);
-    std::ifstream fileIn(testFile.c_str());
-    boost::posix_time::ptime time = boost::posix_time::second_clock::local_time();
-    boost::gregorian::days oneday(1);
-    string strLine;
-    std::ofstream* pOfs = NULL;
-    while( getline(fileIn,strLine) )
-    {
-        if( strLine.length()==0 ) continue;
-        std::string dateTimeStr = boost::posix_time::to_iso_string(time).substr(0,8);
-        if( strLine[0] == '#' )
-        {
-            if( pOfs!= NULL )
-            {
-                pOfs->close();
-                delete pOfs;
-            }
-            
-            std::string outputFileName = objPath+"/"+dateTimeStr+".log";
-            pOfs = new std::ofstream(outputFileName.c_str() );
-            time -= oneday;
-        }
-        else
-        {
-            std::string outputLine = "Query\t";
-            outputLine += "session\t"+dateTimeStr+"T151422\t00:00:01.027035\t";
-            outputLine += strLine + "\t100\t0\t10";
-            (*pOfs)<<outputLine<<std::endl;
-        }
-        
-    }
-    if( pOfs!= NULL )
-    {
-        pOfs->close();
-        delete pOfs;
-    }
-    fileIn.close();
+//    boost::filesystem::create_directories(objPath);
+//    std::ifstream fileIn(testFile.c_str());
+//    boost::posix_time::ptime time = boost::posix_time::second_clock::local_time();
+//    boost::gregorian::days oneday(1);
+//    string strLine;
+//    std::ofstream* pOfs = NULL;
+//    while( getline(fileIn,strLine) )
+//    {
+//        if( strLine.length()==0 ) continue;
+//        std::string dateTimeStr = boost::posix_time::to_iso_string(time).substr(0,8);
+//        if( strLine[0] == '#' )
+//        {
+//            if( pOfs!= NULL )
+//            {
+//                pOfs->close();
+//                delete pOfs;
+//            }
+//
+//            std::string outputFileName = objPath+"/"+dateTimeStr+".log";
+//            pOfs = new std::ofstream(outputFileName.c_str() );
+//            time -= oneday;
+//        }
+//        else
+//        {
+//            std::string outputLine = "Query\t";
+//            outputLine += "session\t"+dateTimeStr+"T151422\t00:00:01.027035\t";
+//            outputLine += strLine + "\t100\t0\t10";
+//            (*pOfs)<<outputLine<<std::endl;
+//        }
+//
+//    }
+//    if( pOfs!= NULL )
+//    {
+//        pOfs->close();
+//        delete pOfs;
+//    }
+//    fileIn.close();
 }
 
 //void parseDirectory(const std::string& path, std::list<std::pair<izenelib::util::UString,int> >& logItems)
