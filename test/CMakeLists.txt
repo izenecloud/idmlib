@@ -4,7 +4,10 @@ FIND_PACKAGE(wisekma REQUIRED)
 FIND_PACKAGE(izenecma REQUIRED)
 FIND_PACKAGE(izenelib REQUIRED COMPONENTS procmeminfo am izene_util)
 
-#LIST(FIND REAL_BUILD_COMPONENTS "febird" _febird)
+INCLUDE_DIRECTORIES(
+  ${wisekma_INCLUDE_DIRS}
+  ${izenecma_INCLUDE_DIRS}
+  )
 
 IF(Boost_FOUND)
 

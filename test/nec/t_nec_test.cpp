@@ -10,7 +10,7 @@
 #include <ml/Evaluator.h>
 #include <idmlib/nec/NameEntityDict.h>
 #include <idmlib/nec/NameEntityManager.h>
-#include <fstream.h>
+#include <fstream>
 #include <string>
 #include <set>
 #include <idmlib/util/StringUtil.hpp>

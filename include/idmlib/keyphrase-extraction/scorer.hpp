@@ -23,6 +23,7 @@
 #include <util/izene_serialization.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include "../util/StopWordContainer.hpp"
 #include "../util/Util.hpp"
 #include "TermGroup.hpp"
@@ -586,11 +587,8 @@ class LanguageScorer : public boost::noncopyable
             idManager_->getTermIdByTermString(izenelib::util::UString("ARABICNUMBER",izenelib::util::UString::UTF_8), arabicNumber_);
             idManager_->getTermIdByTermString(izenelib::util::UString("SINGLEENGLISHCHAR",izenelib::util::UString::UTF_8), singleEnglishChar_);
             {
-//                 if ( !boost::filesystem::exists ( resPath + "/ubtrain" ) )
-//                 {
-//                     throw ResourceNotFoundException(resPath + "/ubtrain", "LanguageLabelRecognizer");
-//                 }
-                std::ifstream ifs ( (resPath + "/ubtrain").c_str() );
+//                 std::ifstream ifs ( (resPath + "/ubtrain").c_str() );
+                std::istream* ifs = idmlib::util::getResourceStream(resPath+"/ubtrain");
                 std::string word;
                 uint32_t type;
                 uint64_t id;
@@ -598,7 +596,7 @@ class LanguageScorer : public boost::noncopyable
                 float b;
                 float c;
                 float d;
-                while ( getline ( ifs,word ) )
+                while ( getline ( *ifs,word ) )
                 {
                     std::vector<std::string> items;
                     boost::algorithm::split( items, word, boost::algorithm::is_any_of(",") );
@@ -619,7 +617,7 @@ class LanguageScorer : public boost::noncopyable
                         unigramStat_.insert( termId, boost::make_tuple(a,b,c,d) );
                     }
                 }
-                ifs.close();
+                delete ifs;
             }
         }
     private:
@@ -660,54 +658,41 @@ class Scorer : public boost::noncopyable
             namespace bfs = boost::filesystem;
             langScorer_ = new LanguageScorerType(resPath, idManager_);
             swContainer_ = new idmlib::util::StopWordContainer();
-            std::string dicPath = resPath+"/dic/";
-//             if ( !boost::filesystem::exists ( dicPath ) )
-//             {
-//                 throw ResourceNotFoundException(dicPath, "LabelRecognizer");
-//             }
-
-            bfs::directory_iterator end_itr;
-            for ( bfs::directory_iterator itr( dicPath ); itr != end_itr; ++itr )
             {
-                if ( bfs::is_regular(itr->status()) )
+                std::istream* ifs = idmlib::util::getResourceStream(resPath+"/stop_words");
+                std::string word;
+                while ( getline ( *ifs,word ) )
                 {
-                    bfs::path dic_file = itr->path();
-                    if( dic_file.extension() == ".dic" )//is dic file
+                    boost::to_lower(word);
+                    if ( word.length() >0 )
                     {
-                        std::ifstream ifs ( dic_file.file_string().c_str() );
-                        std::string word;
-                        while ( getline ( ifs,word ) )
-                        {
-                            boost::algorithm::to_lower<std::string> ( word );
-                            if ( word.length() >0 )
-                            {
-                                std::vector<uint32_t> termIdList;
-                                idManager_->getAnalysisTermIdList(izenelib::util::UString(word,izenelib::util::UString::UTF_8), termIdList);
+                        std::vector<uint32_t> termIdList;
+                        idManager_->getAnalysisTermIdList(izenelib::util::UString(word,izenelib::util::UString::UTF_8), termIdList);
 
-                                if( termIdList.size() > 0 )
-                                {
-                                    swContainer_->insert(termIdList);
-                                }
-                                
-                            }
+                        if( termIdList.size() > 0 )
+                        {
+                            swContainer_->insert(termIdList);
                         }
-                        ifs.close();
+                        
                     }
                 }
+                delete ifs;
             }
             
-            std::string chnBigramPath = resPath+"/invalid_chn_bigram.dic";
+//             std::string chnBigramPath = resPath+"/invalid_chn_bigram.dic";
+            std::istream* ifs = idmlib::util::getResourceStream(resPath+"/invalid_chn_bigram");
 //             if ( !boost::filesystem::exists ( dicPath ) )
 //             {
 //                 throw ResourceNotFoundException(chnBigramPath, "LabelRecognizer");
 //             }
-            std::ifstream ifs ( chnBigramPath.c_str() );
+//             std::ifstream ifs ( chnBigramPath.c_str() );
             std::string word;
-            while ( getline ( ifs,word ) )
+            while ( getline ( *ifs,word ) )
             {
                 if ( word.length() >0 )
                 {
-                    if( word[0] == idmlib::kpe::TERM_TAG::OTHER ) break;
+//                     std::cout<<"[KPE] "<<word<<std::endl;
+                    if( word[0] == '@' ) break;
                     izenelib::util::UString ustr(word, izenelib::util::UString::UTF_8);
                     if( ustr.length()!= 2 ) continue;
                     if( !ustr.isChineseChar(0) ) continue;
@@ -724,7 +709,8 @@ class Scorer : public boost::noncopyable
                     invalidChnBigram_->insert(key, 0);
                 }
             }
-            ifs.close();
+//             ifs.close();
+            delete ifs;
         }
         
         int prefixTest(const std::vector<uint32_t>& termIdList)

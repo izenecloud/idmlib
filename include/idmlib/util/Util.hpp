@@ -14,6 +14,12 @@
 #include <util/ProcMemInfo.h>
 #include <util/ustring/UString.h>
 #include <util/ustring/algo.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/copy.hpp>
+#include <boost/iostreams/filter/bzip2.hpp>
+#include "FSUtil.hpp"
+#include <idmlib/idm_types.h>
+#include <util/bzip.h>
 
 NS_IDMLIB_UTIL_BEGIN
 
@@ -71,6 +77,72 @@ inline static void print( const izenelib::util::UString& ustr)
     ustr.convertString(str, izenelib::util::UString::UTF_8);
     std::cout<<str;
 }
+
+inline static std::istream* decompressStream(const std::string& fileName)
+{
+    std::ifstream file(fileName.c_str());
+    file.seekg(0, std::ios_base::end);
+    int len = file.tellg();
+    file.seekg(0, std::ios_base::beg);
+    char* data = (char*)malloc(len);
+    file.read(data, len);
+    file.close();
+    int decompressLen = 0;
+    char* decompressData = izenelib::util::_tc_bzdecompress(data, len, &decompressLen);
+    free(data);
+    std::stringstream* result = new std::stringstream();
+    result->write( decompressData, decompressLen);
+    free(decompressData);
+    result->seekg(0, std::ios_base::beg);
+    return result;
+}
+
+inline static std::istream* getResourceStream(const std::string& name)
+{
+    using namespace boost::iostreams;
+    std::string resName = name+".res";
+    std::string txtName = name+".txt";
+    if( FSUtil::exists(resName) && FSUtil::exists(txtName) )
+    {
+        if( boost::filesystem::last_write_time(txtName) >
+            boost::filesystem::last_write_time(resName) )
+        {
+            FSUtil::del(resName);
+        }
+    }
+    if( FSUtil::exists(resName) )
+    {
+        return decompressStream(resName);
+    }
+    else
+    {
+        
+        if( !FSUtil::exists(txtName) )
+        {
+            return NULL;
+        }
+        else
+        {
+            std::ofstream output(resName.c_str());
+            std::ifstream file(txtName.c_str());
+            
+            file.seekg(0, std::ios_base::end);
+            int len = file.tellg();
+            file.seekg(0, std::ios_base::beg);
+            char* data = (char*)malloc(len);
+            file.read(data, len);
+            file.close();
+            int compressLen = 0;
+            char* compressData = izenelib::util::_tc_bzcompress(data, len, &compressLen);
+            free(data);
+            output.write(compressData, compressLen);
+            output.close();
+            return decompressStream(resName);
+        }
+    }
+}
+
+
 
 inline static void getIdAndCountList(std::vector<id2count_t>& input, std::vector<uint32_t>& idList, std::vector<uint32_t>& countList)
 {

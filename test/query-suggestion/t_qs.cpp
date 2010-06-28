@@ -4,6 +4,7 @@
  *  Created on: 2010-4-26
  *      Author: jinglei
  */
+#include <boost/date_time.hpp>
 
 #include <idmlib/query-suggestion/Reminder.h>
 #include "qs_types.h"

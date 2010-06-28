@@ -13,6 +13,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <util/filesystem.h>
+#include <idmlib/idm_types.h>
+
 NS_IDMLIB_UTIL_BEGIN
     
     class FSUtil
