@@ -17,20 +17,21 @@ namespace idmlib
 class NameEntityManager
 {
 public:
-	NameEntityManager(const std::string& path);
+	static NameEntityManager& getInstance(const std::string& path);
 
-	void loadModels();
+	~NameEntityManager();
 
 	void train(std::vector<NameEntity>& entities);
 	void predict(NameEntity& entity);
 	void predict(std::vector<NameEntity>& entities);
 	void postProcessing(NameEntity& entity);
-	void destroyModels();
-
-
+// 	void destroyModels();
 
 private:
-	static ml::ClassificationManager<NameEntity>* classifier_;
+    NameEntityManager(const std::string& path);
+    void loadModels();
+private:
+	ml::ClassificationManager<NameEntity>* classifier_;
 	std::string path_;
 
 };

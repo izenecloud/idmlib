@@ -45,7 +45,7 @@ int main()
 	loadNameEntities(entities, other_path, "OTHER");
 	loadNameEntities(entities, noise_path, "NOISE");
 	std::string path = "../resource/nec/";
-	NameEntityManager neMgr(path);
+	NameEntityManager& neMgr = NameEntityManager::getInstance(path);
 	neMgr.train(entities);
 
 //	cout << "loading entities..." << endl;
