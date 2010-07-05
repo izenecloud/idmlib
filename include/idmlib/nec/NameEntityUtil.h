@@ -36,20 +36,27 @@ namespace ml
 	template<>
 	void ClassificationDataUtil<NameEntity>::transform(NameEntity& entity, ml::Schema& schema, ml::Instance& inst)
 	{
+		if(entity.cur.length()==0)
+			return;
+		typedef enum{CHINESE, KOREAN, ENGLISH, OTHER} LANG_TYPE;
+		LANG_TYPE language=OTHER;
+		if(entity.cur.isChineseChar(0))
+				language=CHINESE;
+		if(entity.cur.isKoreanChar(0))
+				language=KOREAN;
 		std::vector<izenelib::util::UString> suc = entity.suc;
 		std::vector<izenelib::util::UString> pre = entity.pre;
 		std::vector<izenelib::util::UString> vecCur;
 		bool isChinese=false;
-		if(entity.cur.length()>0&&(entity.cur.isChineseChar(0)||entity.cur.isKoreanChar(0)))
+		if(language==CHINESE||language==KOREAN)
 		{
-			isChinese=true;
 			izenelib::util::UString tempStr;
 			for(size_t i=0;i<entity.cur.length();i++)
 			{
 				vecCur.push_back(entity.cur.substr(tempStr, i, 1));
 			}
 		}
-		else if(entity.cur.length()>0)
+		else
 		{
 			UString delimiter(" ", UString::UTF_8);
 			izenelib::util::Algorithm<izenelib::util::UString>::make_tokens_with_delimiter(entity.cur, delimiter, vecCur);
@@ -98,23 +105,86 @@ namespace ml
 		std::vector<UString> f_right;
 		std::vector<UString> f_all;
 
-		double w_cur_u_b = 4;
-		double w_cur_b_b = 2;
-		double w_cur_u_a = 1;
-		double w_cur_b_a = 2;
-		double w_cur_b_e = 16;
-		double w_cur_t_e = 48;
-		double w_cur_u_e = 4;
-		double w_cur_b_n = 1;
-		double w_cur_b_o = 1;
-		double w_cur_b_l=1;
-		double w_cur_b_g=1;
-		double w_cur_u_n = 0.5;
-		double w_cur_u_o = 0.5;
-		double w_cur_u_l=0.5;
-		double w_cur_u_g=0.5;
+//		double w_cur_u_b = 1;
+//		double w_cur_b_b = 2;
+//		double w_cur_u_a = 0.05;
+//		double w_cur_b_a = 1;
+//		double w_cur_b_e = 8;
+//		double w_cur_t_e = 16;
+//		double w_cur_u_e = 1;
+//		double w_cur_b_n = 2;
+//		double w_cur_b_o = 0.5;
+//		double w_cur_b_l=0.5;
+//		double w_cur_b_g=0.5;
+//		double w_cur_u_n = 1;
+//		double w_cur_u_o = 0.05;
+//		double w_cur_u_l=0.05;
+//		double w_cur_u_g=0.05;
+//		double w_left = 1;
+//		double w_right = 1;
+
+		double w_cur_u_b;
+		if(language==KOREAN)
+			w_cur_u_b=0.5;
+		else
+			w_cur_u_b= 3;
+		double w_cur_b_b;
+		if(language==KOREAN)
+			w_cur_b_b=2;
+		else
+			w_cur_b_b = 4;
+		double w_cur_u_a = 0.5;
+		double w_cur_b_a = 1;
+		double w_cur_b_e;
+		if(language==KOREAN)
+		    w_cur_b_e=4;
+		else
+		    w_cur_b_e=16;
+		double w_cur_t_e = 32;
+		double w_cur_u_e;
+		if(language==KOREAN)
+			w_cur_u_e=0.5;
+		else
+			w_cur_u_e=3;
+		double w_cur_b_n = 2.0;
+		double w_cur_b_o, w_cur_b_l, w_cur_b_g;
+		if(language==KOREAN)
+		{
+			w_cur_b_o=w_cur_b_l=w_cur_b_g=0.05;
+		}
+		else
+		{
+			w_cur_b_o=w_cur_b_l=w_cur_b_g=0.5;
+		}
+		double w_cur_u_n, w_cur_u_o, w_cur_u_l, w_cur_u_g;
+		if(language==KOREAN)
+		{
+			w_cur_u_n=w_cur_u_o=w_cur_u_l=w_cur_u_g=0;
+		}
+		else
+		{
+			w_cur_u_n=w_cur_u_o=w_cur_u_l=w_cur_u_g=0.2;
+		}
 		double w_left = 1;
 		double w_right = 1;
+
+		//		double w_cur_u_b = 3;
+		//		double w_cur_b_b = 4;
+		//		double w_cur_u_a = 2;
+		//		double w_cur_b_a = 4;
+		//		double w_cur_b_e = 16;
+		//		double w_cur_t_e = 32;
+		//		double w_cur_u_e = 4;
+		//		double w_cur_b_n = 1.0;
+		//		double w_cur_b_o = 2;
+		//		double w_cur_b_l=2;
+		//		double w_cur_b_g=2;
+		//		double w_cur_u_n = 1;
+		//		double w_cur_u_o = 1;
+		//		double w_cur_u_l=1;
+		//		double w_cur_u_g=1;
+		//		double w_left = 2;
+		//		double w_right = 2;
 
         string u_cur_e_str;
 		string b_cur_e_str;
@@ -147,14 +217,18 @@ namespace ml
 				cur_a.append(utag_cura);
 				f_cur_u_a.push_back(cur_a);	  // unigram of current sequence
 				f_all.push_back(cur_a);
-				if(!isChinese&&NameEntityDict::isKownNoise(strUnigram))
-					hasNoiseUnigram=true;
-				else if(!isChinese&&NameEntityDict::isNoun(strUnigram))
-					hasOtherUnigram=true;
-				else if(!isChinese&&NameEntityDict::isKownLoc(strUnigram))
-					hasLocUnigram=true;
-				else if(!isChinese&&NameEntityDict::isKownOrg(strUnigram))
-					hasOrgUnigram=true;
+				if(language!=CHINESE&&language!=KOREAN)
+				{
+					if(NameEntityDict::isKownNoise(strUnigram))
+						hasNoiseUnigram=true;
+					else if(NameEntityDict::isNoun(strUnigram))
+						hasOtherUnigram=true;
+					else if(NameEntityDict::isKownLoc(strUnigram))
+						hasLocUnigram=true;
+					else if(NameEntityDict::isKownOrg(strUnigram))
+						hasOrgUnigram=true;
+				}
+
 			}
 			addData(f_cur_u_a, schema, inst, w_cur_u_a);
 			if(hasNoiseUnigram)
@@ -216,14 +290,17 @@ namespace ml
 				b_cur_a.append(btag_cura);
 				f_cur_b_a.push_back(b_cur_a);  // bigram of current sequence
 				f_all.push_back(b_cur_a);
-				if(NameEntityDict::isKownNoise(strBigram))
-					hasNoiseBigram=true;
-				else if(NameEntityDict::isNoun(strBigram))
-					hasOtherBigram=true;
-				else if(NameEntityDict::isKownLoc(strBigram))
-					hasLocBigram=true;
-				else if(NameEntityDict::isKownOrg(strBigram))
-					hasOrgBigram=true;
+				if(language!=KOREAN)
+				{
+					if(NameEntityDict::isKownNoise(strBigram))
+						hasNoiseBigram=true;
+					else if(NameEntityDict::isNoun(strBigram))
+						hasOtherBigram=true;
+					else if(NameEntityDict::isKownLoc(strBigram))
+						hasLocBigram=true;
+					else if(NameEntityDict::isKownOrg(strBigram))
+						hasOrgBigram=true;
+				}
 			}
 			addData(f_cur_b_a, schema, inst, w_cur_b_a);
 			if(isChinese&&hasNoiseBigram)
@@ -270,32 +347,60 @@ namespace ml
 
 		//Using known NER suffix from the lexicon as the features.
 		// whether is locaction suffix
-		std::vector<UString> f_cur_loc;
-		double w_cur_loc = 10;
-		std::vector<UString> f_cur_loc2;
-		double w_cur_loc2 = 32;
-    	std::vector<UString> f_cur_loc3;
-		double w_cur_loc3 = 64;
+		std::vector<UString> f_cur_loc, f_cur_loc2, f_cur_loc3;
+		double w_cur_loc, w_cur_loc2, w_cur_loc3;
+		if(language==KOREAN)
+		{
+			w_cur_loc=0.05;
+			w_cur_loc2=1;
+			w_cur_loc3=4;
+		}
+		else
+		{
+			w_cur_loc = 2;
+			w_cur_loc2 = 4;
+			w_cur_loc3 = 8;
+		}
 		UString utag_cure_loc("_UCEL", UString::UTF_8);
 		UString btag_cure_loc("_BCEL", UString::UTF_8);
 		UString ttag_cure_loc("_TCEL", UString::UTF_8);
-		std::vector<UString> f_cur_org;
-		double w_cur_org = 16;
-		std::vector<UString> f_cur_org2;
-		double w_cur_org2 = 32;
-		std::vector<UString> f_cur_org3;
-		double w_cur_org3 = 64;
+
+
+		std::vector<UString> f_cur_org, f_cur_org2, f_cur_org3;
+		double w_cur_org, w_cur_org2, w_cur_org3;
+		if(language==KOREAN)
+		{
+			w_cur_org=0.05;
+			w_cur_org2=1;
+			w_cur_org3=4;
+		}
+		else
+		{
+			w_cur_org=2;
+			w_cur_org2=4;
+			w_cur_org3=8;
+		}
 		// whether is org suffix
 		UString utag_cure_org("_UCEO", UString::UTF_8);
 		UString btag_cure_org("_BCEO", UString::UTF_8);
 		UString ttag_cure_org("_TCEO", UString::UTF_8);
-		std::vector<UString> f_cur_peop;
-		double w_cur_peop = 1;
-		std::vector<UString> f_cur_peop2;
-		double w_cur_peop2 = 2;
-		std::vector<UString> f_cur_peop3;
-		double w_cur_peop3 = 2;
-		// whether is org suffix
+
+
+		std::vector<UString> f_cur_peop, f_cur_peop2, f_cur_peop3;
+		double w_cur_peop, w_cur_peop2, w_cur_peop3;
+		if(language==KOREAN)
+		{
+			w_cur_peop=0.05;
+			w_cur_peop2=0.5;
+			w_cur_peop3=0.5;
+		}
+		else
+		{
+			w_cur_peop=2;
+			w_cur_peop2=4;
+			w_cur_peop3=4;
+		}
+		// whether is peop suffix
 		UString utag_cure_peop("_UCEP", UString::UTF_8);
 		UString btag_cure_peop("_BCEP", UString::UTF_8);
 		UString ttag_cure_peop("_TCEP", UString::UTF_8);
@@ -366,11 +471,22 @@ namespace ml
 		}
 
 	// whether is name prefix
-		std::vector<UString> f_cur_surname;
-		std::vector<ml::AttrID> id_cur_surname;
-		double w_cur_surname = 32;
+		std::vector<UString> f_cur_surname, f_cur_fullname;
+		double w_cur_surname;
+		double w_cur_fullname;
+		if(language==KOREAN)
+		{
+			w_cur_surname=4;
+			w_cur_fullname=16;
+		}
+		else
+		{
+			w_cur_surname = 32;
+			w_cur_fullname=4;
+		}
 		UString utag_curb_name("_UCBN", UString::UTF_8);
-		if (curLength>1&&curLength <4)
+		UString utag_curb_fullname("_UCBFN", UString::UTF_8);
+		if (curLength==3)
 		{
 			UString cur_b=vecCur[0];
 			string name;
@@ -379,9 +495,15 @@ namespace ml
 			{
 				f_cur_surname.push_back(utag_curb_name);
 				f_all.push_back(utag_curb_name);
+				if(NameEntityDict::isPeopSuffix(b_cur_e_str))
+				{
+					f_cur_fullname.push_back(utag_curb_fullname);
+					f_all.push_back(utag_curb_fullname);
+				}
 			}
 		}
 		addData(f_cur_surname, schema, inst, w_cur_surname);
+		addData(f_cur_fullname, schema, inst, w_cur_fullname);
 
 /// Add the contextual features.
 		UString peopTag("_PEOP", izenelib::util::UString::UTF_8);

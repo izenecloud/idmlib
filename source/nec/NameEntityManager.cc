@@ -135,7 +135,7 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 		{
 			if(vecCur.size()==2)
 			{
-				if(NameEntityDict::isPeopSuffix(strEntity))
+				if(NameEntityDict::isPeopSuffix(strEntity)&&entity.cur.isChineseChar(0))
 				{
 					entity.predictLabels[0]="OTHER";
 				}
@@ -145,13 +145,12 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 				entity.predictLabels[0]="OTHER";
 			}
 //			if(vecCur.size()>2 &&!entity.cur.isChineseChar(0))
-			if(vecCur.size()>=2)
-			{
-				string strSurname;
-				vecCur[0].convertString(strSurname, izenelib::util::UString::UTF_8);
-				if(!NameEntityDict::isNamePrefix(strSurname))
-					entity.predictLabels[0]="OTHER";
-			}
+//			{
+//				string strSurname;
+//				vecCur[0].convertString(strSurname, izenelib::util::UString::UTF_8);
+//				if(!NameEntityDict::isNamePrefix(strSurname))
+//					entity.predictLabels[0]="OTHER";
+//			}
 			if(vecCur.size()>1&&!entity.cur.isChineseChar(0))
 			{
 				string strLast;
@@ -197,7 +196,7 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 			{
 				entity.predictLabels[0]="OTHER";
 			}
-			if(vecCur.size()>1&&!entity.cur.isChineseChar(0))
+			if(vecCur.size()>1&&!entity.cur.isChineseChar(0)&&!entity.cur.isKoreanChar(0))
 			{
 				string strLast;
 				vecCur[vecCur.size()-1].convertString(strLast, izenelib::util::UString::UTF_8);
@@ -206,6 +205,20 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 					entity.predictLabels[0]="ORG";
 				}
 			}
+		}
+		else if(vecCur.size()==3&&entity.cur.isKoreanChar(0))
+		{
+            std::string surname, name;
+            izenelib::util::UString ustrSurname, ustrName;
+            ustrSurname=vecCur[0];
+            ustrName=vecCur[1];
+            ustrName.append(vecCur[2]);
+            ustrSurname.convertString(surname, izenelib::util::UString::UTF_8);
+            ustrName.convertString(name, izenelib::util::UString::UTF_8);
+            if(NameEntityDict::isNamePrefix(surname)&&NameEntityDict::isPeopSuffix(name))
+            {
+            	entity.predictLabels[0]="PEOP";
+            }
 		}
 	}
 	for(size_t i=0;i<entity.pre.size();i++)
