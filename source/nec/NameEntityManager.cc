@@ -13,9 +13,16 @@
 namespace idmlib
 {
 
-ml::ClassificationManager<NameEntity>* NameEntityManager::classifier_ = 0;
 
-NameEntityManager::NameEntityManager(const std::string& path): path_(path)
+
+NameEntityManager& NameEntityManager::getInstance(const std::string& path)
+{
+    static NameEntityManager nem(path);
+    return nem;
+}
+
+
+NameEntityManager::NameEntityManager(const std::string& path): path_(path), classifier_(0)
 {
 	if (!classifier_)
 	{
@@ -45,7 +52,16 @@ NameEntityManager::NameEntityManager(const std::string& path): path_(path)
 		std::string model_path = path + "/model/";
 		ml::ClassifierType type = LR;
 		classifier_ = new ml::ClassificationManager<NameEntity>(model_path, type);
+        loadModels();
 	}
+}
+
+NameEntityManager::~NameEntityManager()
+{
+    if (classifier_)
+    {
+        classifier_->destroyModels();
+    }
 }
 
 void NameEntityManager::train(std::vector<NameEntity>& entities)
@@ -65,13 +81,6 @@ void NameEntityManager::loadModels()
 	}
 }
 
-void NameEntityManager::destroyModels()
-{
-	if (classifier_)
-	{
-		classifier_->destroyModels();
-	}
-}
 
 
 void NameEntityManager::predict(NameEntity& entity)

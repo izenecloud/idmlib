@@ -63,14 +63,14 @@ void testNec()
 //	std::string test_path = "../db/nec/test/test.txt";
     std::string test_path = "../db/nec/test/engtest";
 	std::string path = "../resource/nec/";
-	NameEntityManager neMgr(path);
+	NameEntityManager& neMgr = NameEntityManager::getInstance(path);
 
 	cout << "loading entities..." << endl;
 	std::vector<NameEntity> entities2;
 	loadNameEntities(entities2, test_path, "NONE");
 	cout << "#enties2: " << entities2.size() << endl;
 
-	neMgr.loadModels();
+// 	neMgr.loadModels();
 	neMgr.predict(entities2);
 
 	int posCount=0;
