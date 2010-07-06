@@ -81,13 +81,11 @@ void NameEntityManager::loadModels()
 	}
 }
 
-
-
 void NameEntityManager::predict(NameEntity& entity)
 {
 	//Now the labels in training and test are hard-coded.
 	// This needs to be make more configurable.
-	if (classifier_)
+	if (classifier_&&entity.cur.length()>0)
 	{
 		string strEntity;
 		//hard-coded encoding type, needs to be adjusted.
@@ -100,21 +98,26 @@ void NameEntityManager::predict(NameEntity& entity)
 		{
 			entity.predictLabels.push_back("OTHER");
 		}
-		else if(NameEntityDict::isKownLoc(strEntity))
-		{
-			entity.predictLabels.push_back("LOC");
-		}
 		else if(NameEntityDict::isKownOrg(strEntity))
 		{
 			entity.predictLabels.push_back("ORG");
+		}
+		else if(NameEntityDict::isKownLoc(strEntity))
+		{
+			entity.predictLabels.push_back("LOC");
 		}
 		else if(NameEntityDict::isKownPeop(strEntity))
 		{
 			entity.predictLabels.push_back("PEOP");
 		}
-		else
+		else if(!entity.cur.isKoreanChar(0))
 		{
 			classifier_->predict(entity);
+			postProcessing(entity);
+		}
+		else
+		{
+//			classifier_->predict(entity);
 			postProcessing(entity);
 		}
 	}
@@ -122,24 +125,45 @@ void NameEntityManager::predict(NameEntity& entity)
 
 void NameEntityManager::postProcessing(NameEntity& entity)
 {
-	if(entity.cur.length()>0)
+	if(entity.cur.length()==0) return;
+
+	std::vector<izenelib::util::UString> vecCur;
+	if(entity.cur.isChineseChar(0)||entity.cur.isKoreanChar(0))
 	{
-		std::vector<izenelib::util::UString> vecCur;
-		if(entity.cur.isChineseChar(0)||entity.cur.isKoreanChar(0))
+		izenelib::util::UString tempStr;
+		for(size_t i=0;i<entity.cur.length();i++)
 		{
-			izenelib::util::UString tempStr;
-			for(size_t i=0;i<entity.cur.length();i++)
-			{
-				vecCur.push_back(entity.cur.substr(tempStr, i, 1));
-			}
+			vecCur.push_back(entity.cur.substr(tempStr, i, 1));
 		}
-		else //languages with word segmentation identifier.
+	}
+	else //languages with word segmentation identifier.
+	{
+		UString delimiter(" ", UString::UTF_8);
+		izenelib::util::Algorithm<izenelib::util::UString>::make_tokens_with_delimiter(entity.cur, delimiter, vecCur);
+	}
+
+	string strEntity;
+	entity.cur.convertString(strEntity, izenelib::util::UString::UTF_8);
+
+	if(entity.cur.isKoreanChar(0)&&entity.predictLabels.size()==0)
+	{
+		if(vecCur.size()==3&&entity.cur.isKoreanChar(0))
 		{
-			UString delimiter(" ", UString::UTF_8);
-			izenelib::util::Algorithm<izenelib::util::UString>::make_tokens_with_delimiter(entity.cur, delimiter, vecCur);
+	          std::string surname, name;
+	          izenelib::util::UString ustrSurname, ustrName;
+	          ustrSurname=vecCur[0];
+	          ustrName=vecCur[1];
+	          ustrName.append(vecCur[2]);
+	          ustrSurname.convertString(surname, izenelib::util::UString::UTF_8);
+	          ustrName.convertString(name, izenelib::util::UString::UTF_8);
+	          if(NameEntityDict::isNamePrefix(surname)&&NameEntityDict::isPeopSuffix(name))
+	          {
+	            	entity.predictLabels.push_back("PEOP");
+	          }
 		}
-		string strEntity;
-		entity.cur.convertString(strEntity, izenelib::util::UString::UTF_8);
+	}
+	else
+	{
 		if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="PEOP")
 		{
 			if(vecCur.size()==2)
@@ -153,13 +177,6 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 			{
 				entity.predictLabels[0]="OTHER";
 			}
-//			if(vecCur.size()>2 &&!entity.cur.isChineseChar(0))
-//			{
-//				string strSurname;
-//				vecCur[0].convertString(strSurname, izenelib::util::UString::UTF_8);
-//				if(!NameEntityDict::isNamePrefix(strSurname))
-//					entity.predictLabels[0]="OTHER";
-//			}
 			if(vecCur.size()>1&&!entity.cur.isChineseChar(0))
 			{
 				string strLast;
@@ -173,10 +190,6 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 					entity.predictLabels[0]="LOC";
 				}
 			}
-//			if(vecCur.size()>3&&entity.cur.isChineseChar(0)||entity.cur.isKoreanChar(0))
-//			{
-//				entity.predictLabels[0]="OTHER";
-//			}
 		}
 		else if(entity.predictLabels.size()>0&&entity.predictLabels[0]=="ORG")
 		{
@@ -214,20 +227,6 @@ void NameEntityManager::postProcessing(NameEntity& entity)
 					entity.predictLabels[0]="ORG";
 				}
 			}
-		}
-		else if(vecCur.size()==3&&entity.cur.isKoreanChar(0))
-		{
-            std::string surname, name;
-            izenelib::util::UString ustrSurname, ustrName;
-            ustrSurname=vecCur[0];
-            ustrName=vecCur[1];
-            ustrName.append(vecCur[2]);
-            ustrSurname.convertString(surname, izenelib::util::UString::UTF_8);
-            ustrName.convertString(name, izenelib::util::UString::UTF_8);
-            if(NameEntityDict::isNamePrefix(surname)&&NameEntityDict::isPeopSuffix(name))
-            {
-            	entity.predictLabels[0]="PEOP";
-            }
 		}
 	}
 	for(size_t i=0;i<entity.pre.size();i++)

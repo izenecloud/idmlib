@@ -351,9 +351,9 @@ namespace ml
 		double w_cur_loc, w_cur_loc2, w_cur_loc3;
 		if(language==KOREAN)
 		{
-			w_cur_loc=0.05;
-			w_cur_loc2=1;
-			w_cur_loc3=4;
+			w_cur_loc=0;
+			w_cur_loc2=0;
+			w_cur_loc3=1;
 		}
 		else
 		{
@@ -370,9 +370,9 @@ namespace ml
 		double w_cur_org, w_cur_org2, w_cur_org3;
 		if(language==KOREAN)
 		{
-			w_cur_org=0.05;
-			w_cur_org2=1;
-			w_cur_org3=4;
+			w_cur_org=0;
+			w_cur_org2=0;
+			w_cur_org3=1;
 		}
 		else
 		{
@@ -390,8 +390,8 @@ namespace ml
 		double w_cur_peop, w_cur_peop2, w_cur_peop3;
 		if(language==KOREAN)
 		{
-			w_cur_peop=0.05;
-			w_cur_peop2=0.5;
+			w_cur_peop=0;
+			w_cur_peop2=0;
 			w_cur_peop3=0.5;
 		}
 		else

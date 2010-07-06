@@ -594,21 +594,17 @@ void extractNames()
 
 void simpleProcess()
 {
-	ifstream in("new.person.dic.txt");
-	ofstream out("deduplicate.new.person.dic.txt");
+	ifstream in("org.dic.txt");
+	ofstream out("reduced.org.dic.txt");
 	string line ="";
-	std::set<std::string> lexicon;
+	int count=0;
 	while (std::getline(in, line))
 	{
-		if (line.length() > 0)
+		if (line.length() > 0&&count%16==0)
 		{
-			lexicon.insert(line);
+            out<<line<<std::endl;
 		}
-	}
-	std::set<std::string>::iterator it=lexicon.begin();
-	for(;it!=lexicon.end();it++)
-	{
-		out<<*it<<std::endl;
+		count++;
 	}
 }
 
