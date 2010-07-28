@@ -176,7 +176,17 @@ public:
 				}
 			}
 			if (isLastestTimeId)
-				latestSliceCount_->update(iter->first, iter->second);
+            {
+                uint32_t count = 0;
+                if( latestSliceCount_->get(iter->first, count) )
+                {
+                    latestSliceCount_->update(iter->first, count+iter->second);
+                }
+                else
+                {
+                    latestSliceCount_->update(iter->first, iter->second);
+                }
+            }
 			else
 			{
 				uint32_t freq = 0;
