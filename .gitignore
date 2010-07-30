@@ -19,3 +19,6 @@ help
 build
 testbin
 resource
+/pkg
+/.dep
+/include/idmlib-version.h
