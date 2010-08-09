@@ -30,9 +30,3 @@ task :default => :cmake
 IZENESOFT::CMake.new do |t|
   t.source_dir = "."
 end
-
-IZENESOFT::GITClean.new
-
-task :env do
-  sh "/usr/bin/env"
-end
