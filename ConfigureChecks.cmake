@@ -12,18 +12,7 @@ FIND_PACKAGE(izenelib REQUIRED
 
 FIND_PACKAGE(ilplib REQUIRED COMPONENTS langid la)
 FIND_PACKAGE(imllib REQUIRED)
-
-SET(libxml2_FOUND FALSE)
-IF(IS_DIRECTORY "$ENV{LIBXML2}")
-	SET(libxml2_FOUND TRUE)
-	SET(libxml2_INCLUDE_DIRS "$ENV{LIBXML2}")
-ELSE(IS_DIRECTORY "$ENV{LIBXML2}")
-	FIND_PACKAGE(xml2 REQUIRED)
-ENDIF(IS_DIRECTORY "$ENV{LIBXML2}")
-
-IF(NOT libxml2_FOUND)
-	MESSAGE(FATAL_ERROR "cannot found libxml2, please set env variable LIBXML2 (e.g. -DLIBXML2=/usr/include/libxml2)")
-ENDIF(NOT libxml2_FOUND)
+FIND_PACKAGE(xml2 REQUIRED)
 
 ##################################################
 # Other Libraries

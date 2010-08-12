@@ -7,7 +7,7 @@ INCLUDE_DIRECTORIES(
 # sequences is important for some linker
 # if a dpendes b, a must precede b
 SET(libs
-  ${IDMLIB_SOURCE_DIR}/lib/libidmlib.so
+  idmlib
   ${ilplib_LIBRARIES}
   ${imllib_LIBRARIES}
   ${wisekma_LIBRARIES}
@@ -17,7 +17,7 @@ SET(libs
   ${Glog_LIBRARIES}
   ${izenecma_LIBRARIES}
   ${wisekma_LIBRARIES}
-  xml2
+  ${xml2_LIBRARIES}
   )
 
 FILE(GLOB kpe_SRC "*.cpp")

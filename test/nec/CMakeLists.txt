@@ -9,7 +9,7 @@ SET(libs
   ${izenecma_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
-  xml2
+  ${xml2_LIBRARIES}
   )
 
 ADD_EXECUTABLE(t_nec_train t_nec_train.cpp)
