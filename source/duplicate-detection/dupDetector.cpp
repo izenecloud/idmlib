@@ -1,5 +1,4 @@
 #include <idmlib/duplicate-detection/DupDetector.h>
-#include <util/izene_log.h>
 #include <util/CBitArray.h>
 
 #include <utility>

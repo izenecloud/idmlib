@@ -34,6 +34,9 @@
 #include <time.h>
 #include <math.h>
 #include <boost/test/unit_test.hpp>
+#include <boost/filesystem/path.hpp> 
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp> 
 #include <sys/time.h>
 #include <fstream>
 #include <iostream>
@@ -45,6 +48,11 @@ using namespace std;
 using namespace sf1v5;
 using namespace boost::unit_test;
 
+#define CHECK(f)\
+  {     \
+    if (!(f)){ BOOST_CHECK(false); std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<<__FUNCTION__<<endl;} \
+  }
+#define ERROR_COUNT {if(error_count>0)cout<<endl<<error_count<<" errors ware found!";else{cout<<"\nNo error detected!\n"}}
 
 void rand_str(string& s)
 {
@@ -74,10 +82,35 @@ void rand_doc(std::vector<std::string>& strs, size_t max=100)
   
 }
 
+bool match(const std::string& path, const char* prefix)
+{
+    uint32_t i = path.find_last_of('/');
+    i = path.substr(i+1).find(prefix);
+    if (i != (uint32_t)-1)
+        return true;
+    return false;
+}
+
+void remove(const char* prefix)
+{
+    boost::filesystem::path full_path(   "./"   ,boost::filesystem::native);
+    if (boost::filesystem::exists(full_path))
+         {
+       boost::filesystem::directory_iterator item_begin(full_path);
+       boost::filesystem::directory_iterator item_end;
+       for ( ;item_begin   !=  item_end; item_begin ++ )
+                 {
+           if (match(item_begin ->path().native_file_string(), prefix))
+        		boost::filesystem::remove(item_begin ->path().native_file_string());
+           //cout  << item_begin ->path().native_file_string() << " \t[dir] " << endl;
+                 }
+        }
+}
+
 BOOST_AUTO_TEST_CASE(RandProjGen_check )
 {
-  system("rm -f ./tt*");
-  const size_t SIZE= 1000000;
+  boost::filesystem::remove_all("./tt");
+  const size_t SIZE= 100000;
 
   vector<std::string> strs;
   vector<RandProj> projs;
@@ -109,7 +142,7 @@ BOOST_AUTO_TEST_CASE(RandProjGen_check )
         std::cout<<pg.get_random_projection(strs[i])<<endl;
         cout<<projs[i]<<endl;
         
-        BOOST_CHECK(false);
+        CHECK(false);
         return;
       }
     }
@@ -119,7 +152,7 @@ BOOST_AUTO_TEST_CASE(RandProjGen_check )
 
 BOOST_AUTO_TEST_CASE(DupDetector_check )
 {
-  system("rm -f ./tt*");
+  boost::filesystem::remove_all("./tt");
   
   const size_t SIZE= 20;//1000000;
 
@@ -135,7 +168,7 @@ BOOST_AUTO_TEST_CASE(DupDetector_check )
   }
 
   cout<<"Data is ready!\n";
-  system("rm -f ./tt*");
+  boost::filesystem::remove_all("./tt");
 
   struct timeval tvafter,tvpre;
   struct timezone tz;
@@ -208,10 +241,12 @@ BOOST_AUTO_TEST_CASE(DupDetector_check )
     for (size_t i=0; i<SIZE+TYPES_NUM; ++i)
     {
       //cout<<i<<" "<<i+TYPES_NUM<<std::endl;
-      BOOST_CHECK(dupd.isDuplicated(i, i+TYPES_NUM));
+      CHECK(dupd.isDuplicated(i, i+TYPES_NUM));
     }
   }
   
+    remove("tt");
+    remove("fp_");
 
 }
 

@@ -1,22 +1,39 @@
-# sequences is important for some linker
-# if a dpendes b, a must precede b
+INCLUDE_DIRECTORIES(         
 
-
-SET(libs
-  pthread 
-  /home/eric/git/izenelib/lib/libprocmeminfo.so 
-   ${ilplib_LIBRARIES}
-  /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_38.so 
-  /usr/local/lib/libboost_thread-gcc41-mt-1_38.so 
-  /usr/local/lib/libboost_filesystem-gcc41-mt-1_38.so 
-  /usr/local/lib/libboost_date_time-gcc41-mt.so 
-  /usr/local/lib/libboost_serialization-gcc41-mt.so
+  ${izenelib_INCLUDE_DIRS}
+  ${idmlib_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   )
 
-ADD_EXECUTABLE(t_dupd t_dupd.cpp)
+# sequences is important for some linker
+# if a dpendes b, a must precede b
+SET(libs
+  idmlib
+  ${ilplib_LIBRARIES}
+  ${imllib_LIBRARIES}
+  ${wisekma_LIBRARIES}
+  ${izenecma_LIBRARIES}
+  ${iise_LIBRARIES}
+  ${izenelib_LIBRARIES}
 
+  ${Boost_LIBRARIES}
+  )
 
-TARGET_LINK_LIBRARIES(t_dupd
-${IDMLIB_SOURCE_DIR}/lib/libidmlib.so
-${libs}
-)
+SET(Boost_USE_STATIC_LIBS OFF)
+FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
+  COMPONENTS unit_test_framework)
+
+IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+  INCLUDE_DIRECTORIES(
+    ${Boost_INCLUDE_DIRS}
+  )
+  ADD_EXECUTABLE(t_dupd
+    Runner.cpp
+    t_dupd.cpp
+    )
+  TARGET_LINK_LIBRARIES(t_dupd ${libs})
+  SET_TARGET_PROPERTIES(t_dupd PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/testbin
+    )
+  ADD_TEST(QS "${PROJECT_SOURCE_DIR}/testbin/t_dupd")
+ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
