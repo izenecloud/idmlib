@@ -27,6 +27,19 @@ require "izenesoft/tasks"
 
 task :default => :cmake
 
+
+task :resource, :user, :version do |t, args|
+    mkdir "resource" unless File.exist? "resource"
+    version = args[:version] || "hawk"
+    user_host = "izenesoft.cn"
+    if args[:user]
+      user_host = "#{args[:user]}@izenesoft.cn"
+    end
+    sh "rsync -avP --del #{user_host}:/data/sf1r-resource/#{version}/resource/ resource/"
+  end
+
 IZENESOFT::CMake.new do |t|
   t.source_dir = "."
 end
+
+IZENESOFT::BoostTest.new
