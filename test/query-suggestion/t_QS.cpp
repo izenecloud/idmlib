@@ -35,13 +35,13 @@ const uint32_t MAX_READ_BUF_SIZE=1024;
 const uint32_t MAX_TIME_SERIRES=7;
 const uint32_t REAL_NUM=10;
 const uint32_t POP_NUM=20;
-const std::string resource_path = "";
+
 
 BOOST_AUTO_TEST_CASE(normal_test)
 {
     boost::filesystem::remove_all("./qstestid");
     boost::filesystem::remove_all("./qstest");
-    
+    boost::filesystem::create_directories("./qstest");
     TestIDManager* idManager = new TestIDManager("./qstestid");
     Reminder<TestIDManager>* reminder = new Reminder<TestIDManager>(idManager, "./qstest", REAL_NUM, POP_NUM);
 
@@ -51,10 +51,12 @@ BOOST_AUTO_TEST_CASE(normal_test)
     logitem.push_back( std::make_pair( izenelib::util::UString("中国", izenelib::util::UString::UTF_8) , 4 ) );
     logitem.push_back( std::make_pair( izenelib::util::UString("游戏", izenelib::util::UString::UTF_8) , 2 ) );
     logitem.push_back( std::make_pair( izenelib::util::UString("音乐", izenelib::util::UString::UTF_8) , 3 ) );
-    for( uint32_t time= 20100107; time<=20100107; ++time )
-    {
-        reminder->indexQueryLog(time, logitem, true);
-    }
+    
+    reminder->indexQueryLog(10, logitem, true);
+//     for( uint32_t time= 20100107; time<=20100107; ++time )
+//     {
+//         
+//     }
 
     reminder->indexQuery();
     std::vector<izenelib::util::UString> realItems;
@@ -68,8 +70,8 @@ BOOST_AUTO_TEST_CASE(normal_test)
     BOOST_CHECK( popularItems.size() == 0 );
     delete idManager;
     delete reminder;
-    boost::filesystem::remove_all("./qstestid");
-    boost::filesystem::remove_all("./qstest");
+//     boost::filesystem::remove_all("./qstestid");
+//     boost::filesystem::remove_all("./qstest");
 }
 
 

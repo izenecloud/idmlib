@@ -15,13 +15,7 @@ FIND_PACKAGE(wisekma REQUIRED)
 FIND_PACKAGE(izenecma REQUIRED)
 FIND_PACKAGE(ilplib REQUIRED COMPONENTS langid la)
 FIND_PACKAGE(imllib REQUIRED)
-
-SET(xml2_FOUND FALSE)
-
 FIND_PACKAGE(xml2 REQUIRED)
-IF(NOT xml2_FOUND)
-	MESSAGE(FATAL_ERROR "cannot found libxml2.")
-ENDIF(NOT xml2_FOUND)
 
 ##################################################
 # Other Libraries

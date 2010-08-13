@@ -62,6 +62,14 @@ void getAnalysisTermIdList(const izenelib::util::UString& str, std::vector<uint3
     getAnalysisTermIdList( str, termList, termIdList, posInfoList, positionList );
 }
 
+void getAnalysisTermList(const izenelib::util::UString& str, std::vector<izenelib::util::UString>& termList, std::vector<uint32_t>& termIdList)
+{
+    std::vector<char> posInfoList;
+    std::vector<uint32_t> positionList;
+
+    getAnalysisTermIdList( str, termList, termIdList, posInfoList, positionList );
+}
+
 void getAnalysisTermIdList(const izenelib::util::UString& str, std::vector<izenelib::util::UString>& termList, std::vector<uint32_t>& idList, std::vector<char>& posInfoList, std::vector<uint32_t>& positionList)
 {
     size_t len = str.length();

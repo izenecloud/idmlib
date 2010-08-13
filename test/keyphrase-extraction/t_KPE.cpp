@@ -40,8 +40,8 @@ BOOST_AUTO_TEST_CASE(normal_test)
     izenelib::util::UString article( "中国阿，我在中国玩，你呢?我觉得中国不错。我下次也去中国", izenelib::util::UString::UTF_8);
     kpe.insert(article, 1);
     kpe.close();
-    boost::filesystem::remove_all("./kpetestid");
-    boost::filesystem::remove_all("./kmp");
+//     boost::filesystem::remove_all("./kpetestid");
+//     boost::filesystem::remove_all("./kmp");
 }
 
 

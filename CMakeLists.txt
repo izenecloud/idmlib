@@ -128,8 +128,8 @@ INCLUDE(MacroCheckShouldBuild)
 # all headers
 include_directories(
 ${IDMLIB_SOURCE_DIR}/include
-${izenelib_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
+${izenelib_INCLUDE_DIRS}
 ${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
 ${xml2_INCLUDE_DIRS}
@@ -137,13 +137,13 @@ ${Glog_INCLUDE_DIRS}
 )
 
 SET(libs
-  #${wiselib_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${ilplib_LIBRARIES}
+  ${xml2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   )
-  
+
 MESSAGE(STATUS "include path: ${include_directories}")
 
 # User can decide which to build using:
@@ -194,7 +194,7 @@ IF(VERBOSE)
   ELSE(ilplib_FOUND)
     MESSAGE(STATUS "ilplib library: not found")
   ENDIF(ilplib_FOUND)
-  
+
   IF(imllib_FOUND)
     MESSAGE(STATUS "imllib:")
     MESSAGE(STATUS "  header: ${imllib_INCLUDE_DIRS}")
@@ -203,30 +203,13 @@ IF(VERBOSE)
     MESSAGE(STATUS "imllib: not found")
   ENDIF(imllib_FOUND)
 
-
-  IF(BZIP2_FOUND)
-    MESSAGE(STATUS "BZIP2:")
-    MESSAGE(STATUS "  header: ${BZIP2_INCLUDE_DIR}")
-    MESSAGE(STATUS "  libs: ${BZIP2_LIBRARIES}")
-  ELSE(BZIP2_FOUND)
-    MESSAGE(STATUS "BZIP2: not found")
-  ENDIF(BZIP2_FOUND)
-  
   IF(xml2_FOUND)
-    MESSAGE(STATUS "XML2:")
+    MESSAGE(STATUS "LIBXML2:")
     MESSAGE(STATUS " header: ${xml2_INCLUDE_DIRS}")
-    MESSAGE(STATUS " libraries: ${xml2_LIBRARIES}")
+    MESSAGE(STATUS " lib: ${xml2_LIBRARIES}")
   ELSE(xml2_FOUND)
-    MESSAGE(STATUS "XML2: not found")
+    MESSAGE(STATUS "LIBXML2: not found")
   ENDIF(xml2_FOUND)
-
-  IF(ZLIB_FOUND)
-    MESSAGE(STATUS "ZLIB:")
-    MESSAGE(STATUS "  header: ${ZLIB_INCLUDE_DIR}")
-    MESSAGE(STATUS "  libs: ${ZLIB_LIBRARIES}")
-  ELSE(ZLIB_FOUND)
-    MESSAGE(STATUS "ZLIB: not found")
-  ENDIF(ZLIB_FOUND)
 
   IF(Threads_FOUND)
     MESSAGE(STATUS "Threads Library: ${CMAKE_THREAD_LIBS_INIT}")
