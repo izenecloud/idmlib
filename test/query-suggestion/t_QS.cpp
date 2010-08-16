@@ -46,12 +46,19 @@ BOOST_AUTO_TEST_CASE(normal_test)
     Reminder<TestIDManager>* reminder = new Reminder<TestIDManager>(idManager, "./qstest", REAL_NUM, POP_NUM);
 
     //Control the experiment log slice number.
+    std::list<std::pair<izenelib::util::UString,uint32_t> > popularitem;
+    popularitem.push_back( std::make_pair( izenelib::util::UString("游戏", izenelib::util::UString::UTF_8) , 4 ) );
+    
     uint32_t count=0;
     std::list<std::pair<izenelib::util::UString,uint32_t> > logitem;
     logitem.push_back( std::make_pair( izenelib::util::UString("中国", izenelib::util::UString::UTF_8) , 4 ) );
     logitem.push_back( std::make_pair( izenelib::util::UString("游戏", izenelib::util::UString::UTF_8) , 2 ) );
     logitem.push_back( std::make_pair( izenelib::util::UString("音乐", izenelib::util::UString::UTF_8) , 3 ) );
     
+    
+    reminder->indexQueryLog(7, popularitem, false);
+    reminder->indexQueryLog(8, popularitem, false);
+    reminder->indexQueryLog(9, popularitem, false);
     reminder->indexQueryLog(10, logitem, true);
 //     for( uint32_t time= 20100107; time<=20100107; ++time )
 //     {
@@ -62,12 +69,12 @@ BOOST_AUTO_TEST_CASE(normal_test)
     std::vector<izenelib::util::UString> realItems;
     reminder->getRealTimeQuery(realItems);
     std::cout<<"realtime count : "<<realItems.size()<<std::endl;
-    BOOST_CHECK( realItems.size() == 3 );
+    BOOST_CHECK( realItems.size() > 0 );
 
     std::vector<izenelib::util::UString> popularItems;
     reminder->getPopularQuery(popularItems);
     std::cout<<"popular count : "<<popularItems.size()<<std::endl;
-    BOOST_CHECK( popularItems.size() == 0 );
+    BOOST_CHECK( popularItems.size() == 1 );
     delete idManager;
     delete reminder;
 //     boost::filesystem::remove_all("./qstestid");
