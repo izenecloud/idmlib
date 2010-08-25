@@ -15,10 +15,10 @@ la::LA* LaMgrFactory::getLaMgr()
 	{
 		laMgr = new la::LA();
 		la::TokenizeConfig config;
-		config.addUnites("=");
-		laMgr->setTokenizerConfig(config);
+		config.addUnites(std::string("="));
 		boost::shared_ptr<la::Analyzer> analyzer;
 		analyzer.reset( new la::NGramAnalyzer(2, 2, 10000000000) );
+		analyzer->setTokenizerConfig(config);
 		static_cast<la::NGramAnalyzer*>(analyzer.get())->setApartFlag(la::NGramAnalyzer::NGRAM_APART_CJK_);
 		laMgr->setAnalyzer(analyzer);
 	}
