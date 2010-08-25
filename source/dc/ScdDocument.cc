@@ -33,8 +33,8 @@ void ScdDocument::setContent(const string& cont, bool process)
 		std::vector<ml::AttrID> termIds;
 		la::LA* laMgr = LaMgrFactory::getLaMgr();
 		la::TermList termList;
-		std::list<la::Term>::const_iterator it;
-		laMgr->process_search(cont, termList); // bigram
+		la::TermList::const_iterator it;
+		laMgr->process(cont, termList); // bigram
 		for(it=termList.begin(); it!=termList.end(); ++it )
 		{
 			terms.push_back((*it).text_);

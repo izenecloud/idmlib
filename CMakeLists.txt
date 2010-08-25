@@ -130,6 +130,8 @@ include_directories(
 ${IDMLIB_SOURCE_DIR}/include
 ${Boost_INCLUDE_DIRS}
 ${izenelib_INCLUDE_DIRS}
+${izenecma_INCLUDE_DIRS}
+${wisekma_INCLUDE_DIRS}
 ${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
 ${xml2_INCLUDE_DIRS}
@@ -178,6 +180,9 @@ IF(VERBOSE)
   MESSAGE(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
   MESSAGE(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
   MESSAGE(STATUS "----------------------------------------")
+
+  MESSAGE(STATUS "${izenecma_INCLUDE_DIRS}")
+  MESSAGE(STATUS "${wisekma_INCLUDE_DIRS}")
 
   IF(Boost_FOUND)
     MESSAGE(STATUS "BOOST:")
