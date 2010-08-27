@@ -24,6 +24,7 @@ class MiningAnalyzer
   :la_(new la::LA() )
   {
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
+    ml_analyzer->setExtractSpecialChar(false, false);
     boost::shared_ptr<la::Analyzer> korean_analyzer(new la::KoreanAnalyzer( kma_resource_path ) );
     la::KoreanAnalyzer* p_korean_analyzer = static_cast<la::KoreanAnalyzer*>(korean_analyzer.get());
     p_korean_analyzer->setLabelMode();
