@@ -28,9 +28,10 @@ class MiningAnalyzer
     boost::shared_ptr<la::Analyzer> korean_analyzer(new la::KoreanAnalyzer( kma_resource_path ) );
     la::KoreanAnalyzer* p_korean_analyzer = static_cast<la::KoreanAnalyzer*>(korean_analyzer.get());
     p_korean_analyzer->setLabelMode();
-    p_korean_analyzer->setNBest(1);
+//     p_korean_analyzer->setNBest(1);
     p_korean_analyzer->setExtractEngStem( false );
-    static_cast<la::ChineseAnalyzer*>(korean_analyzer.get())->setCaseSensitive(true, false);
+    p_korean_analyzer->setExtractSynonym(false);
+    p_korean_analyzer->setCaseSensitive(true, false);
     ml_analyzer->setDefaultAnalyzer( korean_analyzer );
     boost::shared_ptr<la::Analyzer> char_analyzer(new la::CharAnalyzer() );
     ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, char_analyzer );
