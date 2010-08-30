@@ -35,7 +35,7 @@ ${nec_SRC}
 ${query-suggestion_SRC}
 ${dc_SRC}
 ${util_SRC}
-${keyphrase_extraction_SRC}
+
 )
 
 TARGET_LINK_LIBRARIES(idmlib
@@ -46,4 +46,5 @@ INSTALL(TARGETS idmlib
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   )
+
 

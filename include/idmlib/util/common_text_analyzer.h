@@ -1,13 +1,13 @@
 ///
-/// @file mining_analyzer.h
-/// @brief To provide the LA functions for mining tasks.
+/// @file common_text_analyzer.h
+/// @brief To provide the LA functions for analyze common text, usually used for index.
 /// @author Jia Guo <guojia@gmail.com>
 /// @date Created 2010-08-26
 /// @date 
 ///
 
-#ifndef IDM_UTIL_MININGANALYZER_HPP_
-#define IDM_UTIL_MININGANALYZER_HPP_
+#ifndef IDM_UTIL_COMMONTEXTANALYZER_HPP_
+#define IDM_UTIL_COMMONTEXTANALYZER_HPP_
 
 
 #include <la/LA.h>
@@ -17,18 +17,18 @@ NS_IDMLIB_UTIL_BEGIN
 
 
 
-class MiningAnalyzer
+class CommonTextAnalyzer
 {
  public:
-  MiningAnalyzer(const std::string& kma_resource_path)
+  CommonTextAnalyzer(const std::string& kma_resource_path)
   :la_(new la::LA() )
   {
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
-    ml_analyzer->setExtractSpecialChar(false, false);
+    ml_analyzer->setExtractSpeicalChar(false, false);
     boost::shared_ptr<la::Analyzer> korean_analyzer(new la::KoreanAnalyzer( kma_resource_path ) );
     la::KoreanAnalyzer* p_korean_analyzer = static_cast<la::KoreanAnalyzer*>(korean_analyzer.get());
     p_korean_analyzer->setLabelMode();
-//     p_korean_analyzer->setNBest(1);
+    p_korean_analyzer->setNBest(1);
     p_korean_analyzer->setExtractEngStem( false );
     p_korean_analyzer->setExtractSynonym(false);
     p_korean_analyzer->setCaseSensitive(true, false);
@@ -38,7 +38,7 @@ class MiningAnalyzer
     la_->setAnalyzer( ml_analyzer );
   }
   
-  ~MiningAnalyzer()
+  ~CommonTextAnalyzer()
   {
     delete la_;
   }

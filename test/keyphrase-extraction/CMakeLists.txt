@@ -45,3 +45,28 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
     )
   ADD_TEST(KPE "${IDMLIB_SOURCE_DIR}/testbin/t_kpe")
 ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+
+ADD_EXECUTABLE(kpe_tool
+kpe_tool.cc
+)
+TARGET_LINK_LIBRARIES(kpe_tool
+  ${libs}
+)
+
+SET_TARGET_PROPERTIES(kpe_tool PROPERTIES
+RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/testbin
+)
+
+ADD_EXECUTABLE(kpe_scd_tool
+kpe_scd_tool.cc
+)
+TARGET_LINK_LIBRARIES(kpe_scd_tool
+  ${libs}
+)
+
+SET_TARGET_PROPERTIES(kpe_scd_tool PROPERTIES
+RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/testbin
+)
+    
+    
+

@@ -33,7 +33,7 @@ public:
     , const std::vector<uint32_t>& rightTermCountList) > function_type;
     enum {NEED_DF = true};
     enum {NEED_DOC = true};
-    OutputType(function_type function)
+    KPEOutput(function_type function)
     {
         function_ = function;
     }
@@ -63,7 +63,7 @@ public:
     typedef boost::function<void (const string_type&, uint8_t) > function_type;
     enum {NEED_DF = false};
     enum {NEED_DOC = false};
-    OutputType(function_type function)
+    KPEOutput(function_type function)
     {
         function_ = function;
     }
@@ -93,7 +93,7 @@ public:
     typedef boost::function<void (const string_type&, uint32_t, uint8_t) > function_type;
     enum {NEED_DF = true};
     enum {NEED_DOC = false};
-    OutputType(function_type function)
+    KPEOutput(function_type function)
     {
         function_ = function;
     }

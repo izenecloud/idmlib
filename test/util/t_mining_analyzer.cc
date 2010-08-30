@@ -2,7 +2,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/date_time.hpp>
 
-#include <idmlib/util/mining_analyzer.h>
+#include <idmlib/util/idm_analyzer.h>
 #include "../TestResources.h"
 
 #include <sdb/SequentialDB.h>
@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_SUITE(analyzer_test)
 
 BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 {
-  MiningAnalyzer analyzer(WISEKMA_KNOWLEDGE);
+  IDMAnalyzer analyzer(WISEKMA_KNOWLEDGE);
 //   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
   izenelib::util::UString text("国家经 济 Sites year, 呵呵! United", izenelib::util::UString::UTF_8);
   uint32_t term_count = 9;
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
   tag_vec[8] = "F";
   
   la::TermList term_list;
-  analyzer.get_term_list(text, term_list);
+  analyzer.GetTermList(text, term_list);
   
   for( uint32_t i=0;i<term_list.size();++i )
   {
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 
 BOOST_AUTO_TEST_CASE(korean_test)
 {
-  MiningAnalyzer analyzer(WISEKMA_KNOWLEDGE);
+  IDMAnalyzer analyzer(WISEKMA_KNOWLEDGE);
 //   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
   izenelib::util::UString text("정형석기자", izenelib::util::UString::UTF_8);
   uint32_t term_count = 3;
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(korean_test)
 //   tag_vec[8] = "F";
   
   la::TermList term_list;
-  analyzer.get_term_list(text, term_list);
+  analyzer.GetTermList(text, term_list);
   
   for( uint32_t i=0;i<term_list.size();++i )
   {
