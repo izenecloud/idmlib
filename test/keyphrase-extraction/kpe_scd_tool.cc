@@ -22,27 +22,38 @@ int main(int ac, char** av)
   std::string work_dir = "./kpe_scd_working";
   boost::filesystem::remove_all(work_dir);
   KPEAlgorithm<OutputType>* kpe = new KPEAlgorithm<OutputType>(work_dir, resource_path, analyzer, output);
-  uint32_t doc_id = 1;
+  uint32_t doc_id = 0;
   std::ifstream ifs( scd_file.c_str() );
   std::string content = "";
   std::string line;
+  bool in_content = false;
   while ( getline ( ifs,line ) )
   {
-    boost::to_lower(line);
-    if( line.find("<docid>") == 0 )
+    content = line;
+    std::string lower = boost::to_lower_copy(line);
+    if( lower.find("<docid>") == 0 )
     {
       doc_id++;
+      in_content = false;
     }
-    else if(line.find("<title>")==0)
+    else if(lower.find("<title>")==0)
     {
-      std::string c = line.substr(7, line.length()-7 );
-      izenelib::util::UString uc(c, izenelib::util::UString::UTF_8);
-      kpe->insert( uc, doc_id);
+      content = line.substr(7, line.length()-7 );
+      in_content = true;
     }
-    else if(line.find("<content>")==0)
+    else if(lower.find("<content>")==0)
     {
-      std::string c = line.substr(9, line.length()-9 );
-      izenelib::util::UString uc(c, izenelib::util::UString::UTF_8);
+      content = line.substr(9, line.length()-9 );
+      in_content = true;
+    }
+    else if(lower.find("<")==0)
+    {
+      in_content = false;
+    }
+    
+    if( in_content )
+    {
+      izenelib::util::UString uc(content, izenelib::util::UString::UTF_8);
       kpe->insert( uc, doc_id);
     }
   }

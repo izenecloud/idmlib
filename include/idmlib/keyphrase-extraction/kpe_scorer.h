@@ -599,6 +599,7 @@ class KPEScorer : public boost::noncopyable
                     boost::to_lower(word);
                     if ( word.length() >0 )
                     {
+//                       std::cout<<"add stop "<<word<<std::endl;
                         std::vector<uint32_t> termIdList;
                         analyzer_->GetIdList(izenelib::util::UString(word,izenelib::util::UString::UTF_8), termIdList);
 
@@ -728,13 +729,13 @@ class KPEScorer : public boost::noncopyable
             uint32_t indicateId = termId;
             insertTermId = termId;
             bool result = false;
-
+//             std::cout<<"aaa"<<std::endl;
             if( tag == idmlib::util::IDMTermTag::NUM)
             {
                 insertTermId = langScorer_->getArabicNumber();
                 return true;
             }
-            if( tag == idmlib::util::IDMTermTag::ENG)
+            else if( tag == idmlib::util::IDMTermTag::ENG)
             {
                 
                 izenelib::util::UString lower = ustr;
@@ -753,14 +754,14 @@ class KPEScorer : public boost::noncopyable
                     return true;
                 }
             }
-            if( tag == idmlib::util::IDMTermTag::CHN)
+            else if( tag == idmlib::util::IDMTermTag::CHN)
             {
                 if( isNonAppearTerm(indicateId) )
                 {
                     return true;
                 }
             }
-            
+//             std::cout<<"bbb"<<std::endl;
             if( swContainer_->isStopWord( indicateId ) )
             {
                 if( tag == idmlib::util::IDMTermTag::ENG)
@@ -769,7 +770,7 @@ class KPEScorer : public boost::noncopyable
                 }
                 return true;
             }
-
+//             std::cout<<"ccc"<<std::endl;
             if ( tag == idmlib::util::IDMTermTag::KOR && ustr.isDigitChar(0) )
             {
                 insertNonAppearTerm(termId);
@@ -784,7 +785,7 @@ class KPEScorer : public boost::noncopyable
             {
                 insertMidAppearTerm(termId);
             }
-
+//             std::cout<<"ddd"<<std::endl;
             
             return result;
         }

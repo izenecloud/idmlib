@@ -120,6 +120,7 @@ public:
     
     void insert( const izenelib::util::UString& article, uint32_t docId = 1)
     {
+//       std::cout<<docId<<"##### "<<article.length()<<std::endl;
         std::vector<idmlib::util::IDMTerm> term_list;
         analyzer_->GetTermList(article, term_list );
         
@@ -506,7 +507,7 @@ private:
     
     void init_()
     {
-      
+      scorer_.load(resource_path_);
       boost::filesystem::create_directories(dir_);
       boost::filesystem::remove_all(tmp_dir_);
       boost::filesystem::create_directories(tmp_dir_);
@@ -606,7 +607,7 @@ private:
     
     bool addTerms_(uint32_t docId, const std::vector<idmlib::util::IDMTerm>& termList, uint32_t& iBegin)
     {
-        
+//         std::cout<<docId<<"#### "<<termList.size()<<std::endl;
         if(iBegin >= termList.size()) return false;
         std::vector<std::pair<bool,uint32_t> > splitVec;
         uint32_t i=iBegin;
@@ -615,6 +616,7 @@ private:
         for ( ;i<termList.size();i++ )
         {
             bool bSplit = scorer_.isSplitTerm(termList[i].text, termList[i].tag, termList[i].id, insertTermId);
+          
             splitVec.push_back(std::make_pair(bSplit, insertTermId));
             if( i == iBegin ) //first term
             {
@@ -670,7 +672,7 @@ private:
     
     void addTerms_(uint32_t docId, const std::vector<uint32_t>& termList, bool bFirstTerm = true, bool bLastTerm = true)
     {
-//         std::cout<<"### "<<termList.size()<<" "<<(int)bFirstTerm<<" "<<(int)bLastTerm<<std::endl;
+//         std::cout<<docId<<"### "<<termList.size()<<" "<<(int)bFirstTerm<<" "<<(int)bLastTerm<<std::endl;
         if( termList.size() == 0 ) return;
         if( termList.size() == 1 ) 
         {

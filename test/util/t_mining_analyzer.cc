@@ -95,8 +95,8 @@ BOOST_AUTO_TEST_CASE(korean_test)
   
   std::vector<izenelib::util::UString> str_vec(term_count);
   str_vec[0] = izenelib::util::UString("정형석기자", izenelib::util::UString::UTF_8);
-  str_vec[1] = izenelib::util::UString("정형", izenelib::util::UString::UTF_8);
-  str_vec[2] = izenelib::util::UString("석기", izenelib::util::UString::UTF_8);
+  str_vec[1] = izenelib::util::UString("정형석", izenelib::util::UString::UTF_8);
+  str_vec[2] = izenelib::util::UString("기자", izenelib::util::UString::UTF_8);
 //   str_vec[3] = izenelib::util::UString("济", izenelib::util::UString::UTF_8);
 //   str_vec[4] = izenelib::util::UString("Sites", izenelib::util::UString::UTF_8);
 //   str_vec[5] = izenelib::util::UString("year", izenelib::util::UString::UTF_8);
@@ -117,7 +117,7 @@ BOOST_AUTO_TEST_CASE(korean_test)
   
   std::vector<std::string> tag_vec(term_count);
   tag_vec[0] = "?";
-  tag_vec[1] = "NNG";
+  tag_vec[1] = "NNI";
   tag_vec[2] = "NNG";
 //   tag_vec[3] = "C";
 //   tag_vec[4] = "F";
