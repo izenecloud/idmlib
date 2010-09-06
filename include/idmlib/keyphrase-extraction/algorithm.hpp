@@ -18,6 +18,36 @@
 #include "../util/FSUtil.hpp"
 NS_IDMLIB_KPE_BEGIN
 
+
+struct KPETaskItem
+{
+  
+public:
+  KPETaskItem():dir(), pTermListWriter(NULL), pHashWriter(NULL)
+  , last_doc_id(0), all_doc_count(0), all_term_count(0)
+  {
+    
+  }
+  
+  KPETaskItem(const std::string& dir_param):dir(dir_param)
+  , pTermListWriter(new TermListWriter(dir+"/pTermListWriter"))
+  , pHashWriter(new HashWriter(dir+"/pHashWriter"))
+  , last_doc_id(0), all_doc_count(0), all_term_count(0)
+  {
+    pTermListWriter->open();
+    pHashWriter->open();
+  }
+  
+  std::string dir;
+  TermListWriter* pTermListWriter;
+  HashWriter* pHashWriter;
+  uint32_t last_doc_id;
+  uint32_t all_doc_count;
+  uint32_t all_term_count;
+};
+
+
+
 template <class IDManagerType, class Output>
 class Algorithm1 : public boost::noncopyable
 {
@@ -29,7 +59,8 @@ public:
 
     Algorithm1(IDManagerType* idManager, const Output& outputParam, const std::string& working)
     : idManager_(idManager), output_(outputParam), dir_(working), maxLen_(7)
-    , lastDocId_(0), allTermCount_(0), docCount_(0)
+    , task_list_(0), current_task_(NULL)
+//     , lastDocId_(0), allTermCount_(0), docCount_(0)
     , scorer_(NULL)
     {
         init_();
@@ -56,24 +87,24 @@ public:
         scorer_->load(resPath);
     }
     
-    void insert(const std::vector<id_type>& idList, const std::vector<pos_type>& posInfoList, const std::vector<uint32_t>& positionList, uint32_t docId = 1)
-    {
-        if( idList.size() == 0 ) return;
-        std::vector<string_type> termList(idList.size());
-        for(uint32_t i=0;i<idList.size();i++)
-        {
-            bool b = idManager_->getTermStringByTermId(idList[i], termList[i]);
-            if(!b)
-            {
-                std::cout<<"Can not get term string for id : "<<idList[i]<<std::endl;
-                return;
-            }
-        }
-        
-        uint32_t begin = 0;
-        while( addTerms_(docId, termList, idList, posInfoList, positionList, begin) ) {}
-        
-    }
+//     void insert(const std::vector<id_type>& idList, const std::vector<pos_type>& posInfoList, const std::vector<uint32_t>& positionList, uint32_t docId = 1)
+//     {
+//         if( idList.size() == 0 ) return;
+//         std::vector<string_type> termList(idList.size());
+//         for(uint32_t i=0;i<idList.size();i++)
+//         {
+//             bool b = idManager_->getTermStringByTermId(idList[i], termList[i]);
+//             if(!b)
+//             {
+//                 std::cout<<"Can not get term string for id : "<<idList[i]<<std::endl;
+//                 return;
+//             }
+//         }
+//         
+//         uint32_t begin = 0;
+//         while( addTerms_(docId, termList, idList, posInfoList, positionList, begin) ) {}
+//         
+//     }
 
 
     void insert(const std::vector<Term>& termList, uint32_t docId = 1 )
@@ -105,26 +136,26 @@ public:
         while( addTerms_(docId, termList, begin) ) {}
     }
     
-    void insert(const std::vector<string_type>& termList, const std::vector<pos_type>& posInfoList, const std::vector<uint32_t>& positionList, uint32_t docId = 1)
-    {
-        if( termList.size() == 0 ) return;
-        std::vector<id_type> idList(termList.size());
-        for(uint32_t i=0;i<termList.size();i++)
-        {
-            bool b = idManager_->getTermIdByTermString(termList[i], posInfoList[i], idList[i] );
-            if(!b)
-            {
-                std::string str;
-                termList[i].convertString(str, izenelib::util::UString::UTF_8);
-                std::cout<<"Can not get term id for string : "<<str<<std::endl;
-                return;
-            }
-        }
-        
-        uint32_t begin = 0;
-        while( addTerms_(docId, termList, idList, posInfoList, positionList, begin) ) {}
-        
-    }
+//     void insert(const std::vector<string_type>& termList, const std::vector<pos_type>& posInfoList, const std::vector<uint32_t>& positionList, uint32_t docId = 1)
+//     {
+//         if( termList.size() == 0 ) return;
+//         std::vector<id_type> idList(termList.size());
+//         for(uint32_t i=0;i<termList.size();i++)
+//         {
+//             bool b = idManager_->getTermIdByTermString(termList[i], posInfoList[i], idList[i] );
+//             if(!b)
+//             {
+//                 std::string str;
+//                 termList[i].convertString(str, izenelib::util::UString::UTF_8);
+//                 std::cout<<"Can not get term id for string : "<<str<<std::endl;
+//                 return;
+//             }
+//         }
+//         
+//         uint32_t begin = 0;
+//         while( addTerms_(docId, termList, idList, posInfoList, positionList, begin) ) {}
+//         
+//     }
     
     void insert( const izenelib::util::UString& article, uint32_t docId = 1)
     {
@@ -147,7 +178,7 @@ public:
         pTermListWriter_ = NULL;
         delete pHashWriter_;
         pHashWriter_ = NULL;
-        uint32_t docCount = getDocCount();
+        uint32_t docCount = getDocCount_();
         minFreq_ = 1;
         minDocFreq_ = 1;
         if( docCount >=10 )
@@ -507,20 +538,17 @@ public:
         }
     }
     
-    uint32_t getDocCount()
-    {
-        return docCount_;
-    }
+    
     
 private:
     
     void init_()
     {
         boost::filesystem::create_directories(dir_);
-        pTermListWriter_ = new TermListWriter(dir_+"/pInputItemWriter");
-        pTermListWriter_->open();
-        pHashWriter_ = new HashWriter(dir_+"/pHashItemWriter");
-        pHashWriter_->open();
+//         pTermListWriter_ = new TermListWriter(dir_+"/pInputItemWriter");
+//         pTermListWriter_->open();
+//         pHashWriter_ = new HashWriter(dir_+"/pHashItemWriter");
+//         pHashWriter_->open();
     }
     
     void release_()
@@ -673,6 +701,13 @@ private:
     {
 //         std::cout<<"### "<<termList.size()<<" "<<(int)bFirstTerm<<" "<<(int)bLastTerm<<std::endl;
         if( termList.size() == 0 ) return;
+        if( task_list_.empty() )
+        {
+          //set current_task_ value
+          
+          task_list_.push_back(current_task_);
+          
+        }
         if( termList.size() == 1 ) 
         {
             if( bFirstTerm && bLastTerm )
@@ -682,9 +717,9 @@ private:
                 inputItem.push_back(docId);
                 if( scorer_->prefixTest(inputItem) != KPStatus::RETURN)
                 {
-                    pTermListWriter_->append(inputItem);
+                    current_task_.pTermListWriter->append(inputItem);
                 }
-                pHashWriter_->append(hash_(inputItem));
+                current_task_.pHashWriter->append(hash_(inputItem));
                 incTermCount_(1);
             }
             return;
@@ -718,44 +753,49 @@ private:
             }
             if( scorer_->prefixTest(frag) != KPStatus::RETURN)
             {
-                pTermListWriter_->append(frag);
+                current_task_.pTermListWriter->append(frag);
             }
             for(uint32_t j= i+1; j<= end; j++)
             {
                 if( j-i >= maxLen_ ) continue;
                 std::vector<uint32_t> ifrag( termList.begin()+i, termList.begin()+j );
-                pHashWriter_->append(hash_(ifrag));
+                current_task_.pHashWriter->append(hash_(ifrag));
             }
             
         }
 
         
         incTermCount_(increase);
-        if( docId != lastDocId_ )
+        if( docId != current_task_.last_doc_id )
         {
-            setDocCount_( getDocCount() + 1 );
+            setDocCount_( getDocCount_() + 1 );
         }
 
-        lastDocId_ = docId;
+        current_task_.last_doc_id = docId;
 
 
     }
     
     void setDocCount_(uint32_t count)
     {
-        docCount_ = count;
+        current_task_.all_doc_count = count;
+    }
+    
+    uint32_t getDocCount_()
+    {
+        return current_task_.all_doc_count;
     }
     
     
     
     void incTermCount_(uint32_t inc = 1)
     {
-        allTermCount_ += inc;
+        current_task_.all_term_count += inc;
     }
     
     uint32_t getTermCount_()
     {
-        return allTermCount_;
+        return current_task_.all_term_count;
     }
     
     inline hash_t hash_(const std::vector<uint32_t>& termIdList)
@@ -1022,12 +1062,19 @@ private:
     const std::string dir_;
     uint8_t maxLen_;
     
+    
+    std::vector<KPETaskItem> task_list_;
+    KPETaskItem current_task_;
+    
+    
     TermListWriter* pTermListWriter_;
     HashWriter* pHashWriter_;
     uint32_t lastDocId_;
-    
+    uint32_t allDocCount_;
     uint32_t allTermCount_;
     uint32_t docCount_;
+    
+    
     uint32_t minFreq_;
     uint32_t minDocFreq_;
     
