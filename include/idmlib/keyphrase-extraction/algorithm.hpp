@@ -521,6 +521,9 @@ private:
         pTermListWriter_->open();
         pHashWriter_ = new HashWriter(dir_+"/pHashItemWriter");
         pHashWriter_->open();
+        lastDocId_ = 0; 
+        allTermCount_ = 0; 
+        docCount_ = 0;
     }
     
     void release_()
