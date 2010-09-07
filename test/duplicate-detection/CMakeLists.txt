@@ -16,7 +16,9 @@ SET(libs
   ${iise_LIBRARIES}
   ${izenelib_LIBRARIES}
 
+  ${xml2_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${Glog_LIBRARIES}
   )
 
 SET(Boost_USE_STATIC_LIBS OFF)
