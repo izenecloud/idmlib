@@ -24,13 +24,13 @@ class Algorithm1 : public boost::noncopyable
 typedef uint32_t id_type;
 typedef char pos_type;
 typedef izenelib::util::UString string_type;
-typedef Scorer<IDManagerType> ScorerType;
 public:
+typedef Scorer<IDManagerType> ScorerType;
 
     Algorithm1(IDManagerType* idManager, const Output& outputParam, const std::string& working)
     : idManager_(idManager), output_(outputParam), dir_(working), maxLen_(7)
     , lastDocId_(0), allTermCount_(0), docCount_(0)
-    , scorer_(NULL)
+    , scorer_(NULL), outside_scorer_(false)
     {
         init_();
     }
@@ -38,7 +38,7 @@ public:
     ~Algorithm1()
     {
         release_();
-        if( scorer_ != NULL)
+        if( !outside_scorer_ && scorer_ != NULL)
         {
             delete scorer_;
             scorer_ = NULL;
@@ -52,8 +52,18 @@ public:
     
     void load(const std::string& resPath)
     {
+      if( scorer_ == NULL )
+      {
         scorer_ = new ScorerType(idManager_);
         scorer_->load(resPath);
+        outside_scorer_ = false;
+      }
+    }
+    
+    void set_scorer(ScorerType* scorer)
+    {
+      scorer_ = scorer;
+      outside_scorer_ = true;
     }
     
     void insert(const std::vector<id_type>& idList, const std::vector<pos_type>& posInfoList, const std::vector<uint32_t>& positionList, uint32_t docId = 1)
@@ -1035,6 +1045,7 @@ private:
     uint32_t minDocFreq_;
     
     ScorerType* scorer_;
+    bool outside_scorer_;
     
     
 };
