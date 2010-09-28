@@ -19,6 +19,11 @@ TestIDManager(const std::string& path):path_(path)
         delete strStorage_;
 }
 
+bool isAutoInsert()
+{
+  return true;
+}
+
 bool getTermIdByTermString(const izenelib::util::UString& ustr, uint32_t& termId)
 {
     termId = izenelib::util::HashFunction<izenelib::util::UString>::generateHash32(ustr);

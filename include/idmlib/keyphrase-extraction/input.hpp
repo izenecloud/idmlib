@@ -33,6 +33,10 @@ struct TERM_TAG
 class Term
 {
     public:
+        Term()
+        {
+        }
+        
         Term(const izenelib::util::UString& text, uint32_t id, char tag, uint32_t position)
         :text_(text), id_(id), tag_(tag), position_(position)
         {

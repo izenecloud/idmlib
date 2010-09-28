@@ -29,10 +29,12 @@ typedef Scorer<IDManagerType> ScorerType;
 
     Algorithm1(IDManagerType* idManager, const Output& outputParam, const std::string& working)
     : idManager_(idManager), output_(outputParam), dir_(working), maxLen_(7)
+    , cache_size_(1000000), cache_vec_(cache_size_)
     , lastDocId_(0), allTermCount_(0), docCount_(0)
     , scorer_(NULL), outside_scorer_(false)
     {
-        init_();
+      cache_vec_.resize(0);
+      init_();
     }
     
     ~Algorithm1()
@@ -149,6 +151,8 @@ typedef Scorer<IDManagerType> ScorerType;
     
     void close()
     {
+      izenelib::util::ClockTimer clocker;
+        releaseCachedHashItem_();
         pTermListWriter_->close();
         pHashWriter_->close();
         std::string inputItemPath = pTermListWriter_->getPath();
@@ -171,7 +175,8 @@ typedef Scorer<IDManagerType> ScorerType;
         uint64_t p = 0;
         typename HashSSFType::SorterType hsorter;
         hsorter.sort(hashItemPath);
-        
+        std::cout<<"[KPE1] "<<clocker.elapsed()<<" seconds."<<std::endl;
+        clocker.restart();
         typedef izenelib::am::SSFType<hash_t, uint32_t, uint8_t> HashItemCountSSFType;
         typename HashItemCountSSFType::WriterType hcwriter(dir_+"/HCWRITER");
         hcwriter.open();
@@ -181,8 +186,10 @@ typedef Scorer<IDManagerType> ScorerType;
             hash_t hashId;
             hash_t saveId;
             uint32_t count = 0;
+            uint32_t icount = 0;
             LOG_BEGIN("Hash", &hreader);
-            while( hreader.nextKey(hashId) )
+//             while( hreader.nextKey(hashId) )
+            while( hreader.next(hashId, icount) )
             {
                 if(p==0)
                 {
@@ -197,7 +204,8 @@ typedef Scorer<IDManagerType> ScorerType;
                         count = 0;
                     }
                 }
-                count++;
+//                 count++;
+                count += icount;
                 p++;
                 LOG_PRINT("Hash", 100000);
             }
@@ -208,9 +216,12 @@ typedef Scorer<IDManagerType> ScorerType;
             
         }
         hcwriter.close();
+        std::cout<<"[KPE2] "<<clocker.elapsed()<<" seconds."<<std::endl;
+        clocker.restart();
         typename TermListSSFType::SorterType fisorter;
         fisorter.sort(inputItemPath);
-        
+        std::cout<<"[KPE3] "<<clocker.elapsed()<<" seconds."<<std::endl;
+        clocker.restart();
         typedef izenelib::am::SSFType<uint32_t, uint32_t, uint32_t> SortedFragmentItemSSFType;
         typename SortedFragmentItemSSFType::WriterType swriter(dir_+"/SWRITER");
         swriter.open();
@@ -291,6 +302,8 @@ typedef Scorer<IDManagerType> ScorerType;
             idmlib::util::FSUtil::del(inputItemPath);
         }
         swriter.close();
+        std::cout<<"[KPE4] "<<clocker.elapsed()<<" seconds."<<std::endl;
+        clocker.restart();
         typename SortedFragmentItemSSFType::ReaderType reader(swriter.getPath());
         reader.open();
         std::vector<uint32_t> keyList;
@@ -304,6 +317,8 @@ typedef Scorer<IDManagerType> ScorerType;
         LOG_BEGIN("AAA", &reader);
         
         std::vector<data_t > data;
+        double aaa_time = 0.0;
+        izenelib::util::ClockTimer aaa_clocker;
         while( reader.nextKeyList(keyList) )
         {
             uint32_t inc = SortedFragmentItem::parseInc(keyList);
@@ -313,7 +328,9 @@ typedef Scorer<IDManagerType> ScorerType;
             std::vector<id2count_t > prefixTermList = SortedFragmentItem::parsePrefixTermList(keyList);
             if( inc==0 )
             {
+                aaa_clocker.restart();
                 getCandidateLabel_(data, &hclWriter, &h2hWriter);
+                aaa_time += aaa_clocker.elapsed();
                 data.resize(0);
             }
             data.push_back(boost::make_tuple(inc, tmpTermIdList, tmpDocItemList, tmpFreq, prefixTermList));
@@ -322,10 +339,15 @@ typedef Scorer<IDManagerType> ScorerType;
             LOG_PRINT("AAA", 1000);
                 
         }
+        aaa_clocker.restart();
         getCandidateLabel_(data, &hclWriter, &h2hWriter);
+        aaa_time += aaa_clocker.elapsed();
         LOG_END();
         hclWriter.close();
         h2hWriter.close();
+        std::cout<<"[KPE5] "<<clocker.elapsed()<<" seconds."<<std::endl;
+        std::cout<<"[KPE5-AAA] "<<aaa_time<<" seconds."<<std::endl;
+        clocker.restart();
         {
             typename CandidateSSFType::SorterType sorter;
             sorter.sort(hclWriter.getPath());
@@ -554,65 +576,13 @@ private:
     
     bool addTerms_(uint32_t docId, const std::vector<string_type>& termList, const std::vector<uint32_t>& idList, const std::vector<pos_type>& posList, const std::vector<uint32_t>& positionList, uint32_t& iBegin)
     {
-        
-        if(iBegin >= termList.size()) return false;
-        std::vector<std::pair<bool,uint32_t> > splitVec;
-        uint32_t i=iBegin;
-        uint32_t _begin = iBegin;
-        uint32_t insertTermId;
-        for ( ;i<termList.size();i++ )
+        uint32_t len = termList.size();
+        std::vector<Term> terms(len);
+        for( uint32_t i = 0; i<len; i++)
         {
-            bool bSplit = scorer_->isSplitTerm(termList[i], posList[i], idList[i], insertTermId);
-            splitVec.push_back(std::make_pair(bSplit, insertTermId));
-            if( i == iBegin ) //first term
-            {
-                continue;
-            }
-            else
-            {
-                if(bSplit)
-                {
-                    break;
-                }
-                if( positionList[i] != positionList[i-1]+1 )
-                {
-                    splitVec.erase( splitVec.end()-1 );
-                    break;
-                }
-            }
-            
+          terms[i] = Term(termList[i], idList[i], posList[i], positionList[i] );
         }
-        iBegin = i;
-        if( splitVec.size() == 0 ) return false;
-        bool bFirstTerm = true;
-        bool bLastTerm = true;
-        if( splitVec.size() == 1 ) 
-        {
-            if( splitVec[0].first == true )
-            {
-                return true;
-            }
-        }
-        else
-        {
-            bFirstTerm = !splitVec.front().first;
-            bLastTerm = !splitVec.back().first;
-            
-        }
-        std::vector<uint32_t> terms( splitVec.size() );
-        for(uint32_t p=_begin;p<_begin+splitVec.size();p++)
-        {
-            uint32_t _index = p-_begin;
-            terms[_index] = splitVec[_index].second;
-            if( !splitVec[_index].first )
-            {
-                idManager_->put(terms[_index], termList[p]);
-            }
-        }
-        addTerms_(docId, terms, bFirstTerm, bLastTerm);
-        return true;
-
-
+        return addTerms_(docId, terms, iBegin);
     }
     
     bool addTerms_(uint32_t docId, const std::vector<Term>& termList, uint32_t& iBegin)
@@ -697,7 +667,7 @@ private:
                 {
                     pTermListWriter_->append(inputItem);
                 }
-                pHashWriter_->append(hash_(inputItem));
+                appendHashItem_(hash_(inputItem));
                 incTermCount_(1);
             }
             return;
@@ -737,7 +707,7 @@ private:
             {
                 if( j-i >= maxLen_ ) continue;
                 std::vector<uint32_t> ifrag( termList.begin()+i, termList.begin()+j );
-                pHashWriter_->append(hash_(ifrag));
+                appendHashItem_(hash_(ifrag));
             }
             
         }
@@ -752,6 +722,44 @@ private:
         lastDocId_ = docId;
 
 
+    }
+    
+    void appendHashItem_(hash_t hash_value)
+    {
+      if( cache_vec_.size() >= cache_size_ )
+      {
+        std::cout<<"[FULL]"<<std::endl;
+        //output
+        for(uint32_t i=0;i<cache_vec_.size();i++)
+        {
+          pHashWriter_->append(cache_vec_[i].first, cache_vec_[i].second);
+        }
+        //clean
+        cache_vec_.resize(0);
+        cache_map_.clear();
+      }
+      uint32_t* index=  cache_map_.find(hash_value);
+      if( index == NULL)
+      {
+        cache_vec_.push_back( std::make_pair(hash_value, 1) );
+        cache_map_.insert( hash_value, (uint32_t)(cache_vec_.size())-1 );
+      }
+      else
+      {
+        cache_vec_[*index].second += 1;
+      }
+      
+    }
+    
+    void releaseCachedHashItem_()
+    {
+      for(uint32_t i=0;i<cache_vec_.size();i++)
+      {
+        pHashWriter_->append(cache_vec_[i].first, cache_vec_[i].second);
+      }
+      //clean
+      cache_vec_.resize(0);
+      cache_map_.clear();
     }
     
     void setDocCount_(uint32_t count)
@@ -1037,6 +1045,9 @@ private:
     
     TermListWriter* pTermListWriter_;
     HashWriter* pHashWriter_;
+    uint32_t cache_size_;
+    izenelib::am::rde_hash<hash_t, uint32_t> cache_map_;
+    std::vector< std::pair<hash_t, uint32_t> > cache_vec_;
     uint32_t lastDocId_;
     
     uint32_t allTermCount_;

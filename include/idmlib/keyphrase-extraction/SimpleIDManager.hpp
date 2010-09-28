@@ -44,6 +44,8 @@ void flush();
 
 void close();
 
+bool isAutoInsert();
+
 private:        
     izenelib::ir::idmanager::HDBIDStorage< izenelib::util::UString, uint32_t>* strStorage_;
     boost::mutex mutex_;

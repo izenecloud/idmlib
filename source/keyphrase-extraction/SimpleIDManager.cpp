@@ -18,6 +18,10 @@ SimpleIDManager::~SimpleIDManager()
     if(strStorage_)
         delete strStorage_;
 }
+bool SimpleIDManager::isAutoInsert()
+{
+  return true;
+}
 
 bool SimpleIDManager::getTermIdByTermString(const izenelib::util::UString& ustr, uint32_t& termId)
 {
