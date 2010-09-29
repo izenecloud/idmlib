@@ -29,11 +29,10 @@ typedef Scorer<IDManagerType> ScorerType;
 
     Algorithm1(IDManagerType* idManager, const Output& outputParam, const std::string& working)
     : idManager_(idManager), output_(outputParam), dir_(working), maxLen_(7)
-    , cache_size_(1000000), cache_vec_(cache_size_)
+    , cache_size_(0), cache_vec_(cache_size_)
     , lastDocId_(0), allTermCount_(0), docCount_(0)
     , scorer_(NULL), outside_scorer_(false)
     {
-      cache_vec_.resize(0);
       init_();
     }
     
@@ -45,6 +44,13 @@ typedef Scorer<IDManagerType> ScorerType;
             delete scorer_;
             scorer_ = NULL;
         }
+    }
+    
+    void set_cache_size(uint32_t size)
+    {
+      cache_size_ = size;
+      cache_vec_.resize(cache_size_);
+      cache_vec_.resize(0);
     }
     
     void tune(uint8_t maxLen)
@@ -186,28 +192,36 @@ typedef Scorer<IDManagerType> ScorerType;
             hash_t hashId;
             hash_t saveId;
             uint32_t count = 0;
-            uint32_t icount = 0;
+            uint32_t icount = 1;
             LOG_BEGIN("Hash", &hreader);
-//             while( hreader.nextKey(hashId) )
-            while( hreader.next(hashId, icount) )
+            while( true )
             {
-                if(p==0)
-                {
-                    saveId = hashId;
-                }
-                else
-                {
-                    if( saveId != hashId )
-                    {
-                        hcwriter.append(saveId, count);
-                        saveId = hashId;
-                        count = 0;
-                    }
-                }
-//                 count++;
-                count += icount;
-                p++;
-                LOG_PRINT("Hash", 100000);
+              bool b = true;
+              if( cache_size_>0)
+              {
+                b = hreader.next(hashId, icount);
+              }
+              else
+              {
+                b = hreader.nextKey(hashId);
+              }
+              if( !b ) break;
+              if(p==0)
+              {
+                  saveId = hashId;
+              }
+              else
+              {
+                  if( saveId != hashId )
+                  {
+                      hcwriter.append(saveId, count);
+                      saveId = hashId;
+                      count = 0;
+                  }
+              }
+              count += icount;
+              p++;
+              LOG_PRINT("Hash", 100000);
             }
             LOG_END();
             hcwriter.append(saveId, count);
@@ -726,10 +740,42 @@ private:
     
     void appendHashItem_(hash_t hash_value)
     {
-      if( cache_vec_.size() >= cache_size_ )
+      if( cache_size_ > 0 )
       {
-        std::cout<<"[FULL]"<<std::endl;
-        //output
+        if( cache_vec_.size() >= cache_size_ )
+        {
+          std::cout<<"[FULL]"<<std::endl;
+          //output
+          for(uint32_t i=0;i<cache_vec_.size();i++)
+          {
+            pHashWriter_->append(cache_vec_[i].first, cache_vec_[i].second);
+          }
+          //clean
+          cache_vec_.resize(0);
+          cache_map_.clear();
+        }
+        uint32_t* index=  cache_map_.find(hash_value);
+        if( index == NULL)
+        {
+          cache_vec_.push_back( std::make_pair(hash_value, 1) );
+          cache_map_.insert( hash_value, (uint32_t)(cache_vec_.size())-1 );
+        }
+        else
+        {
+          cache_vec_[*index].second += 1;
+        }
+      }
+      else
+      {
+        pHashWriter_->append(hash_value);
+      }
+      
+    }
+    
+    void releaseCachedHashItem_()
+    {
+      if( cache_size_ > 0 )
+      {
         for(uint32_t i=0;i<cache_vec_.size();i++)
         {
           pHashWriter_->append(cache_vec_[i].first, cache_vec_[i].second);
@@ -738,28 +784,6 @@ private:
         cache_vec_.resize(0);
         cache_map_.clear();
       }
-      uint32_t* index=  cache_map_.find(hash_value);
-      if( index == NULL)
-      {
-        cache_vec_.push_back( std::make_pair(hash_value, 1) );
-        cache_map_.insert( hash_value, (uint32_t)(cache_vec_.size())-1 );
-      }
-      else
-      {
-        cache_vec_[*index].second += 1;
-      }
-      
-    }
-    
-    void releaseCachedHashItem_()
-    {
-      for(uint32_t i=0;i<cache_vec_.size();i++)
-      {
-        pHashWriter_->append(cache_vec_[i].first, cache_vec_[i].second);
-      }
-      //clean
-      cache_vec_.resize(0);
-      cache_map_.clear();
     }
     
     void setDocCount_(uint32_t count)
