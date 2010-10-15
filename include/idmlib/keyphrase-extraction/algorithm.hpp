@@ -937,35 +937,71 @@ private:
                 std::vector<std::pair<uint32_t, uint32_t> > leftTermList(prefixTermList);
                 
                 std::vector<std::pair<uint32_t, uint32_t> > rightTermList;
-                
+                uint32_t last_right_termid = 0;
                 if( i!= tmpTermIdList.size() )
                 {
                     rightTermList.push_back(std::make_pair(tmpTermIdList[i], tmpFreq));
+                    last_right_termid = tmpTermIdList[i];
                 }
+                
+                
                 for( uint32_t n=m+1; n<data.size(); n++ )
                 {
                     uint32_t inc2 = boost::get<0>(data[n]);
-                    std::vector<uint32_t> tmpTermIdList2 = boost::get<1>(data[n]);
-                    std::vector<id2count_t> tmpDocItemList2 = boost::get<2>(data[n]);
-                    uint32_t tmpFreq2 = boost::get<3>(data[n]);
-                    std::vector<std::pair<uint32_t, uint32_t> > prefixTermList2 = boost::get<4>(data[n]);
-                    rTermIdList.resize(inc2);
-                    rTermIdList.insert(rTermIdList.end(), tmpTermIdList2.begin(), tmpTermIdList2.end());
-                    if( AstartWithB( rTermIdList, termIdList ) )
+                    
+                    if( inc2 <= inc ) break;
+                    else 
                     {
-                        docItemList.insert(docItemList.end(), tmpDocItemList2.begin(), tmpDocItemList2.end());
-                        f+=tmpFreq2;
-                        leftTermList.insert(leftTermList.end(), prefixTermList2.begin(),prefixTermList2.end() );
-                        
-                        if( termIdList.size() < rTermIdList.size() )
+                      std::vector<uint32_t> tmpTermIdList2 = boost::get<1>(data[n]);
+                      std::vector<id2count_t> tmpDocItemList2 = boost::get<2>(data[n]);
+                      uint32_t tmpFreq2 = boost::get<3>(data[n]);
+                      std::vector<std::pair<uint32_t, uint32_t> > prefixTermList2 = boost::get<4>(data[n]);
+                      if( inc2 = inc+1 )
+                      {
+                        last_right_termid = tmpTermIdList2[0];
+                      }
+                      docItemList.insert(docItemList.end(), tmpDocItemList2.begin(), tmpDocItemList2.end());
+                      f+=tmpFreq2;
+                      leftTermList.insert(leftTermList.end(), prefixTermList2.begin(),prefixTermList2.end() );
+                      if( rightTermList.empty() )
+                      {
+                        rightTermList.push_back(std::make_pair(last_right_termid, tmpFreq2));
+                      }
+                      else
+                      {
+                        if(rightTermList.back().first == last_right_termid )
                         {
-                            rightTermList.push_back(std::make_pair(rTermIdList[termIdList.size()], tmpFreq2));
+                          rightTermList.back().second += tmpFreq2;
                         }
+                        else
+                        {
+                          rightTermList.push_back(std::make_pair(last_right_termid, tmpFreq2));
+                        }
+                      }
                     }
-                    else
-                    {
-                        break;
-                    }
+                    
+//                     std::vector<uint32_t> tmpTermIdList2 = boost::get<1>(data[n]);
+//                     std::vector<id2count_t> tmpDocItemList2 = boost::get<2>(data[n]);
+//                     uint32_t tmpFreq2 = boost::get<3>(data[n]);
+//                     std::vector<std::pair<uint32_t, uint32_t> > prefixTermList2 = boost::get<4>(data[n]);
+//                     rTermIdList.resize(inc2);
+//                     rTermIdList.insert(rTermIdList.end(), tmpTermIdList2.begin(), tmpTermIdList2.end());
+//                     if( AstartWithB( rTermIdList, termIdList ) )
+//                     {
+//                         docItemList.insert(docItemList.end(), tmpDocItemList2.begin(), tmpDocItemList2.end());
+//                         f+=tmpFreq2;
+//                         //or not?
+//                         leftTermList.insert(leftTermList.end(), prefixTermList2.begin(),prefixTermList2.end() );
+//                         
+//                         if( termIdList.size() < rTermIdList.size() )
+//                         {
+//                             rightTermList.push_back(std::make_pair(rTermIdList[termIdList.size()], tmpFreq2));
+//                         }
+//                     }
+//                     else
+//                     {
+//                         break;
+//                     }
                 }
                 
                 std::vector<uint32_t> docIdList;
