@@ -16,6 +16,7 @@
 #include "../idm_types.h"
 #include <boost/type_traits.hpp>
 #include "../util/FSUtil.hpp"
+#include <stack>
 NS_IDMLIB_KPE_BEGIN
 
 template <class IDManagerType, class Output>
@@ -333,6 +334,8 @@ typedef Scorer<IDManagerType> ScorerType;
         std::vector<data_t > data;
         double aaa_time = 0.0;
         izenelib::util::ClockTimer aaa_clocker;
+        
+        std::vector<uint32_t> completeTermIdList;
         while( reader.nextKeyList(keyList) )
         {
             uint32_t inc = SortedFragmentItem::parseInc(keyList);
@@ -340,21 +343,25 @@ typedef Scorer<IDManagerType> ScorerType;
             std::vector<id2count_t> tmpDocItemList = SortedFragmentItem::parseDocItemList(keyList);
             uint32_t tmpFreq = SortedFragmentItem::parseFreq(keyList);
             std::vector<id2count_t > prefixTermList = SortedFragmentItem::parsePrefixTermList(keyList);
+            
+            completeTermIdList.resize(inc);
+            completeTermIdList.insert( completeTermIdList.end(), tmpTermIdList.begin(), tmpTermIdList.end() );
+            
             if( inc==0 )
             {
                 aaa_clocker.restart();
-                getCandidateLabel_(data, &hclWriter, &h2hWriter);
+                getCandidateLabel2_(data, &hclWriter, &h2hWriter);
                 aaa_time += aaa_clocker.elapsed();
                 data.resize(0);
             }
-            data.push_back(boost::make_tuple(inc, tmpTermIdList, tmpDocItemList, tmpFreq, prefixTermList));
-            
+//             data.push_back(boost::make_tuple(inc, tmpTermIdList, tmpDocItemList, tmpFreq, prefixTermList));
+            data.push_back(boost::make_tuple(inc, completeTermIdList, tmpDocItemList, tmpFreq, prefixTermList));
             p++;
             LOG_PRINT("AAA", 1000);
                 
         }
         aaa_clocker.restart();
-        getCandidateLabel_(data, &hclWriter, &h2hWriter);
+        getCandidateLabel2_(data, &hclWriter, &h2hWriter);
         aaa_time += aaa_clocker.elapsed();
         LOG_END();
         hclWriter.close();
@@ -1091,6 +1098,156 @@ private:
                 }
             }
 //             break;
+        }
+            
+            
+        
+    }
+    
+    //with complete termidlist version.
+    void getCandidateLabel2_(const std::vector<data_t>& data, CandidateSSFType::WriterType* htlWriter, typename Hash2HashSSFType::WriterType* h2hWriter)
+    {
+        if( data.size()==0 ) return;
+        
+        //sorting with postorder
+        std::vector<uint32_t> post_order(data.size());
+        {
+          std::stack<uint32_t> index_stack;
+          std::stack<uint32_t> depth_stack;
+          uint32_t i=0;
+          for( uint32_t m=0;m<data.size();m++)
+          {
+            uint32_t depth = boost::get<0>(data[m]);
+            if(m>0)
+            {
+              while( !depth_stack.empty() && depth_stack.top()<= depth )
+              {
+                post_order[i] = index_stack.top();
+                ++i;
+                
+                index_stack.pop();
+                depth_stack.pop();
+              }
+            }
+            index_stack.push(m);
+            depth_stack.push(depth);
+          }
+          while( !index_stack.empty() )
+          {
+            post_order[i] = index_stack.top();
+            ++i;
+            
+            index_stack.pop();
+            depth_stack.pop();
+          }
+        }
+        
+        std::stack<uint32_t> depth_stack;
+        std::stack<uint32_t> freq_stack;
+        std::stack<std::vector<id2count_t> > doc_item_stack;
+        std::stack<std::vector<id2count_t> > prefix_term_stack;
+        std::stack<id2count_t > suffix_term_stack;
+        
+        for( uint32_t m=0;m<data.size();m++)
+        {
+          uint32_t depth = boost::get<0>(data[post_order[m]]);
+          std::vector<uint32_t> termIdList = data[post_order[m]].get<1>();
+          std::vector<id2count_t> docItemList = boost::get<2>(data[post_order[m]]);
+          uint32_t freq = boost::get<3>(data[post_order[m]]);
+          std::vector<id2count_t > prefixTermList = boost::get<4>(data[post_order[m]]);
+          std::vector<id2count_t > suffixTermList;
+          while( !depth_stack.empty() && depth < depth_stack.top() )
+          {
+            freq+=freq_stack.top();
+            docItemList.insert( docItemList.end(), doc_item_stack.top().begin(), doc_item_stack.top().end() );
+            prefixTermList.insert( prefixTermList.end(), prefix_term_stack.top().begin(), prefix_term_stack.top().end() );
+            //suffix howto?
+            //suffixTermList, suffix_term_stack
+//             suffixTermList.insert( suffixTermList.end(), suffix_term_stack.top().begin(), suffix_term_stack.top().end() );
+            suffixTermList.push_back(suffix_term_stack.top() );
+            //pop stack
+            depth_stack.pop();
+            freq_stack.pop();
+            doc_item_stack.pop();
+            prefix_term_stack.pop();
+            suffix_term_stack.pop();
+          }
+          depth_stack.push( depth);
+          freq_stack.push(freq);
+          doc_item_stack.push( docItemList);
+          prefix_term_stack.push(prefixTermList);
+          //get the suffix term
+          uint32_t suffix_termid = termIdList[depth];
+          suffix_term_stack.push(std::make_pair(suffix_termid, freq) );
+          
+          if( termIdList.size() > maxLen_ ) continue;
+          std::vector<uint32_t> docIdList;
+          std::vector<uint32_t> tfInDocList;
+          idmlib::util::getIdAndCountList(docItemList, docIdList, tfInDocList);
+                              
+          std::vector<uint32_t> leftTermIdList;
+          std::vector<uint32_t> leftTermCountList;
+          idmlib::util::getIdAndCountList(prefixTermList, leftTermIdList, leftTermCountList);
+          
+          std::vector<uint32_t> rightTermIdList;
+          std::vector<uint32_t> rightTermCountList;
+          idmlib::util::getIdAndCountList(suffixTermList, rightTermIdList, rightTermCountList);
+          
+          SI lri(termIdList, freq);
+          SCI leftLC( leftTermIdList, leftTermCountList, freq, true);
+          SCI rightLC( rightTermIdList, rightTermCountList, freq, false);
+          int status = KPStatus::CANDIDATE;
+          if( freq<minFreq_ ) status = KPStatus::NON_KP;
+          else if( docIdList.size() < minDocFreq_ ) status = KPStatus::NON_KP;
+          else
+          {
+              status = scorer_->prefixTest(termIdList);
+          }
+          
+          if( status == KPStatus::NON_KP || status == KPStatus::RETURN )
+          {
+              continue;
+          }
+          if( status == KPStatus::KP )
+          {
+              insertKP_( termIdList, docIdList, tfInDocList, freq, leftTermIdList, leftTermCountList, rightTermIdList, rightTermCountList );
+              continue;
+          }
+          std::pair<bool, double> lcdResult = scorer_->test(lri, leftLC);
+          if( !lcdResult.first ) continue;
+          std::pair<bool, double> rcdResult = scorer_->test(lri, rightLC);
+          if( !rcdResult.first ) continue;
+          
+          CandidateItem htList(termIdList, docIdList, tfInDocList, freq, leftTermIdList, leftTermCountList,rightTermIdList, rightTermCountList );
+          hash_t hashId = hash_(termIdList);
+          htlWriter->append(hashId , htList );
+          if( termIdList.size() >= 2 )
+          {
+              {
+                  std::vector<uint32_t> vec(termIdList.begin(), termIdList.end()-1);
+                  Hash2HashItem item(hashId, 1);
+                  h2hWriter->append( hash_(vec), item);
+              }
+              {
+                  std::vector<uint32_t> vec(termIdList.begin()+1, termIdList.end());
+                  Hash2HashItem item(hashId, 2);
+                  h2hWriter->append( hash_(vec), item);
+              }
+          }
+          if( termIdList.size() >= 3 )
+          {
+              {
+                  std::vector<uint32_t> vec(termIdList.begin(), termIdList.begin()+1);
+                  Hash2HashItem item(hashId, 3);
+                  h2hWriter->append( hash_(vec), item);
+              }
+              {
+                  std::vector<uint32_t> vec(termIdList.end()-1, termIdList.end());
+                  Hash2HashItem item(hashId, 4);
+                  h2hWriter->append( hash_(vec), item);
+              }
+          }
+            
         }
             
             
