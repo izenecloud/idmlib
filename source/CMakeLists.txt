@@ -38,10 +38,6 @@ ${util_SRC}
 
 )
 
-TARGET_LINK_LIBRARIES(idmlib
-	${libs}
-)
-
 INSTALL(TARGETS idmlib
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
