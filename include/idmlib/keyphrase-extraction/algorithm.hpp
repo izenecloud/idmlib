@@ -914,6 +914,16 @@ private:
                 toInsert[i].first = docIdList[i];
                 toInsert[i].second = tfInDocList[i];
             }
+            //output for clustering
+//             std::string kp_str;
+//             KPStr.convertString(kp_str, izenelib::util::UString::UTF_8);
+//             std::cout<<"KKPPEE;{";
+//             for(uint32_t i=0;i<toInsert.size();i++)
+//             {
+//               std::cout<<toInsert[i].first<<" "<<toInsert[i].second<<",";
+//             }
+//             std::cout<<(lastDocId_+1)<<" \""<<kp_str<<"\"}"<<std::endl;
+            
             output_.output(KPStr, toInsert, toInsert.size(), score , leftTermIdList, leftTermCountList,rightTermIdList, rightTermCountList);
         }
     }

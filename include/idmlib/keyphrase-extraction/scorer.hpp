@@ -580,6 +580,15 @@ class LanguageScorer : public boost::noncopyable
             
             return result;
         }
+        
+        std::pair<bool, double> test(const SI& item,const SCI& left_sci, const SCI& right_sci)
+        {
+            //p1,p2, abcde, s1,s2
+            //compute p(a)*p(ab)*p(de)*p(e)
+            //entropy weight of p1,p2,s1,s2 = p(p1)*p(p1a)
+            //normalize all p() with log
+            
+        }
        
     private:
         void init_(const std::string& resPath)
@@ -856,6 +865,11 @@ class Scorer : public boost::noncopyable
 
             
             return result;
+        }
+        
+        std::pair<bool, double> test(const SI& item,const SCI& left_sci, const SCI& right_sci)
+        {
+            return langScorer_->test(item, left_sci, right_sci);
         }
         
         std::pair<bool, double> test(const SI& item,const SCI& citem)
