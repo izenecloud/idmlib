@@ -46,6 +46,23 @@ class IDMIdConverter
   {
     return ((id & (((uint32_t)(1))<<(sizeof(uint32_t)*8-1)))>0);
   }
+  
+  static uint64_t GetCNBigramId(const izenelib::util::UString& bigram_string)
+  {
+    if( bigram_string.length()!=2 ) return 0;
+    uint32_t id1 = GetId( bigram_string.substr(0,1) );
+    uint32_t id2 = GetId( bigram_string.substr(1,1) );
+    return make64UInt(id1, id2);
+    
+  }
+  
+  inline static uint64_t make64UInt(uint32_t int1, uint32_t int2)
+  {
+      uint64_t r = int1;
+      r = r<<32;
+      r += int2;
+      return r;
+  }
 };
 
 NS_IDMLIB_UTIL_END

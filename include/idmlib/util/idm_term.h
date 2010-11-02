@@ -22,6 +22,14 @@ NS_IDMLIB_UTIL_BEGIN
 
 struct IDMTerm
 {
+  IDMTerm()
+  {
+  }
+  
+  IDMTerm(const izenelib::util::UString& ptext, uint32_t pid, char ptag, uint32_t pposition)
+  : text(ptext), id(pid), tag(ptag), position(pposition)
+  {
+  }
   izenelib::util::UString text;
   uint32_t id;
   char tag;

@@ -85,6 +85,12 @@ class KPETermGroup
             }
             vec.resize(0);
         }
+        
+        static KPETermGroup& GetInstance()
+        {
+          static KPETermGroup term_group;
+          return term_group;
+        }
        
         void insert(uint32_t termId, uint32_t groupId)
         {

@@ -17,11 +17,11 @@ int main(int ac, char** av)
   std::string resource_path(av[1]);
   std::string file_dir(av[2]);
   typedef KPEOutput<true, false, false> OutputType ;
-  OutputType output(&Callback);
   IDMAnalyzer* analyzer = new IDMAnalyzer(WISEKMA_KNOWLEDGE);
   std::string work_dir = "./kpe_working";
   boost::filesystem::remove_all(work_dir);
-  KPEAlgorithm<OutputType>* kpe = new KPEAlgorithm<OutputType>(work_dir, resource_path, analyzer, output);
+  KPEAlgorithm<OutputType>* kpe = new KPEAlgorithm<OutputType>(work_dir, analyzer, &Callback);
+  kpe->load(resource_path);
   uint32_t doc_id = 1;
   directory_iterator end_itr; // default construction yields past-the-end
   for ( directory_iterator itr( file_dir );

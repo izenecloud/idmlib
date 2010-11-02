@@ -67,6 +67,17 @@ TARGET_LINK_LIBRARIES(kpe_scd_tool
 SET_TARGET_PROPERTIES(kpe_scd_tool PROPERTIES
 RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/testbin
 )
+
+ADD_EXECUTABLE(bce_trainer_cn
+bce_trainer_cn.cc
+)
+TARGET_LINK_LIBRARIES(bce_trainer_cn
+  ${libs}
+)
+
+SET_TARGET_PROPERTIES(bce_trainer_cn PROPERTIES
+RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/testbin
+)
     
     
 
