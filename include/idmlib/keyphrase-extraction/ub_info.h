@@ -67,7 +67,7 @@ class UBInfo
         //only for Chinese
         void load(const std::string& file)
         {
-          std::istream* ifs = new std::ifstream(file.c_str());
+          std::istream* ifs = idmlib::util::getResourceStream(file);
           std::string line;
           while ( getline ( *ifs,line ) )
           {

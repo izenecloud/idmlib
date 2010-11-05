@@ -9,15 +9,22 @@ void Callback(const izenelib::util::UString& str, uint32_t df, uint8_t score)
 {
   std::string s;
   str.convertString(s, izenelib::util::UString::UTF_8);
-  std::cout<<"["<<s<<"\t"<<df<<"]"<<std::endl;
+  std::cout<<"[KP:"<<s<<"\t"<<df<<"]"<<std::endl;
 }
 
 int main(int ac, char** av)
 {
   std::string resource_path(av[1]);
   std::string scd_file(av[2]);
+  uint32_t max_doc = 0;
+  if( ac >3 )
+  {
+    std::string s_count(av[3]);
+    max_doc = boost::lexical_cast<uint32_t>(s_count);
+  }
   typedef KPEOutput<true, false, false> OutputType ;
   IDMAnalyzer* analyzer = new IDMAnalyzer(WISEKMA_KNOWLEDGE);
+  analyzer->LoadT2SMapFile(resource_path+"/cs_ct");
   std::string work_dir = "./kpe_scd_working";
   boost::filesystem::remove_all(work_dir);
   KPEAlgorithm<OutputType>* kpe = new KPEAlgorithm<OutputType>(work_dir, analyzer, &Callback);
@@ -34,6 +41,11 @@ int main(int ac, char** av)
     if( lower.find("<docid>") == 0 )
     {
       doc_id++;
+      if( max_doc>0 && doc_id > max_doc ) break;
+      if( doc_id % 500 == 0 )
+      {
+        std::cout<<"Processing "<<doc_id<<std::endl;
+      }
       in_content = false;
     }
     else if(lower.find("<title>")==0)

@@ -30,6 +30,7 @@ FILE(GLOB dc_SRC
 
 
 ADD_LIBRARY(idmlib 
+${keyphrase_extraction_SRC}
 ${duplicate-detection_SRC}
 ${nec_SRC}
 ${query-suggestion_SRC}

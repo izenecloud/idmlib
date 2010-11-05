@@ -12,8 +12,10 @@
 
 #include <la/LA.h>
 #include <idmlib/idm_types.h>
+#include <boost/algorithm/string/trim.hpp>
 #include "idm_id_converter.h"
 #include "idm_term.h"
+#include "Util.hpp"
 NS_IDMLIB_UTIL_BEGIN
 
 
@@ -22,7 +24,7 @@ class IDMAnalyzer
 {
  public:
   IDMAnalyzer(const std::string& kma_resource_path)
-  :la_(new la::LA() )
+  :la_(new la::LA() ), t2s_set_(false)
   {
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
     ml_analyzer->setExtractSpecialChar(false, false);
@@ -44,9 +46,33 @@ class IDMAnalyzer
     delete la_;
   }
   
+  void LoadT2SMapFile(const std::string& file)
+  {
+    std::istream* t2s_ifs = idmlib::util::getResourceStream(file);
+    std::string line;
+    while( getline( *t2s_ifs, line) )
+    {
+      boost::algorithm::trim( line );
+      izenelib::util::UString uline(line, izenelib::util::UString::UTF_8);
+      t2s_map_.insert( uline[2], uline[0] );
+    }
+    delete t2s_ifs;
+    t2s_set_ = true;
+  }
+  
   void GetTermList(const izenelib::util::UString& text, la::TermList& term_list)
   {
     la_->process( text, term_list );
+    //do t_s translation
+    if(t2s_set_)
+    {
+      la::TermList::iterator it = term_list.begin();
+      while( it!= term_list.end() )
+      {
+        t2s_( it->text_ );
+        ++it;
+      }
+    }
   }
   
   void GetTermList(const izenelib::util::UString& text, std::vector<idmlib::util::IDMTerm>& term_list)
@@ -194,9 +220,25 @@ class IDMAnalyzer
       ++p;
     }
   }
+  
+ private:
+  void t2s_(izenelib::util::UString& content)
+  {
+    for(uint32_t i=0;i<content.length();i++)
+    {
+      izenelib::util::UCS2Char* p_char = t2s_map_.find(content[i]);
+      if( p_char != NULL )
+      {
+        content[i] = *p_char;
+      }
+    }
+  }
    
  private:
   la::LA* la_;
+  bool t2s_set_;
+  izenelib::am::rde_hash<izenelib::util::UCS2Char, izenelib::util::UCS2Char> t2s_map_;
+  
         
         
 };

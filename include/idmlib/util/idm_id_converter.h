@@ -41,6 +41,11 @@ class IDMIdConverter
     if( termId == 0 ) ++termId;
     return termId;
   }
+  
+  static uint32_t GetSpaceId()
+  {
+    return 0;
+  }
         
   static bool IsKP(uint32_t id)
   {
