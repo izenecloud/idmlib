@@ -65,7 +65,7 @@ int main(int ac, char** av)
     
     if( in_content )
     {
-      izenelib::util::UString uc(content, izenelib::util::UString::UTF_8);
+      izenelib::util::UString uc(content, izenelib::util::UString::CP949);
       kpe->insert( uc, doc_id);
     }
   }

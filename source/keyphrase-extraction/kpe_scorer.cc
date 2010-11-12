@@ -333,7 +333,7 @@ int KPEScorer::ub_de_verify_(uint32_t d, uint32_t e)
   double de_score = ub_de_score_(de);
   double d_score = ub_d_score_(d);
   double e_score = ub_e_score_(e);
-  std::cout<<"{DE_SCORE} "<<de_score<<","<<d_score<<","<<e_score<<std::endl;
+//   std::cout<<"{DE_SCORE} "<<de_score<<","<<d_score<<","<<e_score<<std::endl;
   return ub_aborde_score_verify_(de_score, e_score, d_score);
 }
 

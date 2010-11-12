@@ -1122,9 +1122,9 @@ private:
 //           if( !rcdResult.first ) continue;
           
           //debug output
-          std::cout<<lri.ToString(id_manager_)<<std::endl;
-          std::cout<<leftLC.ToString(id_manager_)<<std::endl;
-          std::cout<<rightLC.ToString(id_manager_)<<std::endl;
+//           std::cout<<lri.ToString(id_manager_)<<std::endl;
+//           std::cout<<leftLC.ToString(id_manager_)<<std::endl;
+//           std::cout<<rightLC.ToString(id_manager_)<<std::endl;
           std::pair<bool, double> scorer_result = scorer_->test(lri, leftLC, rightLC);
           if( !scorer_result.first ) continue;
           CandidateItem htList(termIdList, docIdList, tfInDocList, freq, leftTermIdList, leftTermCountList,rightTermIdList, rightTermCountList );
