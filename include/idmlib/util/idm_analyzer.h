@@ -93,6 +93,59 @@ class IDMAnalyzer
     }
   }
   
+  void GetTermList(const izenelib::util::UString& text, std::vector<izenelib::util::UString>& str_list, std::vector<uint32_t>& id_list)
+  {
+    la::TermList la_term_list;
+    GetTermList(text, la_term_list);
+    str_list.resize( la_term_list.size() );
+    id_list.resize( la_term_list.size() );
+    la::TermList::iterator it = la_term_list.begin();
+    uint32_t i=0;
+    while( it!= la_term_list.end() )
+    {
+      str_list[i] = it->text_;
+      id_list[i] = IDMIdConverter::GetId( it->text_, it->pos_ );
+      i++;
+      it++;
+    }
+  }
+  
+  void GetStringList(const izenelib::util::UString& text, std::vector<izenelib::util::UString>& str_list)
+  {
+    la::TermList la_term_list;
+    GetTermList(text, la_term_list);
+    str_list.resize( la_term_list.size() );
+    la::TermList::iterator it = la_term_list.begin();
+    uint32_t i=0;
+    while( it!= la_term_list.end() )
+    {
+      str_list[i] = it->text_;
+      i++;
+      it++;
+    }
+  }
+  
+  void GetFilteredStringList(const izenelib::util::UString& text, std::vector<izenelib::util::UString>& str_list)
+  {
+    la::TermList la_term_list;
+    GetTermList(text, la_term_list);
+    str_list.resize(0);
+    la::TermList::iterator it = la_term_list.begin();
+    while( it!= la_term_list.end() )
+    {
+      bool valid = true;
+      if( it->text_.length()==1 )
+      {
+        if( !it->text_.isKoreanChar(0) && !it->text_.isChineseChar(0) )
+        {
+          valid = false;
+        }
+      }
+      if( valid) str_list.push_back(it->text_);
+      it++;
+    }
+  }
+  
   void GetIdList(const izenelib::util::UString& text, std::vector<uint32_t>& id_list)
   {
     la::TermList la_term_list;
@@ -106,6 +159,45 @@ class IDMAnalyzer
       i++;
       it++;
     }
+  }
+  
+  void GetIdListForMatch(const izenelib::util::UString& text, std::vector<uint32_t>& id_list)
+  {
+    la::TermList la_term_list;
+    GetTermList(text, la_term_list);
+    id_list.resize( la_term_list.size() );
+    la::TermList::iterator it = la_term_list.begin();
+    izenelib::util::UString lastText;
+    bool bLastChinese = false;
+    while (it != la_term_list.end())
+    {
+      char tag = IDMTermTag::GetTermTag(it->pos_);
+      if( tag == IDMTermTag::ENG )
+      {
+//                             it->text_.toLowerString();
+      }
+      
+      if( tag != IDMTermTag::CHN )//is not chinese
+      {
+        uint32_t term_id = IDMIdConverter::GetId(it->text_, tag );
+        id_list.push_back(term_id);
+        bLastChinese = false;
+      }
+      else
+      {
+        if(bLastChinese)
+        {
+          izenelib::util::UString chnBigram(lastText);
+          chnBigram.append(it->text_);
+          uint32_t bigram_id = IDMIdConverter::GetId(chnBigram, IDMTermTag::CHN );
+          id_list.push_back(bigram_id);
+        }
+        bLastChinese = true;
+        lastText = it->text_;
+      }
+      it++;
+    }
+
   }
   
   void GetTgTermList(const izenelib::util::UString& text, std::vector<idmlib::util::IDMTerm>& term_list)

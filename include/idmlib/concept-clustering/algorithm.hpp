@@ -15,6 +15,7 @@
 #include "cc_types.h"
 #include <idmlib/util/StringDistance.hpp>
 #include <idmlib/util/Util.hpp>
+#include <idmlib/util/idm_analyzer.h>
 NS_IDMLIB_CC_BEGIN
 
 struct Parameters
@@ -31,7 +32,7 @@ struct Parameters
     double minContainess_;
 };
 
-template <class ConceptManagerType, class IDManagerType>
+template <class ConceptManagerType>
 class Algorithm : public boost::noncopyable
 {
 typedef uint32_t id_type;
@@ -42,8 +43,8 @@ typedef std::vector<boost::shared_ptr<ClusterRep> > OutputType;
 typedef idmlib::util::StringDistance<ConceptInfo, std::list<ConceptInfo> > distance_type;
 public:
 
-    Algorithm(ConceptManagerType* conceptManager, IDManagerType* idManager)
-    : conceptManager_(conceptManager), idManager_(idManager), isQuiet_(false)
+    Algorithm(ConceptManagerType* conceptManager, idmlib::util::IDMAnalyzer* analyzer)
+    : conceptManager_(conceptManager), analyzer_(analyzer), isQuiet_(false)
     {
 
     }
@@ -71,7 +72,7 @@ public:
     {
         std::vector<uint32_t> queryTermIdList;
         std::vector<string_type> queryTermStrList;
-        idManager_->getAnalysisTermList(query, queryTermStrList, queryTermIdList);
+        analyzer_->GetTermList(query, queryTermStrList, queryTermIdList);
         std::vector<ConceptInfo> conceptList;
         uint32_t docCount = docIdList.size();
         getConceptList_(inputPairList, docCount, totalDocCount, query, queryTermStrList, params, conceptList);
@@ -191,7 +192,8 @@ private:
             {
                 conceptList[index].score_ *= 0.33;
             }
-            idManager_->getAnalysisTermList(conceptList[index].name_,conceptList[index].termList_,conceptList[index].termIdList_);
+            analyzer_->GetTermList(conceptList[index].name_, conceptList[index].termList_, conceptList[index].termIdList_);
+            
             bool bInsert = false;
             if(docCount<50)
             {
@@ -660,7 +662,7 @@ private:
     
 private:
     ConceptManagerType* conceptManager_;
-    IDManagerType* idManager_;
+    idmlib::util::IDMAnalyzer* analyzer_;
     bool isQuiet_;            
     
     

@@ -16,6 +16,8 @@
 #include <util/izene_serialization.h>
 #include <util/functional.h>
 
+#include <idmlib/util/idm_analyzer.h>
+
 #include <algorithm>
 #include <queue>
 #include <vector>
@@ -63,10 +65,10 @@ public:
 	 * @param realTimeNum The number of reatime queries reminded in the result.
 	 * @param popularNum The number of popular queries reminded in the result.
 	 */
-	Reminder(IDManagerType* idManager, const std::string& path,
+	Reminder(idmlib::util::IDMAnalyzer* analyzer, const std::string& path,
 			size_t realTimeNum = DEFAULT_REAL_TIME_QUERY_NUM,
 			size_t popularNum = DEFAULT_POPULAR_QUERY_NUM) :
-		idManager_(idManager), remindQueryIndex_(path + "/remind.index"),
+		analyzer_(analyzer), remindQueryIndex_(path + "/remind.index"),
 				realTimeNum_(realTimeNum), popularNum_(popularNum)
 	{
 		//		backgroundLangModel_.reset(new LANG_MODEL_TYPE(path+"/back_lang.model"));
@@ -137,8 +139,8 @@ public:
 		{
 			std::vector<izenelib::util::UString> strList;
 			std::vector<uint32_t> termList;
-			idManager_->getAnalysisTermList(iter->first, strList, termList);
-
+      analyzer_->GetTermList(iter->first, strList, termList);
+			
 			for (uint32_t j = 0; j < termList.size(); j++)
 			{
 				izenelib::util::UString& ustrTerm = strList[j];
@@ -379,7 +381,7 @@ private:
 			float& score)
 	{
 		std::vector<uint32_t> termIdList;
-		idManager_->getAnalysisTermIdList(query, termIdList);
+    analyzer_->GetIdList(query, termIdList);
 		rankPopularQuery(termIdList, score);
 //		score = score * freq;
 		score=score*sqrt(freq+0.01);
@@ -391,7 +393,7 @@ private:
 			float& score)
 	{
 		std::vector<uint32_t> termIdList;
-		idManager_->getAnalysisTermIdList(query, termIdList);
+    analyzer_->GetIdList(query, termIdList);
 		rankRealTimeQuery(termIdList, score);
 		score *= freq;
 		float novelty = 0;
@@ -573,9 +575,9 @@ private:
 	bool isDuplicate(const izenelib::util::UString& candidate1, const izenelib::util::UString& candidate2)
 	{
 		std::vector<uint32_t> termIdList1;
-		idManager_->getAnalysisTermIdList(candidate1, termIdList1);
+    analyzer_->GetIdList(candidate1, termIdList1);
 		std::vector<uint32_t> termIdList2;
-		idManager_->getAnalysisTermIdList(candidate2, termIdList2);
+    analyzer_->GetIdList(candidate2, termIdList2);
 		{
 			for(size_t i=0;i<termIdList1.size();i++)
 			{
@@ -599,7 +601,7 @@ private:
 
 private:
 
-	IDManagerType* idManager_;
+	idmlib::util::IDMAnalyzer* analyzer_;
 	boost::unordered_map<uint32_t, uint32_t> latestSliceLangModel_;
 	boost::unordered_map<uint32_t, uint32_t> periodLangModel_;
 	boost::unordered_map<uint32_t, float> referEntropyScore_;
