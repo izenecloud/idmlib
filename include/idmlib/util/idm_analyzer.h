@@ -37,6 +37,8 @@ class IDMAnalyzer
     p_korean_analyzer->setCaseSensitive(true, false);
     ml_analyzer->setDefaultAnalyzer( korean_analyzer );
     boost::shared_ptr<la::Analyzer> char_analyzer(new la::CharAnalyzer() );
+    la::CharAnalyzer* p_char_analyzer = static_cast<la::CharAnalyzer*>(char_analyzer.get());
+    p_char_analyzer->setSeparateAll(false);
     ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, char_analyzer );
     la_->setAnalyzer( ml_analyzer );
   }
