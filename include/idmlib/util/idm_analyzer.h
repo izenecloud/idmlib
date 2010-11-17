@@ -64,7 +64,10 @@ class IDMAnalyzer
   
   void GetTermList(const izenelib::util::UString& text, la::TermList& term_list)
   {
-    la_->process( text, term_list );
+    {
+      boost::mutex::scoped_lock lock(la_mtx_);
+      la_->process( text, term_list );
+    }
     //do t_s translation
     if(t2s_set_)
     {
@@ -332,7 +335,7 @@ class IDMAnalyzer
   la::LA* la_;
   bool t2s_set_;
   izenelib::am::rde_hash<izenelib::util::UCS2Char, izenelib::util::UCS2Char> t2s_map_;
-  
+  boost::mutex la_mtx_;
         
         
 };
