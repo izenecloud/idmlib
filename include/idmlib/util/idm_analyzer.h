@@ -167,7 +167,7 @@ class IDMAnalyzer
   {
     la::TermList la_term_list;
     GetTermList(text, la_term_list);
-    id_list.resize( la_term_list.size() );
+    id_list.resize(0);
     la::TermList::iterator it = la_term_list.begin();
     izenelib::util::UString lastText;
     bool bLastChinese = false;
