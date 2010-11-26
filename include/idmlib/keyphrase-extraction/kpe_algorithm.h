@@ -18,6 +18,7 @@
 #include "../util/FSUtil.hpp"
 #include "../util/idm_term.h"
 #include "../util/idm_id_manager.h"
+#include <util/izene_log.h>
 NS_IDMLIB_KPE_BEGIN
 
 
@@ -171,7 +172,6 @@ public:
     
     void close()
     {
-      izenelib::util::ClockTimer clocker;
         releaseCachedHashItem_();
         pTermListWriter_->close();
         pHashWriter_->close();
@@ -195,8 +195,7 @@ public:
         uint64_t p = 0;
         typename HashSSFType::SorterType hsorter;
         hsorter.sort(hashItemPath);
-        std::cout<<"[KPE1] "<<clocker.elapsed()<<" seconds."<<std::endl;
-        clocker.restart();
+        MEMLOG("[KPE1] finished");
         typedef izenelib::am::SSFType<hash_t, uint32_t, uint8_t> HashItemCountSSFType;
         typename HashItemCountSSFType::WriterType hcwriter(dir_+"/HCWRITER");
         hcwriter.open();
@@ -244,12 +243,10 @@ public:
             
         }
         hcwriter.close();
-        std::cout<<"[KPE2] "<<clocker.elapsed()<<" seconds."<<std::endl;
-        clocker.restart();
+        MEMLOG("[KPE2] finished");
         typename TermListSSFType::SorterType fisorter;
         fisorter.sort(inputItemPath);
-        std::cout<<"[KPE3] "<<clocker.elapsed()<<" seconds."<<std::endl;
-        clocker.restart();
+        MEMLOG("[KPE3] finished");
         typedef izenelib::am::SSFType<uint32_t, uint32_t, uint32_t> SortedFragmentItemSSFType;
         typename SortedFragmentItemSSFType::WriterType swriter(dir_+"/SWRITER");
         swriter.open();
