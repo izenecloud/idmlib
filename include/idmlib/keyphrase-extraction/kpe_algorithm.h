@@ -234,7 +234,7 @@ public:
               }
               count += icount;
               p++;
-              LOG_PRINT("Hash", 100000);
+              LOG_PRINT("Hash", 1000000);
             }
             LOG_END();
             hcwriter.append(saveId, count);
@@ -316,19 +316,18 @@ public:
                     sItem.addPrefixTerm(prefixTermId);
                 
                 p++;
-                LOG_PRINT("Suffix", 10000);
+                LOG_PRINT("Suffix", 1000000);
             }
             LOG_END();
             std::vector<uint32_t> value;
             sItem.getValue(value);
             swriter.append(value);
             fireader.close();
-            std::cout<<"Total output: "<<swriter.getItemCount()<<std::endl;
+            MEMLOG("Total output: %lu",swriter.getItemCount() );
             idmlib::util::FSUtil::del(inputItemPath);
         }
         swriter.close();
-        std::cout<<"[KPE4] "<<clocker.elapsed()<<" seconds."<<std::endl;
-        clocker.restart();
+        MEMLOG("[KPE4] finished.");
         typename SortedFragmentItemSSFType::ReaderType reader(swriter.getPath());
         reader.open();
         std::vector<uint32_t> keyList;
@@ -367,7 +366,7 @@ public:
 //             data.push_back(boost::make_tuple(inc, tmpTermIdList, tmpDocItemList, tmpFreq, prefixTermList));
             data.push_back(boost::make_tuple(inc, completeTermIdList, tmpDocItemList, tmpFreq, prefixTermList));
             p++;
-            LOG_PRINT("AAA", 1000);
+            LOG_PRINT("AAA", 100000);
                 
         }
         aaa_clocker.restart();
@@ -376,9 +375,9 @@ public:
         LOG_END();
         hclWriter.close();
         h2hWriter.close();
-        std::cout<<"[KPE5] "<<clocker.elapsed()<<" seconds."<<std::endl;
-        std::cout<<"[KPE5-AAA] "<<aaa_time<<" seconds."<<std::endl;
-        clocker.restart();
+        MEMLOG("[KPE4] finished.");
+        MEMLOG("[KPE4-AAA] %f seconds.", aaa_time);
+        
         {
             typename CandidateSSFType::SorterType sorter;
             sorter.sort(hclWriter.getPath());
@@ -464,7 +463,7 @@ public:
                     //impossible, just a reminder.
                 }
                 p++;
-                LOG_PRINT("HashCount", 10000);
+                LOG_PRINT("HashCount", 100000);
             }
             hcltWriter.append(saveKey, output);
             LOG_END();
@@ -830,7 +829,7 @@ private:
       {
         if( cache_vec_.size() >= cache_size_ )
         {
-          std::cout<<"[FULL]"<<std::endl;
+//           std::cout<<"[FULL]"<<std::endl;
           //output
           for(uint32_t i=0;i<cache_vec_.size();i++)
           {

@@ -9,6 +9,8 @@ FIND_PACKAGE(izenelib REQUIRED
   febird
   am
   izene_util
+  procmeminfo
+  izene_log
   )
   
 FIND_PACKAGE(wisekma REQUIRED)

@@ -17,9 +17,12 @@
 #include <am/sequence_file/SimpleSequenceFile.hpp>
 
 NS_IDMLIB_KPE_BEGIN
-#define LOG_BEGIN(item, pReader) p=0; std::cout<<item<<" total: "<<(pReader)->getItemCount()<<" items"<<std::endl;
-#define LOG_PRINT(item, count) if( p % count == 0 ) { std::cout << "\r"; std::cout<<item<<" read "<<p<<" items"<<std::flush;}
-#define LOG_END() std::cout<<std::endl;
+// #define LOG_BEGIN(item, pReader) p=0; std::cout<<item<<" total: "<<(pReader)->getItemCount()<<" items"<<std::endl;
+// #define LOG_PRINT(item, count) if( p % count == 0 ) { std::cout << "\r"; std::cout<<item<<" read "<<p<<" items"<<std::flush;}
+// #define LOG_END() std::cout<<std::endl;
+#define LOG_BEGIN(item, pReader) p=0; MEMLOG( (item+std::string(" total: %lu items.")).c_str(), (pReader)->getItemCount());
+#define LOG_PRINT(item, count) if( p % count == 0 ) { MEMLOG( (item+ std::string(" processed %lu items.")).c_str(), p);}
+#define LOG_END() 
 typedef uint64_t hash_t;
 typedef std::vector<uint32_t> idvec_t;
 typedef izenelib::am::SSFType<uint32_t, uint32_t, uint16_t, true> TermListSSFType;
