@@ -23,6 +23,22 @@ NS_IDMLIB_UTIL_BEGIN
 class IDMAnalyzer
 {
  public:
+  IDMAnalyzer()
+  :la_(new la::LA() ), t2s_set_(false)
+  {
+    boost::shared_ptr<la::Analyzer> char_analyzer(new la::CharAnalyzer() );
+    la::CharAnalyzer* p_char_analyzer = static_cast<la::CharAnalyzer*>(char_analyzer.get());
+    p_char_analyzer->setSeparateAll(false);
+//     la_->setAnalyzer( char_analyzer );
+    
+    boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
+    ml_analyzer->setExtractSpecialChar(false, false);
+    ml_analyzer->setDefaultAnalyzer( char_analyzer );
+    
+    la_->setAnalyzer( ml_analyzer );
+  }
+   
+   
   IDMAnalyzer(const std::string& kma_resource_path)
   :la_(new la::LA() ), t2s_set_(false)
   {

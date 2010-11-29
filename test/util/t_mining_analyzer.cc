@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_SUITE(analyzer_test)
 
 BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 {
-  IDMAnalyzer analyzer(WISEKMA_KNOWLEDGE);
+  IDMAnalyzer analyzer;
 //   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
   izenelib::util::UString text("国家经 济 Sites year, 呵呵! United", izenelib::util::UString::UTF_8);
   uint32_t term_count = 9;
