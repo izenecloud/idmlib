@@ -88,7 +88,7 @@ class KPEScorer : public boost::noncopyable
   public:
     KPEScorer(idmlib::util::IDMAnalyzer* analyzer);
     ~KPEScorer();
-    void load(const std::string& resPath);
+    bool load(const std::string& resPath);
     
     int prefixTest(const std::vector<uint32_t>& termIdList);
     

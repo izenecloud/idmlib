@@ -1,16 +1,76 @@
 #!/usr/bin/env bash
-if [ $# -ne 2 ]
+username='jia.guo'
+password='izene123'
+
+usage() {
+  echo "usage: push-resource.sh <branchname> [--all|--kpe|--nec|--speller-support|--ise]"
+  echo "      <branchname> will include 'owl-1', 'owl-2', etc.."
+  echo "      no module specific means all(--all)"
+}
+
+if [ $# -lt 1 ] || [ $# -gt 2 ]
 then 
-    echo "usage: push-resource.sh <username> <branchname>"
-    exit 0
+  usage
+  exit 0
 fi
-if [ "$2" != "hawk" ]
+
+if [ $# -eq 1 ] && [ "$1" = '--help' ]
 then
-    echo 'now we just support hawk branch.'
-    exit 0
+  usage
+  exit 0
 fi
+
+
 home=`dirname "$0"`
 home=`cd "$home"; pwd`
-rsync -avP --delete "$home"/resource/nec/ "$1"@izenesoft.cn:/data/sf1r-resource/"$2"/resource/nec/
-rsync -avP --delete "$home"/resource/kpe/ "$1"@izenesoft.cn:/data/sf1r-resource/"$2"/resource/kpe/
+if [ -d "$home/package/resource" ]
+then
+    a=1
+else
+    mkdir -p "$home/package/resource"
+fi
+
+if [ $# -eq 2 ]
+then
+  dir_name=''
+  if [ "$2" = '--kpe' ]
+  then
+    dir_name='kpe'
+  elif [ "$2" = '--nec' ]
+  then
+    dir_name='nec'
+  elif [ "$2" = '--speller-support' ]
+  then
+    dir_name='speller-support'
+  elif [ "$2" = '--ise' ]
+  then
+    dir_name='ise'
+  elif [ "$2" = '--all' ]
+  then
+    dir_name='all'
+  fi
+  
+  if [ "$dir_name" != "" ] && [ "$dir_name" != "all" ]
+  then
+    echo "rsyncing $dir_name only, type the password: $password"
+    resource="$home/package/resource/$dir_name/"
+    chmod -R 777 "$resource"
+    rsync -azvP --delete "$resource" "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/$dir_name/"
+  elif [ "$dir_name" = "all" ]
+  then
+    echo "rsyncing all, type the password: $password"
+    resource="$home/package/resource/"
+    chmod -R 777 "$resource"
+    rsync -azvP --delete "$resource" "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/"
+  else
+    echo "unknow module: $2"
+    usage
+  fi
+else
+  echo "rsyncing all, type the password: $password"
+  resource="$home/package/resource/"
+  chmod -R 777 "$resource"
+  rsync -azvP --delete "$resource" "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/"
+fi
+
 

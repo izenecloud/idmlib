@@ -11,6 +11,7 @@
 #define IDM_KPEUBINFO_H_
 
 #include <idmlib/util/idm_id_converter.h>
+#include <idmlib/util/resource_util.h>
 #include <iostream>
 NS_IDMLIB_KPE_BEGIN
 
@@ -56,83 +57,89 @@ struct BigramInfo
 
 class UBInfo
 {
-    public:
-        
-        
-        UBInfo()
-        {
+public:
+    
+    
+  UBInfo()
+  {
+      
+  }
+  
+  //only for Chinese
+  bool load(const std::string& file)
+  {
+    std::istream* ifs = idmlib::util::getResourceStream(file);
+    if( ifs== NULL)
+    {
+      std::cerr<<"ubinfo load failed."<<std::endl;
+      return false;
+    }
+    std::string line;
+    while ( getline ( *ifs,line ) )
+    {
+      boost::algorithm::trim( line );
+      std::vector<std::string> items;
+      boost::algorithm::split( items, line, boost::algorithm::is_any_of(",") );
+      if( items[0] == "stat" )
+      {
+        unigram_count_ = boost::lexical_cast<uint64_t>(items[1]);
+        bigram_count_ = boost::lexical_cast<uint64_t>(items[2]);
+      }
+      else if( items[0] == "bigram" )
+      {
+        izenelib::util::UString bigram_text(items[1], izenelib::util::UString::UTF_8);
+        uint64_t bigram_id = idmlib::util::IDMIdConverter::GetCNBigramId(bigram_text);
+        uint64_t total_count = boost::lexical_cast<uint64_t>(items[2]);
+        uint64_t pa_count = boost::lexical_cast<uint64_t>(items[3]);
+        uint64_t ab_count = boost::lexical_cast<uint64_t>(items[4]);
+        uint64_t de_count = boost::lexical_cast<uint64_t>(items[5]);
+        uint64_t es_count = boost::lexical_cast<uint64_t>(items[6]);
+        BigramInfo bigram_info(total_count, pa_count, ab_count, de_count, es_count);
+        bigram_info_.insert(bigram_id, bigram_info);
+      }
+      else if( items[0] == "unigram" )
+      {
+        izenelib::util::UString unigram_text(items[1], izenelib::util::UString::UTF_8);
+        uint64_t unigram_id = idmlib::util::IDMIdConverter::GetId(unigram_text);
+        uint64_t total_count = boost::lexical_cast<uint64_t>(items[2]);
+        uint64_t p_count = boost::lexical_cast<uint64_t>(items[3]);
+        uint64_t a_count = boost::lexical_cast<uint64_t>(items[4]);
+        uint64_t b_count = boost::lexical_cast<uint64_t>(items[5]);
+        uint64_t d_count = boost::lexical_cast<uint64_t>(items[6]);
+        uint64_t e_count = boost::lexical_cast<uint64_t>(items[7]);
+        uint64_t s_count = boost::lexical_cast<uint64_t>(items[8]);
+        UnigramInfo unigram_info(total_count, p_count, a_count, b_count, d_count, e_count, s_count);
+        unigram_info_.insert(unigram_id, unigram_info);
+      }
+      
+    }
+    delete ifs;
+    return true;
+  }
+  
+  UnigramInfo* GetUnigramInfo( uint32_t id)
+  {
+    return unigram_info_.find(id);
+  }
+  
+  BigramInfo* GetBigramInfo( uint64_t id)
+  {
+    return bigram_info_.find(id);
+  }
+  
+  BigramInfo* GetBigramInfo( uint32_t id1, uint32_t id2)
+  {
+    uint64_t id = idmlib::util::IDMIdConverter::make64UInt(id1, id2);
+    return GetBigramInfo(id);
+  }
+    
+    
             
-        }
-        
-        //only for Chinese
-        void load(const std::string& file)
-        {
-          std::istream* ifs = idmlib::util::getResourceStream(file);
-          std::string line;
-          while ( getline ( *ifs,line ) )
-          {
-            boost::algorithm::trim( line );
-            std::vector<std::string> items;
-            boost::algorithm::split( items, line, boost::algorithm::is_any_of(",") );
-            if( items[0] == "stat" )
-            {
-              unigram_count_ = boost::lexical_cast<uint64_t>(items[1]);
-              bigram_count_ = boost::lexical_cast<uint64_t>(items[2]);
-            }
-            else if( items[0] == "bigram" )
-            {
-              izenelib::util::UString bigram_text(items[1], izenelib::util::UString::UTF_8);
-              uint64_t bigram_id = idmlib::util::IDMIdConverter::GetCNBigramId(bigram_text);
-              uint64_t total_count = boost::lexical_cast<uint64_t>(items[2]);
-              uint64_t pa_count = boost::lexical_cast<uint64_t>(items[3]);
-              uint64_t ab_count = boost::lexical_cast<uint64_t>(items[4]);
-              uint64_t de_count = boost::lexical_cast<uint64_t>(items[5]);
-              uint64_t es_count = boost::lexical_cast<uint64_t>(items[6]);
-              BigramInfo bigram_info(total_count, pa_count, ab_count, de_count, es_count);
-              bigram_info_.insert(bigram_id, bigram_info);
-            }
-            else if( items[0] == "unigram" )
-            {
-              izenelib::util::UString unigram_text(items[1], izenelib::util::UString::UTF_8);
-              uint64_t unigram_id = idmlib::util::IDMIdConverter::GetId(unigram_text);
-              uint64_t total_count = boost::lexical_cast<uint64_t>(items[2]);
-              uint64_t p_count = boost::lexical_cast<uint64_t>(items[3]);
-              uint64_t a_count = boost::lexical_cast<uint64_t>(items[4]);
-              uint64_t b_count = boost::lexical_cast<uint64_t>(items[5]);
-              uint64_t d_count = boost::lexical_cast<uint64_t>(items[6]);
-              uint64_t e_count = boost::lexical_cast<uint64_t>(items[7]);
-              uint64_t s_count = boost::lexical_cast<uint64_t>(items[8]);
-              UnigramInfo unigram_info(total_count, p_count, a_count, b_count, d_count, e_count, s_count);
-              unigram_info_.insert(unigram_id, unigram_info);
-            }
-            
-          }
-          delete ifs;
-        }
-       
-        UnigramInfo* GetUnigramInfo( uint32_t id)
-        {
-          return unigram_info_.find(id);
-        }
-        
-        BigramInfo* GetBigramInfo( uint64_t id)
-        {
-          return bigram_info_.find(id);
-        }
-        
-        BigramInfo* GetBigramInfo( uint32_t id1, uint32_t id2)
-        {
-          uint64_t id = idmlib::util::IDMIdConverter::make64UInt(id1, id2);
-          return GetBigramInfo(id);
-        }
-        
-        
-                
-    private:
-        uint64_t unigram_count_;
-        uint64_t bigram_count_;
-        izenelib::am::rde_hash<uint32_t, UnigramInfo > unigram_info_;
-        izenelib::am::rde_hash<uint64_t, BigramInfo > bigram_info_;
+private:
+    uint64_t unigram_count_;
+    uint64_t bigram_count_;
+    izenelib::am::rde_hash<uint32_t, UnigramInfo > unigram_info_;
+    izenelib::am::rde_hash<uint64_t, BigramInfo > bigram_info_;
 };
     
 

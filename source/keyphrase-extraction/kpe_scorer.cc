@@ -1,5 +1,5 @@
 #include <idmlib/keyphrase-extraction/kpe_scorer.h>
-
+#include <idmlib/util/resource_util.h>
 using namespace idmlib::kpe;
 
 KPEScorer::KPEScorer(idmlib::util::IDMAnalyzer* analyzer)
@@ -18,101 +18,77 @@ KPEScorer::~KPEScorer()
     if( nonAppearTerms_ != NULL ) delete nonAppearTerms_;
     if( midAppearTerms_ != NULL ) delete midAppearTerms_;
 }
-void KPEScorer::load(const std::string& resPath)
+bool KPEScorer::load(const std::string& resPath)
 {
-    namespace bfs = boost::filesystem;
-//             langScorer_ = new LanguageScorer(resPath, analyzer_);
-    swContainer_ = new idmlib::util::StopWordContainer();
-    {
-        std::istream* ifs = idmlib::util::getResourceStream(resPath+"/stop_words");
-        std::string word;
-        while ( getline ( *ifs,word ) )
-        {
-            boost::to_lower(word);
-            if ( word.length() >0 )
-            {
+  std::cout<<"[KPEScorer] loading KPE resources..."<<std::endl;
+  namespace bfs = boost::filesystem;
+  swContainer_ = new idmlib::util::StopWordContainer();
+  {
+      std::istream* ifs = idmlib::util::getResourceStream(resPath+"/stop_words");
+      if( ifs== NULL)
+      {
+        std::cerr<<"[KPEScorer] load stop_words failed."<<std::endl;
+        return false;
+      }
+      std::string word;
+      while ( getline ( *ifs,word ) )
+      {
+          boost::to_lower(word);
+          if ( word.length() >0 )
+          {
 //                       std::cout<<"add stop "<<word<<std::endl;
-                std::vector<uint32_t> termIdList;
-                analyzer_->GetIdList(izenelib::util::UString(word,izenelib::util::UString::UTF_8), termIdList);
+              std::vector<uint32_t> termIdList;
+              analyzer_->GetIdList(izenelib::util::UString(word,izenelib::util::UString::UTF_8), termIdList);
 
-                if( termIdList.size() > 0 )
-                {
-                    swContainer_->insert(termIdList);
-                }
-                
-            }
-        }
-        delete ifs;
-    }
+              if( termIdList.size() > 0 )
+              {
+                  swContainer_->insert(termIdList);
+              }
+              
+          }
+      }
+      delete ifs;
+  }
     
-//             std::string chnBigramPath = resPath+"/invalid_chn_bigram.dic";
-    std::istream* ifs = idmlib::util::getResourceStream(resPath+"/invalid_chn_bigram");
-//             if ( !boost::filesystem::exists ( dicPath ) )
-//             {
-//                 throw ResourceNotFoundException(chnBigramPath, "LabelRecognizer");
-//             }
-//             std::ifstream ifs ( chnBigramPath.c_str() );
-    std::string word;
-    while ( getline ( *ifs,word ) )
-    {
-        if ( word.length() >0 )
-        {
+  std::istream* ifs = idmlib::util::getResourceStream(resPath+"/invalid_chn_bigram");
+  if( ifs== NULL)
+  {
+    std::cerr<<"[KPEScorer] load invalid_chn_bigram failed."<<std::endl;
+    return false;
+  }
+  std::string word;
+  while ( getline ( *ifs,word ) )
+  {
+      if ( word.length() >0 )
+      {
 //                     std::cout<<"[KPE] "<<word<<std::endl;
-            if( word[0] == '@' ) break;
-            izenelib::util::UString ustr(word, izenelib::util::UString::UTF_8);
-            if( ustr.length()!= 2 ) continue;
-            if( !ustr.isChineseChar(0) ) continue;
-            if( !ustr.isChineseChar(1) ) continue;
-            izenelib::util::UString ustr1;
-            izenelib::util::UString ustr2;
-            ustr.substr(ustr1, 0,1);
-            ustr.substr(ustr2, 1,1);
-            uint32_t id1 = idmlib::util::IDMIdConverter::GetId(ustr1, idmlib::util::IDMTermTag::CHN);
-            uint32_t id2 = idmlib::util::IDMIdConverter::GetId(ustr2, idmlib::util::IDMTermTag::CHN);
-            uint64_t key = idmlib::util::make64UInt(id1, id2);
-            invalidChnBigram_->insert(key, 0);
-        }
-    }
-//             ifs.close();
-    delete ifs;
-    
-    arabicNumber_ = idmlib::util::IDMIdConverter::GetId( izenelib::util::UString("ARABICNUMBER",izenelib::util::UString::UTF_8) );
-    singleEnglishChar_ = idmlib::util::IDMIdConverter::GetId( izenelib::util::UString("SINGLEENGLISHCHAR",izenelib::util::UString::UTF_8) );
-    
-    ub_info_.load(resPath+"/ub_info");
-    
-//             {
-//                 std::istream* ifs = idmlib::util::getResourceStream(resPath+"/ubtrain");
-//                 std::string word;
-//                 uint32_t type;
-//                 uint64_t id;
-//                 float a;
-//                 float b;
-//                 float c;
-//                 float d;
-//                 while ( getline ( *ifs,word ) )
-//                 {
-//                     std::vector<std::string> items;
-//                     boost::algorithm::split( items, word, boost::algorithm::is_any_of(",") );
-//                     if( items.size() != 7 ) continue;
-//                     type = boost::lexical_cast<uint32_t>(items[0]);
-//                     id = boost::lexical_cast<uint64_t>(items[2]);
-//                     a = boost::lexical_cast<float>(items[3]);
-//                     b = boost::lexical_cast<float>(items[4]);
-//                     c = boost::lexical_cast<float>(items[5]);
-//                     d = boost::lexical_cast<float>(items[6]);
-//                     if( type == 1 )
-//                     {
-//                         bigramStat_.insert( id, boost::make_tuple(a,b,c,d) );
-//                     }
-//                     else if( type == 2 )
-//                     {
-//                         uint32_t termId = (uint32_t) id;
-//                         unigramStat_.insert( termId, boost::make_tuple(a,b,c,d) );
-//                     }
-//                 }
-//                 delete ifs;
-//             }
+          if( word[0] == '@' ) break;
+          izenelib::util::UString ustr(word, izenelib::util::UString::UTF_8);
+          if( ustr.length()!= 2 ) continue;
+          if( !ustr.isChineseChar(0) ) continue;
+          if( !ustr.isChineseChar(1) ) continue;
+          izenelib::util::UString ustr1;
+          izenelib::util::UString ustr2;
+          ustr.substr(ustr1, 0,1);
+          ustr.substr(ustr2, 1,1);
+          uint32_t id1 = idmlib::util::IDMIdConverter::GetId(ustr1, idmlib::util::IDMTermTag::CHN);
+          uint32_t id2 = idmlib::util::IDMIdConverter::GetId(ustr2, idmlib::util::IDMTermTag::CHN);
+          uint64_t key = idmlib::util::make64UInt(id1, id2);
+          invalidChnBigram_->insert(key, 0);
+      }
+  }
+  delete ifs;
+  
+  arabicNumber_ = idmlib::util::IDMIdConverter::GetId( izenelib::util::UString("ARABICNUMBER",izenelib::util::UString::UTF_8) );
+  singleEnglishChar_ = idmlib::util::IDMIdConverter::GetId( izenelib::util::UString("SINGLEENGLISHCHAR",izenelib::util::UString::UTF_8) );
+  
+  if(!ub_info_.load(resPath+"/ub_info"))
+  {
+    std::cerr<<"[KPEScorer] ubinfo load failed."<<std::endl;
+    return false;
+  }
+  std::cout<<"[KPEScorer] loading KPE resources finished."<<std::endl;
+  return true;
 }
 
 int KPEScorer::prefixTest(const std::vector<uint32_t>& termIdList)

@@ -171,6 +171,15 @@ int main(int ac, char** av)
   std::string working_path;
   if (vm.count("working-path")) {
     working_path = vm["working-path"].as<std::string>();
+    try
+    {
+      boost::filesystem::remove_all(working_path);
+    }
+    catch(std::exception& ex)
+    {
+      std::cerr<<"delete "<<working_path<<" error"<<std::endl;
+      return -1;
+    }
     std::cout << "working-path: " << working_path <<std::endl;
   } 
   else {
@@ -186,12 +195,18 @@ int main(int ac, char** av)
 
   typedef KPEOutput<true, false, false> OutputType ;
   typedef OutputType::function_type function_type ;
-  analyzer->LoadT2SMapFile(resource_path+"/cs_ct");
-  boost::filesystem::remove_all(working_path);
+  if( !analyzer->LoadT2SMapFile(resource_path+"/cs_ct") )
+  {
+    return -1;
+  }
+  
   FileKPEWriter file_writer(output_file, encoding);
   function_type callback_func = boost::bind( &FileKPEWriter::Callback, &file_writer, _1, _2, _3);
   KPEAlgorithm<OutputType>* kpe = new KPEAlgorithm<OutputType>(working_path, analyzer, callback_func);
-  kpe->load(resource_path);
+  if( !kpe->load(resource_path) )
+  {
+    return -1;
+  }
   
   uint32_t docid = 0;
   

@@ -73,14 +73,22 @@ public:
       cache_vec_.resize(0);
     }
     
-    void load(const std::string& res_ath)
+    bool load(const std::string& res_ath)
     {
       if( scorer_ == NULL )
       {
         scorer_ = new ScorerType(analyzer_);
-        scorer_->load(res_ath);
+        bool b = scorer_->load(res_ath);
+        if(!b)
+        {
+          std::cerr<<"[KPE] resource load failed"<<std::endl;
+          delete scorer_;
+          scorer_ = NULL;
+          return false;
+        }
         outside_scorer_ = false;
       }
+      return true;
     }
     
     void set_scorer(ScorerType* scorer)

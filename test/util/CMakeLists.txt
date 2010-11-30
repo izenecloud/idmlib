@@ -45,3 +45,14 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
     )
   ADD_TEST(ANALYZER "${IDMLIB_SOURCE_DIR}/testbin/t_analyzer")
 ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+
+ADD_EXECUTABLE(resource_generate
+resource_generate.cc
+)
+TARGET_LINK_LIBRARIES(resource_generate
+  ${libs}
+)
+
+SET_TARGET_PROPERTIES(resource_generate PROPERTIES
+RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
+)

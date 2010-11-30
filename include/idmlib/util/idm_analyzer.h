@@ -12,6 +12,7 @@
 
 #include <la/LA.h>
 #include <idmlib/idm_types.h>
+#include <idmlib/util/resource_util.h>
 #include <boost/algorithm/string/trim.hpp>
 #include "idm_id_converter.h"
 #include "idm_term.h"
@@ -64,9 +65,14 @@ class IDMAnalyzer
     delete la_;
   }
   
-  void LoadT2SMapFile(const std::string& file)
+  bool LoadT2SMapFile(const std::string& file)
   {
     std::istream* t2s_ifs = idmlib::util::getResourceStream(file);
+    if( t2s_ifs==NULL)
+    {
+      std::cerr<<"Load t2s file failed, check the resource file."<<std::endl;
+      return false;
+    }
     std::string line;
     while( getline( *t2s_ifs, line) )
     {
@@ -76,6 +82,7 @@ class IDMAnalyzer
     }
     delete t2s_ifs;
     t2s_set_ = true;
+    return true;
   }
   
   void GetTermList(const izenelib::util::UString& text, la::TermList& term_list)

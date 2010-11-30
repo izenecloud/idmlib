@@ -10,6 +10,7 @@
 #include <string>
 #include <idmlib/nec/NameEntityDict.h>
 #include <idmlib/util/Util.hpp>
+#include <idmlib/util/resource_util.h>
 namespace idmlib
 {
 
@@ -33,29 +34,29 @@ hash_set<std::string> NameEntityDict::namePrefix;
 void NameEntityDict::loadSuffix(std::string& path, hash_set<std::string>& suffixSet)
 {
 	if (suffixSet.size() == 0)
-		{
-            std::istream* inStream = idmlib::util::getResourceStream(path);
-// 			std::ifstream inStream(path.c_str());
-			if (!inStream)
-			{
-				return;
-			}
-			std::string line;
-			while(std::getline(*inStream, line))
-			{
-				if (line.length() > 0)
-				{
-					std::transform(line.begin(), line.end(), line.begin(), ::tolower);
-					if(line[line.length()-1]=='\r')
-					{
-						line=line.substr(0, line.length()-1);
-					}
-					suffixSet.insert(line);
-				}
-			}
-            delete inStream;
+  {
+    std::istream* inStream = idmlib::util::getResourceStream(path);
+    if (inStream==NULL)
+    {
+      std::cerr<<"load ner resource "<<path<<" failed";
+      return;
+    }
+    std::string line;
+    while(std::getline(*inStream, line))
+    {
+      if (line.length() > 0)
+      {
+        std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+        if(line[line.length()-1]=='\r')
+        {
+          line=line.substr(0, line.length()-1);
+        }
+        suffixSet.insert(line);
+      }
+    }
+          delete inStream;
 // 			inStream.close();
-		}
+  }
 }
 
 void NameEntityDict::loadLocSuffix(std::string& path)
