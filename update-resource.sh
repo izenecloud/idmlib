@@ -1,28 +1,69 @@
 #!/usr/bin/env bash
-if [ $# -ne 2 ]
+username='jia.guo'
+password='izene123'
+
+usage() {
+  echo "usage: update-resource.sh <branchname> [--all|--kpe|--nec|--speller-support|--ise]"
+  echo "      <branchname> will include 'owl-1', 'owl-2', etc.."
+  echo "      no module specific means all(--all)"
+}
+
+if [ $# -lt 1 ] || [ $# -gt 2 ]
 then 
-    echo "usage: update-resource.sh <username> <branchname>"
-    exit 0
+  usage
+  exit 0
 fi
-if [ "$2" != "hawk" ]
+
+if [ $# -eq 1 ] && [ "$1" = '--help' ]
 then
-    echo 'now we just support hawk branch.'
-    exit 0
+  usage
+  exit 0
 fi
+
+
 home=`dirname "$0"`
 home=`cd "$home"; pwd`
-
-datestr=`date +%Y%m%d%H%M%S`
-
-if [ -d "$home/resource" ]
+if [ -d "$home/package/resource" ]
 then
     a=1
 else
-    mkdir "$home/resource"
+    mkdir -p "$home/package/resource"
 fi
 
-#cp -r "$home"/resource "$home/resource-$datestr"
-
-rsync -avP --delete "$1"@izenesoft.cn:/data/sf1r-resource/"$2"/resource/nec/ "$home"/resource/nec/
-rsync -avP --delete "$1"@izenesoft.cn:/data/sf1r-resource/"$2"/resource/kpe/ "$home"/resource/kpe/
+if [ $# -eq 2 ]
+then
+  dir_name=''
+  if [ "$2" = '--kpe' ]
+  then
+    dir_name='kpe'
+  elif [ "$2" = '--nec' ]
+  then
+    dir_name='nec'
+  elif [ "$2" = '--speller-support' ]
+  then
+    dir_name='speller-support'
+  elif [ "$2" = '--ise' ]
+  then
+    dir_name='ise'
+  elif [ "$2" = '--all' ]
+  then
+    dir_name='all'
+  fi
+  
+  if [ "$dir_name" != "" ] && [ "$dir_name" != "all" ]
+  then
+    echo "rsyncing $dir_name only, type the password: $password"
+    rsync -azvP --delete "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/$dir_name/" "$home/package/resource/$dir_name/"
+  elif [ "$dir_name" = "all" ]
+  then
+    echo "rsyncing all, type the password: $password"
+    rsync -azvP --delete "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/" "$home/package/resource/"
+  else
+    echo "unknow module: $2"
+    usage
+  fi
+else
+  echo "rsyncing all, type the password: $password"
+  rsync -azvP --delete "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/" "$home/package/resource/"
+fi
 
