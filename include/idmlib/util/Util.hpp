@@ -101,6 +101,32 @@ inline static void getIdAndCountList(std::vector<id2count_t>& input, std::vector
     }
 }
 
+inline static void accumulateList(std::vector<id2count_t>& input)
+{
+  std::sort(input.begin(), input.end());
+  std::vector<id2count_t> another;
+  for(uint32_t i=0;i<input.size();i++)
+  {
+      if(i==0)
+      {
+          another.push_back(input[i]);
+      }
+      else
+      {
+          if( another.back().first != input[i].first )
+          {
+              another.push_back(input[i]);
+          }
+          else
+          {
+              another.back().second += input[i].second;
+          }
+      }
+  }
+  input.resize(0);
+  input.insert(input.end(), another.begin(), another.end() );
+}
+
 NS_IDMLIB_UTIL_END
 
 #endif

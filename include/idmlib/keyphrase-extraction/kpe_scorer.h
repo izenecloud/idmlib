@@ -85,6 +85,7 @@ public:
 
 class KPEScorer : public boost::noncopyable
 {
+  typedef std::pair<uint32_t, uint32_t> id2count_t;
   public:
     KPEScorer(idmlib::util::IDMAnalyzer* analyzer);
     ~KPEScorer();
@@ -153,11 +154,11 @@ class KPEScorer : public boost::noncopyable
     
     int ub_abcde_verify_(uint32_t a, uint32_t b, uint32_t d, uint32_t e);
     
-    int ub_context_verify_(const std::vector<uint32_t>& termid_list, const std::vector<uint32_t>& count_list, uint32_t id1, uint32_t id2, uint32_t f, boost::function<double (uint32_t) > u_scorer, boost::function<double (uint32_t, uint32_t) > b_scorer );
+    int ub_context_verify_(const std::vector<id2count_t>& term_list, uint32_t id1, uint32_t id2, uint32_t f, boost::function<double (uint32_t) > u_scorer, boost::function<double (uint32_t, uint32_t) > b_scorer );
     
-    int ub_pab_verify_(const std::vector<uint32_t>& p_termid_list, const std::vector<uint32_t>& p_count_list, uint32_t a, uint32_t b, uint32_t f);
+    int ub_pab_verify_(const std::vector<id2count_t>& p_term_list, uint32_t a, uint32_t b, uint32_t f);
     
-    int ub_sed_verify_(const std::vector<uint32_t>& s_termid_list, const std::vector<uint32_t>& s_count_list, uint32_t e, uint32_t d, uint32_t f);
+    int ub_sed_verify_(const std::vector<id2count_t>& s_term_list, uint32_t e, uint32_t d, uint32_t f);
     
     void ub_context_weight_(const std::vector<double>& pors_score_list, const std::vector<double>& paorse_score_list, std::vector<double>& result_weight_list);
     

@@ -38,7 +38,7 @@ typedef std::pair<uint32_t, uint32_t> id2count_t;
 typedef boost::tuple<uint32_t, std::vector<uint32_t> ,std::vector<id2count_t>, 
         uint32_t, std::vector<id2count_t > > data_t;
 
-typedef boost::tuple<idvec_t, idvec_t, idvec_t, uint32_t, idvec_t, idvec_t, idvec_t, idvec_t > CandidateItem;
+typedef boost::tuple<idvec_t, std::vector<id2count_t>, uint32_t, std::vector<id2count_t>, std::vector<id2count_t> > CandidateItem;
     
 typedef izenelib::am::SSFType<hash_t, CandidateItem, uint32_t> CandidateSSFType;
 
@@ -56,6 +56,9 @@ typedef boost::tuple<uint32_t, uint32_t, uint32_t, uint32_t> HashCountListItem;
 
 typedef izenelib::am::SSFType<hash_t, HashCountListItem, uint8_t> HashCountListSSFType;
 
+typedef boost::tuple<izenelib::util::UString, std::vector<id2count_t>, uint8_t, std::vector<id2count_t>, std::vector<id2count_t> > KPItem;
+
+typedef izenelib::am::SSFType<hash_t, KPItem, uint32_t> KPSSFType;
 
 
 typedef izenelib::am::SimpleSequenceFileMerger<hash_t, CandidateItem, HashCountListItem, uint32_t, uint8_t> merger_t;        

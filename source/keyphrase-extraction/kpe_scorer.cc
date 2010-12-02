@@ -363,18 +363,18 @@ int KPEScorer::ub_abcde_verify_(uint32_t a, uint32_t b, uint32_t d, uint32_t e)
   return KPStatus::CANDIDATE;
 }
 
-int KPEScorer::ub_context_verify_(const std::vector<uint32_t>& termid_list, const std::vector<uint32_t>& count_list, uint32_t id1, uint32_t id2, uint32_t f, boost::function<double (uint32_t) > u_scorer, boost::function<double (uint32_t, uint32_t) > b_scorer )
+int KPEScorer::ub_context_verify_(const std::vector<id2count_t>& term_list, uint32_t id1, uint32_t id2, uint32_t f, boost::function<double (uint32_t) > u_scorer, boost::function<double (uint32_t, uint32_t) > b_scorer )
 {
-  std::vector<double> pors_score_list(termid_list.size()+1);
-  std::vector<double> b_score_list(termid_list.size()+1);
-  std::vector<double> prob_list(termid_list.size()+1);
+  std::vector<double> pors_score_list(term_list.size()+1);
+  std::vector<double> b_score_list(term_list.size()+1);
+  std::vector<double> prob_list(term_list.size()+1);
   uint32_t sum = 0;
-  for( uint32_t i=0;i<termid_list.size();i++)
+  for( uint32_t i=0;i<term_list.size();i++)
   {
-    pors_score_list[i] = u_scorer(termid_list[i]);
-    b_score_list[i] = b_scorer(termid_list[i], id1 );
-    prob_list[i] = (double) count_list[i] / f;
-    sum += count_list[i];
+    pors_score_list[i] = u_scorer(term_list[i].first);
+    b_score_list[i] = b_scorer(term_list[i].first, id1 );
+    prob_list[i] = (double) term_list[i].second / f;
+    sum += term_list[i].second;
   }
   pors_score_list[pors_score_list.size()-1] = u_scorer(idmlib::util::IDMIdConverter::GetSpaceId());
   b_score_list[b_score_list.size()-1] = b_scorer(idmlib::util::IDMIdConverter::GetSpaceId(), id1);
@@ -388,18 +388,18 @@ int KPEScorer::ub_context_verify_(const std::vector<uint32_t>& termid_list, cons
   else return KPStatus::NON_KP;
 }
 
-int KPEScorer::ub_pab_verify_(const std::vector<uint32_t>& p_termid_list, const std::vector<uint32_t>& p_count_list, uint32_t a, uint32_t b, uint32_t f)
+int KPEScorer::ub_pab_verify_(const std::vector<id2count_t>& p_term_list, uint32_t a, uint32_t b, uint32_t f)
 {
   boost::function<double (uint32_t) > u_scorer = boost::bind( &KPEScorer::ub_p_score_, this, _1);
   boost::function<double (uint32_t, uint32_t) > b_scorer = boost::bind( &KPEScorer::ub_pa_score_, this, _1, _2);
-  return ub_context_verify_(p_termid_list, p_count_list, a, b, f, u_scorer, b_scorer);
+  return ub_context_verify_(p_term_list, a, b, f, u_scorer, b_scorer);
 }
 
-int KPEScorer::ub_sed_verify_(const std::vector<uint32_t>& s_termid_list, const std::vector<uint32_t>& s_count_list, uint32_t e, uint32_t d, uint32_t f)
+int KPEScorer::ub_sed_verify_(const std::vector<id2count_t>& s_term_list, uint32_t e, uint32_t d, uint32_t f)
 {
   boost::function<double (uint32_t) > u_scorer = boost::bind( &KPEScorer::ub_s_score_, this, _1);
   boost::function<double (uint32_t, uint32_t) > b_scorer = boost::bind( &KPEScorer::ub_se_score_, this, _1, _2);
-  return ub_context_verify_(s_termid_list, s_count_list, e, d, f, u_scorer, b_scorer);
+  return ub_context_verify_(s_term_list, e, d, f, u_scorer, b_scorer);
 }
 
 void KPEScorer::ub_context_weight_(const std::vector<double>& pors_score_list, const std::vector<double>& paorse_score_list, std::vector<double>& result_weight_list)
@@ -577,7 +577,7 @@ std::pair<bool, double> KPEScorer::test(const SI& item,const SCI& left_citem, co
     return result;//not KPE
   }
   
-  int pab_status = ub_pab_verify_(left_citem.termid_list, left_citem.count_list, a, b, item.freq);
+  int pab_status = ub_pab_verify_(left_citem.term_list, a, b, item.freq);
   if( pab_status == KPStatus::KP )
   {
     result.first = true;
@@ -589,7 +589,7 @@ std::pair<bool, double> KPEScorer::test(const SI& item,const SCI& left_citem, co
     return result;//not KPE
   }
   
-  int sed_status = ub_sed_verify_(right_citem.termid_list, right_citem.count_list, e, d, item.freq);
+  int sed_status = ub_sed_verify_(right_citem.term_list, e, d, item.freq);
   if( sed_status == KPStatus::KP )
   {
     result.first = true;

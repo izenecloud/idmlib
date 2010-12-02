@@ -27,10 +27,8 @@ public:
     (const string_type&
     , const std::vector<id2count_t>&
     , uint8_t
-    , const std::vector<uint32_t>& leftTermIdList
-    , const std::vector<uint32_t>& leftTermCountList
-    , const std::vector<uint32_t>& rightTermIdList
-    , const std::vector<uint32_t>& rightTermCountList) > function_type;
+    , const std::vector<id2count_t>& leftTermList
+    , const std::vector<id2count_t>& rightTermList) > function_type;
     enum {NEED_DF = true};
     enum {NEED_DOC = true};
     KPEOutput(function_type function)
@@ -43,12 +41,10 @@ public:
     , const std::vector<id2count_t>& id2countList
     , uint32_t df
     , uint8_t score
-    , const std::vector<uint32_t>& leftTermIdList
-    , const std::vector<uint32_t>& leftTermCountList
-    , const std::vector<uint32_t>& rightTermIdList
-    , const std::vector<uint32_t>& rightTermCountList)
+    , const std::vector<id2count_t>& leftTermList
+    , const std::vector<id2count_t>& rightTermList)
     {
-        function_(str, id2countList, score, leftTermIdList, leftTermCountList, rightTermIdList, rightTermCountList);
+        function_(str, id2countList, score, leftTermList, rightTermList);
     }
 private:    
     function_type function_;
@@ -73,10 +69,8 @@ public:
     , const std::vector<id2count_t>& id2countList
     , uint32_t df
     , uint8_t score
-    , const std::vector<uint32_t>& leftTermIdList
-    , const std::vector<uint32_t>& leftTermCountList
-    , const std::vector<uint32_t>& rightTermIdList
-    , const std::vector<uint32_t>& rightTermCountList)
+    , const std::vector<id2count_t>& leftTermList
+    , const std::vector<id2count_t>& rightTermList)
     {
         function_(str, score);
     }
@@ -103,10 +97,8 @@ public:
     , const std::vector<id2count_t>& id2countList
     , uint32_t df
     , uint8_t score
-    , const std::vector<uint32_t>& leftTermIdList
-    , const std::vector<uint32_t>& leftTermCountList
-    , const std::vector<uint32_t>& rightTermIdList
-    , const std::vector<uint32_t>& rightTermCountList)
+    , const std::vector<id2count_t>& leftTermList
+    , const std::vector<id2count_t>& rightTermList)
     {
         function_(str, df, score);
     }

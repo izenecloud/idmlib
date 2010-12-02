@@ -35,49 +35,47 @@ NS_IDMLIB_KPE_BEGIN
 class ScorerContextItem
 {
     public:
-        ScorerContextItem():termid_list(),count_list()
+        ScorerContextItem():term_list()
         {
         }
         
-        ScorerContextItem(const std::vector<uint32_t>& termIdList, 
-        const std::vector<uint32_t>& contextCountList):
-        termid_list(termIdList),count_list(contextCountList)
+        ScorerContextItem(const std::vector<std::pair<uint32_t, uint32_t> >& iterm_list)
+        :term_list(iterm_list)
         {
         }
         
-        ScorerContextItem(const std::vector<uint32_t>& termIdList, const std::vector<uint32_t>& contextCountList, 
+        ScorerContextItem(const std::vector<std::pair<uint32_t, uint32_t> >& iterm_list, 
         const std::vector<double>& weightList):
-        termid_list(termIdList),count_list(contextCountList)
+        term_list(iterm_list), weight_list(weightList)
         {
         }
 
-        std::string ToString(idmlib::util::IDMIdManager* id_manager) const
-        {
-          std::string result = "{SCI}";
-          for(uint32_t i=0;i<termid_list.size();i++)
-          {
-              izenelib::util::UString ustr;
-              bool b = id_manager->GetStringById(termid_list[i], ustr);
-              if(b)
-              {
-                  std::string str;
-                  ustr.convertString(str, izenelib::util::UString::UTF_8);
-                  result += str+":"+boost::lexical_cast<std::string>(count_list[i])+"|";
-              }
-              else
-              {
-                  result += boost::lexical_cast<std::string>(termid_list[i])+":"+boost::lexical_cast<std::string>(count_list[i])+"|";
-              }
-          }
-          return result;
-        }
+//         std::string ToString(idmlib::util::IDMIdManager* id_manager) const
+//         {
+//           std::string result = "{SCI}";
+//           for(uint32_t i=0;i<termid_list.size();i++)
+//           {
+//               izenelib::util::UString ustr;
+//               bool b = id_manager->GetStringById(termid_list[i], ustr);
+//               if(b)
+//               {
+//                   std::string str;
+//                   ustr.convertString(str, izenelib::util::UString::UTF_8);
+//                   result += str+":"+boost::lexical_cast<std::string>(count_list[i])+"|";
+//               }
+//               else
+//               {
+//                   result += boost::lexical_cast<std::string>(termid_list[i])+":"+boost::lexical_cast<std::string>(count_list[i])+"|";
+//               }
+//           }
+//           return result;
+//         }
         
 
         
         
     public:
-        std::vector<uint32_t> termid_list;
-        std::vector<uint32_t> count_list;
+        std::vector<std::pair<uint32_t, uint32_t> > term_list;
         std::vector<double> weight_list;
 
 };
