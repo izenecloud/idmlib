@@ -107,9 +107,16 @@ public:
         }
         std::vector<idmlib::util::IDMTerm> term_list;
         analyzer_->GetTgTermList(article, term_list );
-        if( term_list.empty() ) return;
-        uint32_t begin = 0;
-        while( addTerms_(docId, term_list, begin) ) {}
+        if( !term_list.empty() )
+        {
+          uint32_t begin = 0;
+          while( addTerms_(docId, term_list, begin) ) {}
+        }
+        if( docId != last_doc_id_ )
+        {
+            setDocCount_( getDocCount() + 1 );
+        }
+        last_doc_id_ = docId;
     }
     
     void close()
@@ -800,12 +807,7 @@ private:
 
         
         incTermCount_(increase);
-        if( docId != last_doc_id_ )
-        {
-            setDocCount_( getDocCount() + 1 );
-        }
-
-        last_doc_id_ = docId;
+        
 
 
     }
