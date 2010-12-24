@@ -49,6 +49,7 @@ int main(int ac, char** av)
     ("kma-path,K", po::value<std::string>(), "if we want to process Korean collection, specify this kma path")
     ("working-path,W", po::value<std::string>(), "temp working path used for kpe, default: ./kpe_scd_working")
     ("max-doc,M", po::value<uint32_t>(), "max doc count which will be processed.")
+    ("exclude-file,X", po::value<std::string>(), "exclude scd file name list")
   ;
   std::string default_working_path = "./kpe_scd_working";
   izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8;
@@ -70,6 +71,20 @@ int main(int ac, char** av)
     return -1;
   }
   
+  std::string exclude_file;
+  if (vm.count("exclude-file")) {
+    exclude_file = vm["exclude-file"].as<std::string>();
+    std::cout << "exclude-file: " << exclude_file <<std::endl;
+  } 
+  izenelib::am::rde_hash<std::string, bool> exclude_map;
+  std::ifstream ifs(exclude_file.c_str());
+  std::string line;
+  while ( getline ( ifs,line ) )
+  {
+    exclude_map.insert(line, 1);
+  }
+  ifs.close();
+  
   
   std::string scd_path;
   std::vector<std::string> scdfile_list;
@@ -85,7 +100,11 @@ int main(int ac, char** av)
       for (directory_iterator itr(scd_path); itr != kItrEnd; ++itr)
       {
           std::string file_name = itr->path().filename();
-
+          if( exclude_map.find(file_name) )
+          {
+            std::cout<<file_name<<" in exclude list."<<std::endl;
+            continue;
+          }
           if (izenelib::util::ScdParser::checkSCDFormat(file_name) )
           {
             izenelib::util::SCD_TYPE scd_type = izenelib::util::ScdParser::checkSCDType(file_name);
@@ -157,6 +176,8 @@ int main(int ac, char** av)
     std::cerr << desc << std::endl;
     return -1;
   }
+  
+  
   
   idmlib::util::IDMAnalyzer* analyzer = NULL;
   if (vm.count("kma-path")) {
@@ -253,6 +274,14 @@ int main(int ac, char** av)
   }
  
   kpe->close();
+  std::ofstream ofs(exclude_file.c_str());
+  ofs<<std::endl;
+  for(uint32_t i=0;i<scdfile_list.size();i++)
+  {
+    boost::filesystem::path p(scdfile_list[i]);
+    ofs<<p.filename()<<std::endl;
+  }
+  ofs.close();
   delete kpe;
   delete analyzer;
   boost::filesystem::remove_all(working_path);
