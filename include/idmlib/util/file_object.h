@@ -5,6 +5,8 @@
 #include <string>
 #include <iostream>
 #include <idmlib/idm_types.h>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 NS_IDMLIB_UTIL_BEGIN
     
 template <typename T>
@@ -30,20 +32,32 @@ public:
   bool Save()
   {
     std::ofstream ofs(file_.c_str());
-    ofs<<value_;
-    
+    if( ofs.fail()) return false;
+    {
+      boost::archive::text_oarchive oa(ofs);
+      oa << value_ ;
+    }
     ofs.close();
-    if( ofs.fail() ) return false;
+    if( ofs.fail() )
+    {
+      return false;
+    }
     return true;
   }
   
   bool Load()
   {
-    std::ifstream ifs(file_.c_str());
-    ifs>>value_;
-    
+    std::ifstream ifs(file_.c_str(), std::ios::binary);
+    if( ifs.fail()) return false;
+    {
+      boost::archive::text_iarchive ia(ifs);
+      ia >> value_ ;
+    }
     ifs.close();
-    if( ifs.fail() ) return false;
+    if( ifs.fail() )
+    {
+      return false;
+    }
     return true;
   }
   

@@ -31,8 +31,8 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 {
   IDMAnalyzer analyzer;
 //   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
-  izenelib::util::UString text("国家经 济 Sites year, 呵呵! United", izenelib::util::UString::UTF_8);
-  uint32_t term_count = 9;
+  izenelib::util::UString text("国家经 济 Sites year, 呵呵! United configuration", izenelib::util::UString::UTF_8);
+  uint32_t term_count = 10;
   
   std::vector<izenelib::util::UString> str_vec(term_count);
   str_vec[0] = izenelib::util::UString("国", izenelib::util::UString::UTF_8);
@@ -44,6 +44,7 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
   str_vec[6] = izenelib::util::UString("呵", izenelib::util::UString::UTF_8);
   str_vec[7] = izenelib::util::UString("呵", izenelib::util::UString::UTF_8);
   str_vec[8] = izenelib::util::UString("United", izenelib::util::UString::UTF_8);
+  str_vec[9] = izenelib::util::UString("configuration", izenelib::util::UString::UTF_8);
   
   std::vector<uint32_t> position_vec(term_count);
   position_vec[0] = 0;
@@ -55,6 +56,7 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
   position_vec[6] = 7;
   position_vec[7] = 8;
   position_vec[8] = 10;
+  position_vec[9] = 11;
   
   std::vector<std::string> tag_vec(term_count);
   tag_vec[0] = "C";
@@ -66,6 +68,7 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
   tag_vec[6] = "C";
   tag_vec[7] = "C";
   tag_vec[8] = "F";
+  tag_vec[9] = "F";
   
   la::TermList term_list;
   analyzer.GetTermList(text, term_list);

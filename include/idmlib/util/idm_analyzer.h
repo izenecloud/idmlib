@@ -11,6 +11,7 @@
 
 
 #include <la/LA.h>
+#include <la/stem/Stemmer.h>
 #include <idmlib/idm_types.h>
 #include <idmlib/util/resource_util.h>
 #include <boost/algorithm/string/trim.hpp>
@@ -37,6 +38,8 @@ class IDMAnalyzer
     ml_analyzer->setDefaultAnalyzer( char_analyzer );
     
     la_->setAnalyzer( ml_analyzer );
+    stemmer_ = new la::stem::Stemmer();
+    stemmer_->init(la::stem::STEM_LANG_ENGLISH);
   }
    
    
@@ -58,6 +61,8 @@ class IDMAnalyzer
     p_char_analyzer->setSeparateAll(false);
     ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, char_analyzer );
     la_->setAnalyzer( ml_analyzer );
+    stemmer_ = new la::stem::Stemmer();
+    stemmer_->init(la::stem::STEM_LANG_ENGLISH);
   }
   
   ~IDMAnalyzer()
@@ -115,6 +120,38 @@ class IDMAnalyzer
       term_list[i].text = it->text_;
       term_list[i].tag = IDMTermTag::GetTermTag( it->pos_ );
       term_list[i].id = IDMIdConverter::GetId( it->text_, term_list[i].tag );
+      term_list[i].position = it->wordOffset_;
+      i++;
+      it++;
+    }
+  }
+  
+  void GetStemTermList(const izenelib::util::UString& text, std::vector<idmlib::util::IDMTerm>& term_list)
+  {
+    la::TermList la_term_list;
+    GetTermList(text, la_term_list);
+    term_list.resize( la_term_list.size() );
+    la::TermList::iterator it = la_term_list.begin();
+    uint32_t i=0;
+    while( it!= la_term_list.end() )
+    {
+      term_list[i].tag = IDMTermTag::GetTermTag( it->pos_ );
+      if( term_list[i].tag == IDMTermTag::ENG )
+      {
+        //do stemming
+        it->text_.toLowerString();
+        std::string str;
+        std::string str_stem;
+        it->text_.convertString(str, izenelib::util::UString::UTF_8);
+        stemmer_->stem( str, str_stem );
+        term_list[i].text = izenelib::util::UString(str_stem, izenelib::util::UString::UTF_8);
+        
+      }
+      else
+      {
+        term_list[i].text = it->text_;
+      }
+      term_list[i].id = IDMIdConverter::GetId( term_list[i].text, term_list[i].tag );
       term_list[i].position = it->wordOffset_;
       i++;
       it++;
@@ -356,6 +393,7 @@ class IDMAnalyzer
    
  private:
   la::LA* la_;
+  la::stem::Stemmer* stemmer_;
   bool t2s_set_;
   izenelib::am::rde_hash<izenelib::util::UCS2Char, izenelib::util::UCS2Char> t2s_map_;
   boost::mutex la_mtx_;
