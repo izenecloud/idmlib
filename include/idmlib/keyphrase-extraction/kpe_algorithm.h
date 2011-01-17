@@ -146,32 +146,38 @@ private:
       std::string kpWriterPath = kpWriter_->getPath();
       delete kpWriter_;
       kpWriter_ = NULL;
-      typename KPSSFType::SorterType kpsorter;
-      kpsorter.sort(kpWriterPath, 3);
+      {
+        typename KPSSFType::SorterType kpsorter;
+        kpsorter.sort(kpWriterPath, 12);
+      }
       hash_t hash = 0;
       KPItem kp;
-      typename KPSSFType::ReaderType kpReader(kpWriterPath);
-      kpReader.open();
       std::vector<KPItem> kp_list;
       hash_t last_hash = 0;
-      while( kpReader.next(hash, kp) )
+      
       {
-        if( hash!=last_hash && !kp_list.empty() )
+        typename KPSSFType::ReaderType kpReader(kpWriterPath);
+        kpReader.open();
+        while( kpReader.next(hash, kp) )
         {
-          for(uint32_t i=1;i<kp_list.size();i++)
+          if( hash!=last_hash && !kp_list.empty() )
           {
-            kp_list[0].get<1>().insert(kp_list[0].get<1>().end(), kp_list[i].get<1>().begin(), kp_list[i].get<1>().end());
-            kp_list[0].get<3>().insert(kp_list[0].get<3>().end(), kp_list[i].get<3>().begin(), kp_list[i].get<3>().end());
-            kp_list[0].get<4>().insert(kp_list[0].get<4>().end(), kp_list[i].get<4>().begin(), kp_list[i].get<4>().end());
+            for(uint32_t i=1;i<kp_list.size();i++)
+            {
+              kp_list[0].get<1>().insert(kp_list[0].get<1>().end(), kp_list[i].get<1>().begin(), kp_list[i].get<1>().end());
+              kp_list[0].get<3>().insert(kp_list[0].get<3>().end(), kp_list[i].get<3>().begin(), kp_list[i].get<3>().end());
+              kp_list[0].get<4>().insert(kp_list[0].get<4>().end(), kp_list[i].get<4>().begin(), kp_list[i].get<4>().end());
+            }
+            idmlib::util::accumulateList(kp_list[0].get<1>());
+            idmlib::util::accumulateList(kp_list[0].get<3>());
+            idmlib::util::accumulateList(kp_list[0].get<4>());
+            outputKP_(kp_list[0]);
+            kp_list.resize(0);
           }
-          idmlib::util::accumulateList(kp_list[0].get<1>());
-          idmlib::util::accumulateList(kp_list[0].get<3>());
-          idmlib::util::accumulateList(kp_list[0].get<4>());
-          outputKP_(kp_list[0]);
-          kp_list.resize(0);
+          kp_list.push_back(kp);
+          last_hash = hash;
         }
-        kp_list.push_back(kp);
-        last_hash = hash;
+        kpReader.close();
       }
       if( !kp_list.empty() )
       {
@@ -186,6 +192,12 @@ private:
         idmlib::util::accumulateList(kp_list[0].get<4>());
         outputKP_(kp_list[0]);
         kp_list.resize(0);
+      }
+      boost::filesystem::remove_all(kpWriterPath);
+      if( kpWriter_ == NULL)
+      {
+        kpWriter_ = new KPSSFType::WriterType(kpWriterPath);
+        kpWriter_->open();
       }
     }
   
@@ -436,7 +448,7 @@ private:
       
       {
           typename CandidateSSFType::SorterType sorter;
-          sorter.sort(hclWriter.getPath(), 4);
+          sorter.sort(hclWriter.getPath(), 10);
       }
       {
           typename Hash2HashSSFType::SorterType sorter;
@@ -641,6 +653,7 @@ private:
       {
         id_manager_ = new idmlib::util::IDMIdManager(id_dir_);
       }
+      kp_construct_();
     }
     
     void release_()
