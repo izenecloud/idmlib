@@ -148,7 +148,7 @@ private:
       kpWriter_ = NULL;
       {
         typename KPSSFType::SorterType kpsorter;
-        kpsorter.sort(kpWriterPath, 12);
+        kpsorter.sort(kpWriterPath);
       }
       hash_t hash = 0;
       KPItem kp;
@@ -448,7 +448,7 @@ private:
       
       {
           typename CandidateSSFType::SorterType sorter;
-          sorter.sort(hclWriter.getPath(), 10);
+          sorter.sort(hclWriter.getPath());
       }
       {
           typename Hash2HashSSFType::SorterType sorter;
