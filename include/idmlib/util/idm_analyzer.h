@@ -70,6 +70,11 @@ class IDMAnalyzer
     delete la_;
   }
   
+  void ExtractSpecialChar(bool extractSpecialChar, bool convertToPlaceHolder)
+  {
+    la_->getAnalyzer()->setExtractSpecialChar(extractSpecialChar, convertToPlaceHolder);
+  }
+  
   bool LoadT2SMapFile(const std::string& file)
   {
     std::istream* t2s_ifs = idmlib::util::getResourceStream(file);

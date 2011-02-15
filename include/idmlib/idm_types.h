@@ -32,6 +32,9 @@ typedef unsigned __int64  uint64_t;
 #define NS_IDMLIB_CC_BEGIN namespace idmlib{ namespace cc{
 #define NS_IDMLIB_CC_END }}
 
+#define NS_IDMLIB_WIKI_BEGIN namespace idmlib{ namespace wiki{
+#define NS_IDMLIB_WIKI_END }}
+
 #define NS_IDMLIB_UTIL_BEGIN namespace idmlib{ namespace util{
 #define NS_IDMLIB_UTIL_END }}
 

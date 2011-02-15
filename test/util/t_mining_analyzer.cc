@@ -26,6 +26,22 @@ using namespace idmlib::util;
 
 BOOST_AUTO_TEST_SUITE(analyzer_test)
 
+BOOST_AUTO_TEST_CASE(display_test)
+{
+  IDMAnalyzer analyzer;
+  analyzer.ExtractSpecialChar(true, false);
+//   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
+  izenelib::util::UString text("| [[数理逻辑|數學邏輯]] || [[集合论|集合論]] || [[範疇論]]", izenelib::util::UString::UTF_8);
+    
+  la::TermList term_list;
+  analyzer.GetTermList(text, term_list);
+  
+  for( uint32_t i=0;i<term_list.size();++i )
+  {
+    std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
+  }
+  
+}
 
 BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 {

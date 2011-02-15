@@ -62,6 +62,37 @@ public:
         
     }
     
+    void set_no_freq_limit()
+    {
+      no_freq_limit_ = true;
+    }
+    
+    void add_manmade(const izenelib::util::UString& ustr)
+    {
+      std::vector<idmlib::util::IDMTerm> term_list;
+      analyzer_->GetTgTermList(ustr, term_list );
+      std::vector<uint32_t> termid_list(term_list.size());
+      for(uint32_t i=0;i<term_list.size();i++)
+      {
+        termid_list[i] = term_list[i].id;
+      }
+      manmade_.insert(termid_list,0);
+    }
+    
+    void set_tracing(const izenelib::util::UString& ustr)
+    {
+      std::vector<idmlib::util::IDMTerm> term_list;
+      analyzer_->GetTgTermList(ustr, term_list );
+      tracing_.resize(term_list.size());
+      std::cout<<"[tracing] ";
+      for(uint32_t i=0;i<term_list.size();i++)
+      {
+        tracing_[i] = term_list[i].id;
+        std::cout<<tracing_[i]<<",";
+      }
+      std::cout<<std::endl;
+    }
+    
     void set_max_phrase_len(uint8_t max_len)
     {
         max_phrase_len_ = max_len;
@@ -252,13 +283,16 @@ private:
       std::cout<<"[KPE] running for "<<docCount<<" docs, hash total count: "<<hash_total_count<<std::endl;
       min_freq_threshold_ = 1;
       min_df_threshold_ = 1;
-      if( docCount >=10 )
+      if(!no_freq_limit_)
       {
-          min_freq_threshold_ = (uint32_t)std::floor( std::log( (double)docCount )/2 );
-          if( min_freq_threshold_ < 3 ) min_freq_threshold_ = 3;
-          
-          min_df_threshold_ = (uint32_t)std::floor( std::log( (double)docCount )/4 );
-          if( min_df_threshold_ < 2 ) min_df_threshold_ = 2;
+        if( docCount >=10 )
+        {
+            min_freq_threshold_ = (uint32_t)std::floor( std::log( (double)docCount )/2 );
+            if( min_freq_threshold_ < 3 ) min_freq_threshold_ = 3;
+            
+            min_df_threshold_ = (uint32_t)std::floor( std::log( (double)docCount )/4 );
+            if( min_df_threshold_ < 2 ) min_df_threshold_ = 2;
+        }
       }
       uint64_t p = 0;
       typename HashSSFType::SorterType hsorter;
@@ -625,6 +659,7 @@ private:
     
     void init_()
     {
+      no_freq_limit_ = false;
       last_doc_id_ = 0;
       doc_count_ = 0;
       all_term_count_ = 0;
@@ -655,6 +690,7 @@ private:
       }
       kp_construct_();
     }
+    
     
     void release_()
     {
@@ -768,7 +804,7 @@ private:
                 inputItem.push_back(docId);
                 if( scorer_->prefixTest(termList) != KPStatus::RETURN)
                 {
-                    pTermListWriter_->append(inputItem);
+                  appendTermList_(inputItem);
                 }
                 
                 appendHashItem_(hash_(termList));
@@ -807,7 +843,16 @@ private:
               {
                   frag.push_back(termList[i-1]);
               }
-              pTermListWriter_->append(frag);
+              appendTermList_(frag);
+//               if(docId==3)
+//               {
+//                 std::cout<<"{{3}}";
+//                 for(uint32_t dd=0;dd<frag.size();dd++)
+//                 {
+//                   std::cout<<frag[dd]<<",";
+//                 }
+//                 std::cout<<std::endl;
+//               }
             }
             for(uint32_t j= i+1; j<= end; j++)
             {
@@ -823,6 +868,11 @@ private:
         
 
 
+    }
+    
+    inline void appendTermList_(const std::vector<uint32_t>& inputItem)
+    {
+      pTermListWriter_->append(inputItem);
     }
     
     void appendHashItem_(hash_t hash_value)
@@ -968,6 +1018,17 @@ private:
         return true;
     }
     
+    template <class T>
+    bool vec_equal_(const std::vector<T>& v1, const std::vector<T>& v2)
+    {
+      if(v1.size()!=v2.size()) return false;
+      for(uint32_t i=0;i<v1.size();i++)
+      {
+        if(v1[i]!=v2[i]) return false;
+      }
+      return true;
+    }
+    
     uint8_t getScore(uint32_t f, uint32_t termCount, double logL)
     {
         double score=sqrt(f> 200 ? 100 : f/2)*(termCount > 4 ? 4: termCount);
@@ -1099,6 +1160,22 @@ private:
           SI lri(termIdList, freq);
           SCI leftLC( prefixTermList);
           SCI rightLC( suffixTermList);
+          if(!tracing_.empty())
+          {
+            if(vec_equal_(termIdList, tracing_))
+            {
+              std::cout<<"[tracing] freq: "<<freq<<std::endl;
+              for(uint32_t dd=0;dd<docItemList.size();dd++)
+              {
+                std::cout<<"[tracing] doc item: "<<docItemList[dd].first<<","<<docItemList[dd].second<<"]"<<std::endl;
+              }
+            }
+          }
+          if(manmade_.find(termIdList)!=NULL)
+          {
+            insertKP_( termIdList, docItemList, freq, prefixTermList, suffixTermList );
+            continue;
+          }
           int status = KPStatus::CANDIDATE;
           if( freq<min_freq_threshold_ ) status = KPStatus::NON_KP;
           else if( docItemList.size() < min_df_threshold_ ) status = KPStatus::NON_KP;
@@ -1191,7 +1268,9 @@ private:
   
   uint32_t min_freq_threshold_;
   uint32_t min_df_threshold_;
-  
+  bool no_freq_limit_;
+  izenelib::am::rde_hash<std::vector<uint32_t>, int> manmade_;
+  std::vector<uint32_t> tracing_;
     
     
 };

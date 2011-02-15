@@ -28,6 +28,10 @@ FILE(GLOB dc_SRC
   "dc/*.cc"
 )
 
+FILE(GLOB wiki_SRC
+  "wiki/*.cc"
+)
+
 
 ADD_LIBRARY(idmlib 
 ${keyphrase_extraction_SRC}
@@ -36,7 +40,7 @@ ${nec_SRC}
 ${query-suggestion_SRC}
 ${dc_SRC}
 ${util_SRC}
-
+${wiki_SRC}
 )
 
 INSTALL(TARGETS idmlib
