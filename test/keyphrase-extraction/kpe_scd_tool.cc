@@ -14,6 +14,7 @@ namespace po = boost::program_options;
 
 class FileKPEWriter
 {
+typedef std::pair<uint32_t, uint32_t> id2count_t;
  public:
   FileKPEWriter(const std::string& file,izenelib::util::UString::EncodingType encoding)
   :ofs_(file.c_str()), encoding_(encoding)
@@ -25,12 +26,28 @@ class FileKPEWriter
     ofs_.close();
   }
   
-  void Callback(const izenelib::util::UString& str, uint32_t df, uint8_t score)
+  void Callback(const izenelib::util::UString& ustr, const std::vector<id2count_t>& docitem_list, uint32_t df, uint8_t score)
   {
-    std::string s;
-    str.convertString(s, encoding_);
-    ofs_<<s<<","<<df<<std::endl;
+    uint32_t freq = 0;
+    for(uint32_t i=0;i<docitem_list.size();i++)
+    {
+      freq += docitem_list[i].second;
+    }
+    std::string str;
+    ustr.convertString(str, izenelib::util::UString::UTF_8);
+    ofs_<<str<<","<<freq<<","<<df<<","<<(int)score<<std::endl;
   }
+  
+//   void Output()
+//   {
+//     std::sort(kp_list_.begin(), kp_list_.end(), std::greater<std::pair<double, izenelib::util::UString> >());
+//     for(uint32_t i=0;i<kp_list_.size();i++)
+//     {
+//       std::string str;
+//       kp_list_[i].second.convertString(str, izenelib::util::UString::UTF_8);
+//       ofs_<<str<<","<<kp_list_[i].first<<std::endl;
+//     }
+//   }
   
  private:
   std::ofstream ofs_;
@@ -50,6 +67,7 @@ int main(int ac, char** av)
     ("working-path,W", po::value<std::string>(), "temp working path used for kpe, default: ./kpe_scd_working")
     ("max-doc,M", po::value<uint32_t>(), "max doc count which will be processed.")
     ("exclude-file,X", po::value<std::string>(), "exclude scd file name list")
+    ("try-compute-num,T", po::value<uint32_t>(), "try compute number in kpe")
   ;
   std::string default_working_path = "./kpe_scd_working";
   izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8;
@@ -213,8 +231,16 @@ int main(int ac, char** av)
     max_doc = vm["max-doc"].as<uint32_t>();
     std::cout << "max-doc: " << max_doc <<std::endl;
   } 
+  bool try_compute_set = false;
+  uint32_t try_compute_num = 0;
+  if (vm.count("try-compute-num")) {
+    try_compute_num = vm["try-compute-num"].as<uint32_t>();
+    std::cout << "try-compute-num: " << try_compute_num <<std::endl;
+    try_compute_set = true;
+  }
+  
 
-  typedef KPEOutput<true, false, false> OutputType ;
+  typedef KPEOutput<true, true, false> OutputType ;
   typedef OutputType::function_type function_type ;
   if( !analyzer->LoadT2SMapFile(resource_path+"/cs_ct") )
   {
@@ -222,11 +248,15 @@ int main(int ac, char** av)
   }
   
   FileKPEWriter file_writer(output_file, encoding);
-  function_type callback_func = boost::bind( &FileKPEWriter::Callback, &file_writer, _1, _2, _3);
+  function_type callback_func = boost::bind( &FileKPEWriter::Callback, &file_writer, _1, _2, _3, _4);
   KPEAlgorithm<OutputType>* kpe = new KPEAlgorithm<OutputType>(working_path, analyzer, callback_func);
   if( !kpe->load(resource_path) )
   {
     return -1;
+  }
+  if(try_compute_set)
+  {
+    kpe->try_compute_num(try_compute_num);
   }
   
   uint32_t docid = 0;

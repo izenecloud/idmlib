@@ -81,7 +81,7 @@ bool KPEScorer::load(const std::string& resPath)
   
   arabicNumber_ = idmlib::util::IDMIdConverter::GetId( izenelib::util::UString("ARABICNUMBER",izenelib::util::UString::UTF_8) );
   singleEnglishChar_ = idmlib::util::IDMIdConverter::GetId( izenelib::util::UString("SINGLEENGLISHCHAR",izenelib::util::UString::UTF_8) );
-  
+  symbol_id_ = idmlib::util::IDMIdConverter::GetId( izenelib::util::UString("THISISSYMBOL",izenelib::util::UString::UTF_8) );
   if(!ub_info_.load(resPath+"/ub_info"))
   {
     std::cerr<<"[KPEScorer] ubinfo load failed."<<std::endl;
@@ -448,7 +448,7 @@ double KPEScorer::ub_space_score_()
 
 double KPEScorer::ub_noappearance_score_()
 {
-  return 0.4;
+  return 0.5;
 }
 
 double KPEScorer::normalize_(uint32_t context_count)
@@ -499,6 +499,10 @@ bool KPEScorer::isSplitTerm(const izenelib::util::UString& ustr, char tag, uint3
     {
         insertTermId = arabicNumber_;
         return true;
+    }
+    else if(tag == idmlib::util::IDMTermTag::SYMBOL)
+    {
+      return true;
     }
     else if( tag == idmlib::util::IDMTermTag::ENG)
     {

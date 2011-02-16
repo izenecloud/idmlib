@@ -28,10 +28,15 @@ class IDMTermTag
     static const char KOR_LOAN = 'Z';
     static const char KOR_COMP_NOUN = 'P';
     static const char NUM = 'S';
+    static const char SYMBOL = '.';
     static const char OTHER = '@';
     
     static char GetTermTag(const std::string& la_tag)
     {
+      if(la_tag=="SC")
+      {
+        return SYMBOL;
+      }
       return la_tag[0];
     }
 };

@@ -12,7 +12,7 @@
 // #include "input.hpp"
 #include "kpe_output.h"
 #include "kpe_scorer.h"
-#include "algorithm_def.h"
+#include "kpe_algorithm_def.h"
 #include "../idm_types.h"
 #include <boost/type_traits.hpp>
 #include "../util/FSUtil.hpp"
@@ -60,6 +60,11 @@ public:
     {
       release_();
         
+    }
+    
+    void try_compute_num(uint32_t num)
+    {
+      try_compute_num_ = num;
     }
     
     void set_no_freq_limit()
@@ -134,7 +139,7 @@ public:
 //       std::cout<<docId<<"##### "<<article.length()<<std::endl;
         if( docId != last_doc_id_ )
         {
-          try_close_();
+          try_compute_();
         }
         std::vector<idmlib::util::IDMTerm> term_list;
         analyzer_->GetTgTermList(article, term_list );
@@ -195,13 +200,13 @@ private:
           {
             for(uint32_t i=1;i<kp_list.size();i++)
             {
-              kp_list[0].get<1>().insert(kp_list[0].get<1>().end(), kp_list[i].get<1>().begin(), kp_list[i].get<1>().end());
-              kp_list[0].get<3>().insert(kp_list[0].get<3>().end(), kp_list[i].get<3>().begin(), kp_list[i].get<3>().end());
-              kp_list[0].get<4>().insert(kp_list[0].get<4>().end(), kp_list[i].get<4>().begin(), kp_list[i].get<4>().end());
+              kp_list[0].docitem_list.insert(kp_list[0].docitem_list.end(), kp_list[i].docitem_list.begin(), kp_list[i].docitem_list.end());
+              kp_list[0].lc_list.insert(kp_list[0].lc_list.end(), kp_list[i].lc_list.begin(), kp_list[i].lc_list.end());
+              kp_list[0].rc_list.insert(kp_list[0].rc_list.end(), kp_list[i].rc_list.begin(), kp_list[i].rc_list.end());
             }
-            idmlib::util::accumulateList(kp_list[0].get<1>());
-            idmlib::util::accumulateList(kp_list[0].get<3>());
-            idmlib::util::accumulateList(kp_list[0].get<4>());
+            idmlib::util::accumulateList(kp_list[0].docitem_list);
+            idmlib::util::accumulateList(kp_list[0].lc_list);
+            idmlib::util::accumulateList(kp_list[0].rc_list);
             outputKP_(kp_list[0]);
             kp_list.resize(0);
           }
@@ -214,13 +219,13 @@ private:
       {
         for(uint32_t i=1;i<kp_list.size();i++)
         {
-          kp_list[0].get<1>().insert(kp_list[0].get<1>().end(), kp_list[i].get<1>().begin(), kp_list[i].get<1>().end());
-          kp_list[0].get<3>().insert(kp_list[0].get<3>().end(), kp_list[i].get<3>().begin(), kp_list[i].get<3>().end());
-          kp_list[0].get<4>().insert(kp_list[0].get<4>().end(), kp_list[i].get<4>().begin(), kp_list[i].get<4>().end());
+          kp_list[0].docitem_list.insert(kp_list[0].docitem_list.end(), kp_list[i].docitem_list.begin(), kp_list[i].docitem_list.end());
+          kp_list[0].lc_list.insert(kp_list[0].lc_list.end(), kp_list[i].lc_list.begin(), kp_list[i].lc_list.end());
+          kp_list[0].rc_list.insert(kp_list[0].rc_list.end(), kp_list[i].rc_list.begin(), kp_list[i].rc_list.end());
         }
-        idmlib::util::accumulateList(kp_list[0].get<1>());
-        idmlib::util::accumulateList(kp_list[0].get<3>());
-        idmlib::util::accumulateList(kp_list[0].get<4>());
+        idmlib::util::accumulateList(kp_list[0].docitem_list);
+        idmlib::util::accumulateList(kp_list[0].lc_list);
+        idmlib::util::accumulateList(kp_list[0].rc_list);
         outputKP_(kp_list[0]);
         kp_list.resize(0);
       }
@@ -232,9 +237,9 @@ private:
       }
     }
   
-    void try_close_()
+    void try_compute_()
     {
-      if( pHashWriter_->getItemCount() >= 400000000 )
+      if( try_compute_num_>0 && pHashWriter_->getItemCount() >= try_compute_num_ )
       {
         compute_();
         reinit_();
@@ -346,8 +351,46 @@ private:
       }
       hcwriter.close();
       MEMLOG("[KPE2] finished");
+//       if(!tracing_.empty())
+//       {
+//         typename TermListSSFType::ReaderType fireader(inputItemPath);
+//         fireader.open();
+//         std::vector<uint32_t> keyList;
+//         while( fireader.nextKeyList(keyList) )
+//         {
+//           if(vec_starts_(keyList, tracing_))
+//           {
+//             std::cout<<"[tracing] [before-suffix] ";
+//             for(uint32_t dd=0;dd<keyList.size();dd++)
+//             {
+//               std::cout<<keyList[dd]<<",";
+//             }
+//             std::cout<<std::endl;
+//           }
+//         }
+//         fireader.close();
+//       }
       typename TermListSSFType::SorterType fisorter;
       fisorter.sort(inputItemPath);
+//       if(!tracing_.empty())
+//       {
+//         typename TermListSSFType::ReaderType fireader(inputItemPath);
+//         fireader.open();
+//         std::vector<uint32_t> keyList;
+//         while( fireader.nextKeyList(keyList) )
+//         {
+//           if(vec_starts_(keyList, tracing_))
+//           {
+//             std::cout<<"[tracing] [after-suffix] ";
+//             for(uint32_t dd=0;dd<keyList.size();dd++)
+//             {
+//               std::cout<<keyList[dd]<<",";
+//             }
+//             std::cout<<std::endl;
+//           }
+//         }
+//         fireader.close();
+//       }
       MEMLOG("[KPE3] finished");
       typedef izenelib::am::SSFType<uint32_t, uint32_t, uint32_t> SortedFragmentItemSSFType;
       typename SortedFragmentItemSSFType::WriterType swriter(tmp_dir_+"/SWRITER");
@@ -362,6 +405,18 @@ private:
           std::vector<uint32_t> lastTermIdList;
           while( fireader.nextKeyList(keyList) )
           {
+            if(!tracing_.empty())
+            {
+              if(vec_starts_(keyList, tracing_))
+              {
+                std::cout<<"[tracing] [suffix] ";
+                for(uint32_t dd=0;dd<keyList.size();dd++)
+                {
+                  std::cout<<keyList[dd]<<",";
+                }
+                std::cout<<std::endl;
+              }
+            }
               uint32_t zeroPos = 0;
               for(uint32_t i=0;i<keyList.size();i++)
               {
@@ -442,31 +497,43 @@ private:
 
       LOG_BEGIN("AAA", &reader);
       
-      std::vector<data_t > data;
+      std::vector<Data > data;
       double aaa_time = 0.0;
       izenelib::util::ClockTimer aaa_clocker;
       
       std::vector<uint32_t> completeTermIdList;
       while( reader.nextKeyList(keyList) )
       {
-          uint32_t inc = SortedFragmentItem::parseInc(keyList);
-          std::vector<uint32_t> tmpTermIdList = SortedFragmentItem::parseTermIdList(keyList);
-          std::vector<id2count_t> tmpDocItemList = SortedFragmentItem::parseDocItemList(keyList);
-          uint32_t tmpFreq = SortedFragmentItem::parseFreq(keyList);
-          std::vector<id2count_t > prefixTermList = SortedFragmentItem::parsePrefixTermList(keyList);
+          Data this_data;
+          this_data.inc = SortedFragmentItem::parseInc(keyList);
+          this_data.termid_list = SortedFragmentItem::parseTermIdList(keyList);
+          this_data.docitem_list = SortedFragmentItem::parseDocItemList(keyList);
+          this_data.freq = SortedFragmentItem::parseFreq(keyList);
+          this_data.lc_list = SortedFragmentItem::parsePrefixTermList(keyList);
           
-          completeTermIdList.resize(inc);
-          completeTermIdList.insert( completeTermIdList.end(), tmpTermIdList.begin(), tmpTermIdList.end() );
-          
-          if( inc==0 )
+          completeTermIdList.resize(this_data.inc);
+          completeTermIdList.insert( completeTermIdList.end(), this_data.termid_list.begin(), this_data.termid_list.end() );
+          this_data.termid_list = completeTermIdList;
+          if( this_data.inc==0 )
           {
               aaa_clocker.restart();
               getCandidateLabel2_(data, &hclWriter, &h2hWriter);
               aaa_time += aaa_clocker.elapsed();
               data.resize(0);
           }
-//             data.push_back(boost::make_tuple(inc, tmpTermIdList, tmpDocItemList, tmpFreq, prefixTermList));
-          data.push_back(boost::make_tuple(inc, completeTermIdList, tmpDocItemList, tmpFreq, prefixTermList));
+          if(!tracing_.empty())
+          {
+            if(vec_starts_(this_data.termid_list, tracing_))
+            {
+              std::cout<<"[tracing] [data] ";
+              for(uint32_t dd=0;dd<this_data.docitem_list.size();dd++)
+              {
+                std::cout<<"("<<this_data.docitem_list[dd].first<<"|"<<this_data.docitem_list[dd].second<<"),";
+              }
+              std::cout<<std::endl;
+            }
+          }
+          data.push_back(this_data);
           p++;
           LOG_PRINT("AAA", 100000);
               
@@ -609,11 +676,11 @@ private:
               }
               CandidateItem& hlItem = valueList1[0];
               HashCountListItem& hclItem = valueList2[0];
-              std::vector<uint32_t> termIdList = boost::get<0>(hlItem);
-              std::vector<id2count_t> docItem = boost::get<1>(hlItem);
-              uint32_t f = boost::get<2>(hlItem);
-              std::vector<id2count_t> leftTermList = boost::get<3>(hlItem);
-              std::vector<id2count_t> rightTermList = boost::get<4>(hlItem);
+              std::vector<uint32_t> termIdList = hlItem.termid_list;
+              std::vector<id2count_t> docItem = hlItem.docitem_list;
+              uint32_t f = hlItem.freq;
+              std::vector<id2count_t> leftTermList = hlItem.lc_list;
+              std::vector<id2count_t> rightTermList = hlItem.rc_list;
               if( termIdList.size()==1 )
               {
                 insertKP_( termIdList, docItem, getScore(f, termIdList.size(),0.0) , leftTermList,rightTermList);
@@ -659,6 +726,8 @@ private:
     
     void init_()
     {
+      try_compute_num_ = 400000000;
+      test_num_ = 0;
       no_freq_limit_ = false;
       last_doc_id_ = 0;
       doc_count_ = 0;
@@ -779,10 +848,11 @@ private:
         {
             uint32_t _index = p-_begin;
             terms[_index] = splitVec[_index].second;
-            if( !splitVec[_index].first )
-            {
-                id_manager_->Put(terms[_index], termList[p].text);
-            }
+            id_manager_->Put(terms[_index], termList[p].text);
+//             if( !splitVec[_index].first )
+//             {
+//                 
+//             }
         }
         addTerms_(docId, terms, bFirstTerm, bLastTerm);
         return true;
@@ -834,7 +904,7 @@ private:
         {
             uint32_t len = std::min(end-i,(uint32_t)(max_phrase_len_+1));
             std::vector<uint32_t> frag( termList.begin()+i, termList.begin()+i+len );
-            
+            bool valid_frag =true;
             if( scorer_->prefixTest(frag) != KPStatus::RETURN)
             {
               frag.push_back(0);
@@ -853,6 +923,22 @@ private:
 //                 }
 //                 std::cout<<std::endl;
 //               }
+            }
+            else
+            {
+              valid_frag = false;
+            }
+            if(!tracing_.empty())
+            {
+              if(vec_starts_(frag, tracing_))
+              {
+                std::cout<<"[tracing] ["<<(int)valid_frag<<"] ";
+                for(uint32_t dd=0;dd<frag.size();dd++)
+                {
+                  std::cout<<frag[dd]<<",";
+                }
+                std::cout<<std::endl;
+              }
             }
             for(uint32_t j= i+1; j<= end; j++)
             {
@@ -1029,6 +1115,17 @@ private:
       return true;
     }
     
+    template <class T>
+    bool vec_starts_(const std::vector<T>& v1, const std::vector<T>& v2)
+    {
+      if(v1.size()<v2.size()) return false;
+      for(uint32_t i=0;i<v2.size();i++)
+      {
+        if(v1[i]!=v2[i]) return false;
+      }
+      return true;
+    }
+    
     uint8_t getScore(uint32_t f, uint32_t termCount, double logL)
     {
         double score=sqrt(f> 200 ? 100 : f/2)*(termCount > 4 ? 4: termCount);
@@ -1060,13 +1157,13 @@ private:
     
     void outputKP_(const KPItem& kpItem)
     {
-      output_.output(kpItem.get<0>(), kpItem.get<1>(), kpItem.get<1>().size(), kpItem.get<2>() , kpItem.get<3>(),kpItem.get<4>());
+      output_.output(kpItem.text, kpItem.docitem_list, kpItem.docitem_list.size(), kpItem.score , kpItem.lc_list, kpItem.rc_list);
     }
     
     
     
     //with complete termidlist version.
-    void getCandidateLabel2_(const std::vector<data_t>& data, CandidateSSFType::WriterType* htlWriter, typename Hash2HashSSFType::WriterType* h2hWriter)
+    void getCandidateLabel2_(const std::vector<Data>& data, CandidateSSFType::WriterType* htlWriter, typename Hash2HashSSFType::WriterType* h2hWriter)
     {
         if( data.size()==0 ) return;
         
@@ -1078,10 +1175,10 @@ private:
           uint32_t i=0;
           for( uint32_t m=0;m<data.size();m++)
           {
-            uint32_t depth = boost::get<0>(data[m]);
+            uint32_t depth = data[m].inc;
             if(m>0)
             {
-              while( !depth_stack.empty() && depth_stack.top()<= depth )
+              while( !depth_stack.empty() && depth <= depth_stack.top() )
               {
                 post_order[i] = index_stack.top();
                 ++i;
@@ -1108,15 +1205,30 @@ private:
         std::stack<std::vector<id2count_t> > doc_item_stack;
         std::stack<std::vector<id2count_t> > prefix_term_stack;
         std::stack<id2count_t > suffix_term_stack;
-        
+        if(!tracing_.empty())
+        {
+          test_num_++;
+        }
         for( uint32_t m=0;m<data.size();m++)
         {
-          uint32_t depth = boost::get<0>(data[post_order[m]]);
-          std::vector<uint32_t> termIdList = data[post_order[m]].get<1>();
-          std::vector<id2count_t> docItemList = boost::get<2>(data[post_order[m]]);
-          uint32_t freq = boost::get<3>(data[post_order[m]]);
-          std::vector<id2count_t > prefixTermList = boost::get<4>(data[post_order[m]]);
+          uint32_t depth = data[post_order[m]].inc;
+          std::vector<uint32_t> termIdList = data[post_order[m]].termid_list;
+          std::vector<id2count_t> docItemList = data[post_order[m]].docitem_list;
+          uint32_t freq = data[post_order[m]].freq;
+          std::vector<id2count_t > prefixTermList = data[post_order[m]].lc_list;
           std::vector<id2count_t > suffixTermList;
+          if(!tracing_.empty())
+          {
+            if(vec_starts_(termIdList, tracing_))
+            {
+              std::cout<<"[tracing] {data} "<<test_num_<<","<<m<<","<<post_order[m]<<","<<depth;
+              for(uint32_t dd=0;dd<docItemList.size();dd++)
+              {
+                std::cout<<"("<<docItemList[dd].first<<"|"<<docItemList[dd].second<<"),";
+              }
+              std::cout<<std::endl;
+            }
+          }
           while( !depth_stack.empty() && depth < depth_stack.top() )
           {
             freq+=freq_stack.top();
@@ -1268,9 +1380,11 @@ private:
   
   uint32_t min_freq_threshold_;
   uint32_t min_df_threshold_;
+  uint32_t try_compute_num_;
   bool no_freq_limit_;
   izenelib::am::rde_hash<std::vector<uint32_t>, int> manmade_;
   std::vector<uint32_t> tracing_;
+  uint32_t test_num_;
     
     
 };

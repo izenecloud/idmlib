@@ -236,6 +236,8 @@ class NERAccuracier
     std::ofstream ofs(libsvm_output.c_str());
     std::string info_output = output+".info";
     std::ofstream info_ofs(info_output.c_str());
+    std::string feature_output = output+".feature";
+    std::ofstream feature_ofs(feature_output.c_str());
     std::vector<std::pair<std::string, double> > features;
     for(uint32_t i=0;i<test_result_.size();i++)
     {
@@ -245,28 +247,32 @@ class NERAccuracier
       std::string str;
       surface.convertString(str, izenelib::util::UString::UTF_8);
       if(features.size()==0) continue;
-      std::vector<std::pair<int, double> > feature_list;
+      std::vector<std::pair<int, std::pair<std::string, double> > > feature_list;
       for(uint32_t i=0;i<features.size();i++)
       {
         std::string label = features[i].first;
-        std::cout<<"["<<str<<"] find label : "<<label<<std::endl;
+//         std::cout<<"["<<str<<"] find label : "<<label<<std::endl;
         int* index = feature_index.find(label);
         if(index!=NULL)
         {
-          feature_list.push_back(std::make_pair(*index, features[i].second));
+          feature_list.push_back(std::make_pair(*index, std::make_pair(label, features[i].second)));
         }
       }
       std::sort(feature_list.begin(), feature_list.end());
       ofs<<0;
+      feature_ofs<<str;
       for(uint32_t i=0;i<feature_list.size();i++)
       {
-        ofs<<" "<<feature_list[i].first<<":"<<feature_list[i].second;
+        ofs<<" "<<feature_list[i].first<<":"<<feature_list[i].second.second;
+        feature_ofs<<" "<<feature_list[i].second.first<<":"<<feature_list[i].second.second;
       }
       ofs<<std::endl;
+      feature_ofs<<std::endl;
       info_ofs<<type<<"\t"<<str<<std::endl;
     }
     ofs.close();
     info_ofs.close();
+    feature_ofs.close();
   }
   
  private:
@@ -442,6 +448,7 @@ int main(int ac, char** av)
   {
     return -1;
   }
+  analyzer->ExtractSymbols();
   
   NERAccuracier ner_accuracy(ner_resource_path, id_manager_, num4test, ner_type_list);
   function_type callback_func = boost::bind( &NERAccuracier::Callback, &ner_accuracy, _1, _2, _3, _4, _5);

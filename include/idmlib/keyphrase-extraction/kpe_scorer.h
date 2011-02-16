@@ -190,6 +190,7 @@ class KPEScorer : public boost::noncopyable
     
     uint32_t arabicNumber_;
     uint32_t singleEnglishChar_;
+    uint32_t symbol_id_;
     
     UBInfo ub_info_;
 

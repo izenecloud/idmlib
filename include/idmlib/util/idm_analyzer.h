@@ -26,7 +26,7 @@ class IDMAnalyzer
 {
  public:
   IDMAnalyzer()
-  :la_(new la::LA() ), t2s_set_(false)
+  :la_(new la::LA() ), simpler_set_(false)
   {
     boost::shared_ptr<la::Analyzer> char_analyzer(new la::CharAnalyzer() );
     la::CharAnalyzer* p_char_analyzer = static_cast<la::CharAnalyzer*>(char_analyzer.get());
@@ -44,7 +44,7 @@ class IDMAnalyzer
    
    
   IDMAnalyzer(const std::string& kma_resource_path)
-  :la_(new la::LA() ), t2s_set_(false)
+  :la_(new la::LA() ), simpler_set_(false)
   {
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
     ml_analyzer->setExtractSpecialChar(false, false);
@@ -75,24 +75,34 @@ class IDMAnalyzer
     la_->getAnalyzer()->setExtractSpecialChar(extractSpecialChar, convertToPlaceHolder);
   }
   
-  bool LoadT2SMapFile(const std::string& file)
+  void ExtractSymbols()
   {
-    std::istream* t2s_ifs = idmlib::util::getResourceStream(file);
-    if( t2s_ifs==NULL)
+    ExtractSpecialChar(true, false);
+  }
+  
+  bool LoadSimplerFile(const std::string& file)
+  {
+    std::istream* simpler_ifs = idmlib::util::getResourceStream(file);
+    if( simpler_ifs==NULL)
     {
-      std::cerr<<"Load t2s file failed, check the resource file."<<std::endl;
+      std::cerr<<"Load simpler file failed, check the resource file."<<std::endl;
       return false;
     }
     std::string line;
-    while( getline( *t2s_ifs, line) )
+    while( getline( *simpler_ifs, line) )
     {
       boost::algorithm::trim( line );
       izenelib::util::UString uline(line, izenelib::util::UString::UTF_8);
-      t2s_map_.insert( uline[2], uline[0] );
+      simpler_map_.insert( uline[2], uline[0] );
     }
-    delete t2s_ifs;
-    t2s_set_ = true;
+    delete simpler_ifs;
+    simpler_set_ = true;
     return true;
+  }
+  
+  bool LoadT2SMapFile(const std::string& file)
+  {
+    return LoadSimplerFile(file);
   }
   
   void GetTermList(const izenelib::util::UString& text, la::TermList& term_list)
@@ -102,12 +112,12 @@ class IDMAnalyzer
       la_->process( text, term_list );
     }
     //do t_s translation
-    if(t2s_set_)
+    if(simpler_set_)
     {
       la::TermList::iterator it = term_list.begin();
       while( it!= term_list.end() )
       {
-        t2s_( it->text_ );
+        simple_( it->text_ );
         ++it;
       }
     }
@@ -384,11 +394,11 @@ class IDMAnalyzer
   }
   
  private:
-  void t2s_(izenelib::util::UString& content)
+  void simple_(izenelib::util::UString& content)
   {
     for(uint32_t i=0;i<content.length();i++)
     {
-      izenelib::util::UCS2Char* p_char = t2s_map_.find(content[i]);
+      izenelib::util::UCS2Char* p_char = simpler_map_.find(content[i]);
       if( p_char != NULL )
       {
         content[i] = *p_char;
@@ -399,8 +409,8 @@ class IDMAnalyzer
  private:
   la::LA* la_;
   la::stem::Stemmer* stemmer_;
-  bool t2s_set_;
-  izenelib::am::rde_hash<izenelib::util::UCS2Char, izenelib::util::UCS2Char> t2s_map_;
+  bool simpler_set_;
+  izenelib::am::rde_hash<izenelib::util::UCS2Char, izenelib::util::UCS2Char> simpler_map_;
   boost::mutex la_mtx_;
         
         

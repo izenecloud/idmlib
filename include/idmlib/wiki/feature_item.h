@@ -151,10 +151,70 @@ public:
     uint32_t context_num = boost::lexical_cast<uint32_t>(vec_value[1]);
     for(uint32_t i=0;i<context_num;i++)
     {
-      std::vector<std::string> lr;
-      boost::algorithm::split( lr, vec_value[2+i], boost::algorithm::is_any_of(",") );
-      ContextType context(izenelib::util::UString(lr[0], izenelib::util::UString::UTF_8), 
-                           izenelib::util::UString(lr[1], izenelib::util::UString::UTF_8));
+      std::string context_str = vec_value[2+i];
+      std::vector<std::size_t> comma_list;
+      std::size_t pos = 0;
+      while(pos!=std::string::npos)
+      {
+        pos = context_str.find(",", pos);
+        if(pos==std::string::npos)
+        {
+          break;
+        }
+        comma_list.push_back(pos);
+      }
+      bool valid = true;
+      std::size_t split_pos = 0;
+      if(comma_list.empty())
+      {
+        valid = false;
+      }
+      else if(comma_list.size()>3)
+      {
+        valid = false;
+      }
+      else if(comma_list.size()==3)
+      {
+        if(context_str.length()!=3)
+        {
+          valid = false;
+        }
+        else
+        {
+          split_pos = 1;
+        }
+      }
+      else if(comma_list.size()==2)
+      {
+        if(context_str.length()<3)
+        {
+          valid = false;
+        }
+        else
+        {
+          if(comma_list[0]==0)
+          {
+            split_pos = comma_list[1];
+          }
+          else
+          {
+            split_pos = comma_list[0];
+          }
+        }
+      }
+      else //comma_list.size()==1
+      {
+        split_pos = comma_list[0];
+      }
+      if(!valid)
+      {
+        std::cout<<"invalid context while parsing : "<<context_str<<std::endl;
+        continue;
+      }
+      std::string left = context_str.substr(0, split_pos);
+      std::string right = context_str.substr(split_pos, std::string::npos);
+      ContextType context(izenelib::util::UString(left, izenelib::util::UString::UTF_8), 
+                           izenelib::util::UString(right, izenelib::util::UString::UTF_8));
       context_list.push_back(context);
     }
     type = boost::lexical_cast<int>(vec_value.back());

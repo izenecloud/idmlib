@@ -106,6 +106,34 @@ private:
     function_type function_;
 };
 
+template <>
+class KPEOutput<true, true, false> 
+{
+typedef std::pair<uint32_t, uint32_t> id2count_t;
+public:
+    typedef izenelib::util::UString string_type;
+    typedef boost::function<void (const string_type&, const std::vector<id2count_t>& id2countList, uint32_t, uint8_t) > function_type;
+    enum {NEED_DF = true};
+    enum {NEED_DOC = true};
+    KPEOutput(function_type function)
+    {
+        function_ = function;
+    }
+    
+    void output(
+    const string_type& str
+    , const std::vector<id2count_t>& id2countList
+    , uint32_t df
+    , uint8_t score
+    , const std::vector<id2count_t>& leftTermList
+    , const std::vector<id2count_t>& rightTermList)
+    {
+        function_(str, id2countList, df, score);
+    }
+private:    
+    function_type function_;
+};
+
 
 NS_IDMLIB_KPE_END
 

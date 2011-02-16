@@ -15,7 +15,9 @@
 #include <algorithm>
 #include <am/external_sort/izene_sort.hpp>
 #include <am/sequence_file/SimpleSequenceFile.hpp>
-
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp>
 NS_IDMLIB_KPE_BEGIN
 // #define LOG_BEGIN(item, pReader) p=0; std::cout<<item<<" total: "<<(pReader)->getItemCount()<<" items"<<std::endl;
 // #define LOG_PRINT(item, count) if( p % count == 0 ) { std::cout << "\r"; std::cout<<item<<" read "<<p<<" items"<<std::flush;}
@@ -24,7 +26,9 @@ NS_IDMLIB_KPE_BEGIN
 #define LOG_PRINT(item, count) if( p % count == 0 ) { MEMLOG( (item+ std::string(" processed %lu items.")).c_str(), p);}
 #define LOG_END() 
 typedef uint64_t hash_t;
+typedef std::pair<uint32_t, uint32_t> id2count_t;
 typedef std::vector<uint32_t> idvec_t;
+typedef std::vector<id2count_t> id2countvec_t;
 typedef izenelib::am::SSFType<uint32_t, uint32_t, uint16_t, true> TermListSSFType;
 
 typedef TermListSSFType::WriterType TermListWriter;
@@ -33,12 +37,53 @@ typedef izenelib::am::SSFType<hash_t, uint32_t, uint8_t> HashSSFType;
 
 typedef HashSSFType::WriterType HashWriter;
 
-typedef std::pair<uint32_t, uint32_t> id2count_t;
 
-typedef boost::tuple<uint32_t, std::vector<uint32_t> ,std::vector<id2count_t>, 
-        uint32_t, std::vector<id2count_t > > data_t;
 
-typedef boost::tuple<idvec_t, std::vector<id2count_t>, uint32_t, std::vector<id2count_t>, std::vector<id2count_t> > CandidateItem;
+class Data
+{
+  public:
+  uint32_t inc;
+  idvec_t termid_list;
+  id2countvec_t docitem_list;
+  uint32_t freq;
+  id2countvec_t lc_list;//left context list
+  
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & inc & termid_list & docitem_list & freq & lc_list;
+  }
+};
+
+// typedef boost::tuple<uint32_t, std::vector<uint32_t> ,std::vector<id2count_t>, 
+//         uint32_t, std::vector<id2count_t > > data_t;
+
+class CandidateItem
+{
+  public:
+  CandidateItem()
+  {
+  }
+  CandidateItem(const idvec_t& p1, const id2countvec_t& p2, uint32_t p3, const id2countvec_t& p4, const id2countvec_t& p5)
+  :termid_list(p1), docitem_list(p2), freq(p3), lc_list(p4), rc_list(p5)
+  {
+  }
+  idvec_t termid_list;
+  id2countvec_t docitem_list;
+  uint32_t freq;
+  id2countvec_t lc_list;//left context list
+  id2countvec_t rc_list;//right context list
+  
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & termid_list & docitem_list & freq & lc_list & rc_list;
+  }
+};
+
+// typedef boost::tuple<idvec_t, id2countvec_t, uint32_t, id2countvec_t, id2countvec_t > CandidateItem;
     
 typedef izenelib::am::SSFType<hash_t, CandidateItem, uint32_t> CandidateSSFType;
 
@@ -56,7 +101,32 @@ typedef boost::tuple<uint32_t, uint32_t, uint32_t, uint32_t> HashCountListItem;
 
 typedef izenelib::am::SSFType<hash_t, HashCountListItem, uint8_t> HashCountListSSFType;
 
-typedef boost::tuple<izenelib::util::UString, std::vector<id2count_t>, uint8_t, std::vector<id2count_t>, std::vector<id2count_t> > KPItem;
+
+class KPItem
+{
+  public:
+  KPItem()
+  {
+  }
+  KPItem(const izenelib::util::UString & p1, const id2countvec_t& p2, uint8_t p3, const id2countvec_t& p4, const id2countvec_t& p5)
+  :text(p1), docitem_list(p2), score(p3), lc_list(p4), rc_list(p5)
+  {
+  }
+  izenelib::util::UString text;
+  id2countvec_t docitem_list;
+  uint8_t score;
+  id2countvec_t lc_list;//left context list
+  id2countvec_t rc_list;//right context list
+  
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & text & docitem_list & score & lc_list & rc_list;
+  }
+};
+
+// typedef boost::tuple<izenelib::util::UString, std::vector<id2count_t>, uint8_t, std::vector<id2count_t>, std::vector<id2count_t> > KPItem;
 
 typedef izenelib::am::SSFType<hash_t, KPItem, uint32_t> KPSSFType;
 
