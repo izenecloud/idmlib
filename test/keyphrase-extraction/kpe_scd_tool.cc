@@ -35,7 +35,7 @@ typedef std::pair<uint32_t, uint32_t> id2count_t;
     }
     std::string str;
     ustr.convertString(str, izenelib::util::UString::UTF_8);
-    ofs_<<str<<","<<freq<<","<<df<<","<<(int)score<<std::endl;
+    ofs_<<str<<","<<freq<<","<<df<<std::endl;
   }
   
 //   void Output()
