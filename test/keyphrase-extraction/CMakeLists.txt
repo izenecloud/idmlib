@@ -68,6 +68,18 @@ SET_TARGET_PROPERTIES(kpe_scd_tool PROPERTIES
 RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
 )
 
+ADD_EXECUTABLE(kp_weight
+kp_weight.cc
+)
+TARGET_LINK_LIBRARIES(kp_weight
+  ${libs}
+)
+
+SET_TARGET_PROPERTIES(kp_weight PROPERTIES
+RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
+)
+
+
 ADD_EXECUTABLE(bce_trainer_cn
 bce_trainer_cn.cc
 )

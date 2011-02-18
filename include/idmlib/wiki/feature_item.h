@@ -152,67 +152,14 @@ public:
     for(uint32_t i=0;i<context_num;i++)
     {
       std::string context_str = vec_value[2+i];
-      std::vector<std::size_t> comma_list;
-      std::size_t pos = 0;
-      while(pos!=std::string::npos)
-      {
-        pos = context_str.find(",", pos);
-        if(pos==std::string::npos)
-        {
-          break;
-        }
-        comma_list.push_back(pos);
-      }
-      bool valid = true;
-      std::size_t split_pos = 0;
-      if(comma_list.empty())
-      {
-        valid = false;
-      }
-      else if(comma_list.size()>3)
-      {
-        valid = false;
-      }
-      else if(comma_list.size()==3)
-      {
-        if(context_str.length()!=3)
-        {
-          valid = false;
-        }
-        else
-        {
-          split_pos = 1;
-        }
-      }
-      else if(comma_list.size()==2)
-      {
-        if(context_str.length()<3)
-        {
-          valid = false;
-        }
-        else
-        {
-          if(comma_list[0]==0)
-          {
-            split_pos = comma_list[1];
-          }
-          else
-          {
-            split_pos = comma_list[0];
-          }
-        }
-      }
-      else //comma_list.size()==1
-      {
-        split_pos = comma_list[0];
-      }
-      if(!valid)
-      {
-        std::cout<<"invalid context while parsing : "<<context_str<<std::endl;
-        continue;
-      }
-      std::string left = context_str.substr(0, split_pos);
-      std::string right = context_str.substr(split_pos, std::string::npos);
+      std::vector<std::string> vec;
+      boost::algorithm::split( vec, context_str, boost::algorithm::is_any_of(",") );
+      std::string left = vec[0];
+      std::string right = vec[1];
+      if(left=="__blank__") left = "";
+      if(right=="__blank__") right = "";
+      if(left=="__comma__") left = ",";
+      if(right=="__comma__") right = ",";
       ContextType context(izenelib::util::UString(left, izenelib::util::UString::UTF_8), 
                            izenelib::util::UString(right, izenelib::util::UString::UTF_8));
       context_list.push_back(context);

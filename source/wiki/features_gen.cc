@@ -189,8 +189,8 @@ bool FeaturesGen::output(const std::string& output_file)
     std::string ref = vec_value[1];
     std::string left = vec_value[2];
     std::string right = vec_value[3];
-    if(left=="__blank__") left = "";
-    if(right=="__blank__") right = "";
+    if(left==",") left = "__comma__";
+    if(right==",") right = "__comma__";
     izenelib::util::UString uleft(left, izenelib::util::UString::UTF_8);
     izenelib::util::UString uright(right, izenelib::util::UString::UTF_8);
     t2s_(uleft);

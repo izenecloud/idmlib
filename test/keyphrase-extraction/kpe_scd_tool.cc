@@ -67,7 +67,7 @@ int main(int ac, char** av)
     ("working-path,W", po::value<std::string>(), "temp working path used for kpe, default: ./kpe_scd_working")
     ("max-doc,M", po::value<uint32_t>(), "max doc count which will be processed.")
     ("exclude-file,X", po::value<std::string>(), "exclude scd file name list")
-    ("try-compute-num,T", po::value<uint32_t>(), "try compute number in kpe")
+    ("try-compute-num,T", po::value<uint32_t>(), "try compute number in kpe(expert)")
   ;
   std::string default_working_path = "./kpe_scd_working";
   izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8;
@@ -246,7 +246,7 @@ int main(int ac, char** av)
   {
     return -1;
   }
-  
+  analyzer->ExtractSymbols();
   FileKPEWriter file_writer(output_file, encoding);
   function_type callback_func = boost::bind( &FileKPEWriter::Callback, &file_writer, _1, _2, _3, _4);
   KPEAlgorithm<OutputType>* kpe = new KPEAlgorithm<OutputType>(working_path, analyzer, callback_func);
