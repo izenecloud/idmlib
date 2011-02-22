@@ -12,6 +12,7 @@
 
 #include <la/LA.h>
 #include <la/stem/Stemmer.h>
+#include <la/util/UStringUtil.h>
 #include <idmlib/idm_types.h>
 #include <idmlib/util/resource_util.h>
 #include <boost/algorithm/string/trim.hpp>
@@ -105,8 +106,10 @@ class IDMAnalyzer
     return LoadSimplerFile(file);
   }
   
-  void GetTermList(const izenelib::util::UString& text, la::TermList& term_list)
+  void GetTermList(const izenelib::util::UString& utext, la::TermList& term_list)
   {
+    izenelib::util::UString text(utext);
+    la::convertFull2HalfWidth(text);
     {
       boost::mutex::scoped_lock lock(la_mtx_);
       la_->process( text, term_list );

@@ -2,6 +2,9 @@
 #include <idmlib/nec/NameEntity.h>
 // #include <idmlib/nec/NameEntityUtil.h>
 #include <idmlib/nec/NameEntityDict.h>
+#include <idmlib/nec/nec_accuracier.h>
+#include <idmlib/nec/nec.h>
+#include <idmlib/nec/nec_item.h>
 #include <idmlib/nec/NameEntityManager.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
@@ -12,102 +15,31 @@
 #include <am/3rdparty/rde_hash.h>
 #include <boost/lexical_cast.hpp>
 using namespace idmlib;
+using namespace idmlib::nec;
 using namespace idmlib::kpe;
 using namespace idmlib::util;
 using namespace boost::filesystem;
 namespace po = boost::program_options;
 
 
-class KPEResult
-{
-  typedef std::pair<uint32_t, uint32_t> id2count_t;
-  typedef std::pair<izenelib::util::UString, uint32_t> str2count_t;
-  public:
-    izenelib::util::UString str;
-    std::vector<id2count_t> id2countList;
-    std::vector<str2count_t> leftTermList;
-    std::vector<str2count_t> rightTermList;
-     
-  public:
-    void get_all_feature_values(std::vector<std::pair<std::string, double> >& features)
-    {
-      izenelib::util::UString surface = str;
-      features.resize(0);
-      if(surface.length()<1) return;
-      uint32_t freq = 0;
-      for(uint32_t i=0;i<id2countList.size();i++)
-      {
-        freq += id2countList[i].second;
-      }
-      if(freq<1) return;
-      izenelib::util::UString u_pu = surface.substr(0,1);
-      std::string pu;
-      u_pu.convertString(pu, izenelib::util::UString::UTF_8);
-      std::pair<std::string, double> f_pu("PU|"+pu, 1.0);
-      features.push_back(f_pu);
-      izenelib::util::UString u_su = surface.substr(surface.length()-1,1);
-      std::string su;
-      u_su.convertString(su, izenelib::util::UString::UTF_8);
-      std::pair<std::string, double> f_su("SU|"+su, 1.0);
-      features.push_back(f_su);
-      if(surface.length()>1)
-      {
-        izenelib::util::UString u_pb = surface.substr(0,2);
-        std::string pb;
-        u_pb.convertString(pb, izenelib::util::UString::UTF_8);
-        std::pair<std::string, double> f_pb("PB|"+pb, 1.0);
-        features.push_back(f_pb);
-        izenelib::util::UString u_sb = surface.substr(surface.length()-2,2);
-        std::string sb;
-        u_sb.convertString(sb, izenelib::util::UString::UTF_8);
-        std::pair<std::string, double> f_sb("SB|"+sb, 1.0);
-        features.push_back(f_sb);
-      }
-      
-      izenelib::am::rde_hash<std::string, bool> apps;
-      for(uint32_t i=0;i<leftTermList.size();i++)
-      {
-        double value = (double)(leftTermList[i].second)/freq;
-        std::string str_context;
-        leftTermList[i].first.convertString(str_context, izenelib::util::UString::UTF_8);
-        if(str_context.length()==0) continue;
-        std::pair<std::string, double> f_context("LC|"+str_context, value);
-        features.push_back(f_context);
-        
-      }
-      
-      for(uint32_t i=0;i<rightTermList.size();i++)
-      {
-        double value = (double)(rightTermList[i].second)/freq;
-        std::string str_context;
-        rightTermList[i].first.convertString(str_context, izenelib::util::UString::UTF_8);
-        if(str_context.length()==0) continue;
-        std::pair<std::string, double> f_context("RC|"+str_context, value);
-        features.push_back(f_context);
-      }
-      
-    }
-};
 
 class NERAccuracier
 {
   typedef std::pair<uint32_t, uint32_t> id2count_t;
   typedef std::pair<izenelib::util::UString, uint32_t> str2count_t;
  public:
-  NERAccuracier(const std::string& nec_path, idmlib::util::IDMIdManager* id_manager, uint32_t test_count, const std::vector<std::pair<izenelib::util::UString, int> >& ner_type_list)
-  :id_manager_(id_manager), test_count_(test_count)
+  NERAccuracier(const std::string& nec_path, idmlib::util::IDMIdManager* id_manager, uint32_t test_count, NecAccuracier* accuracier)
+  :id_manager_(id_manager), test_count_(test_count), accuracier_(accuracier)
   {
-    for(uint32_t i=0;i<ner_type_list.size();i++)
-    {
-      ner_types_.insert(ner_type_list[i].first, ner_type_list[i].second);
-    }
     idmlib::NameEntityManager& nec = idmlib::NameEntityManager::getInstance(nec_path);
     nec_ = &nec;
-    
+    new_nec_ = new idmlib::nec::NEC();
+    new_nec_->Load(nec_path+"/chinese_svm");
   }
   
   ~NERAccuracier()
   {
+    delete new_nec_;
   }
   
   void Callback(
@@ -128,9 +60,10 @@ class NERAccuracier
       }
     }
     if(!valid4test) return;
-    KPEResult kpe_result;
-    kpe_result.str = str;
-    kpe_result.id2countList = id2countList;
+    NECItem nec_item;
+    
+    nec_item.surface = str;
+    nec_item.id2countList = id2countList;
     
     std::vector<str2count_t> leftTermStrList(leftTermList.size());
     std::vector<str2count_t> rightTermStrList(rightTermList.size());
@@ -157,8 +90,8 @@ class NERAccuracier
             rightTermStrList[i].second = rightTermList[i].second;
         }
     }
-    kpe_result.leftTermList = leftTermStrList;
-    kpe_result.rightTermList = rightTermStrList;
+    nec_item.leftTermList = leftTermStrList;
+    nec_item.rightTermList = rightTermStrList;
     idmlib::NameEntity ne(str, prefixList, suffixList);
     
     nec_->predict(ne);
@@ -182,7 +115,25 @@ class NERAccuracier
             break;
         }
     }
-    test_result_.push_back(std::make_pair(kpe_result, type));
+    test_result_.push_back(std::make_pair(nec_item, type));
+    bool all_cn_char = true;
+    for(uint32_t i=0;i<str.length();i++)
+    {
+      if(!str.isChineseChar(i))
+      {
+        all_cn_char = false;
+        break;
+      }
+    }
+    if(all_cn_char)
+    {
+      int new_type = new_nec_->Predict(nec_item);
+      test_result_new_.push_back(std::make_pair(nec_item, new_type));
+    }
+    else
+    {
+      test_result_new_.push_back(std::make_pair(nec_item, type));
+    }
   //         std::string ss;
   //         str.convertString(ss, izenelib::util::UString::UTF_8);
   //         std::cout<<"label type - "<<ss<<" : "<<(uint32_t)labelType<<std::endl;
@@ -198,21 +149,43 @@ class NERAccuracier
     {
       int type = test_result_[i].second;
       std::string str;
-      test_result_[i].first.str.convertString(str, izenelib::util::UString::UTF_8);
-      std::cout<<str<<","<<type<<std::endl;
-      if(type>0)
+      test_result_[i].first.surface.convertString(str, izenelib::util::UString::UTF_8);
+      int r = accuracier_->is_correct(str, type);
+      std::cout<<str<<","<<type<<","<<r<<std::endl;
+      if(r>=0)
       {
         total++;
-        int* o = ner_types_.find(test_result_[i].first.str);
-        if(o!=NULL)
+        if(r>0)
         {
-          std::cout<<"[["<<str<<","<<(*o)<<std::endl;
-          if((*o)==type)
-          {
-            correct++;
-          }
+          correct++;
         }
       }
+      
+      
+    }
+    std::cout<<"accuracy ("<<correct<<","<<total<<") : "<<(double)correct/total<<std::endl;
+  }
+  
+  void print_stat_new()
+  {
+    int total = 0;
+    int correct = 0;
+    for(uint32_t i=0;i<test_result_new_.size();i++)
+    {
+      int type = test_result_new_[i].second;
+      std::string str;
+      test_result_new_[i].first.surface.convertString(str, izenelib::util::UString::UTF_8);
+      int r = accuracier_->is_correct(str, type);
+      std::cout<<str<<","<<type<<","<<r<<std::endl;
+      if(r>=0)
+      {
+        total++;
+        if(r>0)
+        {
+          correct++;
+        }
+      }
+      
       
     }
     std::cout<<"accuracy ("<<correct<<","<<total<<") : "<<(double)correct/total<<std::endl;
@@ -242,7 +215,7 @@ class NERAccuracier
     for(uint32_t i=0;i<test_result_.size();i++)
     {
       int type = test_result_[i].second;
-      izenelib::util::UString surface = test_result_[i].first.str;
+      izenelib::util::UString surface = test_result_[i].first.surface;
       test_result_[i].first.get_all_feature_values(features);
       std::string str;
       surface.convertString(str, izenelib::util::UString::UTF_8);
@@ -277,11 +250,13 @@ class NERAccuracier
   
  private:
   idmlib::NameEntityManager* nec_;
+  idmlib::nec::NEC* new_nec_;
   idmlib::util::IDMIdManager* id_manager_;
   uint32_t test_count_;
-  izenelib::am::rde_hash<izenelib::util::UString, int> ner_types_;
+  NecAccuracier* accuracier_;
   
-  std::vector<std::pair<KPEResult, int> > test_result_;
+  std::vector<std::pair<NECItem, int> > test_result_;
+  std::vector<std::pair<NECItem, int> > test_result_new_;
 };
 
 int main(int ac, char** av)
@@ -375,7 +350,7 @@ int main(int ac, char** av)
   }
   uint32_t num4test = 0;
   uint32_t max_doc = 0;
-  izenelib::am::rde_hash<izenelib::util::UString, int> ner_types;
+  NecAccuracier* accuracier = new NecAccuracier();
   std::vector<std::pair<izenelib::util::UString, int> > ner_type_list;
   {
     std::ifstream ifs(input_file.c_str());
@@ -389,10 +364,10 @@ int main(int ac, char** av)
     {
       std::vector<std::string> vec;
       boost::algorithm::split( vec, line, boost::algorithm::is_any_of("\t") );
-      izenelib::util::UString term(vec[0], izenelib::util::UString::UTF_8);
-      int type = boost::lexical_cast<int>(vec[1]);
-      ner_type_list.push_back(std::make_pair(term, type));
-//       std::cout<<vec_value[1]<<","<<type<<std::endl;
+      accuracier->append(vec[0], vec[1]);
+//       izenelib::util::UString term(vec[0], izenelib::util::UString::UTF_8);
+//       int type = boost::lexical_cast<int>(vec[1]);
+//       ner_type_list.push_back(std::make_pair(term, type));
     }
     ifs.close();
   }
@@ -450,7 +425,7 @@ int main(int ac, char** av)
   }
   analyzer->ExtractSymbols();
   
-  NERAccuracier ner_accuracy(ner_resource_path, id_manager_, num4test, ner_type_list);
+  NERAccuracier ner_accuracy(ner_resource_path, id_manager_, num4test, accuracier);
   function_type callback_func = boost::bind( &NERAccuracier::Callback, &ner_accuracy, _1, _2, _3, _4, _5);
   KPEAlgorithm<OutputType>* kpe = new KPEAlgorithm<OutputType>(working_path, analyzer, callback_func, id_manager_);
   if( !kpe->load(kpe_resource_path) )
@@ -462,11 +437,11 @@ int main(int ac, char** av)
   {
     std::string str;
     ner_type_list[i].first.convertString(str, izenelib::util::UString::UTF_8);
-    std::cout<<"add manmade : "<<str<<","<<ner_type_list[i].second<<std::endl;
-    kpe->add_manmade(ner_type_list[i].first);
+//     std::cout<<"add manmade : "<<str<<","<<ner_type_list[i].second<<std::endl;
+//     kpe->add_manmade(ner_type_list[i].first);
   }
-  izenelib::util::UString tracing("佛山", izenelib::util::UString::UTF_8);
-  kpe->set_tracing(tracing);
+//   izenelib::util::UString tracing("佛山", izenelib::util::UString::UTF_8);
+//   kpe->set_tracing(tracing);
   uint32_t docid = 0;
   
   izenelib::util::ScdParser scd_parser(encoding);
@@ -522,16 +497,17 @@ int main(int ac, char** av)
   delete id_manager_;
   boost::filesystem::remove_all(working_path);
   ner_accuracy.print_stat();
-  if(feature_index_file!="")
-  {
-    time_t _time = time(NULL);
-    struct tm * timeinfo;
-    char buffer[14];
-    timeinfo = localtime(&_time);
-    strftime(buffer, 80, "%Y%m%d%H%M%S", timeinfo);
-    std::string time_stamp = buffer;
-    ner_accuracy.output_libsvm(feature_index_file, "./libsvm_output_"+time_stamp);
-  }
+  ner_accuracy.print_stat_new();
+//   if(feature_index_file!="")
+//   {
+//     time_t _time = time(NULL);
+//     struct tm * timeinfo;
+//     char buffer[14];
+//     timeinfo = localtime(&_time);
+//     strftime(buffer, 80, "%Y%m%d%H%M%S", timeinfo);
+//     std::string time_stamp = buffer;
+//     ner_accuracy.output_libsvm(feature_index_file, "./libsvm_output_"+time_stamp);
+//   }
   return 0;
 
   

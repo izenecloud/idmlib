@@ -110,6 +110,10 @@ public:
         apps.insert(context, 1);
       }
     }
+    double len_score = (double) (surface.length())/10.0;
+    if(len_score>1.0) len_score = 1.0;
+    std::pair<std::string, double> f_len("LENGTH", len_score);
+    features.push_back(f_len);
   }
   
   std::string key() const

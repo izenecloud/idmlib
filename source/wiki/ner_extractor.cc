@@ -14,9 +14,8 @@
 #include <boost/regex.hpp>
 using namespace idmlib::wiki;
 
-bool NerExtractor::extract_from_xml(const std::string& input_xml, const std::string& output_file, const std::string& title_regex)
+bool NerExtractor::extract_from_xml(const std::string& input_xml, const std::string& title_regex)
 {
-  std::ofstream ofs(output_file.c_str());
   std::ifstream ifs(input_xml.c_str());
   std::string line;
   izenelib::util::UString left("[[", izenelib::util::UString::UTF_8);
@@ -33,7 +32,7 @@ bool NerExtractor::extract_from_xml(const std::string& input_xml, const std::str
     line_num++;
     if(line_num%100000==0)
     {
-      std::cout<<"Processing line : "<<line_num<<std::endl;
+//       std::cout<<"Processing line : "<<line_num<<std::endl;
     }
     boost::algorithm::trim(line);
     if(line == page_end )
@@ -90,21 +89,19 @@ bool NerExtractor::extract_from_xml(const std::string& input_xml, const std::str
         if(boost::ends_with(surface_str, "列表")) continue;
         std::string ref_str;
         ref.convertString(ref_str, izenelib::util::UString::UTF_8);
-        ofs<<surface_str<<","<<ref_str<<std::endl;
+        std::cout<<surface_str<<","<<ref_str<<std::endl;
       }
       
     }
     
   }
   ifs.close();
-  ofs.close();
   return true;
 }
 
 
-bool NerExtractor::extract_from_catelink(const std::string& input_file, const std::string& output_file, const std::string& category_regex)
+bool NerExtractor::extract_from_catelink(const std::string& input_file, const std::string& category_regex, const std::string& page_regex)
 {
-  std::ofstream ofs(output_file.c_str());
   std::ifstream ifs(input_file.c_str());
   std::string line;
   izenelib::util::UString left("[[", izenelib::util::UString::UTF_8);
@@ -113,12 +110,17 @@ bool NerExtractor::extract_from_catelink(const std::string& input_file, const st
   izenelib::util::UString colon(":", izenelib::util::UString::UTF_8);
   uint32_t line_num = 0;
   boost::regex reg_exp(category_regex);
+  boost::regex* page_reg = NULL;
+  if(page_regex!="")
+  {
+    page_reg = new boost::regex(page_regex);
+  }
   while(getline( ifs, line))
   {
     line_num++;
     if(line_num%100000==0)
     {
-      std::cout<<"Processing line : "<<line_num<<std::endl;
+//       std::cout<<"Processing line : "<<line_num<<std::endl;
     }
     std::vector<std::string> vec_value;
     boost::algorithm::split( vec_value, line, boost::algorithm::is_any_of("\t") );
@@ -136,11 +138,17 @@ bool NerExtractor::extract_from_catelink(const std::string& input_file, const st
     std::string category = vec_value[1];
     if( boost::regex_match(category, reg_exp) )
     {
-      ofs<<page<<std::endl;
+      if(page_reg!=NULL)
+      {
+        if( boost::regex_match(page, *page_reg) )
+        {
+          std::cout<<page<<std::endl;
+        }
+      }
+      
     }
   }
   ifs.close();
-  ofs.close();
   return true;
 }
 

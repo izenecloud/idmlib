@@ -55,3 +55,14 @@ TARGET_LINK_LIBRARIES(nec_accuracy
 SET_TARGET_PROPERTIES(nec_accuracy PROPERTIES
 RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
 )
+
+ADD_EXECUTABLE(libsvm_nec_accuracy
+libsvm_nec_accuracy.cc
+)
+TARGET_LINK_LIBRARIES(libsvm_nec_accuracy
+  ${libs}
+)
+
+SET_TARGET_PROPERTIES(libsvm_nec_accuracy PROPERTIES
+RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
+)

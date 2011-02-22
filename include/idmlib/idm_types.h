@@ -29,6 +29,9 @@ typedef unsigned __int64  uint64_t;
 #define NS_IDMLIB_KPE_BEGIN namespace idmlib{ namespace kpe{
 #define NS_IDMLIB_KPE_END }}
 
+#define NS_IDMLIB_NEC_BEGIN namespace idmlib{ namespace nec{
+#define NS_IDMLIB_NEC_END }}
+
 #define NS_IDMLIB_CC_BEGIN namespace idmlib{ namespace cc{
 #define NS_IDMLIB_CC_END }}
 

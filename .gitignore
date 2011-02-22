@@ -23,3 +23,4 @@ resource
 /.dep
 /include/idmlib-version.h
 /test/TestResources.h
+/bin/*
