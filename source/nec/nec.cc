@@ -14,11 +14,15 @@ using namespace idmlib::nec;
 using namespace idmlib::util;
 
 
-NEC::NEC()
+NEC::NEC():model_(0)
 {
 }
 NEC::~NEC()
 {
+  if(model_!=0)
+  {
+    svm_free_and_destroy_model(&model_);
+  }
 }
 
 bool NEC::Load(const std::string& dir)
@@ -45,6 +49,7 @@ bool NEC::Load(const std::string& dir)
     std::cout<<"load model failed for nec"<<std::endl;
     return false;
   }
+  std::cout<<model_file<<" loaded!"<<std::endl;
   return true;
 }
 

@@ -53,6 +53,7 @@ public:
     }
     else
     {
+      return -1;
       int* tagged = type_.find(item);
       if(tagged==NULL)
       {

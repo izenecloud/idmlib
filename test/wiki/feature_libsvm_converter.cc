@@ -101,7 +101,7 @@ bool is_bigram_label(const std::string& label)
   return false;
 }
 
-void gen_libsvm_ai(const std::string& input, const std::string& feature_index_file, const std::string& output, int max)
+void gen_libsvm_ai(const std::string& input, const std::string& feature_index_file, const std::string& output, uint32_t max)
 {
   typedef std::vector<std::pair<std::string, double> > FeaturesType;
   std::cout<<"[gen_libsvm_ai] max : "<<max<<std::endl;
@@ -120,6 +120,7 @@ void gen_libsvm_ai(const std::string& input, const std::string& feature_index_fi
   izenelib::am::rde_hash<std::string, int> feature_app_in_ne;
   std::ifstream ifs(input.c_str());
   std::ofstream ofs(output.c_str());
+  std::ofstream info_ofs( (output+".info").c_str());
   std::vector<std::pair<std::string, double> > features;
   std::vector<std::pair<int, FeatureItem> > other_list;
   std::string line;
@@ -127,10 +128,12 @@ void gen_libsvm_ai(const std::string& input, const std::string& feature_index_fi
   {
     FeatureItem item;
     item.Parse(line);
+    if(item.surface.length()<2) continue;
     item.get_all_feature_values(features);
     if(features.size()==0) continue;
     if(item.type>0)
     {
+      info_ofs<<item.key()<<std::endl;
       ofs<<item.type;
       std::vector<std::pair<int, double> > feature_list;
       for(uint32_t i=0;i<features.size();i++)
@@ -164,10 +167,12 @@ void gen_libsvm_ai(const std::string& input, const std::string& feature_index_fi
   ifs.close();
   std::cout<<"start to sort"<<std::endl;
   std::sort( other_list.begin(), other_list.end(), izenelib::util::first_greater<std::pair<int, FeatureItem> >());
-  for(uint32_t i=0;i<other_list.size();i++)
+  uint32_t num = other_list.size()>max?max:other_list.size();
+  for(uint32_t i=0;i<num;i++)
   {
     FeatureItem item = other_list[i].second;
     item.get_all_feature_values(features);
+    info_ofs<<item.key()<<std::endl;
     ofs<<item.type;
     std::vector<std::pair<int, double> > feature_list;
     for(uint32_t i=0;i<features.size();i++)
@@ -184,6 +189,7 @@ void gen_libsvm_ai(const std::string& input, const std::string& feature_index_fi
     ofs<<std::endl;
   }
   ofs.close();
+  info_ofs.close();
 }
 
 int main(int argc, char** argv)
@@ -212,7 +218,7 @@ int main(int argc, char** argv)
   else if(cmd=="-sai")
   {
     std::string max_str = argv[5];
-    int max = boost::lexical_cast<int>(max_str);
+    uint32_t max = boost::lexical_cast<uint32_t>(max_str);
     gen_libsvm_ai(argv[2], argv[3], argv[4], max);
   }
 }
