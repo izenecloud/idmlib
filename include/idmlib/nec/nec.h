@@ -29,6 +29,8 @@ private:
   izenelib::am::rde_hash<std::string, int> feature_index_;
   int len_index_;
   struct svm_model* model_;
+  
+  izenelib::am::rde_hash<izenelib::util::UString, int> predefined_types_;
 };
 
    
