@@ -41,6 +41,9 @@ typedef unsigned __int64  uint64_t;
 #define NS_IDMLIB_SIM_BEGIN namespace idmlib{ namespace sim{
 #define NS_IDMLIB_SIM_END }}
 
+#define NS_IDMLIB_SSP_BEGIN namespace idmlib{ namespace ssp{
+#define NS_IDMLIB_SSP_END }}
+
 #define NS_IDMLIB_UTIL_BEGIN namespace idmlib{ namespace util{
 #define NS_IDMLIB_UTIL_END }}
 

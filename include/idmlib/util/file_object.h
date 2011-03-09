@@ -18,14 +18,14 @@ public:
   ~FileObject()
   {}
   
-  void SetValue(const T& value)
+  void SetValue(const T& tvalue)
   {
-    value_ = value;
+    value = tvalue;
   }
   
   T GetValue()
   {
-    return value_;
+    return value;
   }
   
   
@@ -35,7 +35,7 @@ public:
     if( ofs.fail()) return false;
     {
       boost::archive::text_oarchive oa(ofs);
-      oa << value_ ;
+      oa << value ;
     }
     ofs.close();
     if( ofs.fail() )
@@ -47,23 +47,37 @@ public:
   
   bool Load()
   {
-    std::ifstream ifs(file_.c_str(), std::ios::binary);
-    if( ifs.fail()) return false;
+    try
     {
-      boost::archive::text_iarchive ia(ifs);
-      ia >> value_ ;
+      if(!boost::filesystem::exists(file_))
+      {
+        return true;
+      }
+      std::ifstream ifs(file_.c_str(), std::ios::binary);
+      if( ifs.fail()) return false;
+      {
+        boost::archive::text_iarchive ia(ifs);
+        ia >> value ;
+      }
+      ifs.close();
+      if( ifs.fail() )
+      {
+        return false;
+      }
     }
-    ifs.close();
-    if( ifs.fail() )
+    catch(std::exception& ex)
     {
+      std::cerr<<ex.what()<<std::endl;
       return false;
     }
     return true;
   }
   
+public:
+  T value;
+  
 private:
   std::string file_;
-  T value_;
         
 };
 
