@@ -32,10 +32,13 @@ FILE(GLOB wiki_SRC
   "wiki/*.cc"
 )
 
+FILE(GLOB ssp_SRC
+  "semantic_space/*.cc"
+)
+
 FILE(GLOB sim_SRC
   "similarity/*.cc"
 )
-
 
 ADD_LIBRARY(idmlib 
 ${keyphrase_extraction_SRC}
@@ -45,6 +48,7 @@ ${query-suggestion_SRC}
 ${dc_SRC}
 ${util_SRC}
 ${wiki_SRC}
+${ssp_SRC}
 ${sim_SRC}
 )
 
