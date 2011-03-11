@@ -4,6 +4,7 @@
 
 #include <string>
 #include <iostream>
+#include <boost/function.hpp>
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/random_indexing.h>
 #include <am/matrix/matrix_file_io.h>
