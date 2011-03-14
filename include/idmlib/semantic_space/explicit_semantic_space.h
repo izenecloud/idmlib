@@ -22,8 +22,7 @@ NS_IDMLIB_SSP_BEGIN
 class ExplicitSemanticSpace : public SemanticSpace
 {
 public:
-	ExplicitSemanticSpace(const std::string& scdDir)
-	: SemanticSpace(scdDir)
+	ExplicitSemanticSpace()
 	{}
 
 public:

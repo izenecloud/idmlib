@@ -45,6 +45,8 @@ public:
 private:
 	boost::shared_ptr<SemanticSpace> pSSP_;
 
+	std::string resDir_;
+
 	std::string docSimDir_;
 };
 

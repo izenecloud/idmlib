@@ -22,8 +22,7 @@ typedef uint32_t count_t;
 class SemanticSpace
 {
 public:
-	SemanticSpace(const std::string& scdDir)
-	: scdDir_(scdDir)
+	SemanticSpace()
 	{
 	}
 	virtual ~SemanticSpace() {}
@@ -43,7 +42,6 @@ public:
 	virtual bool getTermSparseVector(termid_t termId, std::vector<docid_t> termSparseVec) { return false; }
 
 protected:
-	std::string scdDir_;
 	// KPE
 
 	// Matrix
