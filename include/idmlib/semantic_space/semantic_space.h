@@ -12,12 +12,9 @@
 #include <iostream>
 
 #include <idmlib/idm_types.h>
+#include <idmlib/semantic_space/term_doc_matrix_defs.h>
 
 NS_IDMLIB_SSP_BEGIN
-
-typedef uint32_t termid_t;
-typedef uint32_t docid_t;
-typedef uint32_t count_t;
 
 class SemanticSpace
 {
@@ -28,7 +25,7 @@ public:
 	virtual ~SemanticSpace() {}
 
 public:
-	virtual void processDocument(/*document*/) {};
+	virtual void processDocument(doc_terms_map& doc) {};
 
 	virtual void processSpace() = 0;
 
@@ -42,7 +39,6 @@ public:
 	virtual bool getTermSparseVector(termid_t termId, std::vector<docid_t> termSparseVec) { return false; }
 
 protected:
-	// KPE
 
 	// Matrix
 	// MatrixBuilder

@@ -16,6 +16,7 @@
 
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/semantic_space.h>
+#include <idmlib/semantic_space/term_doc_matrix_defs.h>
 
 NS_IDMLIB_SSP_BEGIN
 
@@ -26,7 +27,7 @@ public:
 	{}
 
 public:
-	void processDocument();
+	void processDocument(doc_terms_map& doc);
 
 	void processSpace();
 

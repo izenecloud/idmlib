@@ -14,7 +14,7 @@ ExplicitSemanticSpace::~ExplicitSemanticSpace()
 }
 */
 
-void ExplicitSemanticSpace::processDocument()
+void ExplicitSemanticSpace::processDocument(doc_terms_map& doc)
 {
 
 }
