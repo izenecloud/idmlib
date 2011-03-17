@@ -8,7 +8,6 @@
 #define SEMANTIC_SPACE_H_
 
 #include <set>
-#include <vector>
 #include <iostream>
 
 #include <idmlib/idm_types.h>
@@ -25,7 +24,7 @@ public:
 	virtual ~SemanticSpace() {}
 
 public:
-	virtual void processDocument(doc_terms_map& doc) {};
+	virtual void processDocument(docid_t& docid, term_vector& terms) {};
 
 	virtual void processSpace() = 0;
 
@@ -38,11 +37,6 @@ public:
 	// todo, SparseVector
 	virtual bool getTermSparseVector(termid_t termId, std::vector<docid_t> termSparseVec) { return false; }
 
-protected:
-
-	// Matrix
-	// MatrixBuilder
-	// termIndexMap<string, I>
 };
 
 NS_IDMLIB_SSP_END

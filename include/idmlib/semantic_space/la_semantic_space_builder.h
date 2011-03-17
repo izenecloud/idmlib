@@ -42,12 +42,15 @@ protected:
 private:
 	bool initLA(const std::string& laResPath);
 
+	bool filter(const izenelib::util::UString& ustrTerm);
+
 private:
 	std::string indexPath_;
 	std::string laResPath_;
 
 	boost::shared_ptr<la::LA> pLA_;
-	TermIdList pTermIdList_;
+	TermIdList termIdList_;
+	la::TermList termList_;
 };
 
 NS_IDMLIB_SSP_END

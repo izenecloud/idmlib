@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder;
 	pSemBuilder.reset(new LaSemanticSpaceBuilder(colPath, outPath, pSSpace, laRecPath, maxDoc));
 	// 1. build knowledge matrix base on Chinese Wiki
-	pSemBuilder->buildInvertedIndex();
+	pSemBuilder->Build();
 
 	// compute document similarity
 	//string docSimDir;

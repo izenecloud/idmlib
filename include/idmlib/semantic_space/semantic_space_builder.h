@@ -58,14 +58,14 @@ public:
 	}
 
 public:
-	bool buildInvertedIndex()
+	bool Build()
 	{
 		std::vector<std::string> scdFileList;
 		if (!getScdFileList(scdPath_, scdFileList)) {
 			return false;
 		}
 
-	    doc_terms_map docTermsMap;
+	    // doc_terms_map docTermsMap;
 	    term_vector termVec;
 	    docid_t docid = 0;
 	    docid_t last_docid = 0;
@@ -88,7 +88,7 @@ public:
 			for ( ; iter != scdParser.end(); iter ++)
 			{
 				if ( (doc_count++) >= maxDoc_ )
-					return true;
+					break;
 
 				izenelib::util::SCDDocPtr pDoc = *iter;
 
@@ -106,7 +106,7 @@ public:
 							DLOG(WARNING) << "Document (" << propertyValue << ") does not existed: !" << std::endl;
 							return false;
 						}
-						//std::cout << endl << "docid: " << la::to_utf8(propertyValue) << " => " << docid << endl;
+						std::cout << endl << "docid: " << la::to_utf8(propertyValue) << " => " << docid << endl;
 					}
 					else if ( propertyName == izenelib::util::UString("title", encoding_) ) {
 						//std::cout << la::to_utf8(proIter->second) << std::endl;
@@ -126,12 +126,18 @@ public:
 
 				// docTermsMap.clear();
 				//docTermsMap[docid] = termVec;
-				docTermsMap.insert(make_pair(docid, termVec));
-				pSSpace_->processDocument(docTermsMap);
+				//docTermsMap.insert(make_pair(docid, termVec));
+				pSSpace_->processDocument(docid, termVec);
 			}
+
+			if ( doc_count >= maxDoc_ )
+				break;
 		}
 
-		return false;
+		std::cout << "process Space.." << std::endl;
+		pSSpace_->processSpace();
+
+		return true;
 	}
 
 	boost::shared_ptr<SemanticSpace>& getSemanticSpace()

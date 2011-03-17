@@ -14,6 +14,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <idmlib/idm_types.h>
+#include <3rdparty/am/rde_hashmap/hash_map.h>
 
 NS_IDMLIB_SSP_BEGIN
 
@@ -38,7 +39,8 @@ struct sTermDocUnit
 struct sDocUnit
 {
 	docid_t docid;
-	weight_t weight;
+	weight_t tf;
+	weight_t weight; // tf*idf
 };
 
 struct sTermUnit
@@ -47,14 +49,23 @@ struct sTermUnit
 	weight_t weight;
 };
 
-typedef std::map<termid_t, index_t> termid_index_map;
-typedef std::map<docid_t, index_t> docid_index_map;
+struct term_docs_map_ {
+	termid_t termid;
+	sDocUnit* psDocUnit;
+};
+
+// termid,docid to matrix index
+typedef std::map< termid_t, index_t > termid_index_map;
+typedef std::map< docid_t, index_t > docid_index_map;
 
 typedef std::vector< boost::shared_ptr<sDocUnit> > doc_vector;
 typedef std::vector< boost::shared_ptr<sTermUnit> > term_vector;
 
-typedef std::map< docid_t, term_vector > doc_terms_map;
-typedef std::map< termid_t, doc_vector > term_docs_map;
+typedef std::vector< term_vector > doc_terms_map;
+typedef std::vector< doc_vector > term_docs_map;
+
+typedef term_docs_map term_doc_matrix;
+typedef doc_terms_map doc_term_matrix;
 
 NS_IDMLIB_SSP_END
 

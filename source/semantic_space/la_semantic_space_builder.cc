@@ -6,15 +6,24 @@ using namespace idmlib::ssp;
 
 bool LaSemanticSpaceBuilder::getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec)
 {
-	pTermIdList_.clear();
-	pLA_->process(pIdManager_.get(), ustrDoc, pTermIdList_);
+	//termIdList_.clear();
+	//pLA_->process(pIdManager_.get(), ustrDoc, termIdList_);
 
-	for ( TermIdList::iterator iter = pTermIdList_.begin(); iter != pTermIdList_.end(); iter++ )
+	termList_.clear();
+	pLA_->process(ustrDoc, termList_);
+
+	termid_t termid;
+	for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
 	{
+		if ( filter(iter->text_) )
+			continue;
+
 		boost::shared_ptr<sTermUnit> pTerm(new sTermUnit());
-		pTerm->termid = iter->termid_;
-		//cout << iter->termid_ << "  " << iter->docId_ << endl;
+		pIdManager_->getTermIdByTermString(iter->text_, termid);
+		pTerm->termid = termid;
 		termVec.push_back(pTerm);
+
+		cout << iter->textString()  << "(" << termid << ") "; //
 	}
 
 	return true;
@@ -33,11 +42,17 @@ bool LaSemanticSpaceBuilder::initLA(const std::string& laResPath)
 	if (!pch) {
 		return false;
 	}
-	pch->setExtractSpecialChar(false, true);
+	pch->setExtractSpecialChar(true, true);
 	pch->setAnalysisType(la::ChineseAnalyzer::minimum_match_no_overlap);
 
 	ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
+	ml_analyzer->setDefaultAnalyzer( ch_analyzer );
 	pLA_->setAnalyzer(ml_analyzer);
 
 	return true;
+}
+
+bool LaSemanticSpaceBuilder::filter(const izenelib::util::UString& ustrTerm)
+{
+	return false;
 }

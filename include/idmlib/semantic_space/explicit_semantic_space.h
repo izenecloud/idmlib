@@ -12,7 +12,7 @@
 #define EXPLICIT_SEMANTIC_SPACE_H_
 
 #include <set>
-#include <vector>
+#include <cmath>
 
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/semantic_space.h>
@@ -24,16 +24,77 @@ class ExplicitSemanticSpace : public SemanticSpace
 {
 public:
 	ExplicitSemanticSpace()
+	: termIndex_(0)
+	, docIndex_(0)
 	{}
 
 public:
-	void processDocument(doc_terms_map& doc);
+	void processDocument(docid_t& docid, term_vector& terms);
 
 	void processSpace();
 
 	bool getTermIds(std::set<termid_t>& termIds);
 
 	bool getTermVector(termid_t termId, std::vector<docid_t> termVec);
+
+	void print();
+
+private:
+	void buildTermIndex(docid_t& docid, term_vector& terms);
+
+	void buildDocIndex(docid_t& docid, term_vector& terms);
+
+	index_t getOrAddTermIndex(termid_t& termid) {
+		termid_index_map::iterator iter = termid2Index_.find(termid);
+		if ( iter != termid2Index_.end()) {
+			return iter->second;
+		}
+		else {
+			termid2Index_[termid] = termIndex_;
+			return (termIndex_++);
+		}
+	}
+
+	template<typename mapT, typename mapIterT>
+	index_t getOrAddIndex(mapT& id2Index, mapIterT& iter, termid_t& id, index_t& index_count) {
+		iter = id2Index.find(id);
+		if (iter != id2Index.end()) {
+			return iter->second;
+		}
+		else {
+			id2Index[id] = index_count;
+			return (index_count++);
+		}
+	}
+
+	void calcWeight()
+	{
+		boost::shared_ptr<sDocUnit> pDoc;
+
+		for (termid_t t = 0; t < termdocM_.size(); t ++) {
+			for (docid_t dt = 0; dt < termdocM_[t].size(); dt ++) {
+				pDoc = termdocM_[t][dt];
+				if (pDoc) {
+					// tf * idf, tf not normalized
+					pDoc->weight = pDoc->tf * std::log(docIndex_ / term2DF_[t]);
+				}
+			}
+		}
+	}
+
+private:
+	static const weight_t threshold_ = 0.0f;
+
+private:
+	index_t termIndex_;
+	index_t docIndex_;
+	termid_index_map termid2Index_;
+	docid_index_map docid2Index_;
+
+	typedef std::map<index_t, count_t> term_df_map;
+	term_df_map term2DF_;
+
+	term_doc_matrix termdocM_; // in memory
 };
 
 NS_IDMLIB_SSP_END
