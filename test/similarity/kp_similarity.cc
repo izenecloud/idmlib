@@ -7,10 +7,17 @@
 
 int main(int argc, char** argv)
 {
+  //use sparse vector as container
   typedef idmlib::sim::TermSimilarity<izenelib::am::MatrixMemIo, izenelib::am::SparseVector<int64_t,uint16_t> > TermSimilarityType;
+  if(argc!=3)
+  {
+    std::cerr<<"Usage: ./kp_similarity <inverted_text_file> <output_file>"<<std::endl;
+    return -1;
+  }
   std::string kp_inverted_file(argv[1]);
+  std::string output_file(argv[2]);
   std::cout<<"file : "<<kp_inverted_file<<std::endl;
-  
+  std::cout<<"output file : "<<output_file<<std::endl;
   std::ifstream ifs(kp_inverted_file.c_str());
   std::string line;
   std::string test_dir = "./term_sim_test";
@@ -60,6 +67,7 @@ int main(int argc, char** argv)
       continue;
     }
     uint32_t kp_id = kp_list.size()+1;
+    //append this kp term
     if(!sim->Append(kp_id, doc_item_list))
     {
       std::cout<<"append error"<<std::endl;
@@ -74,6 +82,7 @@ int main(int argc, char** argv)
     return -1;
   }
   std::cout<<"Computing finished."<<std::endl;
+  std::ofstream ofs(output_file.c_str());
   for(uint32_t i=0;i<kp_list.size();i++)
   {
     uint32_t kp_id = i+1;
@@ -85,15 +94,17 @@ int main(int argc, char** argv)
     else
     {
       std::string kp = kp_list[kp_id-1];
-      std::cout<<kp<<" : ";
+      ofs<<kp<<" : ";
       for(uint32_t j=0;j<sim_list.size();j++)
       {
         std::string sim_kp = kp_list[sim_list[j]-1];
-        std::cout<<sim_kp<<",";
+        ofs<<sim_kp<<",";
       }
-      std::cout<<std::endl;
+      ofs<<std::endl;
     }
   }
+  ofs.close();
+  std::cout<<"Output finished"<<std::endl;
   delete sim;
   return 0;
 }

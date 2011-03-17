@@ -72,9 +72,15 @@ public:
       n2 += vec2.value[p2].second * vec2.value[p2].second;
       p2++;
     }
-    double d1 = std::sqrt((double)n1);
-    double d2 = std::sqrt((double)n2);
-    return (double)p/d1/d2;
+    double result = -100.0;
+    if(n1>0 && n2>0)
+    {
+      double d1 = std::sqrt((double)n1);
+      double d2 = std::sqrt((double)n2);
+      result = (double)p/d1/d2;
+    }
+//     std::cout<<result<<std::endl;
+    return result;
   }
   
 };

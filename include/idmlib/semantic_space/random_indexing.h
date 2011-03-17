@@ -85,7 +85,8 @@ public:
     VT vec;
     if(!GetVector(id, vec) )
     {
-//       vec.resize(rig_->GetDimensions(), 0);
+      //id appears in first time.
+      //do nothing.
     }
     riv.AddTo(vec, f, rig_->GetDimensions());//add the random indexing vector to this row.
     if(!SetVector(id, vec) )//update it

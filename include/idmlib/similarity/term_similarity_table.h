@@ -56,10 +56,13 @@ public:
     if(!storage_->GetVector(id, value)) return false;
     if(value.size()!=max_) return false;
     typename ValueType::size_type non_zero = value.size();
-    for(typename ValueType::size_type i=value.size()-1; i>=0 ;i--)
+    typename ValueType::size_type i=value.size()-1;
+    while(true)
     {
       if(value[i]!=0) break;
       non_zero = i;
+      if(i==0) break;
+      i--;
     }
     value.resize(non_zero);
     return true;
