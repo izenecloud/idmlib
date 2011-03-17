@@ -9,25 +9,38 @@
 
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/semantic_space_builder.h>
+#include <idmlib/keyphrase-extraction/kpe_algorithm.h>
+#include <idmlib/keyphrase-extraction/kpe_output.h>
 
 NS_IDMLIB_SSP_BEGIN
 
 class KpeSemanticSpaceBuilder : public SemanticSpaceBuilder
 {
+	typedef idmlib::kpe::KPEOutput<true, true, true> OutputType ;
+	typedef OutputType::function_type function_type ;
+public:
+	typedef idmlib::kpe::KPEAlgorithm<OutputType> kpe_type;
+
 public:
 	KpeSemanticSpaceBuilder(
-			const std::string& scdPath,
+			const std::string& collectionPath,
 			const std::string& outPath,
 			boost::shared_ptr<SemanticSpace>& pSSpace )
-	: SemanticSpaceBuilder(scdPath, outPath, pSSpace)
+	: SemanticSpaceBuilder(collectionPath, outPath, pSSpace)
 	{
 	}
 
-public:
-	bool buildInvertedIndex();
+protected:
+	bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
 
 private:
-	bool getScdFileList(const std::string& scdPath, std::vector<std::string>& fileList);
+	bool initKpe();
+
+private:
+	// key-phrase extraction
+	kpe_type* kpe_;
+    function_type callback_func_;
+    kpe_type::ScorerType* scorer_;
 
 };
 
