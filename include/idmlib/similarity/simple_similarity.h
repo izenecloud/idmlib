@@ -1,34 +1,39 @@
-#ifndef IDMLIB_SSP_COSINESIMILARITY_H_
-#define IDMLIB_SSP_COSINESIMILARITY_H_
+#ifndef IDMLIB_SIM_SIMPLESIMILARITY_H_
+#define IDMLIB_SIM_SIMPLESIMILARITY_H_
 
 
 #include <string>
 #include <iostream>
 #include <idmlib/idm_types.h>
 #include <am/matrix/sparse_vector.h>
-NS_IDMLIB_SSP_BEGIN
+NS_IDMLIB_SIM_BEGIN
 
 
 template <class T>
-class CosineSimilarity
+class SimpleSimilarity
 {
 public:
   
   static double Sim(const T& vec1, const T& vec2)
   {
     if(vec1.size()!=vec2.size()) return 0.0;
-    int64_t p = 0;
-    uint64_t n1 = 0;
-    uint64_t n2 = 0;
+    uint64_t dist = 0;
+
     for(typename T::size_type i=0;i<vec1.size();i++)
     {
-      p += vec1[i]*vec2[i];
-      n1 += vec1[i]*vec1[i];
-      n2 += vec2[i]*vec2[i];
+      int64_t d = vec1[i]-vec2[i];
+      if(d<0)
+      {
+        d*=-1;
+      }
+      dist += (uint64_t)d;
     }
-    double d1 = std::sqrt((double)n1);
-    double d2 = std::sqrt((double)n2);
-    return (double)p/d1/d2;
+    double r = 100.0;
+    if(dist>0)
+    {
+      r = 1.0/dist;
+    }
+    return r;
   }
   
 };
@@ -47,7 +52,7 @@ public:
 // };
 
    
-NS_IDMLIB_SSP_END
+NS_IDMLIB_SIM_END
 
 
 

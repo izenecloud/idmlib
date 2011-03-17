@@ -11,19 +11,23 @@
 #include "random_indexing_vector.h"
 NS_IDMLIB_SSP_BEGIN
 
+
+///@brief Used to generate RandomIndexingVector in specific dimensions and random probability.
 template <typename T, typename I = uint32_t, template <typename VT, typename TI> class MatrixIo = izenelib::am::MatrixMemIo >
 class RandomIndexingGenerator : public MatrixIo<RandomIndexingVector<T> , I>
 {
 public:
   typedef RandomIndexingVector<T> RIVType;
   typedef MatrixIo<RIVType, I> MatrixIoType;
+  
+  ///@brief Set the dimensions while the probability for generating 1 or -1 equals p/dimensions.
   RandomIndexingGenerator(const std::string& dir, T dimensions, T p)
   :MatrixIoType(dir), dir_(dir), dimensions_(dimensions), p_(p)
   ,engine_(), distribution_(0, dimensions_), random_(engine_, distribution_)
   {
   }
   
-  
+  ///@brief Generate the RandomIndexingVector for id if not exists.
   bool Get(I id, RIVType& item)
   {
     if(GetVector(id, item))
