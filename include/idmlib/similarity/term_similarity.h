@@ -5,6 +5,7 @@
 #include <stdio.h> 
 #include <string>
 #include <iostream>
+#include <boost/function.hpp>
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/random_indexing.h>
 #include "cosine_similarity.h"
