@@ -106,7 +106,7 @@ public:
 							DLOG(WARNING) << "Document (" << propertyValue << ") does not existed: !" << std::endl;
 							return false;
 						}
-						std::cout << endl << "docid: " << la::to_utf8(propertyValue) << " => " << docid << endl;
+						//std::cout << endl << "docid: " << la::to_utf8(propertyValue) << " => " << docid << endl;
 					}
 					else if ( propertyName == izenelib::util::UString("title", encoding_) ) {
 						//std::cout << la::to_utf8(proIter->second) << std::endl;
@@ -134,8 +134,12 @@ public:
 				break;
 		}
 
-		std::cout << "process Space.." << std::endl;
+		std::cout << "process Space..." << std::endl;
+		time_t time1, time2;
+		time1 = time (NULL);
 		pSSpace_->processSpace();
+		time2 = time (NULL);
+		std::cout << "time elapsed: " << (time2-time1) << std::endl;
 
 		return true;
 	}

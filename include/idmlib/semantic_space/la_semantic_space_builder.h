@@ -11,6 +11,7 @@
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/semantic_space_builder.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
+#include <idmlib/util/idm_analyzer.h>
 #include <ir/index_manager/index/LAInput.h>
 
 using namespace izenelib::ir::indexmanager;
@@ -33,7 +34,8 @@ public:
 		indexPath_ = collectionPath_ + "";
 		normalizeFilePath(laResPath_);
 
-		initLA(laResPath_);
+		//initLA(laResPath_);
+		pIdmAnalyzer_.reset(new idmlib::util::IDMAnalyzer());
 	}
 
 protected:
@@ -49,6 +51,7 @@ private:
 	std::string laResPath_;
 
 	boost::shared_ptr<la::LA> pLA_;
+	boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer_;
 	TermIdList termIdList_;
 	la::TermList termList_;
 };

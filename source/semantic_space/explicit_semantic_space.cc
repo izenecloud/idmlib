@@ -42,7 +42,7 @@ void ExplicitSemanticSpace::print()
 	cout << "[termid, index, df] : " << termid2Index_.size() << " == " << termIndex_ << endl;
 	for (iter = termid2Index_.begin(); iter != termid2Index_.end(); iter ++)
 	{
-		cout << iter->first << ", " << iter->second << ", " << term2DF_[iter->second] << endl;
+		cout << iter->first << ", " << iter->second << ", " << termidx2DF_[iter->second] << endl;
 	}
 
 	docid_index_map::iterator iter2;
@@ -54,14 +54,14 @@ void ExplicitSemanticSpace::print()
 
 	term_doc_matrix::iterator miter;
 	boost::shared_ptr<sDocUnit> pDoc;
-	cout << "[term-index, doc-index, tf, weight]" << termIndex_ << "*" << docIndex_ << endl;
+	cout << "[term-index, (doc-index, weight)] " << termIndex_ << "*" << docIndex_ << endl;
 	//for (miter = termdocM_.begin(); miter != termdocM_.end(); miter++) {
 	for (termid_t t = 0; t < termdocM_.size(); t ++) {
 		cout << t << " ";
 		for (docid_t dt = 0; dt < termdocM_[t].size(); dt ++) {
 			pDoc = termdocM_[t][dt];
 			if (pDoc) {
-				cout << " (" << pDoc->docid << ", " << pDoc->tf << ", " << pDoc->weight << ") ";
+				cout << " (" << pDoc->docid << ", " << pDoc->tf << ") ";
 			}
 		}
 		cout << endl;
@@ -72,7 +72,7 @@ void ExplicitSemanticSpace::print()
 
 void ExplicitSemanticSpace::buildTermIndex(docid_t& docid, term_vector& terms)
 {
-	std::set<termid_t> tmp; // unique terms in this doc
+	std::set<termid_t> tmp; // terms without repeat
 	std::set<termid_t>::iterator tmp_it;
 	std::pair<set<termid_t>::iterator,bool> tmp_ret;
 
@@ -90,10 +90,10 @@ void ExplicitSemanticSpace::buildTermIndex(docid_t& docid, term_vector& terms)
 		// df
 		tmp_ret = tmp.insert(termid);
 		if (tmp_ret.second == true) {
-			if ( term2DF_.find(index) != term2DF_.end() )
-				term2DF_[index] += 1;
+			if ( termidx2DF_.find(index) != termidx2DF_.end() )
+				termidx2DF_[index] += 1;
 			else
-				term2DF_[index] = 1;
+				termidx2DF_[index] = 1;
 		}
 
 		// tf
@@ -107,7 +107,7 @@ void ExplicitSemanticSpace::buildTermIndex(docid_t& docid, term_vector& terms)
 		doc_vector & docVec = termdocM_[index]; // row vector
 
 		if (jndex >= docVec.size()) {
-			docVec.resize(jndex+1); // fixed size
+			docVec.resize(jndex+1); // performance..
 		}
 		//cout << "jndex: " << jndex << " " << docVec.size() << endl;
 		boost::shared_ptr<sDocUnit>& rpsDoc = docVec[jndex];
@@ -115,18 +115,19 @@ void ExplicitSemanticSpace::buildTermIndex(docid_t& docid, term_vector& terms)
 			rpsDoc.reset(new sDocUnit());
 			rpsDoc->docid = docid;
 		}
-		rpsDoc->tf ++;
+		rpsDoc->tf ++; // count
 	}
 
-	// tf in a doc
+	// normalize tf (without repeat for each term)
 	count_t totalTerm = terms.size();
-	for (term_vector::iterator iter = terms.begin(); iter != terms.end(); iter ++)
+	//cout << "total term: " << totalTerm << endl;
+	for (std::set<termid_t>::iterator iter = tmp.begin(); iter != tmp.end(); iter ++)
 	{
-		termid = iter->get()->termid;
+		termid = *iter;
 		index_t index = getOrAddTermIndex(termid);
 
 		boost::shared_ptr<sDocUnit>& rpsDoc = termdocM_[index][jndex];
-		rpsDoc->tf = rpsDoc->tf / totalTerm;
+		rpsDoc->tf = rpsDoc->tf / (weight_t)totalTerm;
 	}
 }
 

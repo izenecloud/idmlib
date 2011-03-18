@@ -10,7 +10,8 @@ bool LaSemanticSpaceBuilder::getDocTerms(const izenelib::util::UString& ustrDoc,
 	//pLA_->process(pIdManager_.get(), ustrDoc, termIdList_);
 
 	termList_.clear();
-	pLA_->process(ustrDoc, termList_);
+	//pLA_->process(ustrDoc, termList_);
+	pIdmAnalyzer_->GetTermList(ustrDoc, termList_, false);
 
 	termid_t termid;
 	for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
@@ -23,7 +24,7 @@ bool LaSemanticSpaceBuilder::getDocTerms(const izenelib::util::UString& ustrDoc,
 		pTerm->termid = termid;
 		termVec.push_back(pTerm);
 
-		cout << iter->textString()  << "(" << termid << ") "; //
+		//cout << iter->textString()  << "(" << termid << ") "; //
 	}
 
 	return true;

@@ -5,6 +5,7 @@
  * @brief Document Similarity Test
  */
 #include <iostream>
+#include <ctime>
 using namespace std;
 
 #include <boost/shared_ptr.hpp>
@@ -17,6 +18,7 @@ using namespace std;
 #include <idmlib/semantic_space/la_semantic_space_builder.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
 #include <idmlib/similarity/document_similarity.h>
+#include <la/LA.h>
 
 namespace po = boost::program_options;
 using namespace idmlib::ssp;
@@ -63,18 +65,32 @@ int main(int argc, char** argv)
 		std::cout << "max-doc: " << maxDoc << endl;
 	}
 
-	boost::shared_ptr<SemanticSpace> pSSpace;
-	pSSpace.reset(new ExplicitSemanticSpace());
+	time_t time1, time2;
 
-	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder;
-	pSemBuilder.reset(new LaSemanticSpaceBuilder(colPath, outPath, pSSpace, laRecPath, maxDoc));
-	// 1. build knowledge matrix base on Chinese Wiki
+	// Build knowledge matrix base on Chinese Wiki
+	boost::shared_ptr<SemanticSpace> pSSpace(new ExplicitSemanticSpace());
+	time1 = time (NULL);
+	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder(
+			new LaSemanticSpaceBuilder(colPath, outPath, pSSpace, laRecPath, maxDoc) );
 	pSemBuilder->Build();
+	time2 = time (NULL);
+	cout << "building index of wiki (" << maxDoc <<"), cost :" << (time2 - time1) << endl;
+
+	// Map a text (document) to an interpretation vector which
+	// pSSpace = pSemBuilder->getSemanticSpace();
+	boost::shared_ptr<SemanticInterpreter> pSemInter(new SemanticInterpreter(pSSpace));
+	std::string text =
+	"但有些情形例外:假如球员打出双杀打而得分、打击时因守备失误而得分、投手暴投或捕手捕逸而得分、或者因投手犯规而得分，他没拿到打点；\
+	假如球员被四坏保送或触身球而上垒、打出高飞牺牲打使垒上跑者得分，他就得到打点。此外，假如球员打出全垒打而垒包有两个人，打点则计为3分打点。（因为打击者和两名跑者都得分）";
+	UString utext(text, UString::UTF_8);
+	//std::vector<> vec;
+	//pSemInter->interpret(utext, vec);
+
 
 	// compute document similarity
 	//string docSimDir;
 	//docSimDir = "./doc-sim";
-	//DocumentSimilarity DocSim(pSSP, docSimDir);
+	//DocumentSimilarity DocSim(pSemInter, docSimDir);
 	//DocSim.buildSimIndex();
 
 	return 0;

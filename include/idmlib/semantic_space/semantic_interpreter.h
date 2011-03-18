@@ -41,7 +41,14 @@ public:
 	 * @param[OUT] interVector interpretation vector of the input text (document)
 	 * @return true on success, false on failure.
 	 */
-	bool interpret(std::string& text, std::vector<uint32_t>& interVector) { return false; }
+	bool interpret(std::string& text, std::vector<uint32_t>& interVector)
+	{
+		if (! pSSpace_)
+			return false;
+
+
+		return true;
+	}
 
 	bool needKnowledge() { return true; }
 

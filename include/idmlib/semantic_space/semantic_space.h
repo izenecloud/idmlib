@@ -28,6 +28,8 @@ public:
 
 	virtual void processSpace() = 0;
 
+	//virtual bool save() = 0;
+
 	virtual bool getTerms(std::set<std::string>& termSet) { return false; }
 
 	virtual bool getTermIds(std::set<termid_t>& termIds) = 0;

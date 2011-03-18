@@ -70,20 +70,23 @@ private:
 	void calcWeight()
 	{
 		boost::shared_ptr<sDocUnit> pDoc;
+		count_t doc_cnt = docid2Index_.size();
 
 		for (termid_t t = 0; t < termdocM_.size(); t ++) {
 			for (docid_t dt = 0; dt < termdocM_[t].size(); dt ++) {
 				pDoc = termdocM_[t][dt];
 				if (pDoc) {
-					// tf * idf, tf not normalized
-					pDoc->weight = pDoc->tf * std::log(docIndex_ / term2DF_[t]);
+					// weight = tf * idf, std::log() = ln()
+					pDoc->tf = pDoc->tf * std::log((weight_t)doc_cnt / termidx2DF_[t]);
 				}
 			}
 		}
 	}
 
 private:
-	static const weight_t threshold_ = 0.0f;
+	static const count_t thresholdTF_ = 3; // TF >
+	static const count_t thresholdDF_ = 1000; // < ?
+	static const weight_t thresholdWegt_ = 0.0f;
 
 private:
 	index_t termIndex_;
@@ -92,7 +95,7 @@ private:
 	docid_index_map docid2Index_;
 
 	typedef std::map<index_t, count_t> term_df_map;
-	term_df_map term2DF_;
+	term_df_map termidx2DF_;
 
 	term_doc_matrix termdocM_; // in memory
 };
