@@ -23,11 +23,10 @@ class LaSemanticSpaceBuilder : public SemanticSpaceBuilder
 public:
 	LaSemanticSpaceBuilder(
 			const std::string& collectionPath,
-			const std::string& outPath,
 			boost::shared_ptr<SemanticSpace>& pSSpace,
 			const std::string& laResPath,
 			docid_t maxDoc = MAX_DOC_ID)
-	: SemanticSpaceBuilder(collectionPath, outPath, pSSpace, maxDoc)
+	: SemanticSpaceBuilder(collectionPath, pSSpace, maxDoc)
 	, laResPath_(laResPath)
 	{
 		// collectionPath_ is normalized file path
@@ -35,10 +34,13 @@ public:
 		normalizeFilePath(laResPath_);
 
 		//initLA(laResPath_);
-		pIdmAnalyzer_.reset(new idmlib::util::IDMAnalyzer());
+		pIdmAnalyzer_.reset(
+				new idmlib::util::IDMAnalyzer(
+						laResPath,
+						la::ChineseAnalyzer::minimum_match_no_overlap)
+		);
 	}
 
-protected:
 	bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
 
 private:

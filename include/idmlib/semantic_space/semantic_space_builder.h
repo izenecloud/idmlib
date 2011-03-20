@@ -30,16 +30,13 @@ class SemanticSpaceBuilder
 public:
 	SemanticSpaceBuilder(
 			const std::string& collectionPath,
-			const std::string& outPath,
 			boost::shared_ptr<SemanticSpace>& pSSpace,
 			docid_t maxDoc = MAX_DOC_ID)
 	: collectionPath_(collectionPath)
-	, outPath_(outPath)
 	, pSSpace_(pSSpace)
 	, maxDoc_(maxDoc)
 	{
 		normalizeFilePath(collectionPath_);
-		normalizeFilePath(outPath_);
 
 		scdPath_ = collectionPath_ + "/scd/index";
 		coldataPath_ = collectionPath_ + "/collection-data/default-collection-dir";
@@ -149,8 +146,6 @@ public:
 		return pSSpace_;
 	}
 
-protected:
-
 	virtual bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec) = 0;
 
 	boost::shared_ptr<IDManager> createIdManager()
@@ -232,7 +227,6 @@ protected:
 	std::string scdPath_;
 	std::string coldataPath_;
 
-	std::string outPath_;
 	boost::shared_ptr<SemanticSpace> pSSpace_;
 	docid_t maxDoc_;
 

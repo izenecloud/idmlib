@@ -18,7 +18,7 @@ NS_IDMLIB_SSP_BEGIN
 class SemanticSpace
 {
 public:
-	SemanticSpace()
+	SemanticSpace(const std::string& filePath)
 	{
 	}
 	virtual ~SemanticSpace() {}
@@ -28,7 +28,9 @@ public:
 
 	virtual void processSpace() = 0;
 
-	//virtual bool save() = 0;
+	virtual count_t getDocNum() = 0;
+
+	virtual weight_t getWegtTermDoc(termid_t& termid, index_t& docIdx) = 0;
 
 	virtual bool getTerms(std::set<std::string>& termSet) { return false; }
 

@@ -24,9 +24,8 @@ public:
 public:
 	KpeSemanticSpaceBuilder(
 			const std::string& collectionPath,
-			const std::string& outPath,
 			boost::shared_ptr<SemanticSpace>& pSSpace )
-	: SemanticSpaceBuilder(collectionPath, outPath, pSSpace)
+	: SemanticSpaceBuilder(collectionPath, pSSpace)
 	{
 	}
 

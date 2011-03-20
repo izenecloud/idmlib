@@ -23,8 +23,9 @@ NS_IDMLIB_SSP_BEGIN
 class ExplicitSemanticSpace : public SemanticSpace
 {
 public:
-	ExplicitSemanticSpace()
-	: termIndex_(0)
+	ExplicitSemanticSpace(const std::string& filePath)
+	: SemanticSpace(filePath)
+	, termIndex_(0)
 	, docIndex_(0)
 	{}
 
@@ -33,11 +34,27 @@ public:
 
 	void processSpace();
 
+	count_t getDocNum()
+	{
+		return docid2Index_.size();
+	}
+
+	weight_t getWegtTermDoc(termid_t& termid, index_t& docIdx)
+	{
+		boost::shared_ptr<sDocUnit> pDocUnit = termdocM_[ termid2Index_[termid] ][docIdx];
+
+		if (pDocUnit)
+			return pDocUnit->tf; // weight = tf*idf
+		else
+			return 0;
+	}
+
 	bool getTermIds(std::set<termid_t>& termIds);
 
 	bool getTermVector(termid_t termId, std::vector<docid_t> termVec);
 
 	void print();
+
 
 private:
 	void buildTermIndex(docid_t& docid, term_vector& terms);
