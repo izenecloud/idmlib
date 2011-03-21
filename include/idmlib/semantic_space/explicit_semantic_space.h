@@ -25,8 +25,8 @@ class ExplicitSemanticSpace : public SemanticSpace
 public:
 	ExplicitSemanticSpace(const std::string& filePath)
 	: SemanticSpace(filePath)
-	, termIndex_(0)
-	, docIndex_(0)
+	, termCount_(0)
+	, docCount_(0)
 	{}
 
 public:
@@ -39,11 +39,32 @@ public:
 		return docid2Index_.size();
 	}
 
-	weight_t getWegtTermDoc(termid_t& termid, index_t& docIdx)
+	bool getTermIndex(termid_t& termid, index_t& termidx)
 	{
-		boost::shared_ptr<sDocUnit> pDocUnit = termdocM_[ termid2Index_[termid] ][docIdx];
+		termid_index_map::iterator iter = termid2Index_.find(termid);
+		if (iter != termid2Index_.end()) {
+			termidx = iter->second;
+			return true;
+		}
+		else
+			return false;
+	}
 
-		if (pDocUnit)
+	weight_t getTermDocWeight(termid_t& termid, index_t& docIdx)
+	{
+		index_t termIdx;
+		bool ret = getTermIndex(termid, termIdx);
+		if (!ret)
+			return 0; // term not existed in wiki index
+
+		if (docIdx >= docid2Index_.size()) {
+			DLOG(WARNING) << "No doc index " << docIdx << endl;
+			return 0;
+		}
+		cout << "termid: " << termid << " term-doc-index: [" << termIdx << ", " << docIdx << "]" << endl;
+		boost::shared_ptr<sDocUnit>& pDocUnit = termdocM_[ termIdx ][ docIdx ];
+
+		if (pDocUnit.get())
 			return pDocUnit->tf; // weight = tf*idf
 		else
 			return 0;
@@ -67,8 +88,8 @@ private:
 			return iter->second;
 		}
 		else {
-			termid2Index_[termid] = termIndex_;
-			return (termIndex_++);
+			termid2Index_[termid] = termCount_;
+			return (termCount_++);
 		}
 	}
 
@@ -106,8 +127,8 @@ private:
 	static const weight_t thresholdWegt_ = 0.0f;
 
 private:
-	index_t termIndex_;
-	index_t docIndex_;
+	index_t termCount_; // term(row) index
+	index_t docCount_;  // doc(column) index
 	termid_index_map termid2Index_;
 	docid_index_map docid2Index_;
 

@@ -23,6 +23,7 @@ using namespace izenelib::ir::idmanager;
 
 NS_IDMLIB_SSP_BEGIN
 
+
 class SemanticSpaceBuilder
 {
 	typedef std::vector<std::pair<izenelib::util::UString, izenelib::util::UString> >::iterator doc_properties_iterator;

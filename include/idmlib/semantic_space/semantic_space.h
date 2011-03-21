@@ -30,7 +30,9 @@ public:
 
 	virtual count_t getDocNum() = 0;
 
-	virtual weight_t getWegtTermDoc(termid_t& termid, index_t& docIdx) = 0;
+	virtual bool getTermIndex(termid_t& termid, index_t& termidx) { return false; }
+
+	virtual weight_t getTermDocWeight(termid_t& termid, index_t& docIdx) = 0;
 
 	virtual bool getTerms(std::set<std::string>& termSet) { return false; }
 

@@ -33,7 +33,7 @@ public:
 		indexPath_ = collectionPath_ + "";
 		normalizeFilePath(laResPath_);
 
-		//initLA(laResPath_);
+		initLA(laResPath_);
 		pIdmAnalyzer_.reset(
 				new idmlib::util::IDMAnalyzer(
 						laResPath,

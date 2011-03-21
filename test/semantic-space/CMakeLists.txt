@@ -11,7 +11,6 @@ SET(libs
   ${imllib_LIBRARIES}
   ${wisekma_LIBRARIES}
   ${izenecma_LIBRARIES}
-  ${iise_LIBRARIES}
   ${izenelib_LIBRARIES}
 
   #external
@@ -23,22 +22,12 @@ SET(libs
   ${xml2_LIBRARIES}
   )
 
-ADD_EXECUTABLE(doc_similarity doc_similarity.cpp)
+ADD_EXECUTABLE(esa_builder esa_builder.cpp)
   
-TARGET_LINK_LIBRARIES(doc_similarity
+TARGET_LINK_LIBRARIES(esa_builder
   ${libs}
 )
 
-SET_TARGET_PROPERTIES(doc_similarity PROPERTIES
+SET_TARGET_PROPERTIES(esa_builder PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
-)
-ADD_EXECUTABLE(kp_similarity
-kp_similarity.cc
-)
-TARGET_LINK_LIBRARIES(kp_similarity
-  ${libs}
-)
-
-SET_TARGET_PROPERTIES(kp_similarity PROPERTIES
-RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
 )

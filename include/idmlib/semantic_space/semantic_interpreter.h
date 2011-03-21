@@ -49,7 +49,7 @@ public:
 	 * @param[OUT] interVector interpretation vector of the input text (document)
 	 * @return true on success, false on failure.
 	 */
-	bool interpret(UString& text, std::vector<weight_t>& interVector)
+	bool interpret(const UString& text, std::vector<weight_t>& interVector)
 	{
 		if (!pSSpace_)
 			return false;
@@ -67,9 +67,10 @@ public:
 			for (term_map::iterator iter = termMap_.begin(); iter != termMap_.end(); iter ++)
 			{
 				termid = iter->first;
-				weight_t w = pSSpace_->getWegtTermDoc(termid, docIdx);
+				weight_t w = pSSpace_->getTermDocWeight(termid, docIdx);
+				cout << w << endl;
 				if (w > 0.000001f)
-					wTopic += iter->second * w;
+					wTopic += iter->second * w; // iter->second(weight) should be tf.idf
 			}
 
 			interVector[docIdx] = wTopic;

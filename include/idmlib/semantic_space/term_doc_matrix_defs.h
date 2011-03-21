@@ -15,6 +15,7 @@
 
 #include <idmlib/idm_types.h>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
+#include <glog/logging.h>
 
 NS_IDMLIB_SSP_BEGIN
 

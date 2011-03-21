@@ -39,14 +39,14 @@ bool ExplicitSemanticSpace::getTermVector(termid_t termId, std::vector<docid_t> 
 void ExplicitSemanticSpace::print()
 {
 	termid_index_map::iterator iter;
-	cout << "[termid, index, df] : " << termid2Index_.size() << " == " << termIndex_ << endl;
+	cout << "[termid, index, df] : " << termid2Index_.size() << " == " << termCount_ << endl;
 	for (iter = termid2Index_.begin(); iter != termid2Index_.end(); iter ++)
 	{
 		cout << iter->first << ", " << iter->second << ", " << termidx2DF_[iter->second] << endl;
 	}
 
 	docid_index_map::iterator iter2;
-	cout << "[docid, index] : " << docid2Index_.size() << " == " << docIndex_ << endl;
+	cout << "[docid, index] : " << docid2Index_.size() << " == " << docCount_ << endl;
 	for (iter2 = docid2Index_.begin(); iter2 != docid2Index_.end(); iter2++)
 	{
 		cout << iter2->first << ", " << iter2->second << endl;
@@ -54,7 +54,7 @@ void ExplicitSemanticSpace::print()
 
 	term_doc_matrix::iterator miter;
 	boost::shared_ptr<sDocUnit> pDoc;
-	cout << "[term-index, (doc-index, weight)] " << termIndex_ << "*" << docIndex_ << endl;
+	cout << "[term-index, (doc-index, weight)] " << termCount_ << "*" << docCount_ << endl;
 	//for (miter = termdocM_.begin(); miter != termdocM_.end(); miter++) {
 	for (termid_t t = 0; t < termdocM_.size(); t ++) {
 		cout << t << " ";
@@ -78,7 +78,7 @@ void ExplicitSemanticSpace::buildTermIndex(docid_t& docid, term_vector& terms)
 
 	// column (doc) index
 	docid_index_map::iterator iter_;
-	index_t jndex = getOrAddIndex(docid2Index_, iter_, docid, docIndex_);
+	index_t jndex = getOrAddIndex(docid2Index_, iter_, docid, docCount_);
 
 	termid_t termid;
 	for (term_vector::iterator iter = terms.begin(); iter != terms.end(); iter ++)
