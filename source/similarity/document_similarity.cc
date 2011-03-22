@@ -13,9 +13,11 @@ using namespace idmlib::sim;
 
 bool DocumentSimilarity::Compute()
 {
+	// preprocess .. get TF, DF
 	if (!buildInterpretationVectors())
 		return false;
 
+	// compute similarity & build inverted index..
 	if (!computeSimilarities())
 		return false;
 
@@ -30,7 +32,7 @@ bool DocumentSimilarity::buildInterpretationVectors()
 	}
 
 	std::vector<std::string> scdFileList;
-	if (!idmlib::util::FSUtil::getScdFileListInDir(scdPath_, scdFileList)) {
+	if (!getScdFileListInDir(scdPath_, scdFileList)) {
 		return false;
 	}
 
@@ -88,6 +90,11 @@ bool DocumentSimilarity::buildInterpretationVectors()
 			docid2Index_.insert( make_pair(docid, doc_count ++) );
 			docIVecs_.push_back( IVec ); // ...
 		}
+
+		// idf factor
+		// pSSPInter_->getTermDF(termid)
+		// for doc in docIVecs
+		//
 	}
 
 	return true;
@@ -103,18 +110,21 @@ bool DocumentSimilarity::computeSimilarities()
 	// upper triangular matrix
 	weight_t* pw;
 	for (size_t i = 0; i < N; i ++) {
-		for (size_t j = i + 1 ; j < N; j ++) {
+		for (size_t j = i + 1; j < N; j ++) {
 			pw = psimMatrix + (N * i) + j;
 			*pw = CosineSimilarity::Sim(docIVecs_[i], docIVecs_[j]); // similarity
 		}
 	}
+
+	/// build inverted index
+	///
 
 	// doc similarity
 	for (size_t i = 0; i < N; i++)
 	{
 		for (size_t j = 0; j < N; j++)
 		{
-			cout << *(psimMatrix + (N * i) + j) << " ";
+			cout << setw (10) << *(psimMatrix + (N * i) + j) ;
 		}
 		cout << endl;
 	}
@@ -129,3 +139,42 @@ bool DocumentSimilarity::GetSimDocIdList(
 	return false;
 }
 
+bool DocumentSimilarity::getScdFileListInDir(const std::string& scdDir, std::vector<std::string>& fileList)
+{
+	if ( exists(scdDir) )
+	{
+		if ( !is_directory(scdDir) ) {
+			//std::cout << "It's not a directory: " << scdDir << std::endl;
+			return false;
+		}
+
+		directory_iterator iterEnd;
+		for (directory_iterator iter(scdDir); iter != iterEnd; iter ++)
+		{
+			std::string file_name = iter->path().filename();
+			//std::cout << file_name << endl;
+
+			if (izenelib::util::ScdParser::checkSCDFormat(file_name) )
+			{
+				izenelib::util::SCD_TYPE scd_type = izenelib::util::ScdParser::checkSCDType(file_name);
+				if( scd_type == izenelib::util::INSERT_SCD ||scd_type == izenelib::util::UPDATE_SCD )
+				{
+					fileList.push_back( iter->path().string() );
+				}
+			}
+		}
+
+		if (fileList.size() > 0) {
+			return true;
+		}
+		else {
+			//std::cout << "There is no scd file in: " << scdDir << std::endl;
+			return false;
+		}
+	}
+	else
+	{
+		//std::cout << "File path dose not existed: " << scdDir << std::endl;
+		return false;
+	}
+}

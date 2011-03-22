@@ -63,6 +63,9 @@ public:
 			std::vector<std::pair<uint32_t, float> >& result);
 
 private:
+	bool getScdFileListInDir(const std::string& scdDir, std::vector<std::string>& fileList);
+
+private:
 	std::string colPath_;
 	std::string scdPath_;
 	izenelib::util::UString::EncodingType encoding_;

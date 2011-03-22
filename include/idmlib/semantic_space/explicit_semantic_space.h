@@ -62,7 +62,10 @@ public:
 			return 0;
 		}
 		cout << "termid: " << termid << " term-doc-index: [" << termIdx << ", " << docIdx << "]" << endl;
-		boost::shared_ptr<sDocUnit>& pDocUnit = termdocM_[ termIdx ][ docIdx ];
+		doc_vector& docVec =termdocM_[ termIdx ];
+		if (docIdx >= docVec.size())
+			   return 0;
+		boost::shared_ptr<sDocUnit>& pDocUnit = docVec[ docIdx ];
 
 		if (pDocUnit.get())
 			return pDocUnit->tf; // weight = tf*idf

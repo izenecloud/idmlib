@@ -14,7 +14,6 @@
 #include <boost/lexical_cast.hpp>
 #include <util/filesystem.h>
 #include <idmlib/idm_types.h>
-#include <util/scd_parser.h>
 
 using namespace boost::filesystem;
 
@@ -122,48 +121,6 @@ NS_IDMLIB_UTIL_BEGIN
 
         		path.swap(normalPath);
         	}
-
-            
-        	static bool getScdFileListInDir(const std::string& scdDir, std::vector<std::string>& fileList)
-        	{
-        		if ( exists(scdDir) )
-        		{
-        			if ( !is_directory(scdDir) ) {
-        				//std::cout << "It's not a directory: " << scdDir << std::endl;
-        				return false;
-        			}
-
-        			directory_iterator iterEnd;
-        			for (directory_iterator iter(scdDir); iter != iterEnd; iter ++)
-        			{
-        				std::string file_name = iter->path().filename();
-        				//std::cout << file_name << endl;
-
-        				if (izenelib::util::ScdParser::checkSCDFormat(file_name) )
-        				{
-        					izenelib::util::SCD_TYPE scd_type = izenelib::util::ScdParser::checkSCDType(file_name);
-        					if( scd_type == izenelib::util::INSERT_SCD ||scd_type == izenelib::util::UPDATE_SCD )
-        					{
-        						fileList.push_back( iter->path().string() );
-        					}
-        				}
-        			}
-
-        			if (fileList.size() > 0) {
-        				return true;
-        			}
-        			else {
-        				//std::cout << "There is no scd file in: " << scdDir << std::endl;
-        				return false;
-        			}
-        		}
-        		else
-        		{
-        			//std::cout << "File path dose not existed: " << scdDir << std::endl;
-        			return false;
-        		}
-        	}
-
     };
 NS_IDMLIB_UTIL_END
 
