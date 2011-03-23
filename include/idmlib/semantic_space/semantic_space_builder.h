@@ -23,6 +23,7 @@ using namespace izenelib::ir::idmanager;
 
 NS_IDMLIB_SSP_BEGIN
 
+
 class SemanticSpaceBuilder
 {
 	typedef std::vector<std::pair<izenelib::util::UString, izenelib::util::UString> >::iterator doc_properties_iterator;
@@ -30,16 +31,13 @@ class SemanticSpaceBuilder
 public:
 	SemanticSpaceBuilder(
 			const std::string& collectionPath,
-			const std::string& outPath,
 			boost::shared_ptr<SemanticSpace>& pSSpace,
 			docid_t maxDoc = MAX_DOC_ID)
 	: collectionPath_(collectionPath)
-	, outPath_(outPath)
 	, pSSpace_(pSSpace)
 	, maxDoc_(maxDoc)
 	{
 		normalizeFilePath(collectionPath_);
-		normalizeFilePath(outPath_);
 
 		scdPath_ = collectionPath_ + "/scd/index";
 		coldataPath_ = collectionPath_ + "/collection-data/default-collection-dir";
@@ -58,14 +56,14 @@ public:
 	}
 
 public:
-	bool buildInvertedIndex()
+	bool Build()
 	{
 		std::vector<std::string> scdFileList;
 		if (!getScdFileList(scdPath_, scdFileList)) {
 			return false;
 		}
 
-	    doc_terms_map docTermsMap;
+	    // doc_terms_map docTermsMap;
 	    term_vector termVec;
 	    docid_t docid = 0;
 	    docid_t last_docid = 0;
@@ -88,7 +86,7 @@ public:
 			for ( ; iter != scdParser.end(); iter ++)
 			{
 				if ( (doc_count++) >= maxDoc_ )
-					return true;
+					break;
 
 				izenelib::util::SCDDocPtr pDoc = *iter;
 
@@ -126,20 +124,28 @@ public:
 
 				// docTermsMap.clear();
 				//docTermsMap[docid] = termVec;
-				docTermsMap.insert(make_pair(docid, termVec));
-				pSSpace_->processDocument(docTermsMap);
+				//docTermsMap.insert(make_pair(docid, termVec));
+				pSSpace_->processDocument(docid, termVec);
 			}
+
+			if ( doc_count >= maxDoc_ )
+				break;
 		}
 
-		return false;
+		std::cout << "process Space..." << std::endl;
+		time_t time1, time2;
+		time1 = time (NULL);
+		pSSpace_->processSpace();
+		time2 = time (NULL);
+		std::cout << "time elapsed: " << (time2-time1) << std::endl;
+
+		return true;
 	}
 
 	boost::shared_ptr<SemanticSpace>& getSemanticSpace()
 	{
 		return pSSpace_;
 	}
-
-protected:
 
 	virtual bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec) = 0;
 
@@ -222,7 +228,6 @@ protected:
 	std::string scdPath_;
 	std::string coldataPath_;
 
-	std::string outPath_;
 	boost::shared_ptr<SemanticSpace> pSSpace_;
 	docid_t maxDoc_;
 

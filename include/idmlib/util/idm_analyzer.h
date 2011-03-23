@@ -66,6 +66,22 @@ class IDMAnalyzer
     stemmer_->init(la::stem::STEM_LANG_ENGLISH);
   }
   
+  IDMAnalyzer(const std::string& cma_res_path, la::ChineseAnalyzer::ChineseAnalysisType ca_type)
+  :la_(new la::LA() ), simpler_set_(false)
+  {
+	boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer( new la::MultiLanguageAnalyzer() );
+
+	boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, false) );
+	la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
+	if ( pch != NULL ) {
+		pch->setExtractSpecialChar(true, true);
+		pch->setAnalysisType( ca_type /*la::ChineseAnalyzer::minimum_match_no_overlap*/);
+	}
+	ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
+	ml_analyzer->setDefaultAnalyzer( ch_analyzer );
+	la_->setAnalyzer(ml_analyzer);
+  }
+
   ~IDMAnalyzer()
   {
     delete la_;
@@ -106,10 +122,12 @@ class IDMAnalyzer
     return LoadSimplerFile(file);
   }
   
-  void GetTermList(const izenelib::util::UString& utext, la::TermList& term_list)
+  void GetTermList(const izenelib::util::UString& utext, la::TermList& term_list, bool convert = true)
   {
     izenelib::util::UString text(utext);
-    la::convertFull2HalfWidth(text);
+    if (convert) {
+    	la::convertFull2HalfWidth(text);
+    }
     {
       boost::mutex::scoped_lock lock(la_mtx_);
       la_->process( text, term_list );

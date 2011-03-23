@@ -15,6 +15,8 @@
 #include <util/filesystem.h>
 #include <idmlib/idm_types.h>
 
+using namespace boost::filesystem;
+
 NS_IDMLIB_UTIL_BEGIN
     
     class FSUtil
@@ -100,7 +102,25 @@ NS_IDMLIB_UTIL_BEGIN
                 }
             }
             
-            
+            static void normalizeFilePath(std::string& path)
+        	{
+        		std::string normalPath;
+
+        		std::string::const_iterator iter;
+        		for (iter = path.begin(); iter != path.end(); iter ++)
+        		{
+        			if (*iter == '\\' || *iter == '/') {
+        				if ( (iter+1) != path.end()) {
+        					normalPath.push_back('/');
+        				}
+        			}
+        			else {
+        				normalPath.push_back(*iter);
+        			}
+        		}
+
+        		path.swap(normalPath);
+        	}
     };
 NS_IDMLIB_UTIL_END
 

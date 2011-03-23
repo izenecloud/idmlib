@@ -20,7 +20,7 @@ public:
     int64_t p = 0;
     uint64_t n1 = 0;
     uint64_t n2 = 0;
-    for(typename T::size_type i=0;i<vec1.size();i++)
+    for(typename std::vector<T>::size_type i=0;i<vec1.size();i++)
     {
       p += vec1[i]*vec2[i];
       n1 += vec1[i]*vec1[i];
