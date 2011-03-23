@@ -83,6 +83,49 @@ public:
     return result;
   }
   
+  static double SimNormal(const std::vector<double>& vec1, const std::vector<double>& vec2)
+  {
+    if(vec1.size()!=vec2.size()) return 0.0;
+    double p = 0.0;
+
+    for(std::size_t i=0;i<vec1.size();i++)
+    {
+      p += vec1[i]*vec2[i];
+    }
+
+    return p;
+  }
+  
+  template <typename K>
+  static double SimNormal(const izenelib::am::SparseVector<double,K>& vec1, const izenelib::am::SparseVector<double,K>& vec2)
+  {
+//     std::cout<<"[cosine] "<<vec1.value.size()<<","<<vec2.value.size()<<std::endl;
+    double p = 0.0;
+    
+    K p1 = 0;
+    K p2 = 0;
+    while(p1<vec1.value.size() && p2<vec2.value.size() )
+    {
+      if(vec1.value[p1].first<vec2.value[p2].first)
+      {
+        p1++;
+      }
+      else if(vec1.value[p1].first>vec2.value[p2].first)
+      {
+        p2++;
+      }
+      else
+      {
+        p += vec1.value[p1].second * vec2.value[p2].second;
+        p1++;
+        p2++;
+      }
+    }
+    
+//     std::cout<<p<<std::endl;
+    return p;
+  }
+  
 };
 
 // template <>

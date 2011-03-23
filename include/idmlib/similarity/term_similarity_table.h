@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 #include <idmlib/idm_types.h>
-#include <am/matrix/matrix_mem_io.h>
+#include <util/file_object.h>
 
 NS_IDMLIB_SIM_BEGIN
 
@@ -14,10 +14,10 @@ class TermSimilarityTable
 {
 public:
   typedef std::vector<IdType> ValueType;
-  typedef izenelib::am::MatrixMemIo<ValueType> Container;
+  typedef izenelib::util::FileObject<std::vector<ValueType> > Container;
   
-  TermSimilarityTable(const std::string& path, uint8_t max = 5)
-  :storage_(new Container(path)), max_(max)
+  TermSimilarityTable(const std::string& path)
+  :storage_(new Container(path))
   {
   }
   
@@ -28,50 +28,47 @@ public:
   
   bool Open()
   {
-    return storage_->Open();
+    return storage_->Load();
   }
   
   bool Flush()
   {
-    return storage_->Flush();
+    return storage_->Save();
+  }
+  
+  void ResizeIf(IdType max)
+  {
+    if(storage_->value.size()<max)
+    {
+      storage_->value.resize(max);
+    }
   }
   
   bool Update(IdType id, const ValueType& value)
   {
-    if(value.size()>max_) return false;
-    if(value.size()<max_)
+    if(id==0) return false;
+    if(id>storage_->value.size())
     {
-      ValueType new_value(value.begin(), value.end());
-      new_value.resize(max_, 0);
-      return storage_->SetVector(id, new_value);
+      storage_->value.resize(id);
     }
-    else
-    {
-      return storage_->SetVector(id, value);
-    }
+    storage_->value[id-1] = value;
+    return true;
   }
   
   bool Get(IdType id, ValueType& value)
   {
-    if(!storage_->GetVector(id, value)) return false;
-    if(value.size()!=max_) return false;
-    typename ValueType::size_type non_zero = value.size();
-    typename ValueType::size_type i=value.size()-1;
-    while(true)
+    if(id==0) return false;
+    if(id<=storage_->value.size())
     {
-      if(value[i]!=0) break;
-      non_zero = i;
-      if(i==0) break;
-      i--;
+      value = storage_->value[id-1];
+      return true;
     }
-    value.resize(non_zero);
     return true;
   }
   
 
  private: 
   Container* storage_;
-  uint8_t max_;
 };
 
    

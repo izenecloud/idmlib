@@ -1,5 +1,6 @@
 #include <idmlib/similarity/term_similarity.h>
 #include <am/matrix/matrix_mem_io.h>
+#include <am/matrix/matrix_file_io.h>
 #include <boost/regex.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
@@ -8,7 +9,8 @@
 int main(int argc, char** argv)
 {
   //use sparse vector as container
-  typedef idmlib::sim::TermSimilarity<izenelib::am::MatrixMemIo, izenelib::am::SparseVector<int64_t,uint16_t> > TermSimilarityType;
+  typedef idmlib::sim::TermSimilarity<> TermSimilarityType;
+//   typedef idmlib::sim::TermSimilarity<izenelib::am::MatrixFileVLIo, izenelib::am::SparseVector<int64_t,uint16_t> > TermSimilarityType;
   if(argc!=3)
   {
     std::cerr<<"Usage: ./kp_similarity <inverted_text_file> <output_file>"<<std::endl;
@@ -21,11 +23,26 @@ int main(int argc, char** argv)
   std::ifstream ifs(kp_inverted_file.c_str());
   std::string line;
   std::string test_dir = "./term_sim_test";
+  std::string rig_dir = "./rig_dir";
   boost::filesystem::remove_all(test_dir);
-  TermSimilarityType* sim = new TermSimilarityType(test_dir);
+  uint8_t sim_per_term = 5;
+  typedef TermSimilarityType::SimTableType SimTableType;
+  SimTableType* table = new SimTableType(test_dir+"/table");
+  if(!table->Open())
+  {
+    std::cerr<<"table open error"<<std::endl;
+//     return -1;
+  }
+  TermSimilarityType* sim = new TermSimilarityType(test_dir, rig_dir, table, sim_per_term, 0.4);
   if(!sim->Open())
   {
     std::cout<<"open error"<<std::endl;
+    return -1;
+  }
+  uint32_t context_max = 2100000;
+  if(!sim->SetContextMax(context_max))
+  {
+    std::cerr<<"SetContextMax error"<<std::endl;
     return -1;
   }
   std::vector<std::string> kp_list;
@@ -106,5 +123,6 @@ int main(int argc, char** argv)
   ofs.close();
   std::cout<<"Output finished"<<std::endl;
   delete sim;
+  delete table;
   return 0;
 }

@@ -7,68 +7,133 @@
 #include <idmlib/idm_types.h>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random.hpp>
+#include <boost/lexical_cast.hpp>
 #include <am/matrix/matrix_mem_io.h>
 #include "random_indexing_vector.h"
+#include <am/sequence_file/ssfr.h>
 NS_IDMLIB_SSP_BEGIN
 
 
 ///@brief Used to generate RandomIndexingVector in specific dimensions and random probability.
-template <typename T, typename I = uint32_t, template <typename VT, typename TI> class MatrixIo = izenelib::am::MatrixMemIo >
-class RandomIndexingGenerator : public MatrixIo<RandomIndexingVector<T> , I>
+template <typename T, typename I = uint32_t>
+class RandomIndexingGenerator 
 {
 public:
   typedef RandomIndexingVector<T> RIVType;
-  typedef MatrixIo<RIVType, I> MatrixIoType;
-  
+
   ///@brief Set the dimensions while the probability for generating 1 or -1 equals p/dimensions.
   RandomIndexingGenerator(const std::string& dir, T dimensions, T p)
-  :MatrixIoType(dir), dir_(dir), dimensions_(dimensions), p_(p)
+  :dir_(dir), dimensions_(dimensions), p_(p)
   ,engine_(), distribution_(0, dimensions_), random_(engine_, distribution_)
   {
+    ser_file_ = dir_+"/"+boost::lexical_cast<std::string>(dimensions_)+"-"+boost::lexical_cast<std::string>(p_);
   }
   
-  ///@brief Generate the RandomIndexingVector for id if not exists.
-  bool Get(I id, RIVType& item)
+  bool Open()
   {
-    if(GetVector(id, item))
+    try
     {
-      return true;
+      boost::filesystem::create_directories(dir_);
     }
-    else
+    catch(std::exception& ex)
     {
+      std::cerr<<ex.what()<<std::endl;
+      return false;
+    }
+    return true;
+  }
+  
+  void Clear()
+  {
+    value_.clear();
+  }
+  
+  const RIVType& Get(I id)
+  {
+    return value_[id-1];
+  }
+  
+  bool ResetMax(I max_id)
+  {
+    value_.clear();
+    value_.resize(max_id);
+    I start = 1;
+    {
+      izenelib::am::ssf::Reader<uint32_t> reader(ser_file_);
       
+      if(reader.Open())
+      {
+        RIVType riv;
+        while(reader.Next(riv))
+        {
+//           std::cout<<"load "<<start<<std::endl;
+          value_[start-1] = riv;
+          start++;
+        }
+      }
+      reader.Close();
+    }
+    for(I i=start;i<=max_id;i++)
+    {
+      if(i%100==0)
+      {
+        std::cout<<"rig processing "<<i<<std::endl;
+      }
       for(T t=0;t<dimensions_;t++)
       {
         T random = random_();
         if(random<p_)
         {
-          item.positive_position.push_back(t);
+          value_[i-1].positive_position.push_back(t);
         }
         else if(random<p_*2)
         {
-          item.negative_position.push_back(t);
+          value_[i-1].negative_position.push_back(t);
         }
       }
-      if(!SetVector(id, item))
-      {
-        std::cerr<<"set random vector for id "<<id<<" failed."<<std::endl;
-        return false;
-      }
-      return true;
     }
-    
+    if(!Flush_())
+    {
+      std::cerr<<"rig Flush error"<<std::endl;
+      return false;
+    }
+    return true;
   }
+
   
-  T GetDimensions() const
+  
+  inline T GetDimensions() const
   {
     return dimensions_;
   }
   
+ private:
+  bool Flush_()
+  {
+    boost::filesystem::remove_all(ser_file_);
+    izenelib::am::ssf::Writer<uint32_t> writer(ser_file_);
+    if(!writer.Open() )
+    {
+      return false;
+    }
+    for(I i=0;i<value_.size();i++)
+    {
+      if(!writer.Append(value_[i]))
+      {
+        return false;
+      }
+    }
+    writer.Close();
+    return true;
+    
+  }
   
  private: 
   std::string dir_;
   T dimensions_;
   T p_;
+  std::vector<RIVType> value_;
+  std::string ser_file_;
   boost::mt19937 engine_;
   boost::uniform_int<T> distribution_;
   boost::variate_generator<boost::mt19937, boost::uniform_int<T> > random_;

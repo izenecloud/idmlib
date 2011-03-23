@@ -18,13 +18,9 @@ class RandomIndexingVector
 public:
 
   ///@brief Update the normal vector
-  template <typename U, typename I, typename D>
-  void AddTo(std::vector<U>& value_vector, I freq, D dimensions)
+  template <typename U, typename I>
+  void AddTo(std::vector<U>& value_vector, I freq) const
   {
-    if(value_vector.empty())
-    {
-      value_vector.resize(dimensions, 0);
-    }
     for(uint32_t i=0;i<positive_position.size();i++)
     {
       value_vector[positive_position[i]] += freq;
@@ -37,10 +33,8 @@ public:
   
   ///@brief Update the sparse vector
   template <typename V, typename I, typename D>
-  void AddTo(izenelib::am::SparseVector<V,T>& value_vector, I freq, D dimensions)
+  void AddTo(izenelib::am::SparseVector<V,T>& value_vector, I freq, D dimensions) const
   {
-    uint32_t pp = 0;
-    uint32_t np = 0;
     std::vector<std::pair<T, V> > changed;
     for(uint32_t i=0;i<positive_position.size();i++)
     {
