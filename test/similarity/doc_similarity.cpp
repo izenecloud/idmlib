@@ -13,9 +13,8 @@ using namespace std;
 
 #include <idmlib/semantic_space/semantic_space.h>
 #include <idmlib/semantic_space/explicit_semantic_space.h>
-#include <idmlib/semantic_space/semantic_interpreter.h>
-#include <idmlib/semantic_space/kpe_semantic_space_builder.h>
-#include <idmlib/semantic_space/la_semantic_space_builder.h>
+#include <idmlib/semantic_space/document_vector_space.h>
+#include <idmlib/semantic_space/explicit_semantic_interpreter.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
 #include <idmlib/similarity/document_similarity.h>
 #include <la/LA.h>
@@ -26,15 +25,29 @@ using namespace idmlib::sim;
 
 int main(int argc, char** argv)
 {
-	string colPath, sspDataPath, laResPath;
-	count_t maxDoc;
+	string esasspPath; // resource data(Wiki) for explicit semantic analysis
+	string laResPath;  // LA (CMA) resource path
+	string colBasePath; // collection of documents to perform doc-similarity computing
+	string colsspPath; // collection document vectors pre-processing
+	count_t maxDoc; // max number of documents to be processed
 
-	boost::shared_ptr<SemanticSpace> pSSpace( new ExplicitSemanticSpace(sspDataPath) );
-	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder( new LaSemanticSpaceBuilder(colPath, pSSpace, laResPath, maxDoc) );
-	boost::shared_ptr<SemanticInterpreter> pSemInter( new SemanticInterpreter(pSSpace, pSemBuilder) );
+	// Explicit semantic interpreter initialized with wiki knowledge
+	boost::shared_ptr<SemanticSpace> pWikiESSpace(new ExplicitSemanticSpace(esasspPath));
+	boost::shared_ptr<SemanticInterpreter> pESInter(new ExplicitSemanticInterpreter(pWikiESSpace));
 
-	DocumentSimilarity ColDocSim(colPath, pSemInter);
-	ColDocSim.Compute();
+	// pre-process for collection data
+	boost::shared_ptr<SemanticSpace> pDocVecSpace(new DocumentVectorSpace(colsspPath));
+	boost::shared_ptr<SemanticSpaceBuilder> pCollectionBuilder(new SemanticSpaceBuilder(pDocVecSpace, laResPath, colBasePath, maxDoc));
+	pCollectionBuilder->Build();
+
+	// for docVec in collection
+	//     interVec = interpret(docVec)
+	//     addtoInvertedIndex(interVec) //
+
+
+	//DocumentSimilarity DocSim(esasspPath, colPath, pSemInter);
+	//DocSim.Compute();
+	//DocSim.ComputeAll(pDocVecSpace);
 
 	return 0;
 }

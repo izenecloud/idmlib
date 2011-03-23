@@ -2,18 +2,23 @@
 #include <idmlib/idm_types.h>
 #include <idmlib/similarity/document_similarity.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
-#include <idmlib/similarity/cosine_similarity.h>
+//#include <idmlib/similarity/cosine_similarity.h>
 #include <idmlib/similarity/simple_similarity.h>
 #include <la/util/UStringUtil.h>
-#include <util/scd_parser.h>
 #include <ir/id_manager/IDManager.h>
 
 using namespace idmlib::ssp;
 using namespace idmlib::sim;
 
+
+bool DocumentSimilarity::ComputeAll()
+{
+	return false;
+}
+
 bool DocumentSimilarity::Compute()
 {
-	// preprocess .. get TF, DF
+	// preprocess .. gather TF, DF
 	if (!buildInterpretationVectors())
 		return false;
 
@@ -112,7 +117,7 @@ bool DocumentSimilarity::computeSimilarities()
 	for (size_t i = 0; i < N; i ++) {
 		for (size_t j = i + 1; j < N; j ++) {
 			pw = psimMatrix + (N * i) + j;
-			*pw = CosineSimilarity::Sim(docIVecs_[i], docIVecs_[j]); // similarity
+			//:*pw = CosineSimilarity::Sim(docIVecs_[i], docIVecs_[j]); // similarity
 		}
 	}
 
