@@ -98,7 +98,7 @@ public:
     {
       NormalizedType normal_vec;
       idmlib::ssp::Normalizer::Normalize(value, normal_vec);
-      if(!normal_matrix_writer.Append(normal_vec))
+      if(!normal_matrix_writer.Append(key, normal_vec))
       {
         delete vector_reader;
         return false;
@@ -121,8 +121,11 @@ public:
       return false;
     }
     max_id_ = 0;
+    IdType id;
     NormalizedType normal_vec;
-    apss_->Compute(normal_matrix_file, normal_vec);
+
+    apss_->Compute(normal_matrix_file, id, normal_vec);
+    
     sim_list_writer_->Close();
     delete sim_list_writer_;
     sim_list_writer_ = NULL;
@@ -176,8 +179,8 @@ public:
   
   void FindSim_(IdType id1, IdType id2, double score)
   {
-    IdType lid = id1+1;
-    IdType rid = id2+1;
+    IdType lid = id1;
+    IdType rid = id2;
     AddSim_(lid, rid, score);
     AddSim_(rid, lid, score);
 //     std::cout<<id1<<","<<id2<<"\t"<<score<<std::endl;

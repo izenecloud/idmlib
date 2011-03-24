@@ -63,24 +63,28 @@ class Apss
       }
     }
     
-    template <typename KK>
-    void Compute(const std::string& file, izenelib::am::SparseVector<double, KK>& vec)
+    template <typename IdType, typename KK>
+    void Compute(const std::string& file, IdType id, izenelib::am::SparseVector<double, KK>& vec)
     {
-      typedef izenelib::am::SparseVector<double, K, std::vector> ColType;
+      typedef izenelib::am::SparseVector<double, IdType, std::vector> ColType;
       std::vector<ColType> inverted_index(dimensions_);
+      std::vector<IdType> id_list;
       izenelib::am::ssf::Reader<> normal_matrix_reader(file);
       if(!normal_matrix_reader.Open())
       {
         return;
       }
       std::cout<<"x count : "<<normal_matrix_reader.Count()<<std::endl;
-      uint32_t x = 0;
-      while(normal_matrix_reader.Next(vec))
+      IdType x = 0;
+//       IdType id;
+//       izenelib::am::SparseVector<double, KK> vec;
+      while(normal_matrix_reader.Next(id, vec))
       {
         if(x%100==0)
         {
           std::cout<<"x:"<<x<<std::endl;
         }
+
         std::vector<double> score(x, 0.0);
         //compute score
         for(uint32_t m=0;m<vec.value.size();m++)
@@ -113,10 +117,11 @@ class Apss
         {
           if(score[s]>=t_)
           {
-            callback_(s, x, score[s]);
+            callback_(id_list[s], id, score[s]);
           }
         }
-        x++;
+        id_list.push_back(id);
+        ++x;
       }
       normal_matrix_reader.Close();
     }

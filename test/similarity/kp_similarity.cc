@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     std::cout<<"open error"<<std::endl;
     return -1;
   }
-  uint32_t context_max = 2100000;
+  uint32_t context_max = 10000000;
   if(!sim->SetContextMax(context_max))
   {
     std::cerr<<"SetContextMax error"<<std::endl;
