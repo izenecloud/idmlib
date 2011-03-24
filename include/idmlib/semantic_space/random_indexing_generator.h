@@ -75,7 +75,7 @@ public:
     }
     for(I i=start;i<=max_id;i++)
     {
-      if(i%100==0)
+      if(i%1000==0)
       {
         std::cout<<"rig processing "<<i<<std::endl;
       }
