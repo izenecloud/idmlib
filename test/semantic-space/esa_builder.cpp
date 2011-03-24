@@ -19,9 +19,7 @@ using namespace std;
 
 #include <idmlib/semantic_space/semantic_space.h>
 #include <idmlib/semantic_space/explicit_semantic_space.h>
-#include <idmlib/semantic_space/semantic_interpreter.h>
-#include <idmlib/semantic_space/kpe_semantic_space_builder.h>
-#include <idmlib/semantic_space/la_semantic_space_builder.h>
+#include <idmlib/semantic_space/explicit_semantic_interpreter.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
 #include <idmlib/similarity/document_similarity.h>
 #include <la/LA.h>
@@ -57,10 +55,10 @@ int main(int argc, char** argv)
 	}
 
 	if (colPath.empty()) {
-		colPath = "/home/zhongxia/codebase/sf1-revolution-dev/bin/collection/chinese-wiki-test";
+		colPath = "/home/zhongxia/codebase/sf1r-dev/sf1-revolution/bin/collection/chinese-wiki-test";
 	}
 	if (laResPath.empty()) {
-		laResPath = "/home/zhongxia/codebase/icma/db/icwb/utf8";
+		laResPath = "/home/zhongxia/codebase/sf1r-dev/icma/db/icwb/utf8";
 	}
 	if (sspDataPath.empty()) {
 		sspDataPath = "./output";
@@ -77,7 +75,7 @@ int main(int argc, char** argv)
 	boost::shared_ptr<SemanticSpace> pSSpace( new ExplicitSemanticSpace(sspDataPath) );
 	time1 = time (NULL);
 	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder(
-			new LaSemanticSpaceBuilder(colPath, pSSpace, laResPath, maxDoc) );
+			new SemanticSpaceBuilder(pSSpace, laResPath, colPath, maxDoc) );
 	pSemBuilder->Build();
 	time2 = time (NULL);
 	cout << "built inverted index of wiki (" << maxDoc <<"), cost :" << (time2 - time1) << endl;

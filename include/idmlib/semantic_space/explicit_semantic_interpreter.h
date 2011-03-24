@@ -2,7 +2,12 @@
  * @file idmlib/semantic_space/semantic_interpreter.h
  * @author Zhongxia Li
  * @date Mar 10, 2011
- * @brief 
+ * @brief Explicit Semantic Analysis, refer to
+ *
+ * Evgeniy Gabrilovich and Shaul Markovitch. (2007).
+ * "Computing Semantic Relatedness using Wikipedia-based Explicit Semantic Analysis,"
+ * Proceedings of The 20th International Joint Conference on Artificial Intelligence
+ * (IJCAI), Hyderabad, India, January 2007.
  */
 #ifndef IDMLIB_SSP_SEMANTIC_INTERPRETER_H_
 #define IDMLIB_SSP_SEMANTIC_INTERPRETER_H_
@@ -25,6 +30,14 @@ class SemanticInterpreter
 	typedef std::map<termid_t, weight_t> term_map;
 
 public:
+
+	SemanticInterpreter(boost::shared_ptr<SemanticSpace>& pSSpace)
+	: pSSpace_(pSSpace)
+	{
+
+	}
+
+	// todo, remove
 	SemanticInterpreter(
 			boost::shared_ptr<SemanticSpace>& pSSpace,
 			boost::shared_ptr<SemanticSpaceBuilder>& pSSPBuilder)
@@ -105,6 +118,8 @@ private:
 
 	term_map termMap_; // <termid, tf>
 };
+
+typedef SemanticInterpreter ExplicitSemanticInterpreter;
 
 NS_IDMLIB_SSP_END
 

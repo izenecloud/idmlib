@@ -14,9 +14,10 @@
 
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/semantic_space.h>
-#include <idmlib/semantic_space/semantic_interpreter.h>
+#include <idmlib/semantic_space/document_vector_space.h>
+#include <idmlib/semantic_space/explicit_semantic_interpreter.h>
+#include <idmlib/util/collection_file_util.h>
 #include <idmlib/util/FSUtil.hpp>
-//#include <util/ustring/UString.h>
 
 using namespace idmlib::ssp;
 
@@ -25,18 +26,39 @@ NS_IDMLIB_SIM_BEGIN
 class DocumentSimilarity
 {
 public:
+	DocumentSimilarity(const std::string& colBasePath)
+	: colFileUtil_(new idmlib::util::CollectionFileUtil(colBasePath))
+	{
+		// 1. build doc vec space
+		//pDocVecSpace_  =
+
+		// 2. build doc-concept inverted index
+		// for docVec in collection
+		//     interVec = interpret(docVec)
+		//     addtoInvertedIndex(interVec) //
+
+		// 3. compute doc similarity increamently
+	}
+
+	DocumentSimilarity(boost::shared_ptr<DocumentVectorSpace>& pDocVecSpace)
+	: pDocVecSpace_(pDocVecSpace)
+	{
+
+	}
+
+	// todo, remove
 	DocumentSimilarity(
 			const std::string& colPath,
 			const boost::shared_ptr<SemanticInterpreter> pSSPInter)
-	: colPath_(colPath)
+	: colBasePath_(colPath)
 	, pSSPInter_(pSSPInter)
 	{
-		idmlib::util::FSUtil::normalizeFilePath(colPath_);
+		idmlib::util::FSUtil::normalizeFilePath(colBasePath_);
 		encoding_ = izenelib::util::UString::UTF_8;
 
-		scdPath_ = colPath_ + "/scd/index";
+		scdPath_ = colBasePath_ + "/scd/index";
 
-		std::string idDir = colPath_ + "/collection-data/default-collection-dir/id/";
+		std::string idDir = colBasePath_ + "/collection-data/default-collection-dir/id/";
 		pIdManager_.reset(new IDManager(idDir));
 	}
 
@@ -45,6 +67,11 @@ public:
 	}
 
 public:
+	/**
+	 * @brief Compute similarity for all pair of documents & build index
+	 */
+	bool ComputeAll();
+
 	bool Compute();
 
 	/**
@@ -66,9 +93,13 @@ private:
 	bool getScdFileListInDir(const std::string& scdDir, std::vector<std::string>& fileList);
 
 private:
-	std::string colPath_;
+	boost::shared_ptr<idmlib::util::CollectionFileUtil> colFileUtil_;
+	std::string colBasePath_;
 	std::string scdPath_;
 	izenelib::util::UString::EncodingType encoding_;
+	boost::shared_ptr<DocumentVectorSpace> pDocVecSpace_;
+
+	///
 	boost::shared_ptr<SemanticInterpreter> pSSPInter_;
 	boost::shared_ptr<IDManager > pIdManager_;
 
@@ -79,6 +110,7 @@ private:
 	docIVecsT docIVecs_;
 
 	docid_index_map docid2Index_;
+	///
 };
 
 NS_IDMLIB_SIM_END
