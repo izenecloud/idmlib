@@ -109,7 +109,7 @@ private:
 	typedef std::vector< std::vector<weight_t> > docIVecsT;
 	docIVecsT docIVecs_;
 
-	docid_index_map docid2Index_;
+	///:~ docid_index_map docid2Index_;
 	///
 };
 

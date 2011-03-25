@@ -24,9 +24,9 @@ public:
 
 	}
 
-	void processDocument(docid_t& docid, term_vector& terms) {};
+	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids) {};
 
-	void processSpace() {}
+	void ProcessSpace() {}
 
 private:
 	std::string sspPath_;

@@ -92,7 +92,7 @@ bool DocumentSimilarity::buildInterpretationVectors()
 			if (docid == last_docid)
 				return false;
 
-			docid2Index_.insert( make_pair(docid, doc_count ++) );
+			///:~ docid2Index_.insert( make_pair(docid, doc_count ++) );
 			docIVecs_.push_back( IVec ); // ...
 		}
 

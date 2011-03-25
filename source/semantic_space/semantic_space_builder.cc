@@ -9,8 +9,7 @@ bool SemanticSpaceBuilder::Build()
 		return false;
 	}
 
-	// doc_terms_map docTermsMap;
-	term_vector termVec;
+	std::vector<termid_t> termids;
 	docid_t docid = 0;
 	docid_t last_docid = 0;
 	docid_t doc_count = 0;
@@ -57,8 +56,8 @@ bool SemanticSpaceBuilder::Build()
 				}
 				else if ( propertyName == izenelib::util::UString("content", encoding_)) {
 					// process raw content
-					termVec.clear();
-					getDocTerms(propertyValue, termVec);
+					termids.clear();
+					getDocTermids(propertyValue, termids);
 				}
 			}
 
@@ -68,10 +67,7 @@ bool SemanticSpaceBuilder::Build()
 				return false;
 			}
 
-			// docTermsMap.clear();
-			//docTermsMap[docid] = termVec;
-			//docTermsMap.insert(make_pair(docid, termVec));
-			pSSpace_->processDocument(docid, termVec);
+			pSSpace_->ProcessDocument(docid, termids);
 		}
 
 		if ( doc_count >= maxDoc_ )
@@ -81,7 +77,7 @@ bool SemanticSpaceBuilder::Build()
 	std::cout << "process Space..." << std::endl;
 	time_t time1, time2;
 	time1 = time (NULL);
-	pSSpace_->processSpace();
+	pSSpace_->ProcessSpace();
 	time2 = time (NULL);
 	std::cout << "time elapsed: " << (time2-time1) << std::endl;
 
@@ -90,31 +86,31 @@ bool SemanticSpaceBuilder::Build()
 
 /// Private ////////////////////////////////////////////////////////////////////
 
-bool SemanticSpaceBuilder::getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec)
-{
-	//termIdList_.clear();
-	//pLA_->process(pIdManager_.get(), ustrDoc, termIdList_);
-
-	termList_.clear();
-	//pLA_->process(ustrDoc, termList_);
-	pIdmAnalyzer_->GetTermList(ustrDoc, termList_, false);
-
-	termid_t termid;
-	for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
-	{
-		//if ( filter(iter->text_) )
-		//	continue;
-
-		boost::shared_ptr<sTermUnit> pTerm(new sTermUnit());
-		pIdManager_->getTermIdByTermString(iter->text_, termid);
-		pTerm->termid = termid;
-		termVec.push_back(pTerm);
-
-		//cout << iter->textString()  << "(" << termid << ") "; //
-	}
-
-	return true;
-}
+//bool SemanticSpaceBuilder::getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec)
+//{
+//	//termIdList_.clear();
+//	//pLA_->process(pIdManager_.get(), ustrDoc, termIdList_);
+//
+//	termList_.clear();
+//	//pLA_->process(ustrDoc, termList_);
+//	pIdmAnalyzer_->GetTermList(ustrDoc, termList_, false);
+//
+//	termid_t termid;
+//	for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
+//	{
+//		//if ( filter(iter->text_) )
+//		//	continue;
+//
+//		boost::shared_ptr<sTermUnit> pTerm(new sTermUnit());
+//		pIdManager_->getTermIdByTermString(iter->text_, termid);
+//		pTerm->termid = termid;
+//		termVec.push_back(pTerm);
+//
+//		//cout << iter->textString()  << "(" << termid << ") "; //
+//	}
+//
+//	return true;
+//}
 
 bool SemanticSpaceBuilder::getScdFileList(const std::string& scdDir, std::vector<std::string>& fileList)
 {

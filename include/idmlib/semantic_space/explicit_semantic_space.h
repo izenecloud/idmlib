@@ -16,29 +16,43 @@
 #include <idmlib/semantic_space/semantic_space.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
 
+
+using namespace izenelib::am;
+
 NS_IDMLIB_SSP_BEGIN
 
 class ExplicitSemanticSpace : public SemanticSpace
 {
 public:
-	ExplicitSemanticSpace(const std::string& filePath)
-	: SemanticSpace(filePath)
-	, termCount_(0)
-	, docCount_(0)
-	{}
+	ExplicitSemanticSpace(
+			const std::string& sspPath,
+			SemanticSpace::eSSPInitType initType = SemanticSpace::CREATE)
+	: SemanticSpace(sspPath)
+	{
+		pTermConceptIndex_.reset(new term_doc_matrix(sspPath_));
+		pTermConceptIndex_->Open();
+
+#ifdef RESET_MATRIX_INDEX
+		termCount_ = MATRIX_INDEX_START;
+		docCount_ = MATRIX_INDEX_START;
+#endif
+
+	}
 
 public:
-	void processDocument(docid_t& docid, term_vector& terms);
+	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids);
 
-	void processSpace();
+	void ProcessSpace();
 
+public:
 	count_t getDocNum()
 	{
-		return docid2Index_.size();
+		return 0;//docid2Index_.size();
 	}
 
 	bool getTermIndex(termid_t& termid, index_t& termidx)
 	{
+#ifdef RESET_MATRIX_INDEX
 		termid_index_map::iterator iter = termid2Index_.find(termid);
 		if (iter != termid2Index_.end()) {
 			termidx = iter->second;
@@ -46,6 +60,10 @@ public:
 		}
 		else
 			return false;
+#else
+		termidx = termid;
+		return true;
+#endif
 	}
 
 	weight_t getTermDocWeight(termid_t& termid, index_t& docIdx)
@@ -54,7 +72,7 @@ public:
 		bool ret = getTermIndex(termid, termIdx);
 		if (!ret)
 			return 0; // term not existed in wiki index
-
+/*
 		if (docIdx >= docid2Index_.size()) {
 			DLOG(WARNING) << "No doc index " << docIdx << endl;
 			return 0;
@@ -69,6 +87,7 @@ public:
 			return pDocUnit->tf; // weight = tf*idf
 		else
 			return 0;
+			*/
 	}
 
 	bool getTermIds(std::set<termid_t>& termIds);
@@ -79,11 +98,9 @@ public:
 
 
 private:
-	void buildTermIndex(docid_t& docid, term_vector& terms);
 
-	void buildDocIndex(docid_t& docid, term_vector& terms);
-
-	index_t getOrAddTermIndex(termid_t& termid) {
+	index_t getIndexFromTermId(termid_t termid) {
+#ifdef RESET_MATRIX_INDEX
 		termid_index_map::iterator iter = termid2Index_.find(termid);
 		if ( iter != termid2Index_.end()) {
 			return iter->second;
@@ -92,22 +109,39 @@ private:
 			termid2Index_[termid] = termCount_;
 			return (termCount_++);
 		}
+#else
+		return termid;
+#endif
 	}
 
-	template<typename mapT, typename mapIterT>
-	index_t getOrAddIndex(mapT& id2Index, mapIterT& iter, termid_t& id, index_t& index_count) {
-		iter = id2Index.find(id);
-		if (iter != id2Index.end()) {
+	index_t getIndexFromDocId(termid_t& docid) {
+#ifdef RESET_MATRIX_INDEX
+		docid_index_map::iterator iter = docid2Index_.find(docid);
+		if ( iter != docid2Index_.end()) {
 			return iter->second;
 		}
 		else {
-			id2Index[id] = index_count;
-			return (index_count++);
+			docid2Index_[termid] = docCount_;
+			return (docCount_++);
 		}
+#else
+		return docid;
+#endif
+	}
+
+	void doProcessDocument(docid_t& docid, std::vector<termid_t>& termids);
+
+	void updateTermConceptIndex(termid_t& term_index, docid_t& doc_index, weight_t& weight)
+	{
+		doc_sp_vector docVec;
+		pTermConceptIndex_->GetVector(term_index, docVec);
+		docVec.value.push_back(std::make_pair(doc_index, weight));
+		pTermConceptIndex_->SetVector(term_index, docVec);
 	}
 
 	void calcWeight()
 	{
+		/*
 		boost::shared_ptr<sDocUnit> pDoc;
 		count_t doc_cnt = docid2Index_.size();
 
@@ -120,23 +154,32 @@ private:
 				}
 			}
 		}
+		*/
+
 	}
 
 private:
-	static const count_t thresholdTF_ = 3; // TF >
-	static const count_t thresholdDF_ = 1000; // < ?
-	static const weight_t thresholdWegt_ = 0.0f;
+	static const weight_t thresholdWegt_ = 0.0f; // threshold weight of term to concepts
 
 private:
+#ifdef RESET_MATRIX_INDEX
 	index_t termCount_; // term(row) index
 	index_t docCount_;  // doc(column) index
 	termid_index_map termid2Index_;
 	docid_index_map docid2Index_;
+#endif
 
-	typedef std::map<index_t, count_t> term_df_map;
-	term_df_map termidx2DF_;
+	// inverted index of Wikipedia concepts, permanent
+	boost::shared_ptr<term_doc_matrix> pTermConceptIndex_;
+	//term_doc_matrix termdocM_;
 
-	term_doc_matrix termdocM_; // in memory
+	// statistics of whole collection, permanent
+	typedef std::map<termid_t, weight_t> term_df_map;
+	term_df_map termid2df_;
+
+	// statistics of a document, temporary
+	typedef std::map<termid_t, weight_t> term_doc_tf_map;
+	term_doc_tf_map termid2doctf_;
 };
 
 NS_IDMLIB_SSP_END

@@ -66,6 +66,7 @@ public:
 	{
 		if (!pSSpace_)
 			return false;
+		/*
 		term_vector termVec;
 		pSSPBuilder_->getDocTerms(text, termVec);
 
@@ -88,14 +89,14 @@ public:
 
 			interVector[docIdx] = wTopic;
 		}
-
+*/
 
 		return true;
 	}
 
 private:
 	void getDocTerms(term_vector& termVec, term_map& termMap)
-	{
+	{/*
 		term_map::iterator miter;
 		for (term_vector::iterator iter = termVec.begin(); iter != termVec.end(); iter++ )
 		{
@@ -109,6 +110,7 @@ private:
 				termMap[iter->get()->termid] = 1;
 			}
 		}
+		*/
 	}
 
 private:

@@ -52,9 +52,9 @@ public:
 		scdPath_ = colBasePath_ + "/scd/index";
 		colDataPath_ = colBasePath_ + "/collection-data/default-collection-dir";
 
-		pIdManager_ = createIdManager();
+		createIdManager(pIdManager_);
 		if (!pIdManager_) {
-			DLOG(WARNING) << "Failed to create IdManager!" << std::endl;
+			DLOG(ERROR) << "Failed to create IdManager!" << std::endl;
 		}
 
 		pIdmAnalyzer_.reset(
@@ -76,17 +76,40 @@ public:
 		return pSSpace_;
 	}
 
-	bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
+	//bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
+
+	bool getDocTermids(const izenelib::util::UString& ustrDoc, std::vector<termid_t>& termids)
+	{
+		//termIdList_.clear();
+		//pLA_->process(pIdManager_.get(), ustrDoc, termIdList_);
+
+		termList_.clear();
+		//pLA_->process(ustrDoc, termList_);
+		pIdmAnalyzer_->GetTermList(ustrDoc, termList_, false);
+
+		termid_t termid;
+		for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
+		{
+			//if ( filter(iter->text_) )
+			//	continue;
+			pIdManager_->getTermIdByTermString(iter->text_, termid);
+			termids.push_back(termid);
+
+			//cout << iter->textString()  << "(" << termid << ") "; //
+		}
+
+		return true;
+	}
 
 private:
-	boost::shared_ptr<IDManager> createIdManager()
+	bool createIdManager(boost::shared_ptr<IDManager>& pIdManager)
 	{
 	    std::string dir = colDataPath_ + "/id/";
-	    //boost::filesystem::create_directories(dir);
-	    // check dir
-	    boost::shared_ptr<IDManager> pIdManager( new IDManager(dir) );
+	    if (!exists(dir)) {
+	    	return false;
+	    }
 
-	    return pIdManager;
+	    pIdManager.reset( new IDManager(dir) );
 	}
 
 private:
@@ -135,7 +158,7 @@ protected:
 	// LA
 	boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer_;
 	// id
-	boost::shared_ptr<IDManager > pIdManager_;
+	boost::shared_ptr<IDManager> pIdManager_;
 };
 
 //class KpeSemanticSpaceBuilder : public SemanticSpaceBuilder

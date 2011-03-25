@@ -16,13 +16,15 @@ using namespace std;
 
 #include <boost/shared_ptr.hpp>
 #include <boost/program_options.hpp>
-
 #include <idmlib/semantic_space/semantic_space.h>
 #include <idmlib/semantic_space/explicit_semantic_space.h>
 #include <idmlib/semantic_space/explicit_semantic_interpreter.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
 #include <idmlib/similarity/document_similarity.h>
+#include <idmlib/similarity/term_similarity.h>
 #include <la/LA.h>
+#include <am/matrix/matrix_file_io.h>
+#include <am/matrix/sparse_vector.h>
 
 namespace po = boost::program_options;
 using namespace idmlib::ssp;
@@ -55,13 +57,13 @@ int main(int argc, char** argv)
 	}
 
 	if (colPath.empty()) {
-		colPath = "/home/zhongxia/codebase/sf1r-dev/sf1-revolution/bin/collection/chinese-wiki-test";
+		colPath = "/home/zhongxia/codebase/sf1-revolution-dev/bin/collection/chinese-wiki-test";
 	}
 	if (laResPath.empty()) {
-		laResPath = "/home/zhongxia/codebase/sf1r-dev/icma/db/icwb/utf8";
+		laResPath = "/home/zhongxia/codebase/icma/db/icwb/utf8";
 	}
 	if (sspDataPath.empty()) {
-		sspDataPath = "./output";
+		sspDataPath = "./esa_wiki";
 	}
 
 	if (vm.count("max-doc")) {
