@@ -55,6 +55,7 @@ public:
   
   bool ResetMax(I max_id)
   {
+    std::cout<<"[RIG] ResetMax : "<<max_id<<std::endl;
     value_.clear();
     value_.resize(max_id);
     I start = 1;
@@ -69,6 +70,7 @@ public:
 //           std::cout<<"load "<<start<<std::endl;
           value_[start-1] = riv;
           start++;
+          if(start>max_id) break;
         }
       }
       reader.Close();
