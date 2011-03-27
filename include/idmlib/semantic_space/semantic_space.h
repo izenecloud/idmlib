@@ -64,6 +64,8 @@ public:
 
 	virtual bool getTermVector(termid_t termId, std::vector<docid_t> termVec) {};
 
+	virtual void Print() {}
+
 protected:
 	std::string sspPath_;
 };

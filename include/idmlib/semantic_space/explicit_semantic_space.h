@@ -15,7 +15,7 @@
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/semantic_space.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
-
+#include <util/file_object.h>
 
 using namespace izenelib::am;
 
@@ -29,8 +29,23 @@ public:
 			SemanticSpace::eSSPInitType initType = SemanticSpace::CREATE)
 	: SemanticSpace(sspPath)
 	{
+		if (initType ==  SemanticSpace::CREATE) {
+			// clear existed files
+			idmlib::util::FSUtil::del(sspPath_);
+		}
+
 		pTermConceptIndex_.reset(new term_doc_matrix(sspPath_));
 		pTermConceptIndex_->Open();
+		term2dfFile_.reset(new term_df_file(sspPath_ + "/term_df_map"));
+		doclistFile_.reset(new doc_list_file(sspPath_ + "/doc_list"));
+
+		if (initType == SemanticSpace::LOAD) {
+			term2dfFile_->Load();
+			termid2df_ = term2dfFile_->GetValue();
+
+			doclistFile_->Load();
+			docidVec_ = doclistFile_->GetValue();
+		}
 
 #ifdef RESET_MATRIX_INDEX
 		termCount_ = MATRIX_INDEX_START;
@@ -43,6 +58,8 @@ public:
 	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids);
 
 	void ProcessSpace();
+
+	void SaveSpace();
 
 public:
 	count_t getDocNum()
@@ -94,7 +111,7 @@ public:
 
 	bool getTermVector(termid_t termId, std::vector<docid_t> termVec);
 
-	void print();
+	void Print();
 
 
 private:
@@ -139,24 +156,8 @@ private:
 		pTermConceptIndex_->SetVector(term_index, docVec);
 	}
 
-	void calcWeight()
-	{
-		/*
-		boost::shared_ptr<sDocUnit> pDoc;
-		count_t doc_cnt = docid2Index_.size();
+	void calcWeight();
 
-		for (termid_t t = 0; t < termdocM_.size(); t ++) {
-			for (docid_t dt = 0; dt < termdocM_[t].size(); dt ++) {
-				pDoc = termdocM_[t][dt];
-				if (pDoc) {
-					// weight = tf * idf, std::log() = ln()
-					pDoc->tf = pDoc->tf * std::log((weight_t)doc_cnt / termidx2DF_[t]);
-				}
-			}
-		}
-		*/
-
-	}
 
 private:
 	static const weight_t thresholdWegt_ = 0.0f; // threshold weight of term to concepts
@@ -176,6 +177,12 @@ private:
 	// statistics of whole collection, permanent
 	typedef std::map<termid_t, weight_t> term_df_map;
 	term_df_map termid2df_;
+	std::vector<docid_t> docidVec_;
+
+	typedef izenelib::util::FileObject<term_df_map> term_df_file;
+	boost::shared_ptr<term_df_file> term2dfFile_;
+	typedef izenelib::util::FileObject<std::vector<docid_t> > doc_list_file;
+	boost::shared_ptr<doc_list_file> doclistFile_;
 
 	// statistics of a document, temporary
 	typedef std::map<termid_t, weight_t> term_doc_tf_map;

@@ -5,6 +5,7 @@ using namespace idmlib::ssp;
 
 void ExplicitSemanticSpace::ProcessDocument(docid_t& docid, std::vector<termid_t>& termids)
 {
+	docidVec_.push_back(docid);
 	doProcessDocument(docid, termids);
 }
 
@@ -12,9 +13,19 @@ void ExplicitSemanticSpace::ProcessSpace()
 {
 	// Post process after all documents are processed
 	calcWeight();
-	print();
 
+	SaveSpace();
+}
+
+void ExplicitSemanticSpace::SaveSpace()
+{
 	pTermConceptIndex_->Flush();
+
+	term2dfFile_->SetValue(termid2df_);
+	term2dfFile_->Save();
+
+	doclistFile_->SetValue(docidVec_);
+	doclistFile_->Save();
 }
 
 bool ExplicitSemanticSpace::getTermIds(std::set<termid_t>& termIds)
@@ -27,7 +38,7 @@ bool ExplicitSemanticSpace::getTermVector(termid_t termId, std::vector<docid_t> 
 	return false;
 }
 
-void ExplicitSemanticSpace::print()
+void ExplicitSemanticSpace::Print()
 {
 #ifdef RESET_MATRIX_INDEX
 	termid_index_map::iterator iter;
@@ -44,6 +55,19 @@ void ExplicitSemanticSpace::print()
 		cout << iter2->first << ", " << iter2->second << endl;
 	}
 #endif
+
+	cout << "\n [term  DF \\n (doc TF) .. ] " << pTermConceptIndex_->VectorCount() << "  "<< termid2df_.size() << endl;
+	index_t termIndex;
+	term_df_map::iterator df_iter = termid2df_.begin();
+	docid_t docNum = docidVec_.size();
+	for (; df_iter != termid2df_.end(); df_iter ++) {
+		termIndex = getIndexFromTermId(df_iter->first );
+		cout << df_iter->first << "  " << df_iter->second << "  " << docNum / df_iter->second << endl;
+
+		doc_sp_vector docVec;
+		pTermConceptIndex_->GetVector(termIndex, docVec);
+		idmlib::ssp::PrintSparseVec(docVec, "concepts list");
+	}
 
 #ifdef SPARSE_MATRIX
 
@@ -130,11 +154,12 @@ void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, std::vector<termid
 	weight_t tf;
 	count_t doc_length = termids.size();
 	term_doc_tf_map::iterator dtfIter = termid2doctf_.begin();
+//	cout << "term_index  doc_index  tf  tf" << endl;
 	for (; dtfIter != termid2doctf_.end(); dtfIter++)
 	{
 		term_index = getIndexFromTermId(dtfIter->first);
 		tf = (weight_t) dtfIter->second / doc_length ; // normalize tf
-//		cout << term_index << "  " << jndex << "  " << dtfIter->second << "  " << tf;
+//		cout << term_index << "  " << jndex << "  " << dtfIter->second << "  " << tf << endl;
 		updateTermConceptIndex(term_index, jndex, tf);
 	}
 
@@ -150,4 +175,39 @@ void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, std::vector<termid
 		boost::shared_ptr<sDocUnit>& rpsDoc = termdocM_[index][jndex];
 		rpsDoc->tf = rpsDoc->tf / (weight_t)totalTerm;
 	}*/
+}
+
+void ExplicitSemanticSpace::calcWeight()
+{
+	index_t termIndex;
+	term_df_map::iterator df_iter = termid2df_.begin();
+	docid_t docNum = docidVec_.size();
+	for (; df_iter != termid2df_.end(); df_iter ++) {
+		termIndex = getIndexFromTermId(df_iter->first);
+		weight_t idf = std::log( docNum / df_iter->second );
+
+		doc_sp_vector docVec;
+		pTermConceptIndex_->GetVector(termIndex, docVec);
+		doc_sp_vector::ValueType::iterator vec_iter = docVec.value.begin();
+		for (; vec_iter != docVec.value.end(); vec_iter ++) {
+			vec_iter->second *= idf; // weight = tf*idf
+		}
+		pTermConceptIndex_->SetVector(termIndex, docVec);
+	}
+
+	/*
+	boost::shared_ptr<sDocUnit> pDoc;
+	count_t doc_cnt = docid2Index_.size();
+
+	for (termid_t t = 0; t < termdocM_.size(); t ++) {
+		for (docid_t dt = 0; dt < termdocM_[t].size(); dt ++) {
+			pDoc = termdocM_[t][dt];
+			if (pDoc) {
+				// weight = tf * idf, std::log() = ln()
+				pDoc->tf = pDoc->tf * std::log((weight_t)doc_cnt / termidx2DF_[t]);
+			}
+		}
+	}
+	*/
+
 }

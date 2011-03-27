@@ -72,7 +72,7 @@ typedef izenelib::am::MatrixFileVLIo<term_sp_vector, docid_t> doc_term_matrixv;
 
 #ifdef SPARSE_MATRIX
 typedef term_sp_vector term_vector;
-typedef term_doc_matrixf term_doc_matrix;
+typedef term_doc_matrixv term_doc_matrix;
 #else
 typedef term_vector_ term_vector;
 typedef term_docs_map term_doc_matrix;
@@ -88,15 +88,58 @@ static const count_t MATRIX_INDEX_START = 1; // start from 1
 
 /// help functions
 template <typename SpVecT>
-void PrintSparseVec(SpVecT& svec, string& headInfo="Vector")
+void PrintSparseVec(SpVecT& svec, const string& headInfo=string("Vector"))
 {
 	cout << headInfo << " [ ";
-	for (size_t t = 0; t < svec.size(); t++)
+	for (size_t t = 0; t < svec.value.size(); t++)
 	{
-		cout << "(" << svec[t]->first << ", " << svec[t]->second << ") ";
+		cout << "(" << svec.value.at(t).first << ", " << svec.value.at(t).second << ") ";
 	}
 	cout << "] " << endl;
 }
+
+class TimeChecker
+{
+private:
+	time_t start_;
+	time_t end_;
+	std::string msg_;
+	bool printed_;
+public:
+	TimeChecker( const std::string& msg = std::string("") )
+	: msg_(msg)
+	, printed_(false)
+	{
+		start_ = time(NULL);
+		end_ = 0;
+	}
+
+	~TimeChecker()
+	{
+		if (end_ < start_) {
+			end_ = time(NULL);
+		}
+
+		if (!printed_)
+			Print();
+	}
+
+	void StartPoint()
+	{
+		start_ = time(NULL);
+	}
+
+	void EndPoint()
+	{
+		end_ = time(NULL);
+	}
+
+	void Print()
+	{
+		printed_ = true;
+		std::cout << "[" << msg_ << "] time elapsed: " << (end_-start_) << " seconds" << endl;
+	}
+};
 
 NS_IDMLIB_SSP_END
 

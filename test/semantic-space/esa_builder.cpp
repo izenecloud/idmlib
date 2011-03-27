@@ -57,10 +57,10 @@ int main(int argc, char** argv)
 	}
 
 	if (colPath.empty()) {
-		colPath = "/home/zhongxia/codebase/sf1-revolution-dev/bin/collection/chinese-wiki-test";
+		colPath = "/home/zhongxia/codebase/sf1r-dev/sf1-revolution/bin/collection/chinese-wiki-test";
 	}
 	if (laResPath.empty()) {
-		laResPath = "/home/zhongxia/codebase/icma/db/icwb/utf8";
+		laResPath = "/home/zhongxia/codebase/sf1r-dev/icma/db/icwb/utf8";
 	}
 	if (sspDataPath.empty()) {
 		sspDataPath = "./esa_wiki";
@@ -70,18 +70,48 @@ int main(int argc, char** argv)
 		std::cout << "max-doc: " << maxDoc << endl;
 	}
 
+//  matrix io
+//
+//	term_doc_matrix* om = new term_doc_matrix(sspDataPath);
+//	om->Open();
+//	for (size_t i = 0; i < 100; i ++) {
+//		doc_sp_vector v;
+//		for ( size_t j = 1; j < 5; j ++) {
+//			v.value.push_back(std::make_pair(j, 0.3 * i * j));
+//		}
+//		om->SetVector(i, v);
+//	}
+//	om->Flush();
+//	delete om;
+//
+//	term_doc_matrix im(sspDataPath);
+//	im.Open();
+//
+//	for (size_t i = 1; i < 10; i += 2) {
+//		doc_sp_vector v;
+//		im.GetVector(i, v);
+//		idmlib::ssp::PrintSparseVec(v);
+//	}
+//
+//	return 0;
 
-	time_t time1, time2;
+//	ExplicitSemanticSpace essp(sspDataPath, SemanticSpace::LOAD);
+//	essp.Print();
+//	return 0;
+
+	idmlib::ssp::TimeChecker timer("build wiki index");
 
 	// Build knowledge matrix base on Chinese Wiki
 	boost::shared_ptr<SemanticSpace> pSSpace( new ExplicitSemanticSpace(sspDataPath) );
-	time1 = time (NULL);
+	timer.StartPoint();
 	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder(
 			new SemanticSpaceBuilder(pSSpace, laResPath, colPath, maxDoc) );
 	pSemBuilder->Build();
-	time2 = time (NULL);
-	cout << "built inverted index of wiki (" << maxDoc <<"), cost :" << (time2 - time1) << endl;
+	pSSpace->Print();
+	timer.EndPoint();
+	//timer.Print();
 
+/*
 	// maps fragments of natural language text into
 	// a weighted sequence of Wikipedia concepts ordered by their
 	// relevance to the input
@@ -107,6 +137,6 @@ int main(int argc, char** argv)
 
 	DocumentSimilarity ColDocSim(colPath, pSemInter);
 	ColDocSim.Compute();
-
+*/
 	return 0;
 }
