@@ -31,7 +31,22 @@ public:
 	: sspPath_(sspPath)
 	{
 		idmlib::util::FSUtil::normalizeFilePath(sspPath_);
+
+		if (initType ==  SemanticSpace::CREATE) {
+			// clear existed files
+			idmlib::util::FSUtil::del(sspPath_);
+		}
+
+		term2dfFile_.reset(new term_df_file(sspPath_ + "/term_df_map"));
+		doclistFile_.reset(new doc_list_file(sspPath_ + "/doc_list"));
+		if (initType == SemanticSpace::LOAD) {
+			term2dfFile_->Load();
+			termid2df_ = term2dfFile_->GetValue();
+			doclistFile_->Load();
+			docList_ = doclistFile_->GetValue();
+		}
 	}
+
 	virtual ~SemanticSpace() {}
 
 public:
@@ -52,22 +67,44 @@ public:
 	 */
 	virtual void ProcessSpace() = 0;
 
+	virtual void SaveSpace()
+	{
+		term2dfFile_->SetValue(termid2df_);
+		term2dfFile_->Save();
+		doclistFile_->SetValue(docList_);
+		doclistFile_->Save();
+	}
+
 	/** @} */
 
-	virtual count_t getDocNum() { return 0; } ;
 
-	virtual bool getTermIndex(termid_t& termid, index_t& termidx) { return false; }
+	virtual count_t getDocNum() { return 0; }
 
-	virtual weight_t getTermDocWeight(termid_t& termid, index_t& docIdx) { return 0; }
+	std::vector<docid_t>& getDocList()
+	{
+		return docList_;
+	}
 
-	virtual bool getTermIds(std::set<termid_t>& termIds) {};
+	/// Available if it's forward(doc) index
+	virtual void getVectorByDocid(docid_t& docid, term_sp_vector& termsVec) {}
 
-	virtual bool getTermVector(termid_t termId, std::vector<docid_t> termVec) {};
+	/// Available if it's inverted(term) index
+	virtual void getVectorByTermid(termid_t& termid, doc_sp_vector& docsVec) {}
 
 	virtual void Print() {}
 
 protected:
 	std::string sspPath_;
+
+	// statistics of whole collection, permanent
+	typedef std::map<termid_t, weight_t> term_df_map;
+	term_df_map termid2df_;
+	std::vector<docid_t> docList_;
+
+	typedef izenelib::util::FileObject<term_df_map> term_df_file;
+	boost::shared_ptr<term_df_file> term2dfFile_;
+	typedef izenelib::util::FileObject<std::vector<docid_t> > doc_list_file;
+	boost::shared_ptr<doc_list_file> doclistFile_;
 };
 
 NS_IDMLIB_SSP_END

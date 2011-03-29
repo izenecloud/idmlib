@@ -10,6 +10,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <sstream>
 
 #include <boost/shared_ptr.hpp>
 
@@ -72,7 +73,8 @@ typedef izenelib::am::MatrixFileVLIo<term_sp_vector, docid_t> doc_term_matrixv;
 
 #ifdef SPARSE_MATRIX
 typedef term_sp_vector term_vector;
-typedef term_doc_matrixv term_doc_matrix;
+typedef term_doc_matrixv term_doc_matrix_file_oi;
+typedef doc_term_matrixv doc_term_matrix_file_oi;
 #else
 typedef term_vector_ term_vector;
 typedef term_docs_map term_doc_matrix;
@@ -90,7 +92,7 @@ static const count_t MATRIX_INDEX_START = 1; // start from 1
 template <typename SpVecT>
 void PrintSparseVec(SpVecT& svec, const string& headInfo=string("Vector"))
 {
-	cout << headInfo << " [ ";
+	cout << headInfo << " len:" << svec.value.size() << " [ ";
 	for (size_t t = 0; t < svec.value.size(); t++)
 	{
 		cout << "(" << svec.value.at(t).first << ", " << svec.value.at(t).second << ") ";

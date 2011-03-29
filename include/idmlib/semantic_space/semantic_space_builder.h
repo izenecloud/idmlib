@@ -95,8 +95,10 @@ public:
 			pIdManager_->getTermIdByTermString(iter->text_, termid);
 			termids.push_back(termid);
 
-			cout << iter->textString()  << "(" << termid << ") "; //
+//			cout << iter->textString()  << "(" << termid << ") "; //
 		}
+
+//		cout << " ---- term count: " << termids.size() << endl;
 
 		return true;
 	}

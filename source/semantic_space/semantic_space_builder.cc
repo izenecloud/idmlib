@@ -49,7 +49,7 @@ bool SemanticSpaceBuilder::Build()
 						DLOG(WARNING) << "Document (" << propertyValue << ") does not existed: !" << std::endl;
 						return false;
 					}
-					std::cout << endl << "docid: " << la::to_utf8(propertyValue) << " => " << docid << endl;
+//					std::cout << "docid: " << la::to_utf8(propertyValue) << " => " << docid << endl;
 				}
 				else if ( propertyName == izenelib::util::UString("title", encoding_) ) {
 					//std::cout << la::to_utf8(proIter->second) << std::endl;
@@ -74,7 +74,7 @@ bool SemanticSpaceBuilder::Build()
 			break;
 	}
 
-	std::cout << "\n Processing Space..." << std::endl;
+	std::cout << "Processing Space..." << std::endl;
 	idmlib::ssp::TimeChecker timer("Process Space");
 	pSSpace_->ProcessSpace();
 	return true;

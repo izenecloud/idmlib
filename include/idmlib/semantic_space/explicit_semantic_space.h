@@ -27,25 +27,10 @@ public:
 	ExplicitSemanticSpace(
 			const std::string& sspPath,
 			SemanticSpace::eSSPInitType initType = SemanticSpace::CREATE)
-	: SemanticSpace(sspPath)
+	: SemanticSpace(sspPath, initType)
 	{
-		if (initType ==  SemanticSpace::CREATE) {
-			// clear existed files
-			idmlib::util::FSUtil::del(sspPath_);
-		}
-
-		pTermConceptIndex_.reset(new term_doc_matrix(sspPath_));
+		pTermConceptIndex_.reset(new term_doc_matrix_file_oi(sspPath_));
 		pTermConceptIndex_->Open();
-		term2dfFile_.reset(new term_df_file(sspPath_ + "/term_df_map"));
-		doclistFile_.reset(new doc_list_file(sspPath_ + "/doc_list"));
-
-		if (initType == SemanticSpace::LOAD) {
-			term2dfFile_->Load();
-			termid2df_ = term2dfFile_->GetValue();
-
-			doclistFile_->Load();
-			docidVec_ = doclistFile_->GetValue();
-		}
 
 #ifdef RESET_MATRIX_INDEX
 		termCount_ = MATRIX_INDEX_START;
@@ -55,17 +40,37 @@ public:
 	}
 
 public:
-	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids);
+	/// @brief Incrementally process every document
+	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids)
+	{
+		docList_.push_back(docid);
+		doProcessDocument(docid, termids);
+	}
 
-	void ProcessSpace();
+	/// @brief Post process after all documents are processed
+	void ProcessSpace()
+	{
+		calcWeight();
+		SaveSpace();
+	}
 
-	void SaveSpace();
+	void SaveSpace()
+	{
+		SemanticSpace::SaveSpace();
+		pTermConceptIndex_->Flush();
+	}
 
 public:
 	count_t getDocNum()
 	{
-		return 0;//docid2Index_.size();
+		return docList_.size();
 	}
+
+	void getVectorByTermid(termid_t& termid, doc_sp_vector& docsVec)
+	{
+		pTermConceptIndex_->GetVector(termid, docsVec);
+	}
+
 
 	bool getTermIndex(termid_t& termid, index_t& termidx)
 	{
@@ -171,18 +176,8 @@ private:
 #endif
 
 	// inverted index of Wikipedia concepts, permanent
-	boost::shared_ptr<term_doc_matrix> pTermConceptIndex_;
+	boost::shared_ptr<term_doc_matrix_file_oi> pTermConceptIndex_;
 	//term_doc_matrix termdocM_;
-
-	// statistics of whole collection, permanent
-	typedef std::map<termid_t, weight_t> term_df_map;
-	term_df_map termid2df_;
-	std::vector<docid_t> docidVec_;
-
-	typedef izenelib::util::FileObject<term_df_map> term_df_file;
-	boost::shared_ptr<term_df_file> term2dfFile_;
-	typedef izenelib::util::FileObject<std::vector<docid_t> > doc_list_file;
-	boost::shared_ptr<doc_list_file> doclistFile_;
 
 	// statistics of a document, temporary
 	typedef std::map<termid_t, weight_t> term_doc_tf_map;

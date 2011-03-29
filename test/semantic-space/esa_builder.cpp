@@ -57,10 +57,10 @@ int main(int argc, char** argv)
 	}
 
 	if (colPath.empty()) {
-		colPath = "/home/zhongxia/codebase/sf1r-dev/sf1-revolution/bin/collection/chinese-wiki-test";
+		colPath = "/home/zhongxia/codebase/sf1-revolution-dev/bin/collection/chinese-wiki-test";
 	}
 	if (laResPath.empty()) {
-		laResPath = "/home/zhongxia/codebase/sf1r-dev/icma/db/icwb/utf8";
+		laResPath = "/home/zhongxia/codebase/icma/db/icwb/utf8";
 	}
 	if (sspDataPath.empty()) {
 		sspDataPath = "./esa_wiki";
