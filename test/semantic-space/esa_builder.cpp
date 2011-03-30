@@ -34,14 +34,16 @@ int main(int argc, char** argv)
 {
 	string colPath, sspDataPath, laResPath;
 	uint32_t maxDoc = MAX_DOC_ID;
+	bool print = false;
 
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help,H", "produce help message")
 		("wiki-path,W", po::value<std::string>(&colPath), "base directory of wiki collection.")
-		("sem-data-path,S", po::value<std::string>(&sspDataPath), "semantic data path.")
+		("esa-data-path,S", po::value<std::string>(&sspDataPath), "semantic data path.")
 		("la-res-path,L", po::value<std::string>(&laResPath), "LA(CMA) resource path.")
 		("max-doc,M", po::value<uint32_t>(&maxDoc), "max doc count that will be processed.")
+		("print,P", po::value<std::string>(), "Print result")
 	;
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -51,24 +53,32 @@ int main(int argc, char** argv)
 		std::cout << desc << std::endl;
 		return 0;
 	}
-	if (vm.empty()) {
-		std::cout << desc << std::endl;
-		std::cout << "" << std::endl << std::endl;
-	}
+//	if (vm.empty()) {
+//		std::cout << desc << std::endl;
+//	}
 
 	if (colPath.empty()) {
 		colPath = "/home/zhongxia/codebase/sf1-revolution-dev/bin/collection/chinese-wiki-test";
 	}
+	cout << "wiki-path: " << colPath << endl;
 	if (laResPath.empty()) {
 		laResPath = "/home/zhongxia/codebase/icma/db/icwb/utf8";
 	}
+	cout << "la-res-path: " << laResPath << endl;
 	if (sspDataPath.empty()) {
 		sspDataPath = "./esa_wiki";
 	}
+	cout << "esa-data-path: " << sspDataPath << endl;
 
 	if (vm.count("max-doc")) {
-		std::cout << "max-doc: " << maxDoc << endl;
+        ;
 	}
+	std::cout << "max-doc: " << maxDoc << endl;
+
+    if (vm.count("print")) {
+            print = true;
+    }
+    std::cout << "print: " << print << endl;
 
 //  matrix io
 //
@@ -107,7 +117,9 @@ int main(int argc, char** argv)
 	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder(
 			new SemanticSpaceBuilder(pSSpace, laResPath, colPath, maxDoc) );
 	pSemBuilder->Build();
-	pSSpace->Print();
+	if (print) {
+	    pSSpace->Print();
+	}
 	timer.EndPoint();
 	//timer.Print();
 

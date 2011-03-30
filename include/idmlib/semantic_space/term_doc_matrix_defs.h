@@ -64,17 +64,21 @@ typedef std::vector< doc_vector > term_docs_map; // for testing
 /// sparse matrix i/o //////////////////////////////////////////////////////////
 typedef izenelib::am::SparseVector<weight_t, docid_t> doc_sp_vector;
 typedef izenelib::am::SparseVector<weight_t, termid_t> term_sp_vector;
+typedef izenelib::am::SparseVector<weight_t, docid_t> interpretation_vector_type;
 
 typedef izenelib::am::MatrixFileFLIo<doc_sp_vector, termid_t> term_doc_matrixf;
 typedef izenelib::am::MatrixFileVLIo<doc_sp_vector, termid_t> term_doc_matrixv;
 typedef izenelib::am::MatrixFileFLIo<term_sp_vector, docid_t> doc_term_matrixf;
 typedef izenelib::am::MatrixFileVLIo<term_sp_vector, docid_t> doc_term_matrixv;
 
+typedef izenelib::am::MatrixFileVLIo<doc_sp_vector, docid_t> doc_doc_matrixv;
+
 
 #ifdef SPARSE_MATRIX
 typedef term_sp_vector term_vector;
 typedef term_doc_matrixv term_doc_matrix_file_oi;
 typedef doc_term_matrixv doc_term_matrix_file_oi;
+typedef doc_doc_matrixv doc_doc_matrix_file_io;
 #else
 typedef term_vector_ term_vector;
 typedef term_docs_map term_doc_matrix;
@@ -100,6 +104,8 @@ void PrintSparseVec(SpVecT& svec, const string& headInfo=string("Vector"))
 	cout << "] " << endl;
 }
 
+/// performance check
+#define IDM_SSP_TIME_CHECKER
 class TimeChecker
 {
 private:
@@ -139,7 +145,8 @@ public:
 	void Print()
 	{
 		printed_ = true;
-		std::cout << "[" << msg_ << "] time elapsed: " << (end_-start_) << " seconds" << endl;
+		std::cout << "[" << msg_ << "] time elapsed: "
+				  << (end_-start_) / 60 << " minutes " << (end_-start_) % 60 << " seconds" << endl;
 	}
 };
 

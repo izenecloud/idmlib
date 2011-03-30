@@ -33,6 +33,7 @@ public:
 		idmlib::util::FSUtil::normalizeFilePath(sspPath_);
 
 		if (initType ==  SemanticSpace::CREATE) {
+		    DLOG(INFO) << "Create Semantic Space Data." << endl;
 			// clear existed files
 			idmlib::util::FSUtil::del(sspPath_);
 		}
@@ -44,7 +45,9 @@ public:
 			termid2df_ = term2dfFile_->GetValue();
 			doclistFile_->Load();
 			docList_ = doclistFile_->GetValue();
+			DLOG(INFO) << "Load Semantic Space Data: [doc " << docList_.size() << ", term " << termid2df_.size() << "]" << endl;
 		}
+		cout << sspPath_ << endl;
 	}
 
 	virtual ~SemanticSpace() {}

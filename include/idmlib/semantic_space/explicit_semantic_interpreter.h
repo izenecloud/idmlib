@@ -28,8 +28,7 @@ NS_IDMLIB_SSP_BEGIN
 
 class SemanticInterpreter
 {
-	typedef izenelib::am::SparseVector<weight_t, docid_t> interpretation_vector_type;
-	typedef std::map<termid_t, weight_t> term_map;
+	//typedef std::map<termid_t, weight_t> term_map;
 
 public:
 
@@ -86,6 +85,7 @@ public:
 		return true;
 	}
 
+	/// Remove
 	bool interpret(boost::shared_ptr<SemanticSpace>& pDocSSpace)
 	{
 		std::vector<docid_t>& docList = pDocSSpace->getDocList();
@@ -155,7 +155,8 @@ public:
 		std::map<docid_t, weight_t>::iterator cwIter;
 		for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
 		{
-			interDocVec.value.push_back(make_pair(cwIter->first, cwIter->second));
+			//? if (cwIter->second > 0.000001)
+				interDocVec.value.push_back(make_pair(cwIter->first, cwIter->second));
 		}
 
 		return true;
@@ -166,7 +167,7 @@ private:
 
 	count_t topicNum_;
 
-	term_map termMap_; // <termid, tf>
+	//term_map termMap_; // <termid, tf>
 };
 
 typedef SemanticInterpreter ExplicitSemanticInterpreter;

@@ -10,12 +10,50 @@
 using namespace idmlib::ssp;
 using namespace idmlib::sim;
 
-
-bool DocumentSimilarity::ComputeAll()
+void DocumentSimilarity::DoSim()
 {
-	return false;
+#ifdef IDM_SSP_TIME_CHECKER
+    idmlib::ssp::TimeChecker DocSimtimer("Do document similarity");
+#endif
+
+	// Compute similarities between all pair of documents
+
+	std::vector<docid_t>& docList = pDocVecSpace_->getDocList();
+	size_t docNum = docList.size();
+	size_t progress = 0;
+
+	DLOG(INFO) << "Start document similarity.  doc number: " << docNum << endl;
+
+	std::vector<docid_t>::iterator docIter;
+	docid_t docid;
+	for (docIter = docList.begin(); docIter != docList.end(); docIter ++) {
+		docid = *docIter;
+		term_sp_vector representDocVec;
+		pDocVecSpace_->getVectorByDocid(docid, representDocVec);
+
+		// interpret a document
+		interpretation_vector_type interpretationDocVec;
+		pEsaInterpreter_->interpret(representDocVec, interpretationDocVec);
+
+		stringstream ss;
+		ss << "interpretation vector(" << *docIter << ")";
+		idmlib::ssp::PrintSparseVec(interpretationDocVec, ss.str());
+
+		// Build document similarity index ..
+		pDocSimIndex_->InertDocument(docid, interpretationDocVec);
+
+		if ((++progress) % 1000 == 0 || progress >= docNum) {
+		    DLOG(INFO) << ((float)progress / docNum) << "% - total " << docNum << endl;
+		}
+	}
+
+	pDocSimIndex_->FinishInert();
+
+	DLOG(INFO) << "End document similarity." << endl;
 }
 
+
+#if TO_DEL
 bool DocumentSimilarity::Compute()
 {
 	// preprocess .. gather TF, DF
@@ -183,3 +221,4 @@ bool DocumentSimilarity::getScdFileListInDir(const std::string& scdDir, std::vec
 		return false;
 	}
 }
+#endif

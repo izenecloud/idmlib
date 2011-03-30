@@ -29,7 +29,10 @@ int main(int argc, char** argv)
 	string laResPath;  // LA (CMA) resource path
 	string colBasePath; // collection of documents to perform doc-similarity computing
 	string colsspPath; // collection document vectors pre-processing
-	count_t maxDoc; // max number of documents to be processed
+	string docSimPath; // document similarity index path
+	weight_t thresholdSim = 0.00001; // similarity threshold value
+	uint32_t maxDoc = MAX_DOC_ID; // max number of documents to be processed
+	bool rebuild = false;
 
 	po::options_description desc("Allowed options");
 	desc.add_options()
@@ -38,7 +41,10 @@ int main(int argc, char** argv)
 		("la-res-path,L", po::value<std::string>(&laResPath), "LA(CMA) resource path.")
 		("col-base-path,C", po::value<std::string>(&colBasePath), "collection to be processed.")
 		("col-ssp-path,S", po::value<std::string>(&colsspPath), "collection semantic space data path.")
+		("doc-sim-path,D", po::value<std::string>(&docSimPath), "document similarity index path.")
+		("threshold-sim,T", po::value<weight_t>(&thresholdSim), "similarity threshold value.")
 		("max-doc,M", po::value<uint32_t>(&maxDoc), "max doc count that will be processed.")
+		("rebuild-ssp-data,R", po::value<std::string>(), "whether rebuild collection s space data.")
 	;
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -49,54 +55,53 @@ int main(int argc, char** argv)
 		return 0;
 	}
 	if (vm.empty()) {
-		std::cout << desc << std::endl;
-		std::cout << "" << std::endl << std::endl;
+		std::cout << desc << std::endl<< std::endl;
 	}
 
 	if (esasspPath.empty()) {
 		esasspPath = "./esa_wiki";
 	}
+	cout << "esa-res-path: " <<  esasspPath << endl;
 	if (laResPath.empty()) {
 		laResPath = "/home/zhongxia/codebase/icma/db/icwb/utf8";
 	}
+	cout << "la-res-path: " <<  laResPath << endl;
 	if (colBasePath.empty()) {
 		colBasePath = "/home/zhongxia/codebase/sf1-revolution-dev/bin/collection/chinese-wiki-test";
 	}
+	cout << "col-base-path: " <<  colBasePath << endl;
 	if (colsspPath.empty()) {
 		colsspPath = "./ssp_col";
 	}
-
-	if (vm.count("max-doc")) {
-		std::cout << "max-doc: " << maxDoc << endl;
+	cout << "col-ssp-pathh: " <<  colsspPath << endl;
+	if (docSimPath.empty()) {
+		docSimPath = "./doc_sim";
 	}
+	cout << "doc-sim-path: " <<  docSimPath << endl;
 
-	//////////////////////////
+	std::cout << "threshold-sim: " << thresholdSim << endl;
+	std::cout << "max-doc: " << maxDoc << endl;
 
-	/* Explicit semantic interpreter initialized with wiki knowledge */
-	boost::shared_ptr<SemanticSpace> pWikiESSpace(new ExplicitSemanticSpace(esasspPath, SemanticSpace::LOAD));
-	boost::shared_ptr<SemanticInterpreter> pESInter(new ExplicitSemanticInterpreter(pWikiESSpace));
-	//pWikiESSpace->Print();
+	if (vm.count("rebuild-ssp-data")) {
+	    if (vm["rebuild-ssp-data"].as<std::string>() == "true" || vm["rebuild-ssp-data"].as<std::string>() == "t") {
+	        rebuild = true;
+	    }
+	}
+	std::cout << "rebuild (reprocess collection data): " << rebuild << endl;
 
-	// document similarity for documents of collection
-	/* pre-process for collection data */
-	boost::shared_ptr<SemanticSpace> pDocVecSpace(new DocumentVectorSpace(colsspPath));
-	boost::shared_ptr<SemanticSpaceBuilder> pCollectionBuilder(new SemanticSpaceBuilder(pDocVecSpace, laResPath, colBasePath, maxDoc));
-	pCollectionBuilder->Build();
+	// Mining manager ?
+	DocumentSimilarity DocSimilarity(
+			esasspPath, // esa resource(wiki) path
+			laResPath,  // la resource(cma) path
+			colBasePath, // collection base path, documents set  ==> using index data ?
+			colsspPath, // collection data processing path
+			docSimPath,  // data path for document similarity index
+			thresholdSim, // similarity threshold value
+			maxDoc,      // max documents of collection to be processed
+			rebuild // if rebuild collection ssp
+			);
 
-	//pDocVecSpace->Print();
-
-	/* interpret all */
-	pESInter->interpret(pDocVecSpace);
-
-
-	// for docVec in collection
-	//     interVec = interpret(docVec)
-	//     addtoInvertedIndex(interVec) //
-
-
-	//DocumentSimilarity DocSim(esasspPath, colPath, pSemInter);
-	//DocSim.Compute();
-	//DocSim.ComputeAll(pDocVecSpace);
+	DocSimilarity.DoSim();
 
 	return 0;
 }
