@@ -165,7 +165,7 @@ public:
         for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
         {
             //? if (cwIter->second > 0.000001)
-                interDocVec.value.push_back(make_pair(cwIter->first, (cwIter->second / vecLenght)));
+                interDocVec.value.push_back(make_pair(cwIter->first, (cwIter->second / vecLength)));
         }
 
 		return true;
