@@ -35,7 +35,7 @@ public:
 	SemanticInterpreter(boost::shared_ptr<SemanticSpace>& pSSpaceWiki)
 	: sspWikiIndex_(pSSpaceWiki)
 	{
-
+	    conceptNum_ = sspWikiIndex_->getDocNum();
 	}
 
 	 ~SemanticInterpreter()
@@ -152,18 +152,28 @@ public:
 			}
 		}
 
+		// for normalization
+		weight_t vecLength = 0.0; // vector length, or magnitude
 		std::map<docid_t, weight_t>::iterator cwIter;
 		for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
 		{
-			//? if (cwIter->second > 0.000001)
-				interDocVec.value.push_back(make_pair(cwIter->first, cwIter->second));
+		    vecLength +=  cwIter->second * cwIter->second;
 		}
+		vecLength = std::sqrt(vecLength);
+
+		// set doc interpretation vector
+        for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
+        {
+            //? if (cwIter->second > 0.000001)
+                interDocVec.value.push_back(make_pair(cwIter->first, (cwIter->second / vecLenght)));
+        }
 
 		return true;
 	}
 
 private:
 	boost::shared_ptr<SemanticSpace> sspWikiIndex_;
+	count_t conceptNum_;
 
 	count_t topicNum_;
 
