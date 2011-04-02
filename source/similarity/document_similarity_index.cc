@@ -50,7 +50,9 @@ void DocumentSimilarityIndex::basicInvertedIndexJoin_(
 	{
 		if (miter->second > this->thresholdSim_) {
 			// output
-			cout << "(" << docid <<"," << miter->first <<", " << miter->second<<")" << endl;
+			//cout << "(" << docid <<"," << miter->first <<", " << miter->second<<")" << endl;
+			outputSimDocPair(docid, miter->first, miter->second);
+			outputSimDocPair(miter->first, docid, miter->second);
 		}
 	}
 }

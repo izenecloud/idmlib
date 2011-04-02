@@ -67,6 +67,7 @@ public:
 		// create or load pre-processing data of collection (documents set)
 		// can use indexed data..
 		if (rebuild) {
+		    idmlib::ssp::TimeChecker timer("Pre Process Collection(documents)");
 			pDocVecSpace_.reset(new DocumentVectorSpace(colsspPath, SemanticSpace::CREATE));
 			boost::shared_ptr<SemanticSpaceBuilder> pCollectionBuilder(
 					new SemanticSpaceBuilder(pDocVecSpace_, laResPath, colBasePath, maxDoc));

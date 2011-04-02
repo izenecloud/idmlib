@@ -74,8 +74,9 @@ class IDMAnalyzer
 	boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, false) );
 	la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
 	if ( pch != NULL ) {
-		pch->setExtractSpecialChar(true, true);
+		pch->setExtractSpecialChar(false, false);
 		pch->setAnalysisType( ca_type /*la::ChineseAnalyzer::minimum_match_no_overlap*/);
+		pch->setLabelMode();
 	}
 	ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
 	ml_analyzer->setDefaultAnalyzer( ch_analyzer );

@@ -87,12 +87,21 @@ void DocumentVectorSpace::calcWeight()
 		term_sp_vector representDocVec;
 		pDocRepVectors_->GetVector(docid, representDocVec);
 		weight_t idf;
+		weight_t weight;
 
 		term_sp_vector::ValueType::iterator termIter = representDocVec.value.begin();
-		for (; termIter != representDocVec.value.end(); termIter ++)
+		for (; termIter != representDocVec.value.end(); termIter++)
 		{
 			idf = std::log(docNum / termid2df_[termIter->first]);
 			termIter->second *= idf;
+			/*weight = termIter->second * idf;
+			if (weight < thresholdWegt_) {
+			    termIter = representDocVec.value.erase(termIter);
+			}
+			else {
+			    termIter->second = weight;
+			    termIter ++;
+			}*/
 		}
 
 		pDocRepVectors_->SetVector(docid, representDocVec);

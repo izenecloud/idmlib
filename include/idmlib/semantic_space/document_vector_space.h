@@ -27,7 +27,8 @@ public:
 	}
 
 	/// @brief Incrementally process every document
-	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids)
+	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids,
+	        IdmTermList& termList = NULLTermList)
 	{
 		docList_.push_back(docid);
 		doDocumentProcess(docid, termids);
@@ -63,6 +64,9 @@ private:
 	bool doDocumentProcess(docid_t& docid, std::vector<termid_t>& termids);
 
 	void calcWeight();
+
+private:
+	static const weight_t thresholdWegt_ = 0.001f;
 
 private:
 	// representation vectors of documents

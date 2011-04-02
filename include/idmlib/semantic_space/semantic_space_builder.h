@@ -28,6 +28,9 @@
 
 using namespace boost::filesystem;
 using namespace izenelib::ir::idmanager;
+using namespace idmlib::util;
+
+//#define SSP_BUIDER_TEST
 
 NS_IDMLIB_SSP_BEGIN
 
@@ -56,12 +59,14 @@ public:
 		if (!pIdManager_) {
 			DLOG(ERROR) << "Failed to create IdManager!" << std::endl;
 		}
+		BOOST_ASSERT(pIdManager_);
 
 		pIdmAnalyzer_.reset(
 				new idmlib::util::IDMAnalyzer(
 						laResPath,
-						la::ChineseAnalyzer::minimum_match_no_overlap)
+						la::ChineseAnalyzer::minimum_match)
 		);
+		BOOST_ASSERT(pIdmAnalyzer_);
 	}
 
 	virtual ~SemanticSpaceBuilder()
@@ -78,7 +83,7 @@ public:
 
 	//bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
 
-	bool getDocTermids(const izenelib::util::UString& ustrDoc, std::vector<termid_t>& termids)
+	bool getDocTermids(const izenelib::util::UString& ustrDoc, std::vector<termid_t>& termids, IdmTermList& termList = NULLTermList)
 	{
 		//termIdList_.clear();
 		//pLA_->process(pIdManager_.get(), ustrDoc, termIdList_);
@@ -95,12 +100,24 @@ public:
 			pIdManager_->getTermIdByTermString(iter->text_, termid);
 			termids.push_back(termid);
 
-//			cout << iter->textString()  << "(" << termid << ") "; //
+#ifdef SSP_BUIDER_TEST
+//			IDMTerm term;
+//			term.text = iter->text_;
+//			term.id = termid;
+//			termList.push_back(term);
+			termList.insert(make_pair(termid, iter->textString()));
+#endif
+//			cout << iter->textString()  << "(" << termid << ") " ; //
 		}
 
 //		cout << " ---- term count: " << termids.size() << endl;
 
 		return true;
+	}
+
+	bool getTermStringById(termid_t& termId, izenelib::util::UString& termStr)
+	{
+	    return pIdManager_->getTermStringByTermId(termId, termStr);
 	}
 
 private:

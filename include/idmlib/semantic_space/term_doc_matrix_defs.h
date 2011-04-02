@@ -16,6 +16,7 @@
 
 #include <glog/logging.h>
 #include <idmlib/idm_types.h>
+#include <idmlib/util/idm_term.h>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
 #include <am/matrix/matrix_file_io.h>
 #include <am/matrix/matrix_mem_io.h>
@@ -30,6 +31,11 @@ typedef uint32_t index_t;
 typedef float weight_t;
 
 const docid_t MAX_DOC_ID = 0xFFFFFFFF;
+
+//typedef std::vector<idmlib::util::IDMTerm> IdmTermList;
+typedef std::map<termid_t, string> IdmTermList;
+static IdmTermList NULLTermList; // for default parameter value
+
 
 #define SPARSE_MATRIX
 //#define RESET_MATRIX_INDEX
@@ -84,7 +90,7 @@ typedef term_vector_ term_vector;
 typedef term_docs_map term_doc_matrix;
 #endif
 
-/// map termid/docid to matrix index (1, 2, ... ) //////////////////////////////
+/// map termid/docid to matrix index //////////////////////////////
 #ifdef RESET_MATRIX_INDEX
 typedef std::map< termid_t, index_t > termid_index_map;
 typedef std::map< docid_t, index_t > docid_index_map;
@@ -93,6 +99,12 @@ static const count_t MATRIX_INDEX_START = 1; // start from 1
 #endif
 
 /// help functions
+struct sort_second {
+    bool operator()(const std::pair<uint32_t, weight_t> &left, const std::pair<uint32_t, weight_t> &right) {
+        return left.second > right.second;
+    }
+};
+
 template <typename SpVecT>
 void PrintSparseVec(SpVecT& svec, const string& headInfo=string("Vector"))
 {
@@ -146,7 +158,7 @@ public:
 	{
 		printed_ = true;
 		std::cout << "[" << msg_ << "] time elapsed: "
-				  << (end_-start_) / 60 << " minutes " << (end_-start_) % 60 << " seconds" << endl;
+				  << (end_-start_) / 60 << " minutes " << (end_-start_)/* % 60*/ << " seconds" << endl;
 	}
 };
 

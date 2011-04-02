@@ -32,18 +32,20 @@ void DocumentSimilarity::DoSim()
 		pDocVecSpace_->getVectorByDocid(docid, representDocVec);
 
 		// interpret a document
+//		idmlib::ssp::TimeChecker timer("interpret a document");
 		interpretation_vector_type interpretationDocVec;
 		pEsaInterpreter_->interpret(representDocVec, interpretationDocVec);
+//		timer.EndPoint();
 
-		stringstream ss;
-		ss << "interpretation vector(" << *docIter << ")";
-		idmlib::ssp::PrintSparseVec(interpretationDocVec, ss.str());
+//		stringstream ss;
+//		ss << "interpretation vector(" << *docIter << ")";
+//		idmlib::ssp::PrintSparseVec(interpretationDocVec, ss.str());
 
 		// Build document similarity index ..
 		pDocSimIndex_->InertDocument(docid, interpretationDocVec);
 
-		if ((++progress) % 1000 == 0 || progress >= docNum) {
-		    DLOG(INFO) << ((float)progress / docNum) << "% - total " << docNum << endl;
+		if ((++progress) % 100 == 0 || progress >= docNum) {
+		    DLOG(INFO) << (progress * 100.0f / docNum)  << "% - total " << docNum << endl;
 		}
 	}
 

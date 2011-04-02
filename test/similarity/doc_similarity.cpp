@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 	string colBasePath; // collection of documents to perform doc-similarity computing
 	string colsspPath; // collection document vectors pre-processing
 	string docSimPath; // document similarity index path
-	weight_t thresholdSim = 0.00001; // similarity threshold value
+	weight_t thresholdSim = 0.0001; // similarity threshold value
 	uint32_t maxDoc = MAX_DOC_ID; // max number of documents to be processed
 	bool rebuild = false;
 
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 	}
 
 	if (esasspPath.empty()) {
-		esasspPath = "./esa_wiki";
+		esasspPath = "./esa_cnwiki_all";
 	}
 	cout << "esa-res-path: " <<  esasspPath << endl;
 	if (laResPath.empty()) {
@@ -90,6 +90,7 @@ int main(int argc, char** argv)
 	std::cout << "rebuild (reprocess collection data): " << rebuild << endl;
 
 	// Mining manager ?
+//	idmlib::ssp::TimeChecker timer("DocumentSimilarity Init");
 	DocumentSimilarity DocSimilarity(
 			esasspPath, // esa resource(wiki) path
 			laResPath,  // la resource(cma) path
@@ -100,6 +101,8 @@ int main(int argc, char** argv)
 			maxDoc,      // max documents of collection to be processed
 			rebuild // if rebuild collection ssp
 			);
+//	timer.EndPoint();
+//	timer.Print();
 
 	DocSimilarity.DoSim();
 
