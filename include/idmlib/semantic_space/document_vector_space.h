@@ -27,11 +27,11 @@ public:
 	}
 
 	/// @brief Incrementally process every document
-	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids,
+	void ProcessDocument(docid_t& docid, TermIdList& termIdList,
 	        IdmTermList& termList = NULLTermList)
 	{
 		docList_.push_back(docid);
-		doDocumentProcess(docid, termids);
+		doDocumentProcess(docid, termIdList);
 	}
 
 	/// @brief Post process after all documents are processed
@@ -61,7 +61,7 @@ public:
 	void Print();
 
 private:
-	bool doDocumentProcess(docid_t& docid, std::vector<termid_t>& termids);
+	bool doDocumentProcess(docid_t& docid, TermIdList& termIdList);
 
 	void calcWeight();
 

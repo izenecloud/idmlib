@@ -66,7 +66,7 @@ void ExplicitSemanticSpace::Print()
 
 /// Private Methods ////////////////////////////////////////////////////////////
 
-void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, std::vector<termid_t>& termids, IdmTermList& termList)
+void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, TermIdList& termIdList, IdmTermList& termList)
 {
 	std::set<termid_t> unique_term_set; // unique terms in the document
 	std::set<termid_t> unique_term_iter;
@@ -74,10 +74,10 @@ void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, std::vector<termid
 
 	termid_t termid;
 	termid2doctf_.clear(); // TF in document
-	for (std::vector<termid_t>::iterator iter = termids.begin(); iter != termids.end(); iter ++)
+	for (TermIdList::iterator iter = termIdList.begin(); iter != termIdList.end(); iter ++)
 	{
 		// term index
-		termid = *iter;
+		termid = iter->termid_;
 		index_t index = getIndexFromTermId(termid);
 
 		// DF, TF in document
@@ -102,7 +102,7 @@ void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, std::vector<termid
 	// update term-concept index with TF
 	index_t term_index;
 	weight_t tf;
-	count_t doc_length = termids.size();
+	count_t doc_length = termIdList.size();
 	index_t jndex = getIndexFromDocId(docid); // doc index
 	for (term_doc_tf_map::iterator dtfIter = termid2doctf_.begin(); dtfIter != termid2doctf_.end(); dtfIter++)
 	{
@@ -111,8 +111,7 @@ void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, std::vector<termid
 		updateTermConceptIndex(term_index, jndex, tf);
 	}
 
-	/// test
-    /*
+#ifdef SSP_BUIDER_TEST
     std::vector<pair<termid_t, weight_t> > termtfVec;
     for (term_doc_tf_map::iterator dtfIter = termid2doctf_.begin(); dtfIter != termid2doctf_.end(); dtfIter++)
     {
@@ -131,7 +130,7 @@ void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, std::vector<termid
                 << " wegt:" << ttvIter->second << ") " << endl;
     }
    // cout << endl;
-   //*/
+#endif
 }
 
 void ExplicitSemanticSpace::calcWeight()
@@ -163,20 +162,4 @@ void ExplicitSemanticSpace::calcWeight()
 		}
 		pTermConceptIndex_->SetVector(termIndex, docVec);
 	}
-
-	/*
-	boost::shared_ptr<sDocUnit> pDoc;
-	count_t doc_cnt = docid2Index_.size();
-
-	for (termid_t t = 0; t < termdocM_.size(); t ++) {
-		for (docid_t dt = 0; dt < termdocM_[t].size(); dt ++) {
-			pDoc = termdocM_[t][dt];
-			if (pDoc) {
-				// weight = tf * idf, std::log() = ln()
-				pDoc->tf = pDoc->tf * std::log((weight_t)doc_cnt / termidx2DF_[t]);
-			}
-		}
-	}
-	*/
-
 }

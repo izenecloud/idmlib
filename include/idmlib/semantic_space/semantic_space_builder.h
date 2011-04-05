@@ -30,7 +30,6 @@ using namespace boost::filesystem;
 using namespace izenelib::ir::idmanager;
 using namespace idmlib::util;
 
-//#define SSP_BUIDER_TEST
 
 NS_IDMLIB_SSP_BEGIN
 
@@ -83,35 +82,35 @@ public:
 
 	//bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
 
-	bool getDocTermids(const izenelib::util::UString& ustrDoc, std::vector<termid_t>& termids, IdmTermList& termList = NULLTermList)
+	bool getDocTermIdList(const izenelib::util::UString& ustrDoc, TermIdList& termIdList, IdmTermList& termList = NULLTermList)
 	{
-		//termIdList_.clear();
-		//pLA_->process(pIdManager_.get(), ustrDoc, termIdList_);
+#ifndef SSP_BUIDER_TEST
+		// better performance
+		// termIdList.clear();
+		pIdmAnalyzer_->GetTermIdList(pIdManager_.get(), ustrDoc, termIdList);
 
+//		for (TermIdList::iterator iter = termIdList.begin(); iter != termIdList.end(); iter ++)
+//		{
+//			cout << "(" << iter->termid_ << ") " << endl;
+//		}
+//		cout << " ---- term count: " << termIdList.size() << endl;
+
+#else
 		termList_.clear();
-		//pLA_->process(ustrDoc, termList_);
 		pIdmAnalyzer_->GetTermList(ustrDoc, termList_, false);
 
 		termid_t termid;
 		for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
 		{
-			//if ( filter(iter->text_) )
-			//	continue;
 			pIdManager_->getTermIdByTermString(iter->text_, termid);
-			termids.push_back(termid);
+			termIdList.add(termid, iter->wordOffset_);
 
-#ifdef SSP_BUIDER_TEST
-//			IDMTerm term;
-//			term.text = iter->text_;
-//			term.id = termid;
-//			termList.push_back(term);
 			termList.insert(make_pair(termid, iter->textString()));
-#endif
-//			cout << iter->textString()  << "(" << termid << ") " ; //
+
+			cout << "(" << termid << ") " << endl; //
 		}
-
-//		cout << " ---- term count: " << termids.size() << endl;
-
+		cout << " ---- term count: " << termList_.size() << endl;
+#endif
 		return true;
 	}
 

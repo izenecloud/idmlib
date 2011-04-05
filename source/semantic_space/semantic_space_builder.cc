@@ -9,7 +9,6 @@ bool SemanticSpaceBuilder::Build()
 		return false;
 	}
 
-	std::vector<termid_t> termids;
 	IdmTermList idmTermList;
 	docid_t docid = 0;
 	docid_t last_docid = 0;
@@ -58,16 +57,14 @@ bool SemanticSpaceBuilder::Build()
 					//std::cout << la::to_utf8(proIter->second) << std::endl;
 				}
 				else if ( propertyName == izenelib::util::UString("content", encoding_)) {
-					// process raw content
-					termids.clear();
+					//TimeChecker timer("sspbuilder LA");
+					termIdList_.clear();
 					//idmTermList.clear();
-					getDocTermids(propertyValue, termids/*, idmTermList*/);
+					getDocTermIdList(propertyValue, termIdList_/*, idmTermList*/);
 				}
                 else if ( propertyName == izenelib::util::UString("unit", encoding_)) { // cnki test
-                    // process raw content
-                    termids.clear();
-                    //idmTermList.clear();
-                    getDocTermids(propertyValue, termids/*, idmTermList*/);
+                	termIdList_.clear();
+                    getDocTermIdList(propertyValue, termIdList_/*, idmTermList*/);
                 }
 			}
 
@@ -77,7 +74,7 @@ bool SemanticSpaceBuilder::Build()
 				return false;
 			}
 
-			pSSpace_->ProcessDocument(docid, termids/*, idmTermList*/);
+			pSSpace_->ProcessDocument(docid, termIdList_/*, idmTermList*/);
 
 			doc_count++;
 

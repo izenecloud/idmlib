@@ -42,11 +42,11 @@ public:
 
 public:
 	/// @brief Incrementally process every document
-	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids,
+	void ProcessDocument(docid_t& docid, TermIdList& termIdList,
 	        IdmTermList& termList = NULLTermList)
 	{
 		docList_.push_back(docid);
-		doProcessDocument(docid, termids, termList);
+		doProcessDocument(docid, termIdList, termList);
 	}
 
 	/// @brief Post process after all documents are processed
@@ -153,7 +153,7 @@ private:
 #endif
 	}
 
-	void doProcessDocument(docid_t& docid, std::vector<termid_t>& termids,
+	void doProcessDocument(docid_t& docid, TermIdList& termIdList,
             IdmTermList& termList = NULLTermList);
 
 	void updateTermConceptIndex(termid_t& term_index, docid_t& doc_index, weight_t& weight)

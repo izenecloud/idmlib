@@ -21,6 +21,7 @@
 #include <am/matrix/matrix_file_io.h>
 #include <am/matrix/matrix_mem_io.h>
 #include <am/matrix/sparse_vector.h>
+#include <util/profiler/ProfilerGroup.h>
 
 NS_IDMLIB_SSP_BEGIN
 
@@ -32,13 +33,14 @@ typedef float weight_t;
 
 const docid_t MAX_DOC_ID = 0xFFFFFFFF;
 
+#define SPARSE_MATRIX
+#define SSP_BUIDER_TEST
+//#define RESET_MATRIX_INDEX
+
 //typedef std::vector<idmlib::util::IDMTerm> IdmTermList;
 typedef std::map<termid_t, string> IdmTermList;
-static IdmTermList NULLTermList; // for default parameter value
+static IdmTermList NULLTermList; // default parameter value
 
-
-#define SPARSE_MATRIX
-//#define RESET_MATRIX_INDEX
 
 /// matrix in fixed size (testing) /////////////////////////////////////////////
 struct sTermDocUnit
@@ -121,8 +123,8 @@ void PrintSparseVec(SpVecT& svec, const string& headInfo=string("Vector"))
 class TimeChecker
 {
 private:
-	time_t start_;
-	time_t end_;
+	timeval start_;
+	timeval end_;
 	std::string msg_;
 	bool printed_;
 public:
@@ -130,15 +132,13 @@ public:
 	: msg_(msg)
 	, printed_(false)
 	{
-		start_ = time(NULL);
-		end_ = 0;
+		gettimeofday(&start_,0);
+		gettimeofday(&end_,0);
 	}
 
 	~TimeChecker()
 	{
-		if (end_ < start_) {
-			end_ = time(NULL);
-		}
+		gettimeofday(&end_,0);
 
 		if (!printed_)
 			Print();
@@ -146,19 +146,27 @@ public:
 
 	void StartPoint()
 	{
-		start_ = time(NULL);
+		//start_ = time(NULL);
+		gettimeofday(&start_,0);
 	}
 
 	void EndPoint()
 	{
-		end_ = time(NULL);
+		//end_ = time(NULL);
+		gettimeofday(&end_,0);
+	}
+
+	time_t Interval()
+	{
+		return (end_.tv_usec - start_.tv_usec);
 	}
 
 	void Print()
 	{
 		printed_ = true;
 		std::cout << "[" << msg_ << "] time elapsed: "
-				  << (end_-start_) / 60 << " minutes " << (end_-start_)/* % 60*/ << " seconds" << endl;
+//				  << (end_.tv_usec - start_.tv_usec) / 60000 << " minutes "
+				  << (end_.tv_usec - start_.tv_usec) / 1000.0 << " seconds" << endl;
 	}
 };
 
