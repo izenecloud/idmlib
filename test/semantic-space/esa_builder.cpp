@@ -61,10 +61,12 @@ int main(int argc, char** argv)
 		colPath = "/home/zhongxia/codebase/sf1-revolution-dev/bin/collection/chinese-wiki-test";
 	}
 	cout << "wiki-path: " << colPath << endl;
+
 	if (laResPath.empty()) {
 		laResPath = "/home/zhongxia/codebase/icma/db/icwb/utf8";
 	}
 	cout << "la-res-path: " << laResPath << endl;
+
 	if (sspDataPath.empty()) {
 		sspDataPath = "./esa_wiki";
 	}
@@ -117,6 +119,7 @@ int main(int argc, char** argv)
 	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder(
 			new SemanticSpaceBuilder(pSSpace, laResPath, colPath, maxDoc) );
 	pSemBuilder->Build();
+
 	if (print) {
 	    pSSpace->Print();
 	}

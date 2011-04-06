@@ -28,7 +28,7 @@ void DocumentVectorSpace::Print()
 
 /// Private methods ////////////////////////////////////////////////////////////
 
-bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, std::vector<termid_t>& termids)
+bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, TermIdList& termIdList)
 {
 	std::set<termid_t> unique_term_set; // unique terms in the document
 	std::set<termid_t> unique_term_iter;
@@ -36,10 +36,10 @@ bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, std::vector<termid_t
 
 	termid_t termid;
 	term_doc_tf_map termid2doctf;
-	for (std::vector<termid_t>::iterator iter = termids.begin(); iter != termids.end(); iter ++)
+	for (TermIdList::iterator iter = termIdList.begin(); iter != termIdList.end(); iter ++)
 	{
 		// term index
-		termid = *iter;
+		termid = iter->termid_;
 		index_t index = termid;
 
 		// DF, TF in document
@@ -65,7 +65,7 @@ bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, std::vector<termid_t
 	index_t doc_index = docid;
 	index_t term_index;
 	weight_t tf;
-	count_t doc_length = termids.size();
+	count_t doc_length = termIdList.size();
 	term_doc_tf_map::iterator dtfIter = termid2doctf.begin();
 	for (; dtfIter != termid2doctf.end(); dtfIter++)
 	{
@@ -87,12 +87,21 @@ void DocumentVectorSpace::calcWeight()
 		term_sp_vector representDocVec;
 		pDocRepVectors_->GetVector(docid, representDocVec);
 		weight_t idf;
+		weight_t weight;
 
 		term_sp_vector::ValueType::iterator termIter = representDocVec.value.begin();
-		for (; termIter != representDocVec.value.end(); termIter ++)
+		for (; termIter != representDocVec.value.end(); termIter++)
 		{
 			idf = std::log(docNum / termid2df_[termIter->first]);
 			termIter->second *= idf;
+			/*weight = termIter->second * idf;
+			if (weight < thresholdWegt_) {
+			    termIter = representDocVec.value.erase(termIter);
+			}
+			else {
+			    termIter->second = weight;
+			    termIter ++;
+			}*/
 		}
 
 		pDocRepVectors_->SetVector(docid, representDocVec);

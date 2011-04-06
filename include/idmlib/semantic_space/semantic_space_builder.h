@@ -28,6 +28,8 @@
 
 using namespace boost::filesystem;
 using namespace izenelib::ir::idmanager;
+using namespace idmlib::util;
+
 
 NS_IDMLIB_SSP_BEGIN
 
@@ -56,12 +58,14 @@ public:
 		if (!pIdManager_) {
 			DLOG(ERROR) << "Failed to create IdManager!" << std::endl;
 		}
+		BOOST_ASSERT(pIdManager_);
 
 		pIdmAnalyzer_.reset(
 				new idmlib::util::IDMAnalyzer(
 						laResPath,
-						la::ChineseAnalyzer::minimum_match_no_overlap)
+						la::ChineseAnalyzer::minimum_match)
 		);
+		BOOST_ASSERT(pIdmAnalyzer_);
 	}
 
 	virtual ~SemanticSpaceBuilder()
@@ -78,29 +82,41 @@ public:
 
 	//bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
 
-	bool getDocTermids(const izenelib::util::UString& ustrDoc, std::vector<termid_t>& termids)
+	bool getDocTermIdList(const izenelib::util::UString& ustrDoc, TermIdList& termIdList, IdmTermList& termList = NULLTermList)
 	{
-		//termIdList_.clear();
-		//pLA_->process(pIdManager_.get(), ustrDoc, termIdList_);
+#ifndef SSP_BUIDER_TEST
+		// better performance
+		// termIdList.clear();
+		pIdmAnalyzer_->GetTermIdList(pIdManager_.get(), ustrDoc, termIdList);
 
+//		for (TermIdList::iterator iter = termIdList.begin(); iter != termIdList.end(); iter ++)
+//		{
+//			cout << "(" << iter->termid_ << ") " << endl;
+//		}
+//		cout << " ---- term count: " << termIdList.size() << endl;
+
+#else
 		termList_.clear();
-		//pLA_->process(ustrDoc, termList_);
 		pIdmAnalyzer_->GetTermList(ustrDoc, termList_, false);
 
 		termid_t termid;
 		for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
 		{
-			//if ( filter(iter->text_) )
-			//	continue;
 			pIdManager_->getTermIdByTermString(iter->text_, termid);
-			termids.push_back(termid);
+			termIdList.add(termid, iter->wordOffset_);
 
-//			cout << iter->textString()  << "(" << termid << ") "; //
+			termList.insert(make_pair(termid, iter->textString()));
+
+			cout << "(" << termid << ") " << endl; //
 		}
-
-//		cout << " ---- term count: " << termids.size() << endl;
-
+		cout << " ---- term count: " << termList_.size() << endl;
+#endif
 		return true;
+	}
+
+	bool getTermStringById(termid_t& termId, izenelib::util::UString& termStr)
+	{
+	    return pIdManager_->getTermStringByTermId(termId, termStr);
 	}
 
 private:

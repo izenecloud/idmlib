@@ -15,6 +15,7 @@
 #include <la/util/UStringUtil.h>
 #include <idmlib/idm_types.h>
 #include <idmlib/util/resource_util.h>
+#include <ir/index_manager/index/LAInput.h>
 #include <boost/algorithm/string/trim.hpp>
 #include "idm_id_converter.h"
 #include "idm_term.h"
@@ -74,8 +75,9 @@ class IDMAnalyzer
 	boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, false) );
 	la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
 	if ( pch != NULL ) {
-		pch->setExtractSpecialChar(true, true);
+		pch->setExtractSpecialChar(false, false);
 		pch->setAnalysisType( ca_type /*la::ChineseAnalyzer::minimum_match_no_overlap*/);
+		pch->setLabelMode();
 	}
 	ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
 	ml_analyzer->setDefaultAnalyzer( ch_analyzer );
@@ -123,6 +125,13 @@ class IDMAnalyzer
     return LoadSimplerFile(file);
   }
   
+  template<typename IDManagerType>
+  void GetTermIdList(IDManagerType* idm, const izenelib::util::UString& inputString, TermIdList& outList)
+  {
+	  boost::mutex::scoped_lock lock(la_mtx_);
+	  la_->process( idm, inputString, outList );
+  }
+
   void GetTermList(const izenelib::util::UString& utext, la::TermList& term_list, bool convert = true)
   {
     izenelib::util::UString text(utext);

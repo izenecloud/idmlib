@@ -31,7 +31,7 @@ void ExplicitSemanticSpace::Print()
 	}
 #endif
 
-	cout << "\n [term  DF IDF \\n (doc TF) .. ] " << pTermConceptIndex_->VectorCount() << "  "<< termid2df_.size() <<"*" << docList_.size()<< endl;
+	cout << "\n [term  DF IDF \\n (doc TF.IDF) .. ] " << pTermConceptIndex_->VectorCount() << "  "<< termid2df_.size() <<"*" << docList_.size()<< endl;
 	index_t termIndex;
 	term_df_map::iterator df_iter = termid2df_.begin();
 	docid_t docNum = docList_.size();
@@ -66,18 +66,18 @@ void ExplicitSemanticSpace::Print()
 
 /// Private Methods ////////////////////////////////////////////////////////////
 
-void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, std::vector<termid_t>& termids)
+void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, TermIdList& termIdList, IdmTermList& termList)
 {
 	std::set<termid_t> unique_term_set; // unique terms in the document
 	std::set<termid_t> unique_term_iter;
 	std::pair<set<termid_t>::iterator,bool> unique_term_ret;
 
 	termid_t termid;
-	termid2doctf_.clear();
-	for (std::vector<termid_t>::iterator iter = termids.begin(); iter != termids.end(); iter ++)
+	termid2doctf_.clear(); // TF in document
+	for (TermIdList::iterator iter = termIdList.begin(); iter != termIdList.end(); iter ++)
 	{
 		// term index
-		termid = *iter;
+		termid = iter->termid_;
 		index_t index = getIndexFromTermId(termid);
 
 		// DF, TF in document
@@ -97,56 +97,40 @@ void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, std::vector<termid
 			// update doc TF
 			termid2doctf_[index] ++;
 		}
-
-		/*
-		// tf
-		if (index == termdocM_.size()) {
-			doc_vector docVec;
-			termdocM_.push_back(docVec);
-		}
-		else if (index > termdocM_.size()) {
-			return; // error
-		}
-		doc_vector & docVec = termdocM_[index]; // row vector
-
-		if (jndex >= docVec.size()) {
-			docVec.resize(jndex+1); // performance..
-		}
-		//cout << "jndex: " << jndex << " " << docVec.size() << endl;
-		boost::shared_ptr<sDocUnit>& rpsDoc = docVec[jndex];
-		if (!rpsDoc) {
-			rpsDoc.reset(new sDocUnit());
-			rpsDoc->docid = docid;
-		}
-		rpsDoc->tf ++; // count*/
 	}
 
 	// update term-concept index with TF
 	index_t term_index;
 	weight_t tf;
-	count_t doc_length = termids.size();
+	count_t doc_length = termIdList.size();
 	index_t jndex = getIndexFromDocId(docid); // doc index
-//	cout << "term_index  doc_index  tf  tf" << endl;
 	for (term_doc_tf_map::iterator dtfIter = termid2doctf_.begin(); dtfIter != termid2doctf_.end(); dtfIter++)
 	{
 		term_index = getIndexFromTermId(dtfIter->first);
 		tf = (weight_t) dtfIter->second / doc_length ; // normalize tf
-//		cout << term_index << "  " << jndex << "  " << dtfIter->second << "  " << tf << endl;
 		updateTermConceptIndex(term_index, jndex, tf);
 	}
 
-/*
-	// normalize tf (without repeat for each term)
-	count_t totalTerm = terms.size();
-	//cout << "total term: " << totalTerm << endl;
-	for (std::set<termid_t>::iterator iter = tmp.begin(); iter != tmp.end(); iter ++)
-	{
-		termid = *iter;
-		index_t index = getOrAddTermIndex(termid);
+#ifdef SSP_BUIDER_TEST
+    std::vector<pair<termid_t, weight_t> > termtfVec;
+    for (term_doc_tf_map::iterator dtfIter = termid2doctf_.begin(); dtfIter != termid2doctf_.end(); dtfIter++)
+    {
+        weight_t tf = (weight_t)dtfIter->second / doc_length;
+        weight_t idf = std::log( docList_.size() / termid2df_[dtfIter->first] );
+        termtfVec.push_back(std::make_pair(dtfIter->first, tf*idf));
+    }
+    std::sort(termtfVec.begin(), termtfVec.end(), sort_second());
 
-		boost::shared_ptr<sDocUnit>& rpsDoc = termdocM_[index][jndex];
-		rpsDoc->tf = rpsDoc->tf / (weight_t)totalTerm;
-	}*/
+    std::vector<pair<termid_t, weight_t> >::iterator ttvIter;
+    for (ttvIter = termtfVec.begin(); ttvIter != termtfVec.end(); ttvIter++)
+    {
+        cout <<"(" << termList[ttvIter->first] << " "<< ttvIter->first
+                << " tf:" << termid2doctf_[ttvIter->first]
+                << " df:" << termid2df_[ttvIter->first]
+                << " wegt:" << ttvIter->second << ") " << endl;
+    }
+   // cout << endl;
+#endif
 }
 
 void ExplicitSemanticSpace::calcWeight()
@@ -157,32 +141,25 @@ void ExplicitSemanticSpace::calcWeight()
 	for (; df_iter != termid2df_.end(); df_iter ++) {
 		termIndex = getIndexFromTermId(df_iter->first);
 		weight_t idf = std::log( docNum / df_iter->second );
+		weight_t weight;
 		//cout << "term:" << termIndex << " ln " << docNum << " / " << df_iter->second << " = " << idf << endl;
 
 		doc_sp_vector docVec;
 		pTermConceptIndex_->GetVector(termIndex, docVec);
 		doc_sp_vector::ValueType::iterator vec_iter = docVec.value.begin();
-		for (; vec_iter != docVec.value.end(); vec_iter ++) {
+		while (vec_iter != docVec.value.end()) {
 			//cout << "doc:"<< vec_iter->first << "  " <<  vec_iter->second << "*idf =";
-			vec_iter->second *= idf; // weight = tf*idf
+		    // pruning **
+		    weight = vec_iter->second * idf; // weight = tf*idf
+		    if (weight < thresholdWegt_) {
+		        vec_iter = docVec.value.erase(vec_iter);
+		    }
+		    else {
+		        vec_iter->second = weight;
+		        vec_iter ++;
+		    }
 			//cout << vec_iter->second << endl;
 		}
 		pTermConceptIndex_->SetVector(termIndex, docVec);
 	}
-
-	/*
-	boost::shared_ptr<sDocUnit> pDoc;
-	count_t doc_cnt = docid2Index_.size();
-
-	for (termid_t t = 0; t < termdocM_.size(); t ++) {
-		for (docid_t dt = 0; dt < termdocM_[t].size(); dt ++) {
-			pDoc = termdocM_[t][dt];
-			if (pDoc) {
-				// weight = tf * idf, std::log() = ln()
-				pDoc->tf = pDoc->tf * std::log((weight_t)doc_cnt / termidx2DF_[t]);
-			}
-		}
-	}
-	*/
-
 }

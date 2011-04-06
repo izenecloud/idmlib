@@ -15,6 +15,7 @@
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/semantic_space.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
+#include <la/util/UStringUtil.h>
 #include <util/file_object.h>
 
 using namespace izenelib::am;
@@ -41,10 +42,11 @@ public:
 
 public:
 	/// @brief Incrementally process every document
-	void ProcessDocument(docid_t& docid, std::vector<termid_t>& termids)
+	void ProcessDocument(docid_t& docid, TermIdList& termIdList,
+	        IdmTermList& termList = NULLTermList)
 	{
 		docList_.push_back(docid);
-		doProcessDocument(docid, termids);
+		doProcessDocument(docid, termIdList, termList);
 	}
 
 	/// @brief Post process after all documents are processed
@@ -151,7 +153,8 @@ private:
 #endif
 	}
 
-	void doProcessDocument(docid_t& docid, std::vector<termid_t>& termids);
+	void doProcessDocument(docid_t& docid, TermIdList& termIdList,
+            IdmTermList& termList = NULLTermList);
 
 	void updateTermConceptIndex(termid_t& term_index, docid_t& doc_index, weight_t& weight)
 	{
@@ -165,7 +168,7 @@ private:
 
 
 private:
-	static const weight_t thresholdWegt_ = 0.0f; // threshold weight of term to concepts
+	static const weight_t thresholdWegt_ = 0.015f; // threshold weight of term to concepts [0.015 ~ 0.02]
 
 private:
 #ifdef RESET_MATRIX_INDEX

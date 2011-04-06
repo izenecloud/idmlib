@@ -9,7 +9,7 @@ bool SemanticSpaceBuilder::Build()
 		return false;
 	}
 
-	std::vector<termid_t> termids;
+	IdmTermList idmTermList;
 	docid_t docid = 0;
 	docid_t last_docid = 0;
 	docid_t doc_count = 0;
@@ -26,13 +26,15 @@ bool SemanticSpaceBuilder::Build()
 		  return false;
 		}
 
+		/// test
+		std::vector<izenelib::util::UString> list;
+		scdParser.getDocIdList(list);
+		size_t totalDocNum = list.size();
+
 		// parse SCD
 		izenelib::util::ScdParser::iterator iter = scdParser.begin();
 		for ( ; iter != scdParser.end(); iter ++)
 		{
-			if ( (doc_count++) >= maxDoc_ )
-				break;
-
 			izenelib::util::SCDDocPtr pDoc = *iter;
 
 			doc_properties_iterator proIter;
@@ -55,10 +57,15 @@ bool SemanticSpaceBuilder::Build()
 					//std::cout << la::to_utf8(proIter->second) << std::endl;
 				}
 				else if ( propertyName == izenelib::util::UString("content", encoding_)) {
-					// process raw content
-					termids.clear();
-					getDocTermids(propertyValue, termids);
+					//TimeChecker timer("sspbuilder LA");
+					termIdList_.clear();
+					//idmTermList.clear();
+					getDocTermIdList(propertyValue, termIdList_/*, idmTermList*/);
 				}
+                else if ( propertyName == izenelib::util::UString("unit", encoding_)) { // cnki test
+                	termIdList_.clear();
+                    getDocTermIdList(propertyValue, termIdList_/*, idmTermList*/);
+                }
 			}
 
 			// check docid
@@ -67,14 +74,25 @@ bool SemanticSpaceBuilder::Build()
 				return false;
 			}
 
-			pSSpace_->ProcessDocument(docid, termids);
+			pSSpace_->ProcessDocument(docid, termIdList_/*, idmTermList*/);
+
+			doc_count++;
+
+            if ((doc_count) % 2000 == 0) {
+                DLOG(INFO) << " total scd file(s) " << scdFileList.size() << " - processing " << i+1
+                        << " [" << doc_count << ", total " << totalDocNum << ", max " << maxDoc_<< "] - "
+                        << doc_count*100.0f / totalDocNum << "%" << endl;
+            }
+
+            if ((doc_count) >= maxDoc_)
+                break;
 		}
 
 		if ( doc_count >= maxDoc_ )
 			break;
 	}
 
-	std::cout << "Processing Space..." << std::endl;
+	std::cout << "Post-processing Space ... (" << doc_count << " documents processed(inserted) )"  << std::endl;
 	idmlib::ssp::TimeChecker timer("Process Space");
 	pSSpace_->ProcessSpace();
 	return true;

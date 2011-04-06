@@ -16,10 +16,12 @@
 
 #include <glog/logging.h>
 #include <idmlib/idm_types.h>
+#include <idmlib/util/idm_term.h>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
 #include <am/matrix/matrix_file_io.h>
 #include <am/matrix/matrix_mem_io.h>
 #include <am/matrix/sparse_vector.h>
+#include <util/profiler/ProfilerGroup.h>
 
 NS_IDMLIB_SSP_BEGIN
 
@@ -32,7 +34,13 @@ typedef float weight_t;
 const docid_t MAX_DOC_ID = 0xFFFFFFFF;
 
 #define SPARSE_MATRIX
+#define SSP_BUIDER_TEST
 //#define RESET_MATRIX_INDEX
+
+//typedef std::vector<idmlib::util::IDMTerm> IdmTermList;
+typedef std::map<termid_t, string> IdmTermList;
+static IdmTermList NULLTermList; // default parameter value
+
 
 /// matrix in fixed size (testing) /////////////////////////////////////////////
 struct sTermDocUnit
@@ -84,7 +92,7 @@ typedef term_vector_ term_vector;
 typedef term_docs_map term_doc_matrix;
 #endif
 
-/// map termid/docid to matrix index (1, 2, ... ) //////////////////////////////
+/// map termid/docid to matrix index //////////////////////////////
 #ifdef RESET_MATRIX_INDEX
 typedef std::map< termid_t, index_t > termid_index_map;
 typedef std::map< docid_t, index_t > docid_index_map;
@@ -93,6 +101,12 @@ static const count_t MATRIX_INDEX_START = 1; // start from 1
 #endif
 
 /// help functions
+struct sort_second {
+    bool operator()(const std::pair<uint32_t, weight_t> &left, const std::pair<uint32_t, weight_t> &right) {
+        return left.second > right.second;
+    }
+};
+
 template <typename SpVecT>
 void PrintSparseVec(SpVecT& svec, const string& headInfo=string("Vector"))
 {
@@ -109,8 +123,8 @@ void PrintSparseVec(SpVecT& svec, const string& headInfo=string("Vector"))
 class TimeChecker
 {
 private:
-	time_t start_;
-	time_t end_;
+	timeval start_;
+	timeval end_;
 	std::string msg_;
 	bool printed_;
 public:
@@ -118,15 +132,13 @@ public:
 	: msg_(msg)
 	, printed_(false)
 	{
-		start_ = time(NULL);
-		end_ = 0;
+		gettimeofday(&start_,0);
+		gettimeofday(&end_,0);
 	}
 
 	~TimeChecker()
 	{
-		if (end_ < start_) {
-			end_ = time(NULL);
-		}
+		gettimeofday(&end_,0);
 
 		if (!printed_)
 			Print();
@@ -134,19 +146,27 @@ public:
 
 	void StartPoint()
 	{
-		start_ = time(NULL);
+		//start_ = time(NULL);
+		gettimeofday(&start_,0);
 	}
 
 	void EndPoint()
 	{
-		end_ = time(NULL);
+		//end_ = time(NULL);
+		gettimeofday(&end_,0);
+	}
+
+	time_t Interval()
+	{
+		return (end_.tv_usec - start_.tv_usec);
 	}
 
 	void Print()
 	{
 		printed_ = true;
 		std::cout << "[" << msg_ << "] time elapsed: "
-				  << (end_-start_) / 60 << " minutes " << (end_-start_) % 60 << " seconds" << endl;
+//				  << (end_.tv_usec - start_.tv_usec) / 60000 << " minutes "
+				  << (end_.tv_usec - start_.tv_usec) / 1000.0 << " seconds" << endl;
 	}
 };
 
