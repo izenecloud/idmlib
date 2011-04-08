@@ -16,8 +16,43 @@
 #include <ir/index_manager/index/LAInput.h>
 
 using namespace izenelib::ir::indexmanager;
+using namespace idmlib::ssp;
 
 NS_IDMLIB_SSP_BEGIN
+
+typedef std::map<termid_t, weight_t> term_df_map;
+typedef izenelib::util::FileObject<term_df_map> term_df_file;
+typedef izenelib::util::FileObject<std::vector<docid_t> > doc_list_file;
+
+class TermInfoReader
+{
+public:
+    TermInfoReader(const string& infoPath)
+    : infoPath_(infoPath)
+    {
+        boost::shared_ptr<term_df_file> term2dfFile(new term_df_file(infoPath + "/term_df_map"));
+        boost::shared_ptr<doc_list_file> doclistFile(new doc_list_file(infoPath + "/doc_list"));
+        term2dfFile->Load();
+        doclistFile->Load();
+        termid2df_ = term2dfFile->GetValue();
+        docList_ = doclistFile->GetValue();
+        cout << "TermInfoReader: [doc " << docList_.size() << ", term " << termid2df_.size() << "]" << endl;
+    }
+
+public:
+    count_t getDocNum() {
+        return docList_.size();
+    }
+
+    weight_t getDFByTermId(uint32_t termid) {
+        return termid2df_[termid];
+    }
+
+private:
+    string infoPath_;
+    term_df_map termid2df_;
+    std::vector<docid_t> docList_;
+};
 
 class SemanticSpace
 {
@@ -30,8 +65,10 @@ public:
 public:
 	SemanticSpace(
 			const std::string& sspPath,
-			SemanticSpace::eSSPInitType initType = SemanticSpace::CREATE)
+			SemanticSpace::eSSPInitType initType = SemanticSpace::CREATE,
+			const std::string resPath = string("./utest/esa_chwiki_res") )
 	: sspPath_(sspPath)
+	, isPreLoadTermInfo_(true)
 	{
 		idmlib::util::FSUtil::normalizeFilePath(sspPath_);
 
@@ -51,6 +88,11 @@ public:
 			DLOG(INFO) << "Load Semantic Space Data: [doc " << docList_.size() << ", term " << termid2df_.size() << "]" << endl;
 		}
 		cout << sspPath_ << endl;
+
+        if (isPreLoadTermInfo_) {
+		    pTermInfoReader_.reset(new TermInfoReader(resPath));
+        }
+
 	}
 
 	virtual ~SemanticSpace() {}
@@ -100,18 +142,23 @@ public:
 
 	virtual void Print() {}
 
+public:
+//	typedef std::map<termid_t, weight_t> term_df_map;
+//	typedef izenelib::util::FileObject<term_df_map> term_df_file;
+//	typedef izenelib::util::FileObject<std::vector<docid_t> > doc_list_file;
+
 protected:
 	std::string sspPath_;
 
 	// statistics of whole collection, permanent
-	typedef std::map<termid_t, weight_t> term_df_map;
 	term_df_map termid2df_;
 	std::vector<docid_t> docList_;
 
-	typedef izenelib::util::FileObject<term_df_map> term_df_file;
 	boost::shared_ptr<term_df_file> term2dfFile_;
-	typedef izenelib::util::FileObject<std::vector<docid_t> > doc_list_file;
 	boost::shared_ptr<doc_list_file> doclistFile_;
+
+	bool isPreLoadTermInfo_;
+	boost::shared_ptr<TermInfoReader> pTermInfoReader_;
 };
 
 NS_IDMLIB_SSP_END

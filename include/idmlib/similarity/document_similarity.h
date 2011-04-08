@@ -23,6 +23,8 @@
 #include <idmlib/util/collection_file_util.h>
 #include <idmlib/util/FSUtil.hpp>
 
+#define DOCSIM_TEST
+
 using namespace idmlib::ssp;
 
 NS_IDMLIB_SIM_BEGIN
@@ -61,13 +63,15 @@ public:
 
 		// Explicit semantic interpreter initialized with wiki knowledge
 		boost::shared_ptr<SemanticSpace> pWikiESSpace(new ExplicitSemanticSpace(esasspPath, SemanticSpace::LOAD));
-//		pWikiESSpace->Print();
+#ifdef DOCSIM_TEST
+		pWikiESSpace->Print();
+#endif
 		pEsaInterpreter_.reset(new ExplicitSemanticInterpreter(pWikiESSpace));
 
 		// create or load pre-processing data of collection (documents set)
 		// can use indexed data..
 		if (rebuild) {
-		    idmlib::ssp::TimeChecker timer("Pre Process Collection(documents)");
+		    idmlib::util::TimeChecker timer("Pre Process Collection(documents)");
 			pDocVecSpace_.reset(new DocumentVectorSpace(colsspPath, SemanticSpace::CREATE));
 			boost::shared_ptr<SemanticSpaceBuilder> pCollectionBuilder(
 					new SemanticSpaceBuilder(pDocVecSpace_, laResPath, colBasePath, maxDoc));
@@ -76,8 +80,9 @@ public:
 		else {
 			pDocVecSpace_.reset(new DocumentVectorSpace(colsspPath, SemanticSpace::LOAD));
 		}
-//		pDocVecSpace_->Print();
-
+#ifdef DOCSIM_TEST
+		pDocVecSpace_->Print();
+#endif
 		// similarity index
 		pDocSimIndex_.reset(new DocumentSimilarityIndex(docSimPath, thresholdSim));
 	}

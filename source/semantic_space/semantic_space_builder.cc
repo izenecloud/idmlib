@@ -9,7 +9,6 @@ bool SemanticSpaceBuilder::Build()
 		return false;
 	}
 
-	IdmTermList idmTermList;
 	docid_t docid = 0;
 	docid_t last_docid = 0;
 	docid_t doc_count = 0;
@@ -91,9 +90,10 @@ bool SemanticSpaceBuilder::Build()
 		if ( doc_count >= maxDoc_ )
 			break;
 	}
-
+	pSSpace_->SaveSpace(); //
 	std::cout << "Post-processing Space ... (" << doc_count << " documents processed(inserted) )"  << std::endl;
-	idmlib::ssp::TimeChecker timer("Process Space");
+
+	idmlib::util::TimeChecker timer("Process Space");
 	pSSpace_->ProcessSpace();
 	return true;
 }

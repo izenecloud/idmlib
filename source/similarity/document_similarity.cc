@@ -13,7 +13,7 @@ using namespace idmlib::sim;
 void DocumentSimilarity::DoSim()
 {
 #ifdef IDM_SSP_TIME_CHECKER
-    idmlib::ssp::TimeChecker DocSimtimer("Do document similarity");
+    idmlib::util::TimeChecker DocSimtimer("Do document similarity");
 #endif
 
 	// Compute similarities between all pair of documents
@@ -32,14 +32,14 @@ void DocumentSimilarity::DoSim()
 		pDocVecSpace_->getVectorByDocid(docid, representDocVec);
 
 		// interpret a document
-//		idmlib::ssp::TimeChecker timer("interpret a document");
+		//idmlib::util::TimeChecker timer("interpret a document");
 		interpretation_vector_type interpretationDocVec;
 		pEsaInterpreter_->interpret(representDocVec, interpretationDocVec);
-//		timer.EndPoint();
+		//timer.EndPoint();
 
-//		stringstream ss;
-//		ss << "interpretation vector(" << *docIter << ")";
-//		idmlib::ssp::PrintSparseVec(interpretationDocVec, ss.str());
+		stringstream ss;
+		ss << "interpretation vector(" << *docIter << ")";
+		idmlib::ssp::PrintSparseVec(interpretationDocVec, ss.str());
 
 		// Build document similarity index ..
 		pDocSimIndex_->InertDocument(docid, interpretationDocVec);

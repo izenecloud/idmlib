@@ -31,13 +31,13 @@ void ExplicitSemanticSpace::Print()
 	}
 #endif
 
-	cout << "\n [term  DF IDF \\n (doc TF.IDF) .. ] " << pTermConceptIndex_->VectorCount() << "  "<< termid2df_.size() <<"*" << docList_.size()<< endl;
+	cout << "\n[term  DF IDF] : [ (doc TF.IDF) .. ] " << pTermConceptIndex_->VectorCount() << "  "<< termid2df_.size() <<"*" << docList_.size()<< endl;
 	index_t termIndex;
 	term_df_map::iterator df_iter = termid2df_.begin();
 	docid_t docNum = docList_.size();
 	for (; df_iter != termid2df_.end(); df_iter ++) {
 		termIndex = getIndexFromTermId(df_iter->first );
-		cout << df_iter->first << "  " << df_iter->second << "  " << docNum / df_iter->second << endl;
+		cout << "[" <<df_iter->first << "  " << df_iter->second << "  " << docNum / df_iter->second <<"] : ";
 
 		doc_sp_vector docVec;
 		pTermConceptIndex_->GetVector(termIndex, docVec);
@@ -116,9 +116,14 @@ void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, TermIdList& termId
     for (term_doc_tf_map::iterator dtfIter = termid2doctf_.begin(); dtfIter != termid2doctf_.end(); dtfIter++)
     {
         weight_t tf = (weight_t)dtfIter->second / doc_length;
-        weight_t idf = std::log( docList_.size() / termid2df_[dtfIter->first] );
+        weight_t idf = std::log( docList_test_.size() / termid2df_test_[dtfIter->first] );
         termtfVec.push_back(std::make_pair(dtfIter->first, tf*idf));
+//        cout <<"(" << termList[dtfIter->first] << " "<< dtfIter->first
+//                << " tf:" << tf
+//                << " idf:" << idf
+//                << " wegt:" << tf*idf << ") " << endl;
     }
+    cout << "[sort]" << endl;
     std::sort(termtfVec.begin(), termtfVec.end(), sort_second());
 
     std::vector<pair<termid_t, weight_t> >::iterator ttvIter;
@@ -126,31 +131,41 @@ void ExplicitSemanticSpace::doProcessDocument(docid_t& docid, TermIdList& termId
     {
         cout <<"(" << termList[ttvIter->first] << " "<< ttvIter->first
                 << " tf:" << termid2doctf_[ttvIter->first]
-                << " df:" << termid2df_[ttvIter->first]
+                << " df:" << termid2df_test_[ttvIter->first]
                 << " wegt:" << ttvIter->second << ") " << endl;
     }
-   // cout << endl;
+    cout << "[ExplicitSemanticSpace::doProcessDocument] finished." << endl;
 #endif
 }
 
 void ExplicitSemanticSpace::calcWeight()
 {
+#ifdef SSP_TIME_CHECKER
+        idmlib::util::TimeChecker timer("ExplicitSemanticSpace::calcWeight");
+#endif
 	index_t termIndex;
+	weight_t idf;
+	weight_t weight;
 	term_df_map::iterator df_iter = termid2df_.begin();
 	docid_t docNum = docList_.size();
-	for (; df_iter != termid2df_.end(); df_iter ++) {
+	for (; df_iter != termid2df_.end(); df_iter ++)
+	{
 		termIndex = getIndexFromTermId(df_iter->first);
-		weight_t idf = std::log( docNum / df_iter->second );
-		weight_t weight;
-		//cout << "term:" << termIndex << " ln " << docNum << " / " << df_iter->second << " = " << idf << endl;
+		idf = std::log( docNum / df_iter->second );
 
+#ifdef SSP_BUIDER_TEST
+		cout << "\n term:" << termIndex << "[ idf = Ln " << docNum << " / " << df_iter->second << " = " << idf
+		        << ", threshold = "  << thresholdWegt_ << " ]  ";
+#endif
 		doc_sp_vector docVec;
 		pTermConceptIndex_->GetVector(termIndex, docVec);
 		doc_sp_vector::ValueType::iterator vec_iter = docVec.value.begin();
 		while (vec_iter != docVec.value.end()) {
-			//cout << "doc:"<< vec_iter->first << "  " <<  vec_iter->second << "*idf =";
 		    // pruning **
 		    weight = vec_iter->second * idf; // weight = tf*idf
+#ifdef SSP_BUIDER_TEST
+        cout << "( doc:" << vec_iter->first << "  " <<  vec_iter->second << "*idf =" << weight << ") ";
+#endif
 		    if (weight < thresholdWegt_) {
 		        vec_iter = docVec.value.erase(vec_iter);
 		    }
@@ -158,8 +173,11 @@ void ExplicitSemanticSpace::calcWeight()
 		        vec_iter->second = weight;
 		        vec_iter ++;
 		    }
-			//cout << vec_iter->second << endl;
 		}
 		pTermConceptIndex_->SetVector(termIndex, docVec);
 	}
+
+#ifdef SSP_BUIDER_TEST
+	cout << "\n[ExplicitSemanticSpace::calcWeight] finished." << endl;
+#endif
 }

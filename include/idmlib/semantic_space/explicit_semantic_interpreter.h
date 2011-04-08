@@ -118,8 +118,9 @@ public:
 	bool interpret(term_sp_vector& repreDocVec, interpretation_vector_type& interDocVec)
 	{
 		/* Here for performance, did not calculate the weight of a doc to a concept at a time,
-		   but incrementally accumulate sub weights to concepts by traverse the words(terms),
-		   and used a concept weight map to speed up accumulating. */
+		   but incrementally accumulate weights to each concepts by traverse entries of words(terms)
+		   of repreDocVec on inverted index of wiki concepts (word-concept), also used a concept-weight
+		   map to speed up accumulating. */
 		std::map<docid_t, weight_t> conceptWeightMap;
 
 		termid_t termid;
@@ -152,15 +153,18 @@ public:
 			}
 		}
 
-		// for normalization
-		weight_t vecLength = 0.0; // vector length, or magnitude
 		std::map<docid_t, weight_t>::iterator cwIter;
+#if 1 // normalization (convert to unit-length vector)
+		// vector length, or magnitude
+		weight_t vecLength = 0;
 		for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
 		{
 		    vecLength +=  cwIter->second * cwIter->second;
 		}
 		vecLength = std::sqrt(vecLength);
-
+#else // not normalize
+		weight_t vecLength = 1;
+#endif
 		// set doc interpretation vector
         for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
         {

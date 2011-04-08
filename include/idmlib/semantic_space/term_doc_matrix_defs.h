@@ -17,6 +17,7 @@
 #include <glog/logging.h>
 #include <idmlib/idm_types.h>
 #include <idmlib/util/idm_term.h>
+#include <idmlib/util/time_checker.h>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
 #include <am/matrix/matrix_file_io.h>
 #include <am/matrix/matrix_mem_io.h>
@@ -34,38 +35,44 @@ typedef float weight_t;
 const docid_t MAX_DOC_ID = 0xFFFFFFFF;
 
 #define SPARSE_MATRIX
-#define SSP_BUIDER_TEST
-//#define RESET_MATRIX_INDEX
+
+/* testing */
+//#define SSP_BUIDER_TEST
+#ifdef IMD_TIME_CHECKER
+  #define SSP_TIME_CHECKER
+#endif
 
 //typedef std::vector<idmlib::util::IDMTerm> IdmTermList;
 typedef std::map<termid_t, string> IdmTermList;
 static IdmTermList NULLTermList; // default parameter value
 
+/* reserve */
+//#define RESET_MATRIX_INDEX
 
 /// matrix in fixed size (testing) /////////////////////////////////////////////
-struct sTermDocUnit
-{
-	termid_t termid;
-	docid_t docid;
-	weight_t weight;
-};
-
-struct sDocUnit
-{
-	docid_t docid;
-	weight_t tf; // tf or weight
-};
-
-struct sTermUnit
-{
-	termid_t termid;
-	weight_t weight;
-};
-
-typedef std::vector< boost::shared_ptr<sDocUnit> > doc_vector;
-typedef std::vector< boost::shared_ptr<sTermUnit> > term_vector_;
-
-typedef std::vector< doc_vector > term_docs_map; // for testing
+//struct sTermDocUnit
+//{
+//	termid_t termid;
+//	docid_t docid;
+//	weight_t weight;
+//};
+//
+//struct sDocUnit
+//{
+//	docid_t docid;
+//	weight_t tf; // tf or weight
+//};
+//
+//struct sTermUnit
+//{
+//	termid_t termid;
+//	weight_t weight;
+//};
+//
+//typedef std::vector< boost::shared_ptr<sDocUnit> > doc_vector;
+//typedef std::vector< boost::shared_ptr<sTermUnit> > term_vector_;
+//
+//typedef std::vector< doc_vector > term_docs_map;
 //typedef std::vector< term_vector > doc_terms_map;
 
 
@@ -118,57 +125,6 @@ void PrintSparseVec(SpVecT& svec, const string& headInfo=string("Vector"))
 	cout << "] " << endl;
 }
 
-/// performance check
-#define IDM_SSP_TIME_CHECKER
-class TimeChecker
-{
-private:
-	timeval start_;
-	timeval end_;
-	std::string msg_;
-	bool printed_;
-public:
-	TimeChecker( const std::string& msg = std::string("") )
-	: msg_(msg)
-	, printed_(false)
-	{
-		gettimeofday(&start_,0);
-		gettimeofday(&end_,0);
-	}
-
-	~TimeChecker()
-	{
-		gettimeofday(&end_,0);
-
-		if (!printed_)
-			Print();
-	}
-
-	void StartPoint()
-	{
-		//start_ = time(NULL);
-		gettimeofday(&start_,0);
-	}
-
-	void EndPoint()
-	{
-		//end_ = time(NULL);
-		gettimeofday(&end_,0);
-	}
-
-	time_t Interval()
-	{
-		return (end_.tv_usec - start_.tv_usec);
-	}
-
-	void Print()
-	{
-		printed_ = true;
-		std::cout << "[" << msg_ << "] time elapsed: "
-//				  << (end_.tv_usec - start_.tv_usec) / 60000 << " minutes "
-				  << (end_.tv_usec - start_.tv_usec) / 1000.0 << " seconds" << endl;
-	}
-};
 
 NS_IDMLIB_SSP_END
 

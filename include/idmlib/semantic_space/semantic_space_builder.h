@@ -63,7 +63,7 @@ public:
 		pIdmAnalyzer_.reset(
 				new idmlib::util::IDMAnalyzer(
 						laResPath,
-						la::ChineseAnalyzer::minimum_match)
+						la::ChineseAnalyzer::minimum_match_no_overlap)
 		);
 		BOOST_ASSERT(pIdmAnalyzer_);
 	}
@@ -84,6 +84,10 @@ public:
 
 	bool getDocTermIdList(const izenelib::util::UString& ustrDoc, TermIdList& termIdList, IdmTermList& termList = NULLTermList)
 	{
+#ifdef SSP_TIME_CHECKER
+	    idmlib::util::TimeChecker timer("SemanticSpaceBuilder::getDocTermIdList");
+#endif
+
 #ifndef SSP_BUIDER_TEST
 		// better performance
 		// termIdList.clear();
@@ -99,6 +103,7 @@ public:
 		termList_.clear();
 		pIdmAnalyzer_->GetTermList(ustrDoc, termList_, false);
 
+		//termList.clear();
 		termid_t termid;
 		for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
 		{
@@ -107,9 +112,9 @@ public:
 
 			termList.insert(make_pair(termid, iter->textString()));
 
-			cout << "(" << termid << ") " << endl; //
+			cout << la::to_utf8(iter->text_) << "(" << termid << ") " << endl; //
 		}
-		cout << " ---- term count: " << termList_.size() << endl;
+		cout << "[SemanticSpaceBuilder::getDocTermIdList] finished --- term count: " << termList_.size() << endl;
 #endif
 		return true;
 	}
@@ -128,13 +133,14 @@ private:
 	    }
 
 	    pIdManager.reset( new IDManager(dir) );
+	    return true;
 	}
 
-private:
+public:
 	/**
 	 * @brief get scd files in current directory
 	 */
-	bool getScdFileList(const std::string& scdDir, std::vector<std::string>& fileList);
+	static bool getScdFileList(const std::string& scdDir, std::vector<std::string>& fileList);
 
 	/**
 	 * @brief normalize file path string

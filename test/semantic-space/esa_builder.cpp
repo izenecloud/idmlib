@@ -2,7 +2,7 @@
  * @file esa_builder.cpp
  * @author Zhongxia Li
  * @date Mar 21, 2011
- * @brief Explicit Semantic Analysis
+ * @brief Build inverted index of wiki resource
  *
  * Evgeniy Gabrilovich and Shaul Markovitch. (2007).
  * "Computing Semantic Relatedness using Wikipedia-based Explicit Semantic Analysis,"
@@ -10,6 +10,7 @@
  * (IJCAI), Hyderabad, India, January 2007.
  */
 
+#include <fstream>
 #include <iostream>
 #include <ctime>
 using namespace std;
@@ -25,10 +26,16 @@ using namespace std;
 #include <la/LA.h>
 #include <am/matrix/matrix_file_io.h>
 #include <am/matrix/sparse_vector.h>
+#ifndef __SCD__PARSER__H__
+#define __SCD__PARSER__H__
+#include <util/scd_parser.h>
+#endif
 
 namespace po = boost::program_options;
 using namespace idmlib::ssp;
 using namespace idmlib::sim;
+
+void ScdModifier(const string& scdDir, count_t& maxDoc);
 
 int main(int argc, char** argv)
 {
@@ -82,36 +89,19 @@ int main(int argc, char** argv)
     }
     std::cout << "print: " << print << endl;
 
-//  matrix io
-//
-//	term_doc_matrix* om = new term_doc_matrix(sspDataPath);
-//	om->Open();
-//	for (size_t i = 0; i < 100; i ++) {
-//		doc_sp_vector v;
-//		for ( size_t j = 1; j < 5; j ++) {
-//			v.value.push_back(std::make_pair(j, 0.3 * i * j));
-//		}
-//		om->SetVector(i, v);
-//	}
-//	om->Flush();
-//	delete om;
-//
-//	term_doc_matrix im(sspDataPath);
-//	im.Open();
-//
-//	for (size_t i = 1; i < 10; i += 2) {
-//		doc_sp_vector v;
-//		im.GetVector(i, v);
-//		idmlib::ssp::PrintSparseVec(v);
-//	}
-//
-//	return 0;
+#if 0
+    ScdModifier(colPath+"/scd/index", maxDoc);
+    return 0;
+#endif
 
-//	ExplicitSemanticSpace essp(sspDataPath, SemanticSpace::LOAD);
-//	essp.Print();
-//	return 0;
+#if 0 // load explicit semantic resource
+	ExplicitSemanticSpace essp(sspDataPath, SemanticSpace::LOAD);
+	essp.Print();
+	return 0;
+#endif
 
-	idmlib::ssp::TimeChecker timer("build wiki index");
+
+	idmlib::util::TimeChecker timer("Build wiki index");
 
 	// Build knowledge matrix base on Chinese Wiki
 	boost::shared_ptr<SemanticSpace> pSSpace( new ExplicitSemanticSpace(sspDataPath) );
@@ -124,34 +114,70 @@ int main(int argc, char** argv)
 	    pSSpace->Print();
 	}
 	timer.EndPoint();
-	//timer.Print();
+	timer.Print();
 
-/*
-	// maps fragments of natural language text into
-	// a weighted sequence of Wikipedia concepts ordered by their
-	// relevance to the input
-	boost::shared_ptr<SemanticInterpreter> pSemInter( new SemanticInterpreter(pSSpace, pSemBuilder) );
-	std::string text =
-	"但有些情形例外:假如球员打出双杀打而得分、打击时因守备失误而得分、投手暴投或捕手捕逸而得分、或者因投手犯规而得分，他没拿到打点；\
-	假如球员被四坏保送或触身球而上垒、打出高飞牺牲打使垒上跑者得分，他就得到打点。此外，假如球员打出全垒打而垒包有两个人，打点则计为3分打点。（因为打击者和两名跑者都得分）";
-	UString utext(text, UString::UTF_8);
-	std::vector<weight_t> vec;
-	pSemInter->interpret(utext, vec);
+	idmlib::util::TimeChecker::ReportToFile();
 
-	cout << "interpretation vector: \n [ ";
-	for (size_t t = 0; t < vec.size(); t ++)
-	{
-		cout << vec[t] << ", " ;
-	}
-	cout << "]" << endl;
-
-	////
-	//boost::shared_ptr<SemanticSpace> pSSpace( new ExplicitSemanticSpace(sspDataPath) );
-	//boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder( new LaSemanticSpaceBuilder(colPath, pSSpace, laResPath, maxDoc) );
-	//boost::shared_ptr<SemanticInterpreter> pSemInter( new SemanticInterpreter(pSSpace, pSemBuilder) );
-
-	DocumentSimilarity ColDocSim(colPath, pSemInter);
-	ColDocSim.Compute();
-*/
 	return 0;
+}
+
+/// modify DOCIDs
+void ScdModifier(const string& scdDir, count_t& maxDoc)
+{
+    std::vector<string> scdFiles;
+    if (!SemanticSpaceBuilder::getScdFileList(scdDir, scdFiles))
+        return;
+
+    cout << "SCDFiles: " << scdFiles.size() << endl;
+    for (size_t i = 0; i < scdFiles.size(); i++)
+    {
+        string outScdFile = scdFiles[i] + ".Modif";
+        cout << "Modifying DOCIDs, from " << scdFiles[i] << " to \n" << outScdFile << endl;
+
+        ofstream of(outScdFile.c_str(), ios_base::out);
+        if (of.bad()) {
+            cout << "failed to open file :" << outScdFile <<endl;
+            return ;
+        }
+
+        typedef std::vector<std::pair<izenelib::util::UString, izenelib::util::UString> >::iterator doc_properties_iterator;
+
+        izenelib::util::ScdParser scdParser(izenelib::util::UString::UTF_8); // default encoding
+        scdParser.load(scdFiles[i]);
+        izenelib::util::ScdParser::iterator iter = scdParser.begin();
+        docid_t docid = 0; // start at 1
+        for ( ; iter != scdParser.end(); iter ++)
+        {
+            izenelib::util::SCDDocPtr pDoc = *iter;
+
+            doc_properties_iterator proIter;
+            for (proIter = pDoc->begin(); proIter != pDoc->end(); proIter ++)
+            {
+                izenelib::util::UString propertyNameTest = proIter->first;
+                string propertyName = la::to_utf8(proIter->first);
+                string propertyValue = la::to_utf8(proIter->second);
+
+                propertyNameTest.toLowerString();
+                if (propertyNameTest == izenelib::util::UString("docid", izenelib::util::UString::UTF_8) )
+                {
+                    stringstream ss;
+                    ss << (++ docid);
+                    propertyValue = ss.str();
+                }
+
+                of << "<" << propertyName << ">" << propertyValue << endl;
+            }
+
+            if (docid % 1000 == 0) {
+                cout << "[docid] "<< docid << endl;
+            }
+            if (docid >= maxDoc) {
+                break;
+            }
+        }
+        cout << "Finished at docid:" << docid <<endl;
+        of.close();
+
+        break; // 1 file
+    }
 }

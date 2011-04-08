@@ -31,13 +31,15 @@ public:
 	        IdmTermList& termList = NULLTermList)
 	{
 		docList_.push_back(docid);
-		doDocumentProcess(docid, termIdList);
+		doDocumentProcess(docid, termIdList, termList);
 	}
 
 	/// @brief Post process after all documents are processed
 	void ProcessSpace()
 	{
-		calcWeight();
+	    if (!isPreLoadTermInfo_) {
+		    calcWeight();
+	    }
 		SaveSpace();
 	}
 
@@ -61,7 +63,7 @@ public:
 	void Print();
 
 private:
-	bool doDocumentProcess(docid_t& docid, TermIdList& termIdList);
+	bool doDocumentProcess(docid_t& docid, TermIdList& termIdList, IdmTermList& termList = NULLTermList);
 
 	void calcWeight();
 

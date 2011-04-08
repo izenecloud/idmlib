@@ -28,7 +28,7 @@ void DocumentVectorSpace::Print()
 
 /// Private methods ////////////////////////////////////////////////////////////
 
-bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, TermIdList& termIdList)
+bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, TermIdList& termIdList, IdmTermList& termList)
 {
 	std::set<termid_t> unique_term_set; // unique terms in the document
 	std::set<termid_t> unique_term_iter;
@@ -45,13 +45,15 @@ bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, TermIdList& termIdLi
 		// DF, TF in document
 		unique_term_ret = unique_term_set.insert(termid);
 		if (unique_term_ret.second == true) {
-			// update DF
-			if (termid2df_.find(index) != termid2df_.end()) {
-				termid2df_[index] ++;
-			}
-			else {
-				termid2df_.insert(term_df_map::value_type(index, 1));
-			}
+		    if (!isPreLoadTermInfo_) {
+                // update DF
+                if (termid2df_.find(index) != termid2df_.end()) {
+                    termid2df_[index] ++;
+                }
+                else {
+                    termid2df_.insert(term_df_map::value_type(index, 1));
+                }
+		    }
 			// update doc TF
 			termid2doctf.insert(term_doc_tf_map::value_type(index, 1));
 		}
@@ -71,9 +73,26 @@ bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, TermIdList& termIdLi
 	{
 		term_index = dtfIter->first;
 		tf = dtfIter->second / doc_length; // normalize tf
+		if (isPreLoadTermInfo_) {
+		    weight_t idf = std::log( pTermInfoReader_->getDocNum() /
+		            pTermInfoReader_->getDFByTermId(dtfIter->first) );
+		    tf *= idf; // weight = tf * idf
+		}
 		representDocVec.value.push_back(std::make_pair(term_index, tf));
 		pDocRepVectors_->SetVector(doc_index, representDocVec);
 	}
+
+#ifdef SSP_BUIDER_TEST
+	dtfIter = termid2doctf.begin();
+	for (; dtfIter != termid2doctf.end(); dtfIter++) {
+	    weight_t idf = std::log(pTermInfoReader_->getDocNum() / pTermInfoReader_->getDFByTermId(dtfIter->first));
+
+	    cout << "("<< termList[dtfIter->first] << " " << dtfIter->first
+	            << " tf:" << dtfIter->second
+                << " df:" << pTermInfoReader_->getDFByTermId(dtfIter->first)
+                << " wegt:" << dtfIter->second / doc_length * idf << ") " << endl;
+	}
+#endif
 }
 
 void DocumentVectorSpace::calcWeight()

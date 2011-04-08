@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 	std::cout << "rebuild (reprocess collection data): " << rebuild << endl;
 
 	// Mining manager ?
-//	idmlib::ssp::TimeChecker timer("DocumentSimilarity Init");
+	idmlib::util::TimeChecker timer("DocumentSimilarity Init");
 	DocumentSimilarity DocSimilarity(
 			esasspPath, // esa resource(wiki) path
 			laResPath,  // la resource(cma) path
@@ -101,8 +101,8 @@ int main(int argc, char** argv)
 			maxDoc,      // max documents of collection to be processed
 			rebuild // if rebuild collection ssp
 			);
-//	timer.EndPoint();
-//	timer.Print();
+	timer.EndPoint();
+	timer.Print();
 
 	DocSimilarity.DoSim();
 

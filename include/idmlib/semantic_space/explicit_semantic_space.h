@@ -33,6 +33,24 @@ public:
 		pTermConceptIndex_.reset(new term_doc_matrix_file_oi(sspPath_));
 		pTermConceptIndex_->Open();
 
+#ifdef SSP_BUIDER_TEST
+	    /// load pre processed statistics info
+	    boost::shared_ptr<term_df_file> term2dfFile(new term_df_file("./utest/esa_chwiki_all/term_df_map"));
+	    boost::shared_ptr<doc_list_file> doclistFile(new doc_list_file("./utest/esa_chwiki_all/doc_list"));
+	    term2dfFile->Load();
+	    doclistFile->Load();
+	    termid2df_test_ = term2dfFile->GetValue();
+	    docList_test_ = doclistFile->GetValue();
+	    cout << "Load Semantic Space Data: [doc " << docList_test_.size() << ", term " << termid2df_test_.size() << "]" << endl;
+//	    for (int i = 0; i < docList_test_.size();i++) {
+//	        cout << docList_test_[i] <<endl;
+//	    }
+//	    term_df_map::iterator iter;
+//	    for (iter = termid2df_test_.begin(); iter != termid2df_test_.end(); iter++) {
+//	        cout << iter->first << " " << iter->second << endl;
+//	    }
+#endif
+
 #ifdef RESET_MATRIX_INDEX
 		termCount_ = MATRIX_INDEX_START;
 		docCount_ = MATRIX_INDEX_START;
@@ -45,6 +63,9 @@ public:
 	void ProcessDocument(docid_t& docid, TermIdList& termIdList,
 	        IdmTermList& termList = NULLTermList)
 	{
+#ifdef SSP_TIME_CHECKER
+	    idmlib::util::TimeChecker timer("ExplicitSemanticSpace::ProcessDocument");
+#endif
 		docList_.push_back(docid);
 		doProcessDocument(docid, termIdList, termList);
 	}
@@ -52,12 +73,18 @@ public:
 	/// @brief Post process after all documents are processed
 	void ProcessSpace()
 	{
+#ifdef SSP_TIME_CHECKER
+        idmlib::util::TimeChecker timer("ExplicitSemanticSpace::ProcessSpace");
+#endif
 		calcWeight();
 		SaveSpace();
 	}
 
 	void SaveSpace()
 	{
+#ifdef SSP_TIME_CHECKER
+        idmlib::util::TimeChecker timer("ExplicitSemanticSpace::SaveSpace");
+#endif
 		SemanticSpace::SaveSpace();
 		pTermConceptIndex_->Flush();
 	}
@@ -185,6 +212,11 @@ private:
 	// statistics of a document, temporary
 	typedef std::map<termid_t, weight_t> term_doc_tf_map;
 	term_doc_tf_map termid2doctf_;
+
+#ifdef SSP_BUIDER_TEST
+    term_df_map termid2df_test_;
+    std::vector<docid_t> docList_test_;
+#endif
 };
 
 NS_IDMLIB_SSP_END
