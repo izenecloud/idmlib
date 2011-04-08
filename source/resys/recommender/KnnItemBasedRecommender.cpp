@@ -7,6 +7,8 @@
 
 #include <idmlib/resys/recommender/KnnItemBasedRecommender.h>
 
+using namespace std;
+
 NS_IDMLIB_RESYS_BEGIN
 
 KnnItemBasedRecommender::KnnItemBasedRecommender(FileDataModel dataModel,uint32_t neighborhoodSize): dataModel_(dataModel),neighborhoodSize_(neighborhoodSize)
@@ -92,10 +94,89 @@ std::vector<double> KnnItemBasedRecommender::getInterpolations(uint32_t itemID, 
 
 }
 
-double KnnItemBasedRecommender::predict(uint32_t theUserID, uint32_t itemID)
+
+std::vector<Prediction> KnnItemBasedRecommender:: predict(ItemPreferenceArray& itemPreferences)
 {
 
 
+#ifdef DEBUG
+        for(int i=0;i<itemPreferences.size();i++){
+        	cout<<"itemid is "<<itemPreferences[i].getItemId()<<", score is "<<itemPreferences[i].getValue()<<endl;
+        }
+#endif
+
+
+	std::vector<Prediction> Predictions;
+    std::set<uint32_t> items = dataModel_.getItems();
+    std::set<uint32_t> preferredItemIds;
+    int length = itemPreferences.size();
+    for (int k = 0; k < length; k++)
+    {
+
+        uint32_t inputItemId = itemPreferences[k].getItemId();
+#ifdef DEBUG
+        cout<<"preferredItemId is "<<inputItemId<<endl;
+#endif
+        preferredItemIds.insert(inputItemId);
+    }
+#ifdef DEBUG
+    cout<<"user preferred item set size is "<<preferredItemIds.size()<<endl;
+    cout<<"all of the items size is "<<items.size()<<endl;
+#endif
+    std::set<uint32_t>::iterator iter = items.begin();
+    // all of the items
+    for (; iter!=items.end(); iter++)
+    {
+        //if the item is is in user preferred item set, it means users has visited it, skip it.
+    	if (preferredItemIds.find(*iter) != preferredItemIds.end())
+        {
+            continue;
+        }
+    	else{
+    		//predict current item(*iter)
+    		Rating itemRating(0,0) ;
+			ItemPreferenceArray mostSimilar= similarity_->getMostSimilarItems( *iter,  neighborhoodSize_,preferredItemIds);
+			double preference = 0.0;
+			double totalSimilarity = 0.0;
+#ifdef DEBUG
+			cout<<"current itemid is "<<*iter<<",most similar size is "<<mostSimilar.size()<<endl;
+#endif
+			for (int jitem=0; jitem<mostSimilar.size(); jitem++)
+			{
+				double pref = 0;
+				uint32_t itemid = mostSimilar[jitem].getItemId();
+
+				for(uint32_t i=0;i<itemPreferences.size(); i++){
+					if(itemPreferences[i].getItemId() == itemid)
+						pref=itemPreferences[itemid].getValue();
+				}
+#ifdef DEBUG
+			   cout<<"preferred itemid is "<<mostSimilar[jitem].getItemId()<<", user has preferred rate is "<<pref<<", similarity is "<<mostSimilar[jitem].getValue()<<endl;
+#endif
+			   preference += pref * mostSimilar[jitem].getValue();
+			   totalSimilarity +=mostSimilar[jitem].getValue();
+
+
+		   }
+		   if (!std::isnan(totalSimilarity))
+		   {
+
+			   itemRating.setFreq(1);
+			   itemRating.setValue(totalSimilarity);
+#ifdef DEBUG
+			   cout<<"totalSimilarity  is "<<totalSimilarity<<endl;
+#endif
+			   Prediction prediction(*iter,itemRating);
+			   Predictions.push_back(prediction);
+		   }
+    	}
+    }
+    return Predictions;
+}
+
+
+double KnnItemBasedRecommender::predict(uint32_t theUserID, uint32_t itemID)
+{
     ItemPreferenceArray prefs = dataModel_.getItemPreferencesForUser(theUserID);
     uint32_t size = prefs.size();
     //items that the user has preferred
@@ -110,15 +191,14 @@ double KnnItemBasedRecommender::predict(uint32_t theUserID, uint32_t itemID)
     ItemPreferenceArray mostSimilar= similarity_->getMostSimilarItems( itemID,  neighborhoodSize_,possibleItemIDs);
 
 
-    int i = 0;
     double preference = 0.0;
     double totalSimilarity = 0.0;
     for (int jitem=0; jitem<mostSimilar.size(); jitem++)
     {
-        double pref=dataModel_.getPreferenceValue(theUserID, jitem);
+        double pref=dataModel_.getPreferenceValue(theUserID, mostSimilar[jitem].getItemId());
         if (pref > 0)
         {
-            cout<<pref<<" "<<mostSimilar[jitem].getValue()<<endl;
+            cout<<"user has preferred rate is "<<pref<<", similarity is "<<mostSimilar[jitem].getValue()<<endl;
             preference += pref * mostSimilar[jitem].getValue();
             totalSimilarity +=mostSimilar[jitem].getValue();
         }
@@ -148,7 +228,7 @@ double KnnItemBasedRecommender::predict(uint32_t theUserID, uint32_t itemID)
     }*/
 
     totalSimilarity == 0.0 ?std::numeric_limits<double>::quiet_NaN() : (double) (preference / totalSimilarity);
-    cout<<"predict simi is "<<totalSimilarity<<endl;
+    cout<<"predict similarity is "<<totalSimilarity<<endl;
     return totalSimilarity;
 }
 

@@ -10,8 +10,9 @@
 #include <limits>
 #include <cmath>
 
-NS_IDMLIB_RESYS_BEGIN
+using namespace std;
 
+NS_IDMLIB_RESYS_BEGIN
 SlopeOneRecommender::SlopeOneRecommender(FileDataModel& data)
 {
     this->data_ = data;
@@ -89,9 +90,11 @@ std::vector<Prediction> SlopeOneRecommender:: predict(ItemPreferenceArray& itemP
     cout<<"all of the items size is "<<items.size()<<endl;
 #endif
     std::set<uint32_t>::iterator iter = items.begin();
-    for (; iter!=items.end(); iter++) // all of items
+    // all of the items
+    for (; iter!=items.end(); iter++)
     {
-        if (preferredItemIds.find(*iter) != preferredItemIds.end())
+        //if the item is is in user preferred item set, it means users has visited it, skip it.
+    	if (preferredItemIds.find(*iter) != preferredItemIds.end())
         {
             continue;
         }
@@ -130,10 +133,10 @@ std::vector<Prediction> SlopeOneRecommender:: predict(ItemPreferenceArray& itemP
     }
 #ifdef DEBUG
     cout<<"Predictions size is "<<Predictions.size()<<endl;
-    std::map<uint32_t, Rating>::iterator iter2 = Predictions.begin();
+    std::vector<Prediction>::iterator iter2 = Predictions.begin();
     for (; iter2!=Predictions.end(); iter2++)
     {
-        std::cout<<"Item " << iter2->first << " Rating: " << iter2->second.getAverageValue()<<std::endl;;
+        std::cout<<"Item " << iter2->getItemId() << " Rating: " << iter2->getRating().getAverageValue()<<std::endl;;
     }
 #endif
     return Predictions;

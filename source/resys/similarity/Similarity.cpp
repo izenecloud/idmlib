@@ -201,9 +201,11 @@ void Similarity::buildSimMatrix()
 
             if (*iter1 == *iter2)
                 continue;
-            //should reduce half of it
+
             sim = itemSimilarity(*iter1, *iter2);
+#ifdef DEBUG
             cout<<"itemID1 is "<<*iter1<<" and ItemID2 "<<*iter2<<" 's similarity is "<<sim<<endl;
+#endif
             ItemPreference itemPref(*iter2,sim);
             ItemPreferenceArray itemPrefs;
             if (simMatrix_.find(*iter1)!=simMatrix_.end())
@@ -231,6 +233,7 @@ bool myfunction (ItemPreference p1,ItemPreference p2)
 ItemPreferenceArray Similarity::getMostSimilarItems(uint32_t itemId, uint32_t topk,std::set<uint32_t> possibleItemIDs)
 {
     ItemPreferenceArray simItemArray;
+    ItemPreferenceArray tempSimItemArray;
     int count =0;
     if (simMatrix_.find(itemId)!=simMatrix_.end())
     {
@@ -248,13 +251,18 @@ ItemPreferenceArray Similarity::getMostSimilarItems(uint32_t itemId, uint32_t to
             else
                 continue;
         }
+#ifdef DEBUG
         cout<<"topk is "<<topk<<", and simItemArray size is "<<simItemArray.size()<<endl;
+#endif
         topk = simItemArray.size()<topk?  simItemArray.size():topk;
         for (int i=0; i<topk; i++)
         {
-            cout<<"MostSimilarItem is "<<simItemArray[i].getItemId()<<" "<<simItemArray[i].getValue()<<endl;
+#ifdef DEBUG
+        	cout<<"MostSimilarItem is "<<simItemArray[i].getItemId()<<" "<<simItemArray[i].getValue()<<endl;
+#endif
+            tempSimItemArray.push_back(simItemArray[i]);
         }
-        return simItemArray;
+        return tempSimItemArray;
     }
 
 }
