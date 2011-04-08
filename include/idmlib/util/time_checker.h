@@ -34,7 +34,7 @@ public:
     , printed_(false)
     {
         gettimeofday(&start_, 0);
-        end_ = {0};
+        gettimeofday(&end_, 0);
     }
 
     ~TimeChecker()
