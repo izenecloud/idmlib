@@ -64,8 +64,8 @@ double Similarity::itemSimilarity(uint32_t itemID1, uint32_t itemID2)
 
     uint32_t xIndex = xPrefs[0].getUserId();
     uint32_t yIndex = yPrefs[0].getUserId();
-    int xPrefIndex = 0;
-    int yPrefIndex = 0;
+    uint32_t xPrefIndex = 0;
+    uint32_t yPrefIndex = 0;
 
     double sumX = 0.0;
     double sumX2 = 0.0;
@@ -240,7 +240,7 @@ ItemPreferenceArray Similarity::getMostSimilarItems(uint32_t itemId, uint32_t to
         ItemPreferenceArray itemPrefs =simMatrix_.find(itemId)->second;
 
         std::sort(itemPrefs.begin(), itemPrefs.end(),myfunction);
-        for (int i=0; i<itemPrefs.size(); i++)
+        for (uint32_t i=0; i<itemPrefs.size(); i++)
         {
             uint32_t itemId = itemPrefs[i].getItemId();
             if (possibleItemIDs.find(itemId) != possibleItemIDs.end())
@@ -255,15 +255,16 @@ ItemPreferenceArray Similarity::getMostSimilarItems(uint32_t itemId, uint32_t to
         cout<<"topk is "<<topk<<", and simItemArray size is "<<simItemArray.size()<<endl;
 #endif
         topk = simItemArray.size()<topk?  simItemArray.size():topk;
-        for (int i=0; i<topk; i++)
+        for (uint32_t i=0; i<topk; i++)
         {
 #ifdef DEBUG
-        	cout<<"MostSimilarItem is "<<simItemArray[i].getItemId()<<" "<<simItemArray[i].getValue()<<endl;
+            cout<<"MostSimilarItem is "<<simItemArray[i].getItemId()<<" "<<simItemArray[i].getValue()<<endl;
 #endif
             tempSimItemArray.push_back(simItemArray[i]);
         }
         return tempSimItemArray;
     }
+    return tempSimItemArray;
 
 }
 

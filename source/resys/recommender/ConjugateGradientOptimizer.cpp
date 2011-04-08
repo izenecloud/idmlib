@@ -60,7 +60,7 @@ ConjugateGradientOptimizer::~ConjugateGradientOptimizer()
 std::vector<double>& ConjugateGradientOptimizer::optimize(double** matrix, std::vector<double>& b)
 {
 
-    int k = b.size();
+    uint32_t k = b.size();
 
     std::vector<double> r;
     r.resize(k);
@@ -74,11 +74,11 @@ std::vector<double>& ConjugateGradientOptimizer::optimize(double** matrix, std::
 
     // r = b - A*x0;
     // w = -r;
-    for (int i = 0; i < k; i++)
+    for (uint32_t i = 0; i < k; i++)
     {
         double v = 0.0;
         double* ai = matrix[i];
-        for (int j = 0; j < k; j++)
+        for (uint32_t j = 0; j < k; j++)
         {
             v += ai[j] * x[j];
         }
@@ -91,11 +91,11 @@ std::vector<double>& ConjugateGradientOptimizer::optimize(double** matrix, std::
     {
 
         // z = A*w;
-        for (int i = 0; i < k; i++)
+        for (uint32_t i = 0; i < k; i++)
         {
             double v = 0.0;
             double* ai = matrix[i];
-            for (int j = 0; j < k; j++)
+            for (uint32_t j = 0; j < k; j++)
             {
                 v += ai[j] * w[j];
             }
@@ -105,7 +105,7 @@ std::vector<double>& ConjugateGradientOptimizer::optimize(double** matrix, std::
         // a = (r'*w)/(w'*z);
         double anum = 0.0;
         double aden = 0.0;
-        for (int i = 0; i < k; i++)
+        for (uint32_t i = 0; i < k; i++)
         {
             anum += r[i] * w[i];
             aden += w[i] * z[i];
@@ -114,7 +114,7 @@ std::vector<double>& ConjugateGradientOptimizer::optimize(double** matrix, std::
 
         // x = x + a*w;
         // r = r - a*z;
-        for (int i = 0; i < k; i++)
+        for (uint32_t i = 0; i < k; i++)
         {
             x[i] += a * w[i];
             r[i] -= a * z[i];
@@ -122,7 +122,7 @@ std::vector<double>& ConjugateGradientOptimizer::optimize(double** matrix, std::
 
         // stop when residual is close to 0
         double rdot = 0.0;
-        for (int i = 0; i < k; i++)
+        for (uint32_t i = 0; i < k; i++)
         {
             double value = r[i];
             rdot += value * value;
@@ -135,7 +135,7 @@ std::vector<double>& ConjugateGradientOptimizer::optimize(double** matrix, std::
         // B = (r'*z)/(w'*z);
         double bnum = 0.0;
         double bden = 0.0;
-        for (int i = 0; i < k; i++)
+        for (uint32_t i = 0; i < k; i++)
         {
             double zi = z[i];
             bnum += r[i] * zi;
@@ -144,7 +144,7 @@ std::vector<double>& ConjugateGradientOptimizer::optimize(double** matrix, std::
         double B = bnum / bden;
 
         // w = -r + B*w;
-        for (int i = 0; i < k; i++)
+        for (uint32_t i = 0; i < k; i++)
         {
             w[i] = -r[i] + B * w[i];
         }

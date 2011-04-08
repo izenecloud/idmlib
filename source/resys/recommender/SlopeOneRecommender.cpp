@@ -13,6 +13,7 @@
 using namespace std;
 
 NS_IDMLIB_RESYS_BEGIN
+
 SlopeOneRecommender::SlopeOneRecommender(FileDataModel& data)
 {
     this->data_ = data;
@@ -94,7 +95,7 @@ std::vector<Prediction> SlopeOneRecommender:: predict(ItemPreferenceArray& itemP
     for (; iter!=items.end(); iter++)
     {
         //if the item is is in user preferred item set, it means users has visited it, skip it.
-    	if (preferredItemIds.find(*iter) != preferredItemIds.end())
+        if (preferredItemIds.find(*iter) != preferredItemIds.end())
         {
             continue;
         }

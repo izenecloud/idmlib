@@ -10,6 +10,7 @@
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/regex.hpp>
 
+using namespace std;
 NS_IDMLIB_RESYS_BEGIN
 
 FileDataModel::FileDataModel()
@@ -72,10 +73,17 @@ double FileDataModel::getPreferenceValue(uint32_t userId, uint32_t itemId)
             if (itemPrefs[i].getItemId() ==itemId)
                 return itemPrefs[i].getValue();
         }
-        return 0;
+
 
     }
+    return 0;
 }
+/**
+* Process one line data of movielens format data:  userid::itemid::score::timestamp
+*
+* @param line
+*         one record of movielens data
+*/
 void FileDataModel::processFileLine(string& line)
 {
 
@@ -148,13 +156,22 @@ void FileDataModel::processFileLine(string& line)
 }
 UserPreferenceArray& FileDataModel:: getUserPreferencesForItem(uint32_t itemId)
 {
-    if (itemModel_.find(itemId)!=itemModel_.end())
+
+    try
     {
+        if (itemModel_.find(itemId)!=itemModel_.end())
+        {
 #ifdef DEBUG
-        cout<<"itemId is "<<itemId<<", userPrefs size is "<<itemModel_.find(itemId)->second.size()<<endl;
+            cout<<"itemId is "<<itemId<<", userPrefs size is "<<itemModel_.find(itemId)->second.size()<<endl;
 #endif
-        return itemModel_.find(itemId)->second;
+            return itemModel_.find(itemId)->second;
+        }
     }
+    catch (...)
+    {
+
+    }
+    throw std::runtime_error( "getUserPreferencesForItem is NULLl" );
 
 
 }
@@ -165,10 +182,19 @@ std::map<uint32_t, std::vector<UserPreference> >& FileDataModel::getItemModel()
 
 ItemPreferenceArray& FileDataModel:: getItemPreferencesForUser(uint32_t userId)
 {
-    if (userModel_.find(userId)!=userModel_.end())
+    try
     {
-        return userModel_.find(userId)->second;
+        if (userModel_.find(userId)!=userModel_.end())
+        {
+            return userModel_.find(userId)->second;
+        }
     }
+
+    catch (...)
+    {
+
+    }
+    throw std::runtime_error( "getItemPreferencesForUser is NULLl" );
 }
 FileDataModel::~FileDataModel()
 {

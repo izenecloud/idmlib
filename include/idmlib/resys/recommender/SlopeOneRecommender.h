@@ -27,15 +27,29 @@ public:
     SlopeOneRecommender(FileDataModel& data);
 
     ~SlopeOneRecommender();
+    /**
+     * Build deviation matrix between items
+     */
     void buildDiffMatrix( );
+    /**
+    * Given one user's history items( with preference), predict the items which user may like
+    *
+    * @param itemPreferences
+    *          one user's history items set
+    */
     std::vector<Prediction> predict(ItemPreferenceArray& itemPreferences);
 
 private:
 
     // The Storage to keep the difference matrix
     std::map<std::pair<unsigned int, unsigned int>, Rating > diffStorage_;
-
+    //data model which is generated from training data
     FileDataModel data_;
+
+
+
+
+
 };
 
 NS_IDMLIB_RESYS_END
