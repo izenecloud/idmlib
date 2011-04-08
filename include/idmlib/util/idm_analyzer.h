@@ -87,6 +87,7 @@ class IDMAnalyzer
   ~IDMAnalyzer()
   {
     delete la_;
+    delete stemmer_;
   }
   
   void ExtractSpecialChar(bool extractSpecialChar, bool convertToPlaceHolder)

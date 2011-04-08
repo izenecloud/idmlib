@@ -40,6 +40,10 @@ FILE(GLOB sim_SRC
   "similarity/*.cc"
 )
 
+FILE(GLOB_RECURSE resys_SRC
+  "resys/*.cpp"
+)
+
 ADD_LIBRARY(idmlib 
 ${keyphrase_extraction_SRC}
 ${duplicate-detection_SRC}
@@ -50,6 +54,7 @@ ${util_SRC}
 ${wiki_SRC}
 ${ssp_SRC}
 ${sim_SRC}
+${resys_SRC}
 )
 
 INSTALL(TARGETS idmlib
