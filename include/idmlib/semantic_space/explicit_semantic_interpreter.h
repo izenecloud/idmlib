@@ -166,14 +166,19 @@ public:
 		weight_t vecLength = 1;
 #endif
 		// set doc interpretation vector
+		weight_t w;
         for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
         {
-            //? if (cwIter->second > 0.000001)
-                interDocVec.value.push_back(make_pair(cwIter->first, (cwIter->second / vecLength)));
+             w = cwIter->second / vecLength;
+             if (w > thresholdWegt_)
+                interDocVec.value.push_back(make_pair(cwIter->first, w));
         }
 
 		return true;
 	}
+
+private:
+	static const weight_t thresholdWegt_ = 0.02;
 
 private:
 	boost::shared_ptr<SemanticSpace> sspWikiIndex_;

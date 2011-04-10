@@ -68,7 +68,7 @@ class IDMAnalyzer
   }
   
   IDMAnalyzer(const std::string& cma_res_path, la::ChineseAnalyzer::ChineseAnalysisType ca_type)
-  :la_(new la::LA() ), simpler_set_(false)
+  :la_(new la::LA()), stemmer_(NULL), simpler_set_(false)
   {
 	boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer( new la::MultiLanguageAnalyzer() );
 

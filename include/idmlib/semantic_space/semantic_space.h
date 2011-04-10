@@ -66,7 +66,7 @@ public:
 	SemanticSpace(
 			const std::string& sspPath,
 			SemanticSpace::eSSPInitType initType = SemanticSpace::CREATE,
-			const std::string resPath = string("./utest/esa_chwiki_res") )
+			const std::string resPath = string("./utest/esa_chwiki_all") )
 	: sspPath_(sspPath)
 	, isPreLoadTermInfo_(true)
 	{

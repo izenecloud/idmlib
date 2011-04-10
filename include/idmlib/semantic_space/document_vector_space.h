@@ -30,6 +30,9 @@ public:
 	void ProcessDocument(docid_t& docid, TermIdList& termIdList,
 	        IdmTermList& termList = NULLTermList)
 	{
+#ifdef SSP_TIME_CHECKER
+		idmlib::util::TimeChecker timer("DocumentVectorSpace::ProcessDocument");
+#endif
 		docList_.push_back(docid);
 		doDocumentProcess(docid, termIdList, termList);
 	}
@@ -68,7 +71,7 @@ private:
 	void calcWeight();
 
 private:
-	static const weight_t thresholdWegt_ = 0.001f;
+	static const weight_t thresholdWegt_ = 0.01f;
 
 private:
 	// representation vectors of documents

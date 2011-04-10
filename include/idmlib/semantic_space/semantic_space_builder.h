@@ -112,9 +112,9 @@ public:
 
 			termList.insert(make_pair(termid, iter->textString()));
 
-			cout << la::to_utf8(iter->text_) << "(" << termid << ") " << endl; //
+//			cout << la::to_utf8(iter->text_) << "(" << termid << ") " << endl; //
 		}
-		cout << "[SemanticSpaceBuilder::getDocTermIdList] finished --- term count: " << termList_.size() << endl;
+//		cout << "[SemanticSpaceBuilder::getDocTermIdList] finished --- term count: " << termList_.size() << endl;
 #endif
 		return true;
 	}

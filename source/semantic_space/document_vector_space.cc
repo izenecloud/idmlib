@@ -67,18 +67,25 @@ bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, TermIdList& termIdLi
 	index_t doc_index = docid;
 	index_t term_index;
 	weight_t tf;
+	weight_t wegt; // df, idf, tf*idf
 	count_t doc_length = termIdList.size();
 	term_doc_tf_map::iterator dtfIter = termid2doctf.begin();
 	for (; dtfIter != termid2doctf.end(); dtfIter++)
 	{
 		term_index = dtfIter->first;
-		tf = dtfIter->second / doc_length; // normalize tf
+		tf = dtfIter->second / doc_length; // normalized tf
 		if (isPreLoadTermInfo_) {
-		    weight_t idf = std::log( pTermInfoReader_->getDocNum() /
-		            pTermInfoReader_->getDFByTermId(dtfIter->first) );
-		    tf *= idf; // weight = tf * idf
+			wegt = pTermInfoReader_->getDFByTermId(dtfIter->first); // df
+			if (wegt < 1) { // non-zero
+				continue;
+			}
+			wegt = std::log( pTermInfoReader_->getDocNum() / wegt); // idf
+			wegt *= tf; // weight = tf * idf
+			if (wegt < thresholdWegt_) {
+				continue;
+			}
 		}
-		representDocVec.value.push_back(std::make_pair(term_index, tf));
+		representDocVec.value.push_back(std::make_pair(term_index, wegt));
 		pDocRepVectors_->SetVector(doc_index, representDocVec);
 	}
 

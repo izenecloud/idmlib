@@ -64,7 +64,7 @@ public:
 		// Explicit semantic interpreter initialized with wiki knowledge
 		boost::shared_ptr<SemanticSpace> pWikiESSpace(new ExplicitSemanticSpace(esasspPath, SemanticSpace::LOAD));
 #ifdef DOCSIM_TEST
-		pWikiESSpace->Print();
+		//pWikiESSpace->Print();
 #endif
 		pEsaInterpreter_.reset(new ExplicitSemanticInterpreter(pWikiESSpace));
 
