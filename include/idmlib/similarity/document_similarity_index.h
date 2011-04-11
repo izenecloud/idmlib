@@ -67,7 +67,7 @@ public:
 	void FinishInert()
 	{
 		conceptDocIndex_->Flush();
-		buildSimIndex();
+//		buildSimIndex();
 	}
 
 private:

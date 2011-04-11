@@ -23,7 +23,7 @@
 #include <idmlib/util/collection_file_util.h>
 #include <idmlib/util/FSUtil.hpp>
 
-#define DOCSIM_TEST
+//#define DOCSIM_TEST
 
 using namespace idmlib::ssp;
 
@@ -59,7 +59,9 @@ public:
 			)
 	: colFileUtil_(new idmlib::util::CollectionFileUtil(colBasePath))
 	{
-		// Initialize
+#ifdef SSP_TIME_CHECKER
+	    idmlib::util::TimeChecker timer("DocumentSimilarity Init");
+#endif
 
 		// Explicit semantic interpreter initialized with wiki knowledge
 		boost::shared_ptr<SemanticSpace> pWikiESSpace(new ExplicitSemanticSpace(esasspPath, SemanticSpace::LOAD));
@@ -71,7 +73,9 @@ public:
 		// create or load pre-processing data of collection (documents set)
 		// can use indexed data..
 		if (rebuild) {
+#ifdef SSP_TIME_CHECKER
 		    idmlib::util::TimeChecker timer("Pre Process Collection(documents)");
+#endif
 			pDocVecSpace_.reset(new DocumentVectorSpace(colsspPath, SemanticSpace::CREATE));
 			boost::shared_ptr<SemanticSpaceBuilder> pCollectionBuilder(
 					new SemanticSpaceBuilder(pDocVecSpace_, laResPath, colBasePath, maxDoc));

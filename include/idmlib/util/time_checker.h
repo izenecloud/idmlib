@@ -8,11 +8,10 @@
 #ifndef TIME_CHECKER_H_
 #define TIME_CHECKER_H_
 
-#include <idmlib/idm_types.h>
-
-#define IMD_TIME_CHECKER
-
+//#define IMD_TIME_CHECKER
 #ifdef IMD_TIME_CHECKER
+
+#include <idmlib/idm_types.h>
 
 NS_IDMLIB_UTIL_BEGIN
 
@@ -141,9 +140,10 @@ public:
     }
 };
 
-#endif
-
 NS_IDMLIB_UTIL_END
+
+
+#endif
 
 #endif /* TIME_CHECKER_H_ */
 

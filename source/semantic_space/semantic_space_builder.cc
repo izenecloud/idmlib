@@ -4,6 +4,10 @@ using namespace idmlib::ssp;
 
 bool SemanticSpaceBuilder::Build()
 {
+#ifdef SSP_TIME_CHECKER
+    idmlib::util::TimeChecker timer("Build wiki index");
+#endif
+
 	std::vector<std::string> scdFileList;
 	if (!getScdFileList(scdPath_, scdFileList)) {
 		return false;
@@ -93,7 +97,9 @@ bool SemanticSpaceBuilder::Build()
 	pSSpace_->SaveSpace(); //
 	std::cout << "Post-processing Space ... (" << doc_count << " documents processed(inserted) )"  << std::endl;
 
+#ifdef SSP_TIME_CHECKER
 	idmlib::util::TimeChecker timer("Process Space");
+#endif
 	pSSpace_->ProcessSpace();
 	return true;
 }

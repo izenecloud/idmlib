@@ -101,11 +101,9 @@ int main(int argc, char** argv)
 #endif
 
 
-	idmlib::util::TimeChecker timer("Build wiki index");
-
 	// Build knowledge matrix base on Chinese Wiki
 	boost::shared_ptr<SemanticSpace> pSSpace( new ExplicitSemanticSpace(sspDataPath) );
-	timer.StartPoint();
+
 	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder(
 			new SemanticSpaceBuilder(pSSpace, laResPath, colPath, maxDoc) );
 	pSemBuilder->Build();
@@ -113,10 +111,10 @@ int main(int argc, char** argv)
 	if (print) {
 	    pSSpace->Print();
 	}
-	timer.EndPoint();
-	timer.Print();
 
+#ifdef SSP_TIME_CHECKER
 	idmlib::util::TimeChecker::ReportToFile();
+#endif
 
 	return 0;
 }
