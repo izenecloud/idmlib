@@ -28,6 +28,10 @@ FILE(GLOB dc_SRC
   "dc/*.cc"
 )
 
+FILE(GLOB fpm_SRC
+  "fpm/*.cpp"
+)
+
 FILE(GLOB wiki_SRC
   "wiki/*.cc"
 )
@@ -50,6 +54,7 @@ ${duplicate-detection_SRC}
 ${nec_SRC}
 ${query-suggestion_SRC}
 ${dc_SRC}
+${fpm_SRC}
 ${util_SRC}
 ${wiki_SRC}
 ${ssp_SRC}
