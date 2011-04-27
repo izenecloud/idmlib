@@ -63,6 +63,21 @@ public:
     }
 
 
+    void itemSimilarities(
+            ItemType itemId, 
+            std::vector<ItemType>& itemIds, 
+            std::vector<std::pair<ItemType, double> >& similarities
+    )
+    {
+        typename std::vector<ItemType>::iterator iter= itemIds.begin();
+        similarities.resize(itemIds.size());
+        for( ; iter != itemIds.end(); ++iter)
+        {
+            double measure = (double)coeff(itemId,*iter);
+            similarities.push_back(std::make_pair(*iter, measure));
+        }
+    }
+
     MeasureType coeff(ItemType row, ItemType col)
     {
         boost::shared_ptr<HashType > rowdata;
@@ -71,7 +86,9 @@ public:
             rowdata = loadRow(row);
             row_cache_.insertValue(row, rowdata);
         }
-        return (*rowdata)[col];
+        typename HashType::iterator it = rowdata->find(col); 
+        if(it == rowdata->end()) return 0;
+        return it->second;
     }
 
     void coeff(ItemType row, ItemType col, MeasureType measure)
@@ -80,10 +97,15 @@ public:
 	if (!row_cache_.getValueNoInsert(row, rowdata))
 	{
             rowdata = loadRow(row);
+            row_cache_.insertValue(row, rowdata);
 	}
 	(*rowdata)[col] = measure;
-	row_cache_.insertValue(row, rowdata);
 	saveRow(row,rowdata);
+    }
+
+    void gc()
+    {
+        store_.optimize();
     }
 
 private:

@@ -4,10 +4,11 @@
 #include "RecommendedItem.h"
 #include "ItemIterator.h"
 #include "ItemRescorer.h"
-
-#include "similarity/SimilarityMatrix.h"
+#include "ItemCF.h"
 
 #include <util/PriorityQueue.h>
+
+#include <boost/shared_ptr.hpp>
 
 #include <list>
 #include <vector>
@@ -17,7 +18,7 @@ NS_IDMLIB_RESYS_BEGIN
 class TopItems
 {
 public:
-    TopItems();
+    TopItems(ItemCF* itemCF);
 
     void getTopItems(
         int howMany, 
@@ -27,10 +28,7 @@ public:
         ItemRescorer* rescorer = NULL
     );
 private:
-    double estimate(uint32_t itemId, std::vector<uint32_t>& itemIds);
-
-private:
-    boost::shared_ptr<SimilarityMatrix<uint32_t,double> > similarity;
+    ItemCF* itemCF_;
 };
 
 class TopItemsQueue

@@ -20,7 +20,10 @@
 
 #include <string>
 #include <vector>
+#include <list>
 #include <map>
+#include <algorithm>
+
 #include <sys/time.h>
 
 using namespace std;
@@ -100,22 +103,33 @@ template<typename CoVisitation>
 class ItemCoVisitation
 {
     typedef __gnu_cxx::hash_map<ItemType, CoVisitation> HashType;
+
+    typedef izenelib::cache::IzeneCache<
+    ItemType,
+    boost::shared_ptr<HashType >,
+    izenelib::util::ReadWriteLock,
+    izenelib::cache::RDE_HASH,
+    izenelib::cache::LFU
+    > RowCacheType;
+
     typedef izenelib::cache::IzeneCache<
     ItemType,
     std::vector<ItemType>,
     izenelib::util::ReadWriteLock,
     izenelib::cache::RDE_HASH,
     izenelib::cache::LFU
-    > CacheType;
+    > CovisitationCacheType;
 
 public:
     ItemCoVisitation(
           const std::string& homePath, 
-          size_t row_cache_size, 
-          size_t topK
+          size_t row_cache_size,
+          size_t result_cache_size =0, 
+          size_t topK = 5
           )
         : store_(homePath)
-        , result_cache_(row_cache_size)
+        , row_cache_(row_cache_size)
+        , result_cache_(result_cache_size)
         , topK_(topK)
     {
     }
@@ -126,12 +140,14 @@ public:
         store_.close();
     }
 
-    void visit(std::vector<ItemType>& oldItems, std::vector<ItemType>& newItems)
+    void visit(std::list<ItemType>& oldItems, std::list<ItemType>& newItems)
     {
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(lock_);
-        std::vector<ItemType>::iterator iter;
+        std::list<ItemType>::iterator iter;
         for(iter = oldItems.begin(); iter != oldItems.end(); ++iter)
             updateCoVisation(*iter,  newItems);
+        oldItems.resize(oldItems.size() + newItems.size());
+        std::copy_backward(newItems.begin(),newItems.end(), oldItems.end());
         for(iter = newItems.begin(); iter != newItems.end(); ++iter)
             updateCoVisation(*iter,  oldItems);
     }
@@ -175,28 +191,65 @@ public:
         }
     }
 
-private:
+    uint32_t coeff(ItemType row, ItemType col)
+    {
+        boost::shared_ptr<HashType > rowdata;
+        //we do not use read lock here because coeff is called only after writing operation is finished
+        //izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
+        if (!row_cache_.getValueNoInsert(row, rowdata))
+        {
+            rowdata = loadRow(row);
+            row_cache_.insertValue(row, rowdata);
+        }
+        return (*rowdata)[col].freq;
+    }
 
-    void updateCoVisation(ItemType item, std::vector<ItemType>& coItems)
+    void gc()
+    {
+        store_.optimize();
+    }
+
+private:
+    void updateCoVisation(ItemType item, std::list<ItemType>& coItems)
     {
         if(coItems.empty()) return;
+        boost::shared_ptr<HashType > rowdata;
+        if (!row_cache_.getValueNoInsert(item, rowdata))
+        {
+            rowdata = loadRow(item);
+            row_cache_.insertValue(item, rowdata);
+        }
 
-        HashType rowdata;
-        Int2String rowKey(item);
-        store_.get(rowKey, rowdata);
-        std::vector<ItemType>::iterator iter = coItems.begin();
+        std::list<ItemType>::iterator iter = coItems.begin();
         for(; iter != coItems.end(); ++iter)
         {
-            CoVisitation& covisation = rowdata[*iter];
-            covisation.update();
+            CoVisitation& covisitation = (*rowdata)[*iter];
+            covisitation.update();
         }
-        store_.insert(rowKey, rowdata);
+
+        saveRow(item,rowdata);
+
         result_cache_.del(item);
+    }
+
+    boost::shared_ptr<HashType > loadRow(ItemType row)
+    {
+        boost::shared_ptr<HashType > rowdata(new HashType);
+        Int2String rowKey(row);
+        store_.get(rowKey, *rowdata);
+        return rowdata;
+    }
+
+    void saveRow(ItemType row, boost::shared_ptr<HashType > rowdata)
+    {
+        Int2String rowKey(row);
+        store_.insert(rowKey, *rowdata);
     }
 
 private:
     izenelib::am::beansdb::Hash<Int2String, HashType > store_;
-    CacheType result_cache_;
+    RowCacheType row_cache_;	
+    CovisitationCacheType result_cache_;
     size_t topK_;
     izenelib::util::ReadWriteLock lock_;
 };
