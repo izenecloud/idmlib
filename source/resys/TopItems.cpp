@@ -12,7 +12,7 @@ TopItems::TopItems(ItemCF* itemCF)
 void TopItems::getTopItems(
     int howMany, 
     std::list<RecommendedItem>& topItems, 
-    std::vector<uint32_t>& becauseOfItems,    
+    std::list<uint32_t>& becauseOfItems,    
     ItemIterator& itemIterator,
     ItemRescorer* rescorer
 )
