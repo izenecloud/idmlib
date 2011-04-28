@@ -124,13 +124,11 @@ public:
     ItemCoVisitation(
           const std::string& homePath, 
           size_t row_cache_size,
-          size_t result_cache_size =0, 
-          size_t topK = 5
+          size_t result_cache_size =0
           )
         : store_(homePath)
         , row_cache_(row_cache_size)
         , result_cache_(result_cache_size)
-        , topK_(topK)
     {
     }
 
@@ -152,14 +150,14 @@ public:
             updateCoVisation(*iter,  oldItems);
     }
 
-    void getCoVisitation(ItemType item, std::vector<ItemType>& results)
+    void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results)
     {
         if (!result_cache_.getValueNoInsert(item, results))
         {
             HashType rowdata;
             Int2String rowKey(item);
             store_.get(rowKey, rowdata);
-            CoVisitationQueue<CoVisitation> queue(topK_);
+            CoVisitationQueue<CoVisitation> queue(howmany);
             typename HashType::iterator iter = rowdata.begin();
             for(;iter != rowdata.end(); ++iter)
                 queue.insert(CoVisitationQueueItem<CoVisitation>(iter->first,iter->second));
@@ -170,14 +168,14 @@ public:
         }
     }
 
-    void getCoVisitation(ItemType item, std::vector<ItemType>& results, int64_t timestamp)
+    void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results, int64_t timestamp)
     {
         if (!result_cache_.getValueNoInsert(item, results))
         {
             HashType rowdata;
             Int2String rowKey(item);
             store_.get(rowKey, rowdata);
-            CoVisitationQueue<CoVisitation> queue(topK_);
+            CoVisitationQueue<CoVisitation> queue(howmany);
             typename HashType::iterator iter = rowdata.begin();
             for(;iter != rowdata.end(); ++iter)
             {
@@ -250,7 +248,6 @@ private:
     izenelib::am::beansdb::Hash<Int2String, HashType > store_;
     RowCacheType row_cache_;	
     CovisitationCacheType result_cache_;
-    size_t topK_;
     izenelib::util::ReadWriteLock lock_;
 };
 
