@@ -54,7 +54,7 @@ void IncrementalItemCF::incrementalBuild(
     for(std::list<uint32_t>::iterator it_i = oldItems.begin(); it_i !=oldItems.end(); ++it_i)
     {
         uint32_t Int_I_I = covisitation_.coeff(*it_i, *it_i);
-        std::list<std::pair<uint32_t, float> > newValues;
+        std::list<std::pair<uint32_t, uint8_t> > newValues;
         for(std::list<uint32_t>::iterator it_j = oldItems.begin(); it_j !=oldItems.end(); ++it_j)
         {
             if(*it_j == *it_i) continue;
@@ -62,8 +62,9 @@ void IncrementalItemCF::incrementalBuild(
             uint32_t Int_I_J = covisitation_.coeff(*it_i, *it_j);
             float denominator = sqrt(Int_I_I) * sqrt(Int_J_J);
             float sim = (denominator == 0)? 0: (float)Int_I_J/denominator;
-            similarity_.coeff(*it_i,*it_j,sim);
-            newValues.push_back(std::make_pair(*it_j, sim));
+            uint8_t simv = izenelib::util::SmallFloat::floatToByte315(sim);
+            similarity_.coeff(*it_i,*it_j,simv);
+            newValues.push_back(std::make_pair(*it_j, simv));
         }
         similarity_.adjustNeighbor(*it_i, newValues);
     }
@@ -121,13 +122,16 @@ void IncrementalItemCF::getTopItems(
 {
     for(size_t i = 0; i < itemIds.size(); ++i)
     {
-        std::vector<std::pair<ItemType, MeasureType> > similarities;
+        std::vector<std::pair<uint32_t, uint8_t> > similarities;
         if(similarity_.itemSimilarity(itemIds[i], similarities))
         {
             ///most silly policies
-            std::vector<std::pair<ItemType, MeasureType> >::iterator iter;
+            std::vector<std::pair<uint32_t, uint8_t> >::iterator iter;
             for(iter = similarities.begin(); iter != similarities.end(); ++iter)
-                topItems.push_back(RecommendedItem(iter->first, iter->second));
+            {
+                float v = izenelib::util::SmallFloat::byte315ToFloat(iter->second);
+                topItems.push_back(RecommendedItem(iter->first, v));
+            }
         }
     }
     if(topItems.size() > (size_t)howMany) topItems.resize(howMany);

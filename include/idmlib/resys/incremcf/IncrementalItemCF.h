@@ -64,7 +64,7 @@ public:
 
 private:
     ItemCoVisitation<CoVisitFreq> covisitation_;
-    SimilarityMatrix<uint32_t,float> similarity_;
+    SimilarityMatrix<uint32_t,uint8_t> similarity_;
     UserRecommendItem userRecommendItems_;
     size_t max_items_stored_for_each_user_;
 };

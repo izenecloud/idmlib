@@ -9,6 +9,7 @@
 #include <sdb/SDBCursorIterator.h>
 
 #include <util/Int2String.h>
+#include <util/smallfloat.h>
 #include <util/timestamp.h>
 #include <util/ThreadModel.h>
 #include <util/PriorityQueue.h>
@@ -122,7 +123,7 @@ public:
 
     float itemSimilarities(
             ItemType itemId, 
-            std::map<ItemType, MeasureType>& similarities
+            std::map<ItemType, float>& similarities
     )
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
@@ -131,8 +132,9 @@ public:
         typename ItemNeighborType::iterator it = neighbor.begin();
         for(; it != neighbor.end(); ++it)
         {
-            similarities[it->first] = it->second;
-            v += it->second;
+            float myv = izenelib::util::SmallFloat::byte315ToFloat(it->second);
+            similarities[it->first] = myv;
+            v += myv;
         }
         return v;
     }
