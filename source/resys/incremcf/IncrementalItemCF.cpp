@@ -51,6 +51,9 @@ void IncrementalItemCF::incrementalBuild(
 {
     covisitation_.visit(oldItems, newItems);
     ///oldItems has already contained elements from newItems now
+
+    std::set<uint32_t> filterSet(oldItems.begin(), oldItems.end());
+
     for(std::list<uint32_t>::iterator it_i = oldItems.begin(); it_i !=oldItems.end(); ++it_i)
     {
         uint32_t Int_I_I = covisitation_.coeff(*it_i, *it_i);
@@ -72,7 +75,8 @@ void IncrementalItemCF::incrementalBuild(
     while(itemIterator.hasNext())
     {
         uint32_t itemId = itemIterator.next();
-        if(!rescorer || !rescorer->isFiltered(itemId))
+        if(filterSet.find(itemId) == filterSet.end()
+           && (!rescorer || !rescorer->isFiltered(itemId)))
         {
             float preference = estimate(itemId,  oldItems);
             if(preference > 0)
@@ -117,9 +121,12 @@ float IncrementalItemCF::estimate(
 void IncrementalItemCF::getTopItems(
     int howMany,
     std::vector<uint32_t>& itemIds,
-    std::list<RecommendedItem>& topItems
+    std::list<RecommendedItem>& topItems,
+    ItemRescorer* rescorer
 )
 {
+    std::set<uint32_t> filterSet(itemIds.begin(), itemIds.end());
+
     for(size_t i = 0; i < itemIds.size(); ++i)
     {
         std::vector<std::pair<uint32_t, uint8_t> > similarities;
@@ -129,8 +136,12 @@ void IncrementalItemCF::getTopItems(
             std::vector<std::pair<uint32_t, uint8_t> >::iterator iter;
             for(iter = similarities.begin(); iter != similarities.end(); ++iter)
             {
-                float v = izenelib::util::SmallFloat::byte315ToFloat(iter->second);
-                topItems.push_back(RecommendedItem(iter->first, v));
+                if(filterSet.find(iter->first) == filterSet.end()
+                   && (!rescorer || !rescorer->isFiltered(iter->first)))
+                {
+                    float v = izenelib::util::SmallFloat::byte315ToFloat(iter->second);
+                    topItems.push_back(RecommendedItem(iter->first, v));
+                }
             }
         }
     }
@@ -141,7 +152,7 @@ void IncrementalItemCF::getTopItems(
     int howMany, 
     uint32_t userId,
     std::list<RecommendedItem>& topItems, 
-    std::set<uint32_t>& filterItems
+    ItemRescorer* rescorer
 )
 {
     RecommendItemType recommendItem;
@@ -151,7 +162,7 @@ void IncrementalItemCF::getTopItems(
         for(size_t i = 0; i < recommendItem.size(); ++i)
         {
             std::pair<uint32_t, float>& item = recommendItem[i];
-            if(filterItems.find(item.first) == filterItems.end())
+            if(!rescorer || !rescorer->isFiltered(item.first))
             {
                 topItems.push_back(RecommendedItem(item.first, item.second));
                 if(++count >= howMany)

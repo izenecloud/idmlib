@@ -41,19 +41,21 @@ public:
         std::list<uint32_t>& oldItems, 
         std::list<uint32_t>& newItems, 
         ItemIterator& itemIterator,
-        ItemRescorer* rescorer = NULL);
+        ItemRescorer* rescorer = NULL
+    );
 
     void getTopItems(
         int howMany, 
         uint32_t userId,
         std::list<RecommendedItem>& topItems, 
-        std::set<uint32_t>& filterItems
+        ItemRescorer* rescorer = NULL
     );
 
     void getTopItems(
         int howMany,
         std::vector<uint32_t>& itemIds,
-        std::list<RecommendedItem>& topItems
+        std::list<RecommendedItem>& topItems,
+        ItemRescorer* rescorer = NULL
     );
 
     float estimate(uint32_t itemId, std::list<uint32_t>& itemIds);
