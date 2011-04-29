@@ -9,7 +9,7 @@ struct ItemRescorer
 {
     virtual ~ItemRescorer(){}
 
-    virtual double rescore(uint32_t itemId, double originalScore) = 0;
+    virtual float rescore(uint32_t itemId, float originalScore) = 0;
 
     virtual bool isFiltered(uint32_t itemId) = 0;
 };

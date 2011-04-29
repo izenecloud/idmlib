@@ -23,7 +23,7 @@ void TopItems::getTopItems(
         uint32_t itemId = itemIterator.next();
         if(!rescorer || !rescorer->isFiltered(itemId))
         {
-            double preference = itemCF_->estimate(itemId,  becauseOfItems);
+            float preference = itemCF_->estimate(itemId,  becauseOfItems);
             queue.insert(RecommendedItem(itemId,preference));
         }
     }

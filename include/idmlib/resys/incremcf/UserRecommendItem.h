@@ -27,7 +27,7 @@ using izenelib::util::Int2String;
 
 typedef uint32_t ItemType;
 typedef uint32_t UserType;
-typedef double MeasureType;
+typedef float MeasureType;
 
 typedef std::vector<std::pair<ItemType,MeasureType> > RecommendItemType;
 

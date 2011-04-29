@@ -56,7 +56,7 @@ public:
         std::list<RecommendedItem>& topItems
     );
 
-    double estimate(uint32_t itemId, std::list<uint32_t>& itemIds);
+    float estimate(uint32_t itemId, std::list<uint32_t>& itemIds);
 
     bool getUserRecommendItems(uint32_t userId, RecommendItemType& results);
 
@@ -64,7 +64,7 @@ public:
 
 private:
     ItemCoVisitation<CoVisitFreq> covisitation_;
-    SimilarityMatrix<uint32_t,double> similarity_;
+    SimilarityMatrix<uint32_t,float> similarity_;
     UserRecommendItem userRecommendItems_;
     size_t max_items_stored_for_each_user_;
 };

@@ -59,7 +59,7 @@ bool similarityCompare (std::pair<ItemType,MeasureType> p1,std::pair<ItemType,Me
     return (p1.second > p2.second);
 }
 
-template<typename ItemType = uint32_t, typename MeasureType = double>
+template<typename ItemType = uint32_t, typename MeasureType = float>
 class SimilarityMatrix
 {
     typedef __gnu_cxx::hash_map<ItemType, MeasureType> HashType;
@@ -120,14 +120,14 @@ public:
         return true;
     }
 
-    double itemSimilarities(
+    float itemSimilarities(
             ItemType itemId, 
             std::map<ItemType, MeasureType>& similarities
     )
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
         ItemNeighborType& neighbor = neighbors_[itemId];
-        double v = 0;
+        float v = 0;
         typename ItemNeighborType::iterator it = neighbor.begin();
         for(; it != neighbor.end(); ++it)
         {
