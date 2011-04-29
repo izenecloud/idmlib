@@ -123,8 +123,8 @@ class ItemCoVisitation
 public:
     ItemCoVisitation(
           const std::string& homePath, 
-          size_t row_cache_size,
-          size_t result_cache_size =0
+          size_t row_cache_size = 100,
+          size_t result_cache_size = 100
           )
         : store_(homePath)
         , row_cache_(row_cache_size)
@@ -138,16 +138,51 @@ public:
         store_.close();
     }
 
+    /**
+     * Update items visited by one user.
+     * @param oldItems the items visited before
+     * @param newItems the new visited items
+     *
+     * As the covisit matrix records the number of users who have visited both item i and item j,
+     * the @c visit function has below pre-conditions:
+     * @pre each items in @p oldItems should be unique
+     * @pre each items in @p newItems should be unique
+     * @pre there should be no items contained in both @p oldItems and @p newItems
+     *
+     * for performance reason, it has below post-condition:
+     * @post when @c visit function returns, the items in @p newItems would be moved to the end of @p oldItems,
+     *       and @p newItems would be empty.
+     */
     void visit(std::list<ItemType>& oldItems, std::list<ItemType>& newItems)
     {
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(lock_);
-        std::list<ItemType>::iterator iter;
-        for(iter = oldItems.begin(); iter != oldItems.end(); ++iter)
-            updateCoVisation(*iter,  newItems);
-        oldItems.resize(oldItems.size() + newItems.size());
-        std::copy_backward(newItems.begin(),newItems.end(), oldItems.end());
-        for(iter = newItems.begin(); iter != newItems.end(); ++iter)
-            updateCoVisation(*iter,  oldItems);
+
+        std::list<ItemType>::const_iterator iter;
+        if (oldItems.empty())
+        {
+            // update new*new pairs
+            for(iter = newItems.begin(); iter != newItems.end(); ++iter)
+                updateCoVisation(*iter, newItems);
+
+            // for post condition
+            oldItems.swap(newItems);
+        }
+        else
+        {
+            // update old*new pairs
+            for(iter = oldItems.begin(); iter != oldItems.end(); ++iter)
+                updateCoVisation(*iter, newItems);
+
+            // move new items into oldItems
+            std::list<ItemType>::const_iterator newItemIt = oldItems.end();
+            --newItemIt;
+            oldItems.splice(oldItems.end(), newItems);
+            ++newItemIt;
+
+            // update new*total pairs
+            for(iter = newItemIt; iter != oldItems.end(); ++iter)
+                updateCoVisation(*iter, oldItems);
+        }
     }
 
     void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results)
@@ -160,10 +195,14 @@ public:
             CoVisitationQueue<CoVisitation> queue(howmany);
             typename HashType::iterator iter = rowdata.begin();
             for(;iter != rowdata.end(); ++iter)
-                queue.insert(CoVisitationQueueItem<CoVisitation>(iter->first,iter->second));
-            results.reserve(queue.size());
-            for(int i = 0; i < queue.size(); ++i)
-                results.push_back(queue.getAt(i).itemId);
+            {
+                // escape the input item
+                if (iter->first != item)
+                    queue.insert(CoVisitationQueueItem<CoVisitation>(iter->first,iter->second));
+            }
+            results.resize(queue.size());
+            for(std::vector<ItemType>::reverse_iterator rit = results.rbegin(); rit != results.rend(); ++rit)
+                *rit = queue.pop().itemId;
             result_cache_.insertValue(item, results);
         }
     }
@@ -179,12 +218,13 @@ public:
             typename HashType::iterator iter = rowdata.begin();
             for(;iter != rowdata.end(); ++iter)
             {
-                if(iter->timestamp >= timestamp)
+                // escape the input item
+                if(iter->timestamp >= timestamp && iter->first != item)
                     queue.insert(CoVisitationQueueItem<CoVisitation>(iter->first,iter->second));
             }
-            results.reserve(queue.size());
-            for(int i = 0; i < queue.size(); ++i)
-                results.push_back(queue.getAt(i).itemId);
+            results.resize(queue.size());
+            for(std::vector<ItemType>::reverse_iterator rit = results.rbegin(); rit != results.rend(); ++rit)
+                *rit = queue.pop().itemId;
             result_cache_.insertValue(item, results);
         }
     }
@@ -208,7 +248,7 @@ public:
     }
 
 private:
-    void updateCoVisation(ItemType item, std::list<ItemType>& coItems)
+    void updateCoVisation(ItemType item, const std::list<ItemType>& coItems)
     {
         if(coItems.empty()) return;
         boost::shared_ptr<HashType > rowdata;
@@ -218,8 +258,8 @@ private:
             row_cache_.insertValue(item, rowdata);
         }
 
-        std::list<ItemType>::iterator iter = coItems.begin();
-        for(; iter != coItems.end(); ++iter)
+        for(std::list<ItemType>::const_iterator iter = coItems.begin();
+            iter != coItems.end(); ++iter)
         {
             CoVisitation& covisitation = (*rowdata)[*iter];
             covisitation.update();
