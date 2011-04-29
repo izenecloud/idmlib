@@ -127,6 +127,9 @@ public:
     )
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
+        if(itemId >= neighbors_.size()) 
+            loadNeighbor(itemId);
+
         ItemNeighborType& neighbor = neighbors_[itemId];
         float v = 0;
         typename ItemNeighborType::iterator it = neighbor.begin();
