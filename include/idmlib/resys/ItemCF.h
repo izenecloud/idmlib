@@ -13,7 +13,7 @@ class ItemCF
 public:
     virtual ~ItemCF(){}
 
-    virtual void build(std::list<uint32_t>& oldItems, std::list<uint32_t>& newItems) = 0;
+    /*virtual void build(std::list<uint32_t>& oldItems, std::list<uint32_t>& newItems) = 0;*/
 
     virtual float estimate(uint32_t itemId, std::list<uint32_t>& itemIds) =0;
 
