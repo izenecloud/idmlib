@@ -7,7 +7,7 @@ NS_IDMLIB_RESYS_BEGIN
 
 struct RecommendedItem
 {
-    RecommendedItem(uint32_t itemId = 0, double value = 0)
+    RecommendedItem(uint32_t itemId = 0, float value = 0)
         :itemId(itemId)
         ,value(value)
     {}
@@ -19,7 +19,7 @@ struct RecommendedItem
 
 
     uint32_t itemId;
-    double value;
+    float value;
 };
 
 NS_IDMLIB_RESYS_END

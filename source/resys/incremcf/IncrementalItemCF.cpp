@@ -54,16 +54,17 @@ void IncrementalItemCF::incrementalBuild(
     for(std::list<uint32_t>::iterator it_i = oldItems.begin(); it_i !=oldItems.end(); ++it_i)
     {
         uint32_t Int_I_I = covisitation_.coeff(*it_i, *it_i);
-        std::list<std::pair<uint32_t, double> > newValues;
+        std::list<std::pair<uint32_t, uint8_t> > newValues;
         for(std::list<uint32_t>::iterator it_j = oldItems.begin(); it_j !=oldItems.end(); ++it_j)
         {
             if(*it_j == *it_i) continue;
             uint32_t Int_J_J = covisitation_.coeff(*it_j, *it_j);
             uint32_t Int_I_J = covisitation_.coeff(*it_i, *it_j);
-            double denominator = sqrt(Int_I_I) * sqrt(Int_J_J);
-            double sim = (denominator == 0)? 0: (double)Int_I_J/denominator;
-            similarity_.coeff(*it_i,*it_j,sim);
-            newValues.push_back(std::make_pair(*it_j, sim));
+            float denominator = sqrt(Int_I_I) * sqrt(Int_J_J);
+            float sim = (denominator == 0)? 0: (float)Int_I_J/denominator;
+            uint8_t simv = izenelib::util::SmallFloat::floatToByte315(sim);
+            similarity_.coeff(*it_i,*it_j,simv);
+            newValues.push_back(std::make_pair(*it_j, simv));
         }
         similarity_.adjustNeighbor(*it_i, newValues);
     }
@@ -73,7 +74,7 @@ void IncrementalItemCF::incrementalBuild(
         uint32_t itemId = itemIterator.next();
         if(!rescorer || !rescorer->isFiltered(itemId))
         {
-            double preference = estimate(itemId,  oldItems);
+            float preference = estimate(itemId,  oldItems);
             if(preference > 0)
                 recommendItem.push_back(std::make_pair(itemId,preference));
         }
@@ -84,24 +85,24 @@ void IncrementalItemCF::incrementalBuild(
     userRecommendItems_.setRecommendItem(userId, recommendItem);
 }
 
-double IncrementalItemCF::estimate(
+float IncrementalItemCF::estimate(
     uint32_t itemId, 
     std::list<uint32_t>& itemIds
 )
 {
-    double totalSimilarity = 0.0;
-    double preference = 0.0;
+    float totalSimilarity = 0.0;
+    float preference = 0.0;
     int count = 0;
 
-    std::map<uint32_t, double> similarities;
+    std::map<uint32_t, float> similarities;
     totalSimilarity = similarity_.itemSimilarities(itemId, similarities);
     std::list<uint32_t>::iterator it = itemIds.begin();
     for (; it != itemIds.end(); ++it) 
     {
-        std::map<uint32_t, double>::iterator iter = similarities.find(*it);
+        std::map<uint32_t, float>::iterator iter = similarities.find(*it);
         if(iter != similarities.end())
         {
-            double theSimilarity = iter->second;
+            float theSimilarity = iter->second;
             if (theSimilarity !=0) 
             {
                 preference += theSimilarity;
@@ -121,13 +122,16 @@ void IncrementalItemCF::getTopItems(
 {
     for(size_t i = 0; i < itemIds.size(); ++i)
     {
-        std::vector<std::pair<ItemType, MeasureType> > similarities;
+        std::vector<std::pair<uint32_t, uint8_t> > similarities;
         if(similarity_.itemSimilarity(itemIds[i], similarities))
         {
             ///most silly policies
-            std::vector<std::pair<ItemType, MeasureType> >::iterator iter;
+            std::vector<std::pair<uint32_t, uint8_t> >::iterator iter;
             for(iter = similarities.begin(); iter != similarities.end(); ++iter)
-                topItems.push_back(RecommendedItem(iter->first, iter->second));
+            {
+                float v = izenelib::util::SmallFloat::byte315ToFloat(iter->second);
+                topItems.push_back(RecommendedItem(iter->first, v));
+            }
         }
     }
     if(topItems.size() > (size_t)howMany) topItems.resize(howMany);
@@ -146,7 +150,7 @@ void IncrementalItemCF::getTopItems(
         int count = 0;
         for(size_t i = 0; i < recommendItem.size(); ++i)
         {
-            std::pair<uint32_t, double>& item = recommendItem[i];
+            std::pair<uint32_t, float>& item = recommendItem[i];
             if(filterItems.find(item.first) == filterItems.end())
             {
                 topItems.push_back(RecommendedItem(item.first, item.second));

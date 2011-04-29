@@ -9,6 +9,7 @@
 #include <sdb/SDBCursorIterator.h>
 
 #include <util/Int2String.h>
+#include <util/smallfloat.h>
 #include <util/timestamp.h>
 #include <util/ThreadModel.h>
 #include <util/PriorityQueue.h>
@@ -59,7 +60,7 @@ bool similarityCompare (std::pair<ItemType,MeasureType> p1,std::pair<ItemType,Me
     return (p1.second > p2.second);
 }
 
-template<typename ItemType = uint32_t, typename MeasureType = double>
+template<typename ItemType = uint32_t, typename MeasureType = float>
 class SimilarityMatrix
 {
     typedef __gnu_cxx::hash_map<ItemType, MeasureType> HashType;
@@ -120,19 +121,20 @@ public:
         return true;
     }
 
-    double itemSimilarities(
+    float itemSimilarities(
             ItemType itemId, 
-            std::map<ItemType, MeasureType>& similarities
+            std::map<ItemType, float>& similarities
     )
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
         ItemNeighborType& neighbor = neighbors_[itemId];
-        double v = 0;
+        float v = 0;
         typename ItemNeighborType::iterator it = neighbor.begin();
         for(; it != neighbor.end(); ++it)
         {
-            similarities[it->first] = it->second;
-            v += it->second;
+            float myv = izenelib::util::SmallFloat::byte315ToFloat(it->second);
+            similarities[it->first] = myv;
+            v += myv;
         }
         return v;
     }
