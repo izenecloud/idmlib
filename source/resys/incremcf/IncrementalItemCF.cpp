@@ -132,7 +132,8 @@ void IncrementalItemCF::getTopItems(
         std::vector<std::pair<uint32_t, uint8_t> > similarities;
         if(similarity_.itemSimilarity(itemIds[i], similarities))
         {
-            ///most silly policies
+            ///TODO 1. need a better policy to find the relevancy.
+            ///TODO 2. the items in topItems should be unique
             std::vector<std::pair<uint32_t, uint8_t> >::iterator iter;
             for(iter = similarities.begin(); iter != similarities.end(); ++iter)
             {
