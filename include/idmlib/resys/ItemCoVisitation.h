@@ -1,6 +1,7 @@
 #ifndef IDMLIB_RESYS_ITEM_COVISITATION_H
 #define IDMLIB_RESYS_ITEM_COVISITATION_H
 
+#include "ItemRescorer.h"
 #include <idmlib/idm_types.h>
 
 #include <am/beansdb/Hash.h>
@@ -112,23 +113,13 @@ class ItemCoVisitation
     izenelib::cache::LFU
     > RowCacheType;
 
-    typedef izenelib::cache::IzeneCache<
-    ItemType,
-    std::vector<ItemType>,
-    izenelib::util::ReadWriteLock,
-    izenelib::cache::RDE_HASH,
-    izenelib::cache::LFU
-    > CovisitationCacheType;
-
 public:
     ItemCoVisitation(
           const std::string& homePath, 
-          size_t row_cache_size = 100,
-          size_t result_cache_size = 100
+          size_t row_cache_size = 100
           )
         : store_(homePath)
         , row_cache_(row_cache_size)
-        , result_cache_(result_cache_size)
     {
     }
 
@@ -185,48 +176,50 @@ public:
         }
     }
 
-    void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results)
+    void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results, ItemRescorer* rescorer = NULL)
     {
-        if (!result_cache_.getValueNoInsert(item, results))
+        izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
+
+        HashType rowdata;
+        Int2String rowKey(item);
+        store_.get(rowKey, rowdata);
+        CoVisitationQueue<CoVisitation> queue(howmany);
+        typename HashType::iterator iter = rowdata.begin();
+        for(;iter != rowdata.end(); ++iter)
         {
-            HashType rowdata;
-            Int2String rowKey(item);
-            store_.get(rowKey, rowdata);
-            CoVisitationQueue<CoVisitation> queue(howmany);
-            typename HashType::iterator iter = rowdata.begin();
-            for(;iter != rowdata.end(); ++iter)
+            // escape the input item
+            if (iter->first != item
+                && (!rescorer || !rescorer->isFiltered(iter->first)))
             {
-                // escape the input item
-                if (iter->first != item)
-                    queue.insert(CoVisitationQueueItem<CoVisitation>(iter->first,iter->second));
+                queue.insert(CoVisitationQueueItem<CoVisitation>(iter->first,iter->second));
             }
-            results.resize(queue.size());
-            for(std::vector<ItemType>::reverse_iterator rit = results.rbegin(); rit != results.rend(); ++rit)
-                *rit = queue.pop().itemId;
-            result_cache_.insertValue(item, results);
         }
+        results.resize(queue.size());
+        for(std::vector<ItemType>::reverse_iterator rit = results.rbegin(); rit != results.rend(); ++rit)
+            *rit = queue.pop().itemId;
     }
 
-    void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results, int64_t timestamp)
+    void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results, int64_t timestamp, ItemRescorer* rescorer = NULL)
     {
-        if (!result_cache_.getValueNoInsert(item, results))
+        izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
+
+        HashType rowdata;
+        Int2String rowKey(item);
+        store_.get(rowKey, rowdata);
+        CoVisitationQueue<CoVisitation> queue(howmany);
+        typename HashType::iterator iter = rowdata.begin();
+        for(;iter != rowdata.end(); ++iter)
         {
-            HashType rowdata;
-            Int2String rowKey(item);
-            store_.get(rowKey, rowdata);
-            CoVisitationQueue<CoVisitation> queue(howmany);
-            typename HashType::iterator iter = rowdata.begin();
-            for(;iter != rowdata.end(); ++iter)
+            // escape the input item
+            if (iter->timestamp >= timestamp && iter->first != item
+                && (!rescorer || !rescorer->isFiltered(iter->first)))
             {
-                // escape the input item
-                if(iter->timestamp >= timestamp && iter->first != item)
-                    queue.insert(CoVisitationQueueItem<CoVisitation>(iter->first,iter->second));
+                queue.insert(CoVisitationQueueItem<CoVisitation>(iter->first,iter->second));
             }
-            results.resize(queue.size());
-            for(std::vector<ItemType>::reverse_iterator rit = results.rbegin(); rit != results.rend(); ++rit)
-                *rit = queue.pop().itemId;
-            result_cache_.insertValue(item, results);
         }
+        results.resize(queue.size());
+        for(std::vector<ItemType>::reverse_iterator rit = results.rbegin(); rit != results.rend(); ++rit)
+            *rit = queue.pop().itemId;
     }
 
     uint32_t coeff(ItemType row, ItemType col)
@@ -266,8 +259,6 @@ private:
         }
 
         saveRow(item,rowdata);
-
-        result_cache_.del(item);
     }
 
     boost::shared_ptr<HashType > loadRow(ItemType row)
@@ -287,7 +278,6 @@ private:
 private:
     izenelib::am::beansdb::Hash<Int2String, HashType > store_;
     RowCacheType row_cache_;	
-    CovisitationCacheType result_cache_;
     izenelib::util::ReadWriteLock lock_;
 };
 
