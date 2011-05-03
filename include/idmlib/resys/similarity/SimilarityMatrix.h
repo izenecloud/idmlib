@@ -117,6 +117,7 @@ public:
         if(itemId > max_item_) return false;
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
         ItemNeighborType& neighbor = neighbors_[itemId];
+        similarities.resize(neighbor.size());
         std::copy(neighbor.begin(), neighbor.end(), similarities.begin());
         return true;
     }
@@ -158,11 +159,22 @@ public:
             ItemNeighborType& neighbor = neighbors_[itemId];
             {
             izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
-            MeasureType currLeast = (*neighbor.rbegin()).second;
-            typename std::list<std::pair<ItemType, MeasureType> >::iterator iter = newValues.begin();
-            for(;iter != newValues.end(); ++iter)
+            if(neighbor.empty())
             {
-                if(iter->second >currLeast) neighbor.push_back(*iter);
+                typename std::list<std::pair<ItemType, MeasureType> >::iterator iter = newValues.begin();
+                for(;iter != newValues.end(); ++iter)
+                {
+                    neighbor.push_back(*iter);
+                }
+            }
+            else
+            {
+                MeasureType currLeast = (*neighbor.rbegin()).second;
+                typename std::list<std::pair<ItemType, MeasureType> >::iterator iter = newValues.begin();
+                for(;iter != newValues.end(); ++iter)
+                {
+                    if(iter->second >currLeast) neighbor.push_back(*iter);
+                }
             }
             std::sort(neighbor.begin(), neighbor.end(),similarityCompare<ItemType,MeasureType>);
             if(neighbor.size() > topK_)
