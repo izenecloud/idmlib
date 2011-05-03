@@ -79,7 +79,7 @@ struct MyItemRescorer : public ItemRescorer
 
     bool isFiltered(uint32_t itemId)
     {
-        return filterSet_.find(itemId) == filterSet_.end();
+        return filterSet_.find(itemId) != filterSet_.end();
     }
 
     std::set<uint32_t> filterSet_;
