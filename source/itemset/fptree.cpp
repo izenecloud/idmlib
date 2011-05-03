@@ -1,7 +1,11 @@
-#include <idmlib/fpm/fptree.h>
+#include <idmlib/itemset/fptree.h>
 #include <algorithm>
 #include <cstdlib>
 #include <cassert>
+
+//#define DEBUG 1
+
+namespace idmlib{
 
 int FPtree::min_sup = 5;
 
@@ -39,57 +43,35 @@ void FPtree::del_fptree( FPnode* par )
 }
 
 // the first record are items id
-void FPtree::get_attribs_head()
+void FPtree::init_attribs_head()
 {
-    string record;
-    getline( infile_,record );
     int i = 0;
-    // init freq items,id begin from 1 to item_num
     while ( i < item_num_ )
     {
-        Item it( ++i,0 );
+        Item it( ++i, 0);
         freq_items_.push_back( it );
     }
 }
 
 void FPtree::count_attribs()
 {
-    string record;
-
-    while ( getline( infile_,record ) )
+    int result;
+    uint32_t set_id;
+    std::vector<uint32_t> current_set;
+    while ((result = data_->Next(&set_id, &current_set)) > 0) 
     {
-        string::size_type idx = 0;
-        int count = 0;
-        list<Item>::iterator pos = freq_items_.begin();
-
-        while ( count < item_num_ && pos != freq_items_.end() )
+        for(std::vector<uint32_t>::iterator it = current_set.begin();
+              it != current_set.end(); ++it)
         {
-            switch ( record[idx] )
+            for(std::list<Item>::iterator itemIt = freq_items_.begin();
+               itemIt != freq_items_.end(); ++itemIt)
             {
-            case ',':
-                count++;
-                pos++;
-                break;
-            case '1':
-                pos->sup++; // update support
-                break;
-            default:
-                break;        // do nothing
+                if(itemIt->item_id == (int)*it)
+                    itemIt->sup++;
             }
-            idx++;
-        }
-
-        // validate format of this record
-        if ( count != item_num_ )
-        {
-            cerr<<"Wrong record:"<<record<<endl;
-            cerr<<"Actual count:"<<count<<endl;
-            exit(1);
         }
     }
-    // reset file stream
-    infile_.clear();
-    infile_.seekg( 0,ios::beg );
+    data_->Seek(0);
 }
 
 // compute wheather a sup below min_support
@@ -107,11 +89,11 @@ void FPtree::sort_and_filter()
 }
 
 // first scan transactions database
-// items are stored in member list freq_items_ in descending order by sup
+// items are stored in member std::list freq_items_ in descending order by sup
 void FPtree::find_freq_items()
 {
     // 1.record item's name
-    get_attribs_head();
+    init_attribs_head();
 
     // 2.count every item's support
     count_attribs();
@@ -121,19 +103,19 @@ void FPtree::find_freq_items()
 }
 
 // reorder item_ids corresponding to freq_items_
-queue<int> FPtree::order_by( list<int> item_ids,list<Item>& freq_items_ )
+std::queue<int> FPtree::order_by( std::vector<uint32_t> item_ids,std::list<Item>& freq_items )
 {
-    queue<int> ordered_item_ids;
-    for ( list<Item>::iterator pos = freq_items_.begin();
+    std::queue<int> ordered_item_ids;
+    for ( std::list<Item>::iterator pos = freq_items.begin();
             pos != freq_items_.end();
             pos++ )
     {
-        list<int>::iterator id = item_ids.begin();
+        std::vector<uint32_t>::iterator id = item_ids.begin();
         while ( id != item_ids.end() )
         {
-            if ( *id == pos->item_id )
+            if ( (int)*id == pos->item_id )
             {
-                ordered_item_ids.push( *id );
+                ordered_item_ids.push( (int)*id );
                 item_ids.erase( id );
                 break;
             }
@@ -146,34 +128,8 @@ queue<int> FPtree::order_by( list<int> item_ids,list<Item>& freq_items_ )
     return ordered_item_ids;
 }
 
-// refine frequent items in a record and order them by frequent items
-queue<int> FPtree::refine_items( string record )
-{
-    list<int> item_ids;
-    string::size_type idx = 0;
-    int count = 1;
-
-    while ( idx < record.length() )
-    {
-        switch ( record[idx] )
-        {
-        case ',':
-            count++;
-            break;
-        case '1':
-            item_ids.push_back( count );
-            break;
-        default:
-            break;        // do nothing
-        }
-        idx++;
-    }
-
-    return order_by( item_ids,freq_items_ );
-}
-
 // insert items under parent node--!main!
-void FPtree::insert_tree( queue<int>& item_ids,FPnode* parent )
+void FPtree::insert_tree( std::queue<int>& item_ids,FPnode* parent )
 {
     if ( item_ids.empty() )
     {
@@ -203,7 +159,7 @@ void FPtree::insert_tree( queue<int>& item_ids,FPnode* parent )
         }
         else
         {
-            // insert at the beginning of sibling list
+            // insert at the beginning of sibling std::list
             mynode->sibling = parent->first_child;
             parent->first_child = mynode;
         }
@@ -211,7 +167,7 @@ void FPtree::insert_tree( queue<int>& item_ids,FPnode* parent )
         cur = mynode;
 
         // update head table
-        list<Head>::iterator pos = head_table_.begin();
+        std::list<Head>::iterator pos = head_table_.begin();
 #ifdef DEBUG
         cout << "insert item:" << myid <<" parent:"<<parent->item_id<< endl;
 #endif
@@ -241,8 +197,8 @@ void FPtree::insert_tree( queue<int>& item_ids,FPnode* parent )
 #endif
     }
 
-    // because queue.front() returns a reference of the object,
-    // queue.pop recall the destructor of the object,
+    // because std::queue.front() returns a reference of the object,
+    // std::queue.pop recall the destructor of the object,
     // so it's best to pop at the end
     item_ids.pop();
     insert_tree( item_ids,cur );
@@ -255,10 +211,10 @@ void FPtree::create_fptree()
     cout<<endl<<"Create fptree..."<<endl;
 #endif
     root_ = new FPnode(0);
-    string record;
+    std::string record;
 
     // initialize head table
-    for ( list<Item>::iterator pos = freq_items_.begin();
+    for ( std::list<Item>::iterator pos = freq_items_.begin();
             pos != freq_items_.end();
             pos++ )
     {
@@ -269,7 +225,7 @@ void FPtree::create_fptree()
 
 #ifdef DEBUG
     cout<<"head table:"<<endl;
-    for ( list<Head>::iterator pos = head_table_.begin();
+    for ( std::list<Head>::iterator pos = head_table_.begin();
             pos != head_table_.end();
             pos++)
     {
@@ -278,18 +234,19 @@ void FPtree::create_fptree()
     cout<<endl;
 #endif
 
-    // discard the first line
-    getline( infile_,record );
-    while ( getline( infile_,record ) )
+    int result;
+    uint32_t set_id;
+    std::vector<uint32_t> current_set;
+    while ((result = data_->Next(&set_id, &current_set)) > 0) 
     {
 #ifdef DEBUG
         cout<<endl<<"treating record: "<<record<<endl;
 #endif
-        queue<int> item_ids = refine_items( record );
+        std::queue<int> item_ids = order_by( current_set,freq_items_ );
 
 #ifdef DEBUG
         cout<<"refine frequent items to be inserted:";
-        queue<int> tmp_ids = item_ids;
+        std::queue<int> tmp_ids = item_ids;
         while ( !tmp_ids.empty() )
         {
             cout<<tmp_ids.front()<<" ";
@@ -306,7 +263,7 @@ void FPtree::create_fptree()
 // traverse fp-tree upward from node link,and make a copy of the path
 // already copied,update the count,p is bottom node.
 // No root_ node,it is useless.
-void FPtree::project_path( FPnode* p,list<Head>& cheads )
+void FPtree::project_path( FPnode* p,std::list<Head>& cheads )
 {
 #ifdef DEBUG
     cout<<"project path for:"<<p->item_id<<endl;
@@ -336,7 +293,7 @@ void FPtree::project_path( FPnode* p,list<Head>& cheads )
             }
 
             // update info in condition head table
-            list<Head>::iterator pos = cheads.begin();
+            std::list<Head>::iterator pos = cheads.begin();
             while ( pos!=cheads.end() && pos->item_id != sha->item_id )
             {
                 pos++;
@@ -361,7 +318,7 @@ void FPtree::project_path( FPnode* p,list<Head>& cheads )
             p->parent->shadow->sup += p->sup;
 
             // update count info in condition head table
-            list<Head>::iterator pos = cheads.begin();
+            std::list<Head>::iterator pos = cheads.begin();
             while ( pos->item_id != p->parent->item_id )
             {
                 pos++;
@@ -384,7 +341,7 @@ void FPtree::project_path( FPnode* p,list<Head>& cheads )
 }
 
 // detach projected fp-tree from original fp-tree
-// p is the first node  in node link list
+// p is the first node  in node link std::list
 void FPtree::detach( FPnode* p )
 {
 #ifdef DEBUG
@@ -408,11 +365,11 @@ void FPtree::detach( FPnode* p )
 }
 
 // prune a condition fp-tree,prune nodes below min_sup
-void FPtree::prune( list<Head>& cheads )
+void FPtree::prune( std::list<Head>& cheads )
 {
 #ifdef DEBUG
     cout<< "prune projected fp-tree.Head table: ";
-    for ( list<Head>::iterator pos = cheads.begin();
+    for ( std::list<Head>::iterator pos = cheads.begin();
             pos != cheads.end();
             pos++)
     {
@@ -422,7 +379,7 @@ void FPtree::prune( list<Head>& cheads )
 #endif
     cheads.sort();
 
-    for ( list<Head>::iterator pos = cheads.begin();
+    for ( std::list<Head>::iterator pos = cheads.begin();
             pos != cheads.end();
         )
     {
@@ -435,7 +392,7 @@ void FPtree::prune( list<Head>& cheads )
                 FPnode* q = p;
                 p = p->node_link;
                 // find q's children,update their parent to q's parent
-                for ( list<Head>::iterator it = cheads.begin();
+                for ( std::list<Head>::iterator it = cheads.begin();
                         it != cheads.end();
                         ++it)
                 {
@@ -466,13 +423,13 @@ void FPtree::prune( list<Head>& cheads )
 }
 
 // create condition fptree for suffix recursively
-// p is point of the first node in node link list,cheads³õÊ¼Îª¿Õ
-void FPtree::create_condition_fptree( FPnode* p,list<Item>& suffix,list<Head>& cheads )
+// p is point of the first node in node link std::list,cheads is empty when initialized
+void FPtree::create_condition_fptree( FPnode* p,std::list<Item>& suffix,std::list<Head>& cheads )
 {
 #ifdef DEBUG
     cout<<endl<<"Create condition fp-tree for item:"<< p->item_id << "    ";
     cout<<"suffix: ";
-    for ( list<Item>::iterator pos = suffix.begin();
+    for ( std::list<Item>::iterator pos = suffix.begin();
             pos != suffix.end();
             pos++)
     {
@@ -481,7 +438,7 @@ void FPtree::create_condition_fptree( FPnode* p,list<Item>& suffix,list<Head>& c
     cout<<endl;
 #endif
 
-    FPnode*	q=p;
+    FPnode* q=p;
     while ( p != NULL )
     {
         project_path( p,cheads );
@@ -493,9 +450,9 @@ void FPtree::create_condition_fptree( FPnode* p,list<Item>& suffix,list<Head>& c
     prune( cheads );
 }
 
-bool FPtree::is_single_path( list<Head>& heads )
+bool FPtree::is_single_path( std::list<Head>& heads )
 {
-    for ( list<Head>::iterator pos = heads.begin();
+    for ( std::list<Head>::iterator pos = heads.begin();
             pos != heads.end();
             pos++)
     {
@@ -507,17 +464,17 @@ bool FPtree::is_single_path( list<Head>& heads )
 }
 
 // compute combination and output them to target file
-void FPtree::generate_rules( list<Head>& heads,list<Item>& suffix )
+void FPtree::generate_rules( std::list<Head>& heads,std::list<Item>& suffix )
 {
 #ifdef DEBUG
     cout<<"rule been generated: ";
-    for ( list<Head>::reverse_iterator pos = heads.rbegin();
+    for ( std::list<Head>::reverse_iterator pos = heads.rbegin();
             pos != heads.rend();
             pos++)
     {
         cout<<pos->item_id<<"("<< pos->sup<<")"<<" ";
     }
-    for ( list<Item>::iterator pos = suffix.begin();
+    for ( std::list<Item>::iterator pos = suffix.begin();
             pos != suffix.end();
             pos++)
     {
@@ -526,13 +483,13 @@ void FPtree::generate_rules( list<Head>& heads,list<Item>& suffix )
     cout<<endl;
 #endif
 
-    for ( list<Head>::reverse_iterator pos = heads.rbegin();
+    for ( std::list<Head>::reverse_iterator pos = heads.rbegin();
             pos != heads.rend();
             pos++)
     {
         out_<<pos->item_id<<"  ";
     }
-    for ( list<Item>::iterator pos = suffix.begin();
+    for ( std::list<Item>::iterator pos = suffix.begin();
             pos != suffix.end();
             pos++)
     {
@@ -542,11 +499,11 @@ void FPtree::generate_rules( list<Head>& heads,list<Item>& suffix )
 }
 
 // remove condition fp-tree
-void FPtree::clean_condition_fptree( list<Head>& heads )
+void FPtree::clean_condition_fptree( std::list<Head>& heads )
 {
 #ifdef DEBUG
     cout<<"clean condition fp-tree.Head table: ";
-    for ( list<Head>::iterator pos = heads.begin();
+    for ( std::list<Head>::iterator pos = heads.begin();
             pos != heads.end();
             pos++)
     {
@@ -554,7 +511,7 @@ void FPtree::clean_condition_fptree( list<Head>& heads )
     }
     cout<<endl;
 #endif
-    for ( list<Head>::iterator pos = heads.begin();
+    for ( std::list<Head>::iterator pos = heads.begin();
             pos != heads.end();
             pos++)
     {
@@ -570,11 +527,11 @@ void FPtree::clean_condition_fptree( list<Head>& heads )
 }
 
 // fp growth algorithm
-void FPtree::fp_growth( list<Head>& heads,list<Item>& suffix )
+void FPtree::fp_growth( std::list<Head>& heads,std::list<Item>& suffix )
 {
 #ifdef DEBUG
     cout<<endl<<"fp-growth at suffix: ";
-    for ( list<Item>::iterator pos = suffix.begin();
+    for ( std::list<Item>::iterator pos = suffix.begin();
             pos != suffix.end();
             pos++)
     {
@@ -582,7 +539,7 @@ void FPtree::fp_growth( list<Head>& heads,list<Item>& suffix )
     }
     cout<<endl;
     cout<<"Head table:";
-    for ( list<Head>::iterator pos = heads.begin();
+    for ( std::list<Head>::iterator pos = heads.begin();
             pos != heads.end();
             pos++)
     {
@@ -598,15 +555,15 @@ void FPtree::fp_growth( list<Head>& heads,list<Item>& suffix )
     else
     {
         // 1.treat nodes in head table one by one
-        for ( list<Head>::iterator pos = heads.begin();
+        for ( std::list<Head>::iterator pos = heads.begin();
                 pos != heads.end();
                 pos++)
         {
-            list<Item> con_suffix( suffix );
+            std::list<Item> con_suffix( suffix );
             Item it( pos->item_id,pos->sup );
             con_suffix.push_front( it );
 
-            list<Head> cheads;  // output parament,condition head table
+            std::list<Head> cheads;  // output parament,condition head table
             create_condition_fptree( pos->node_link,con_suffix,cheads );
             if ( !cheads.empty() )
             {
@@ -617,17 +574,17 @@ void FPtree::fp_growth( list<Head>& heads,list<Item>& suffix )
     clean_condition_fptree( heads );
 }
 
-void FPtree::run(const string& input_path, const string& output_path)
+void FPtree::run(const std::string& input_path, const std::string& output_path)
 {
     // 1. open records file
-    infile_.open( input_path.c_str() );
-    if ( !infile_ ) return;
-
+    data_ = DataSourceIterator::Get(input_path.c_str());
+    if (!data_)
+        return;
     // 2. find frequent items in records database
     find_freq_items();
 #ifdef DEBUG
     cout<<freq_items_.size()<<" freqent items:"<<endl;
-    for ( list<Item>::iterator pos = freq_items_.begin();
+    for ( std::list<Item>::iterator pos = freq_items_.begin();
             pos != freq_items_.end();
             pos++)
     {
@@ -639,10 +596,13 @@ void FPtree::run(const string& input_path, const string& output_path)
     // 3.create fp-tree
     create_fptree();
     ///FP-GROWTH
-    list<Item> suffix;
+    std::list<Item> suffix;
 
     // 4.use fp-growth to compute association rules and output to target file
 
     out_.open( output_path.c_str() );
     fp_growth( head_table_,suffix );
+    delete data_;
+}
+
 }
