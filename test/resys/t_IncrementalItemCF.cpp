@@ -51,6 +51,11 @@ struct MyItemIterator : public ItemIterator
         return now_++;
     }
 
+    void reset()
+    {
+        now_ = min_;
+    }
+
     const uint32_t min_;
     const uint32_t max_;
     uint32_t now_;
@@ -124,6 +129,7 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         newItems.push_back(3);
         newItems.push_back(4);
 
+        itemIterator.reset();
         cfManager.incrementalBuild(user2, oldItems, newItems, itemIterator);
 
         // it should recommend user2 with item 1
