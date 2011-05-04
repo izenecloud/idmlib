@@ -53,7 +53,7 @@ public:
 
     void getTopItems(
         int howMany,
-        std::vector<uint32_t>& itemIds,
+        const std::vector<uint32_t>& itemIds,
         std::list<RecommendedItem>& topItems,
         ItemRescorer* rescorer = NULL
     );
