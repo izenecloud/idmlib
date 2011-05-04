@@ -1,12 +1,15 @@
 /* FP tree is used to mine frequent itemsets
  * pre step:foucused items
  * input:<Tid,value>,value correspond to a focusd items (after combine)
- * output:frequent patterns list
+ * output:frequent patterns std::list
  * next step:to construct focused association rules with hash tree
  * @author:l0he1g & gmail.com
  */
-#ifndef FPTREE_H
-#define FPTREE_H
+#ifndef IDMLIB_ITEMSET_FPTREE_H
+#define IDMLIB_ITEMSET_FPTREE_H
+
+#include "data-source-iterator.h"
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -15,13 +18,15 @@
 #include <queue>
 using namespace std;
 
+namespace idmlib{
+
 // item readed from transaction file after preprocessed
 struct Item
 {
     int item_id;
     int sup;
     Item( int id,int i ):item_id(id),sup(i){}
-    // for list.sort()
+    // for std::list.sort()
     bool operator <(const Item& it)
     {
         return this->sup<it.sup?true:false;
@@ -65,43 +70,57 @@ class FPtree
 private:
     FPnode* root_;
     
-    list<Head> head_table_;    // ascending order by sup
-    list<Item> freq_items_;      // descending order by sup
+    std::list<Head> head_table_;    // ascending order by sup
+    std::list<Item> freq_items_;      // descending order by sup
 
     int item_num_;
 
-    ifstream infile_;
+    DataSourceIterator* data_;
+
     ofstream out_;
     
     void find_freq_items();     // impact on freq_items_
-    void get_attribs_head();
+
+    void init_attribs_head();  // init head table according to item_num_
+
     void count_attribs();
+
     void sort_and_filter();
 
     void create_fptree();
-    queue<int> refine_items( string record );
-    queue<int> order_by( list<int> item_ids,list<Item>& freq_items );
-    void insert_tree( queue<int>& item_ids,FPnode* parent );
+
+    std::queue<int> order_by( std::vector<uint32_t> item_ids, std::list<Item>& freq_items );
+
+    void insert_tree( std::queue<int>& item_ids,FPnode* parent );
     
-    void create_condition_fptree( FPnode* p,list<Item>& suffix,list<Head>& cheads );
-    void project_path( FPnode* p,list<Head>& head_table );
-    void prune( list<Head>& cheads );
+    void create_condition_fptree( FPnode* p,std::list<Item>& suffix,std::list<Head>& cheads );
+
+    void project_path( FPnode* p,std::list<Head>& head_table );
+
+    void prune( std::list<Head>& cheads );
+
     void detach( FPnode* p );
 
-    bool is_single_path( list<Head>& heads );
-    void generate_rules( list<Head>& heads,list<Item>& suffix );
-    void clean_condition_fptree( list<Head>& heads );
+    bool is_single_path( std::list<Head>& heads );
+
+    void generate_rules( std::list<Head>& heads,std::list<Item>& suffix );
+
+    void clean_condition_fptree( std::list<Head>& heads );
     
     void del_fptree( FPnode* par );
 public:
-    static int min_sup;                // min support value as frequent item
+    static int min_sup; // min support value as frequent item
 public:
     FPtree();    
+
     ~FPtree();
 
     void set_item_num(int item_num);
-    void fp_growth( list<Head>& heads,list<Item>& suffix );
-    void run(const string& input_path, const string& output_path);
+
+    void fp_growth( std::list<Head>& heads,std::list<Item>& suffix );
+
+    void run(const std::string& input_path, const std::string& output_path);
 };
 
+}
 #endif
