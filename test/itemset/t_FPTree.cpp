@@ -53,7 +53,9 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         fptree.set_item_num(maxItem);
         FPtree::min_sup = 100;
         createInput(maxItem, recordsNum, "fptree.vsd");
-        fptree.run("fptree.vsd", "result.txt");
+        DataSourceIterator* data = DataSourceIterator::Get("fptree.vsd");
+        fptree.run(data, "result.txt");
+        delete data;
     }
 }
 

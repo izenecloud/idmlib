@@ -574,12 +574,10 @@ void FPtree::fp_growth( std::list<Head>& heads,std::list<Item>& suffix )
     clean_condition_fptree( heads );
 }
 
-void FPtree::run(const std::string& input_path, const std::string& output_path)
+void FPtree::run(DataSourceIterator* data, const std::string& output_path)
 {
     // 1. open records file
-    data_ = DataSourceIterator::Get(input_path.c_str());
-    if (!data_)
-        return;
+    data_ = data;
     // 2. find frequent items in records database
     find_freq_items();
 #ifdef DEBUG
@@ -602,7 +600,6 @@ void FPtree::run(const std::string& input_path, const std::string& output_path)
 
     out_.open( output_path.c_str() );
     fp_growth( head_table_,suffix );
-    delete data_;
 }
 
 }

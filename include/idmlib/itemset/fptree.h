@@ -119,7 +119,7 @@ public:
 
     void fp_growth( std::list<Head>& heads,std::list<Item>& suffix );
 
-    void run(const std::string& input_path, const std::string& output_path);
+    void run(DataSourceIterator* data, const std::string& output_path);
 };
 
 }
