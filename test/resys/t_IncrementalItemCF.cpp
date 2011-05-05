@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         IncrementalItemCF cfManager(
             cfPathStr + "/covisit", 1000,
             cfPathStr + "/sim", 1000,
-            cfPathStr + "/nb", 30,
+            cfPathStr + "/nb.sdb", 30,
             cfPathStr + "/rec", 1000
         );
 
@@ -146,6 +146,31 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         BOOST_CHECK_EQUAL(topItems.size(), 2);
         BOOST_CHECK((topItems.front().itemId == 2 && topItems.back().itemId == 3)
                     || (topItems.front().itemId == 3 && topItems.back().itemId == 2));
+    }
+
+    {
+        IncrementalItemCF cfManager(
+            cfPathStr + "/covisit", 1000,
+            cfPathStr + "/sim", 1000,
+            cfPathStr + "/nb.sdb", 30,
+            cfPathStr + "/rec", 1000
+        );
+
+        // it should recommend user2 with item 1
+        uint32_t user2 = 2;
+        std::list<RecommendedItem> topItems;
+        cfManager.getTopItems(10, user2, topItems);
+        BOOST_CHECK_EQUAL(topItems.size(), 1);
+        BOOST_CHECK_EQUAL(topItems.front().itemId, 1);
+
+        // given item 1, it should recommend items 2, 3
+        topItems.clear();
+        std::vector<uint32_t> inputItemIds;
+        inputItemIds.push_back(1);
+        cfManager.getTopItems(10, inputItemIds, topItems);
+        BOOST_CHECK_EQUAL(topItems.size(), 2);
+        BOOST_CHECK((topItems.front().itemId == 2 && topItems.back().itemId == 3)
+                || (topItems.front().itemId == 3 && topItems.back().itemId == 2));
     }
 }
 

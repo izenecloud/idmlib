@@ -99,6 +99,7 @@ public:
         , topK_(topK)
         , max_item_(0)
     {
+        neighbor_store_.open();
         loadAllNeighbors();
     }
 
@@ -225,9 +226,15 @@ private:
         max_item_ = numItems;
         for(; iter != end; ++iter)
         {
+            ItemType itemId = iter->first;
+            if(itemId >= neighbors_.size())
+            {
+                neighbors_.resize(itemId+1);
+                max_item_ = itemId;
+            }
+
             ItemNeighborType& value = const_cast<ItemNeighborType&>(iter->second);
-            ItemNeighborType& neighbor = neighbors_[iter->first];
-            using std::swap;
+            ItemNeighborType& neighbor = neighbors_[itemId];
             neighbor.swap(value);
         }
     }
@@ -258,6 +265,7 @@ private:
             SimilarityQueueItem<MeasureType> item = queue.pop();
             neighbor.push_back(std::make_pair(item.itemId, item.similarity));
         }
+        neighbor_store_.update(itemId,neighbor);
     }
 
     boost::shared_ptr<HashType > 
