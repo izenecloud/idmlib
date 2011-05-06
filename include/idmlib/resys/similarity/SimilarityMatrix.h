@@ -170,11 +170,25 @@ public:
             }
             else
             {
-                MeasureType currLeast = (*neighbor.rbegin()).second;
                 typename std::list<std::pair<ItemType, MeasureType> >::iterator iter = newValues.begin();
                 for(;iter != newValues.end(); ++iter)
                 {
-                    if(iter->second >currLeast) neighbor.push_back(*iter);
+                    bool isFind = false;
+                    for(typename ItemNeighborType::iterator nbIt = neighbor.begin();
+                       nbIt != neighbor.end(); ++nbIt)
+                    {
+                        if (nbIt->first == iter->first)
+                        {
+                            nbIt->second = iter->second;
+                            isFind = true;
+                            break;
+                        }
+                    }
+
+                    if(isFind == false)
+                    {
+                        neighbor.push_back(*iter);
+                    }
                 }
             }
             std::sort(neighbor.begin(), neighbor.end(),similarityCompare<ItemType,MeasureType>);
