@@ -15,6 +15,8 @@
 #include <vector>
 #include <algorithm> // copy
 #include <iterator>
+#include <string>
+#include <sstream>
 
 using namespace std;
 using namespace boost;
@@ -27,6 +29,8 @@ namespace
 const char* TEST_DIR_STR = "cf";
 
 ostream_iterator<uint32_t> COUT_IT(cout, ", ");
+
+const uint32_t MAX_ITEM_ID = 10;
 
 struct MyItemIterator : public ItemIterator
 {
@@ -87,6 +91,120 @@ struct MyItemRescorer : public ItemRescorer
 
 }
 
+template <class OutputIterator>
+void splitItems(const char* inputStr, OutputIterator result)
+{
+    uint32_t itemId;
+    stringstream ss(inputStr);
+    while (ss >> itemId)
+    {
+        *result++ = itemId;
+    }
+}
+
+void checkPurchase(
+    IncrementalItemCF& cfManager,
+    uint32_t userId,
+    const char* oldItemStr,
+    const char* newItemStr
+)
+{
+    list<uint32_t> oldItems;
+    list<uint32_t> newItems;
+
+    splitItems(oldItemStr, back_insert_iterator< list<uint32_t> >(oldItems));
+    splitItems(newItemStr, back_insert_iterator< list<uint32_t> >(newItems));
+
+    cout << "=> purchase event, userId: " << userId << ", old items: ";
+    copy(oldItems.begin(), oldItems.end(), COUT_IT);
+    cout << ", new items: ";
+    copy(newItems.begin(), newItems.end(), COUT_IT);
+    cout << endl;
+
+    MyItemIterator itemIterator(1, MAX_ITEM_ID);
+
+    const std::size_t totalNum = oldItems.size() + newItems.size();
+    cfManager.incrementalBuild(userId, oldItems, newItems, itemIterator);
+    // now newItems is moved into oldItems 
+    BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
+    BOOST_CHECK_EQUAL(newItems.size(), 0);
+}
+
+/**
+ * it get recommended items for @p userId, and compare them with @p goldItemStr.
+ */
+void checkUserRecommend(
+    IncrementalItemCF& cfManager,
+    uint32_t userId,
+    const char* goldItemStr
+)
+{
+    // sort gold items
+    vector<uint32_t> goldResult;
+    splitItems(goldItemStr, back_insert_iterator< vector<uint32_t> >(goldResult));
+    sort(goldResult.begin(), goldResult.end());
+
+    // get recommend items
+    std::list<RecommendedItem> topItems;
+    cfManager.getTopItems(goldResult.size(), userId, topItems);
+
+    vector<uint32_t> result;
+    for (std::list<RecommendedItem>::const_iterator it = topItems.begin();
+        it != topItems.end(); ++it)
+    {
+        result.push_back(it->itemId);
+    }
+
+    cout << "\t<= recommend to user " << userId << " with items: ";
+    copy(result.begin(), result.end(), COUT_IT);
+    cout << endl;
+
+    // check recommend items
+    sort(result.begin(), result.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(),
+                                  goldResult.begin(), goldResult.end());
+}
+
+/**
+ * it get recommended items for @p inputItemStr, and compare them with @p goldItemStr.
+ */
+void checkItemRecommend(
+    IncrementalItemCF& cfManager,
+    const char* inputItemStr,
+    const char* goldItemStr
+)
+{
+    std::vector<uint32_t> inputItemIds;
+    splitItems(inputItemStr, back_insert_iterator< vector<uint32_t> >(inputItemIds));
+
+    // sort gold items
+    vector<uint32_t> goldResult;
+    splitItems(goldItemStr, back_insert_iterator< vector<uint32_t> >(goldResult));
+    sort(goldResult.begin(), goldResult.end());
+
+    // get recommend items
+    std::list<RecommendedItem> topItems;
+    cfManager.getTopItems(goldResult.size(), inputItemIds, topItems);
+
+    vector<uint32_t> result;
+    for (std::list<RecommendedItem>::const_iterator it = topItems.begin();
+        it != topItems.end(); ++it)
+    {
+        result.push_back(it->itemId);
+    }
+
+    cout << "\t<= given items ";
+    copy(inputItemIds.begin(), inputItemIds.end(), COUT_IT);
+    cout << "recommend other items: ";
+    copy(result.begin(), result.end(), COUT_IT);
+    cout << endl;
+
+    // check recommend items
+    sort(result.begin(), result.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(),
+                                  goldResult.begin(), goldResult.end());
+}
+
 BOOST_AUTO_TEST_SUITE(IncrementalItemCFTest)
 
 BOOST_AUTO_TEST_CASE(smokeTest)
@@ -106,46 +224,17 @@ BOOST_AUTO_TEST_CASE(smokeTest)
             cfPathStr + "/rec", 1000
         );
 
-        // user1 buys items 1, 2, 3
         uint32_t user1 = 1;
-        list<uint32_t> oldItems;
-        list<uint32_t> newItems;
-        newItems.push_back(1);
-        newItems.push_back(2);
-        newItems.push_back(3);
+        checkPurchase(cfManager, user1, "", "1 2 3");
 
-        const std::size_t totalNum = oldItems.size() + newItems.size();
-
-        cfManager.incrementalBuild(user1, oldItems, newItems, itemIterator);
-
-        // now newItems is moved into oldItems 
-        BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
-        BOOST_CHECK_EQUAL(newItems.size(), 0);
-
-        // user2 buys items 2, 3, 4
         uint32_t user2 = 2;
-        oldItems.clear();
-        newItems.push_back(2);
-        newItems.push_back(3);
-        newItems.push_back(4);
+        checkPurchase(cfManager, user2, "", "2 3 4");
+        checkUserRecommend(cfManager, user2, "1");
 
-        itemIterator.reset();
-        cfManager.incrementalBuild(user2, oldItems, newItems, itemIterator);
-
-        // it should recommend user2 with item 1
-        std::list<RecommendedItem> topItems;
-        cfManager.getTopItems(10, user2, topItems);
-        BOOST_CHECK_EQUAL(topItems.size(), 1);
-        BOOST_CHECK_EQUAL(topItems.front().itemId, 1);
-
-        // given item 1, it should recommend items 2, 3
-        topItems.clear();
-        std::vector<uint32_t> inputItemIds;
-        inputItemIds.push_back(1);
-        cfManager.getTopItems(10, inputItemIds, topItems);
-        BOOST_CHECK_EQUAL(topItems.size(), 2);
-        BOOST_CHECK((topItems.front().itemId == 2 && topItems.back().itemId == 3)
-                    || (topItems.front().itemId == 3 && topItems.back().itemId == 2));
+        checkItemRecommend(cfManager, "1", "2 3");
+        checkItemRecommend(cfManager, "2", "1 3 4");
+        checkItemRecommend(cfManager, "3", "1 2 4");
+        checkItemRecommend(cfManager, "4", "2 3");
     }
 
     {
@@ -158,19 +247,12 @@ BOOST_AUTO_TEST_CASE(smokeTest)
 
         // it should recommend user2 with item 1
         uint32_t user2 = 2;
-        std::list<RecommendedItem> topItems;
-        cfManager.getTopItems(10, user2, topItems);
-        BOOST_CHECK_EQUAL(topItems.size(), 1);
-        BOOST_CHECK_EQUAL(topItems.front().itemId, 1);
+        checkUserRecommend(cfManager, user2, "1");
 
-        // given item 1, it should recommend items 2, 3
-        topItems.clear();
-        std::vector<uint32_t> inputItemIds;
-        inputItemIds.push_back(1);
-        cfManager.getTopItems(10, inputItemIds, topItems);
-        BOOST_CHECK_EQUAL(topItems.size(), 2);
-        BOOST_CHECK((topItems.front().itemId == 2 && topItems.back().itemId == 3)
-                || (topItems.front().itemId == 3 && topItems.back().itemId == 2));
+        checkItemRecommend(cfManager, "1", "2 3");
+        checkItemRecommend(cfManager, "2", "1 3 4");
+        checkItemRecommend(cfManager, "3", "1 2 4");
+        checkItemRecommend(cfManager, "4", "2 3");
     }
 }
 

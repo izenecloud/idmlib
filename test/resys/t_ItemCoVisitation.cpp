@@ -31,43 +31,71 @@ ostream_iterator<ItemType> COUT_IT(cout, ", ");
 
 typedef ItemCoVisitation<CoVisitFreq> CoVisitManager;
 
-void printItems(const list<ItemType>& oldItems, const list<ItemType>& newItems)
+template <class OutputIterator>
+void splitItems(const char* inputStr, OutputIterator result)
 {
-    cout << "old items: ";
-    copy(oldItems.begin(), oldItems.end(), COUT_IT);
+    ItemType itemId;
+    stringstream ss(inputStr);
+    while (ss >> itemId)
+    {
+        *result++ = itemId;
+    }
+}
 
+void checkVisit(
+    CoVisitManager& coVisitManager,
+    uint32_t userId,
+    const char* oldItemStr,
+    const char* newItemStr
+)
+{
+    list<uint32_t> oldItems;
+    list<uint32_t> newItems;
+
+    splitItems(oldItemStr, back_insert_iterator< list<uint32_t> >(oldItems));
+    splitItems(newItemStr, back_insert_iterator< list<uint32_t> >(newItems));
+
+    cout << "=> visit event, userId: " << userId << ", old items: ";
+    copy(oldItems.begin(), oldItems.end(), COUT_IT);
     cout << ", new items: ";
     copy(newItems.begin(), newItems.end(), COUT_IT);
-
     cout << endl;
+
+    const std::size_t totalNum = oldItems.size() + newItems.size();
+    coVisitManager.visit(oldItems, newItems);
+    // now newItems is moved into oldItems 
+    BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
+    BOOST_CHECK_EQUAL(newItems.size(), 0);
 }
 
 /**
- * it get covisit items for @p inputItem,
- * and compare them with @p totalItems excluding @p inputItem.
- * @param coVisitManager the covisit manager
- * @param totalItems all the items visited by one user
- * @param inputItem the item used as input to get covisit items
+ * it get covisit items for the 1st item in @p inputItemStr,
+ * and compare them with @p goldItemStr.
  */
-void checkCoVisitResult(CoVisitManager& coVisitManager, const list<ItemType>& totalItems, ItemType inputItem)
+void checkCoVisitResult(
+    CoVisitManager& coVisitManager,
+    const char* inputItemStr,
+    const char* goldItemStr
+)
 {
-    // get other items
-    vector<ItemType> goldResult;
-    for (list<ItemType>::const_iterator it = totalItems.begin();
-        it != totalItems.end(); ++it)
+    std::vector<ItemType> inputItemIds;
+    splitItems(inputItemStr, back_insert_iterator< vector<ItemType> >(inputItemIds));
+    ItemType inputItem = 0;
+    if (! inputItemIds.empty())
     {
-        if (*it != inputItem)
-        {
-            goldResult.push_back(*it);
-        }
+        inputItem = inputItemIds.front();
     }
+
+    // sort gold items
+    vector<ItemType> goldResult;
+    splitItems(goldItemStr, back_insert_iterator< vector<ItemType> >(goldResult));
     sort(goldResult.begin(), goldResult.end());
 
     // get covisit items
     vector<ItemType> result;
-    coVisitManager.getCoVisitation(totalItems.size(), inputItem, result);
+    coVisitManager.getCoVisitation(goldResult.size(), inputItem, result);
 
-    cout << "covisit items for item " << inputItem << " is: ";
+    cout << "\t<= given item " << inputItem << ", recommend covisit items: ";
     copy(result.begin(), result.end(), COUT_IT);
     cout << endl;
 
@@ -85,57 +113,36 @@ BOOST_AUTO_TEST_CASE(smokeTest)
     boost::filesystem::remove_all(covisitPath);
     bfs::create_directories(covisitPath);
 
-    list<ItemType> oldItems;
-    list<ItemType> newItems;
-    newItems.push_back(1);
-    newItems.push_back(2);
-    newItems.push_back(3);
-
     {
         CoVisitManager coVisitManager(covisitPath.string());
 
-        printItems(oldItems, newItems);
-
-        const std::size_t totalNum = oldItems.size() + newItems.size();
-
-        // visit new items
-        coVisitManager.visit(oldItems, newItems);
-
-        // now newItems is moved into oldItems 
-        BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
-        BOOST_CHECK_EQUAL(newItems.size(), 0);
-
-        checkCoVisitResult(coVisitManager, oldItems, 1);
+        uint32_t user1 = 1;
+        checkVisit(coVisitManager, user1, "", "1 2 3");
+        checkCoVisitResult(coVisitManager, "1", "2 3");
+        checkCoVisitResult(coVisitManager, "2", "1 3");
+        checkCoVisitResult(coVisitManager, "3", "1 2");
     }
 
     {
         CoVisitManager coVisitManager(covisitPath.string());
-        checkCoVisitResult(coVisitManager, oldItems, 2);
 
-        newItems.push_back(4);
-        newItems.push_back(5);
-        newItems.push_back(6);
+        checkCoVisitResult(coVisitManager, "1", "2 3");
+        checkCoVisitResult(coVisitManager, "2", "1 3");
+        checkCoVisitResult(coVisitManager, "3", "1 2");
 
-        printItems(oldItems, newItems);
+        uint32_t user2 = 2;
+        checkVisit(coVisitManager, user2, "", "4 5 6");
+        checkCoVisitResult(coVisitManager, "4", "5 6");
+        checkCoVisitResult(coVisitManager, "5", "4 6");
+        checkCoVisitResult(coVisitManager, "6", "4 5");
 
-        coVisitManager.visit(oldItems, newItems);
-        checkCoVisitResult(coVisitManager, oldItems, 5);
-
-        list<ItemType> oldItems2;
-        list<ItemType> newItems2;
-        newItems2.push_back(7);
-        newItems2.push_back(8);
-        newItems2.push_back(9);
-        oldItems.insert(oldItems.end(), newItems2.begin(), newItems2.end());
-
-        newItems2.push_back(2);
-        newItems2.push_back(5);
-
-        printItems(oldItems2, newItems2);
-
-        coVisitManager.visit(oldItems2, newItems2);
-        checkCoVisitResult(coVisitManager, oldItems2, 8);
-        checkCoVisitResult(coVisitManager, oldItems, 2);
+        uint32_t user3 = 3;
+        checkVisit(coVisitManager, user3, "", "2 5 7 8 9");
+        checkCoVisitResult(coVisitManager, "2", "1 3 5 7 8 9");
+        checkCoVisitResult(coVisitManager, "5", "2 4 6 7 8 9");
+        checkCoVisitResult(coVisitManager, "7", "2 5 8 9");
+        checkCoVisitResult(coVisitManager, "8", "2 5 7 9");
+        checkCoVisitResult(coVisitManager, "9", "2 5 7 8");
     }
 }
 
