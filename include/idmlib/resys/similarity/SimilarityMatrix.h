@@ -55,7 +55,7 @@ protected:
 };
 
 template<typename ItemType,typename MeasureType>
-bool similarityCompare (std::pair<ItemType,MeasureType> p1,std::pair<ItemType,MeasureType> p2)
+bool similarityCompare (const std::pair<ItemType,MeasureType>& p1, const std::pair<ItemType,MeasureType>& p2)
 {
     return (p1.second > p2.second);
 }
@@ -272,12 +272,12 @@ private:
             max_item_ = itemId;
         }
         ItemNeighborType& neighbor = neighbors_[itemId];
-        size_t count = queue.size();
-        neighbor.reserve(count);
-        for(size_t i = 0; i < count; ++i)
+        neighbor.resize(queue.size());
+        for(typename ItemNeighborType::reverse_iterator rit = neighbor.rbegin(); rit != neighbor.rend(); ++rit)
         {
             SimilarityQueueItem<MeasureType> item = queue.pop();
-            neighbor.push_back(std::make_pair(item.itemId, item.similarity));
+            rit->first = item.itemId;
+            rit->second = item.similarity;
         }
         neighbor_store_.update(itemId,neighbor);
     }
