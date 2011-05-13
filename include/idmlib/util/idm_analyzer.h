@@ -66,20 +66,45 @@ class IDMAnalyzer
     stemmer_->init(la::stem::STEM_LANG_ENGLISH);
   }
   
-  IDMAnalyzer(const std::string& cma_res_path, la::ChineseAnalyzer::ChineseAnalysisType ca_type)
+  IDMAnalyzer(const std::string& kma_resource_path, const std::string& cma_res_path)
   :la_(new la::LA() ), simpler_set_(false)
   {
-	boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer( new la::MultiLanguageAnalyzer() );
-
-	boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, false) );
-	la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
-	if ( pch != NULL ) {
-		pch->setExtractSpecialChar(true, true);
-		pch->setAnalysisType( ca_type /*la::ChineseAnalyzer::minimum_match_no_overlap*/);
-	}
-	ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
-	ml_analyzer->setDefaultAnalyzer( ch_analyzer );
-	la_->setAnalyzer(ml_analyzer);
+    boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
+    ml_analyzer->setExtractSpecialChar(false, false);
+    boost::shared_ptr<la::Analyzer> korean_analyzer(new la::KoreanAnalyzer( kma_resource_path ) );
+    la::KoreanAnalyzer* p_korean_analyzer = static_cast<la::KoreanAnalyzer*>(korean_analyzer.get());
+    p_korean_analyzer->setLabelMode();
+//     p_korean_analyzer->setNBest(1);
+    p_korean_analyzer->setExtractEngStem( false );
+    p_korean_analyzer->setExtractSynonym(false);
+    p_korean_analyzer->setCaseSensitive(true, false);
+    ml_analyzer->setDefaultAnalyzer( korean_analyzer );
+    boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, false) );
+    la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
+    pch->setAnalysisType(la::ChineseAnalyzer::minimum_match_no_overlap);
+    pch->setLabelMode();
+    ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
+    la_->setAnalyzer( ml_analyzer );
+    stemmer_ = new la::stem::Stemmer();
+    stemmer_->init(la::stem::STEM_LANG_ENGLISH);
+      
+  }
+  
+  IDMAnalyzer(const std::string& cma_res_path, la::ChineseAnalyzer::ChineseAnalysisType ca_type)
+  :la_(new la::LA()), stemmer_(NULL), simpler_set_(false)
+  {
+    boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer( new la::MultiLanguageAnalyzer() );
+    ml_analyzer->setExtractSpecialChar(false, false);
+    boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, true) );
+    la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
+    if ( pch != NULL ) {
+        pch->setExtractSpecialChar(false, false);
+        pch->setAnalysisType( ca_type /*la::ChineseAnalyzer::minimum_match_no_overlap*/);
+        pch->setLabelMode();
+    }
+    ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
+    ml_analyzer->setDefaultAnalyzer( ch_analyzer );
+    la_->setAnalyzer(ml_analyzer);
   }
 
   ~IDMAnalyzer()
