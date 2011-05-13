@@ -15,6 +15,7 @@
 #include <la/util/UStringUtil.h>
 #include <idmlib/idm_types.h>
 #include <idmlib/util/resource_util.h>
+#include <ir/index_manager/index/LAInput.h>
 #include <boost/algorithm/string/trim.hpp>
 #include "idm_id_converter.h"
 #include "idm_term.h"
@@ -110,6 +111,7 @@ class IDMAnalyzer
   ~IDMAnalyzer()
   {
     delete la_;
+    delete stemmer_;
   }
   
   void ExtractSpecialChar(bool extractSpecialChar, bool convertToPlaceHolder)
@@ -147,6 +149,13 @@ class IDMAnalyzer
     return LoadSimplerFile(file);
   }
   
+  template<typename IDManagerType>
+  void GetTermIdList(IDManagerType* idm, const izenelib::util::UString& inputString, TermIdList& outList)
+  {
+	  boost::mutex::scoped_lock lock(la_mtx_);
+	  la_->process( idm, inputString, outList );
+  }
+
   void GetTermList(const izenelib::util::UString& utext, la::TermList& term_list, bool convert = true)
   {
     izenelib::util::UString text(utext);

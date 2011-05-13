@@ -29,25 +29,80 @@ int main(int argc, char** argv)
 	string laResPath;  // LA (CMA) resource path
 	string colBasePath; // collection of documents to perform doc-similarity computing
 	string colsspPath; // collection document vectors pre-processing
-	count_t maxDoc; // max number of documents to be processed
+	string docSimPath; // document similarity index path
+	weight_t thresholdSim = 0.0001; // similarity threshold value
+	uint32_t maxDoc = MAX_DOC_ID; // max number of documents to be processed
+	bool rebuild = false;
 
-	// Explicit semantic interpreter initialized with wiki knowledge
-	boost::shared_ptr<SemanticSpace> pWikiESSpace(new ExplicitSemanticSpace(esasspPath));
-	boost::shared_ptr<SemanticInterpreter> pESInter(new ExplicitSemanticInterpreter(pWikiESSpace));
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,H", "produce help message")
+		("esa-res-path,E", po::value<std::string>(&esasspPath), "resource data (Wiki) directory for explicit semantic analysis.")
+		("la-res-path,L", po::value<std::string>(&laResPath), "LA(CMA) resource path.")
+		("col-base-path,C", po::value<std::string>(&colBasePath), "collection to be processed.")
+		("col-ssp-path,S", po::value<std::string>(&colsspPath), "collection semantic space data path.")
+		("doc-sim-path,D", po::value<std::string>(&docSimPath), "document similarity index path.")
+		("threshold-sim,T", po::value<weight_t>(&thresholdSim), "similarity threshold value.")
+		("max-doc,M", po::value<uint32_t>(&maxDoc), "max doc count that will be processed.")
+		("rebuild-ssp-data,R", po::value<std::string>(), "whether rebuild collection s space data.")
+	;
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc, argv, desc), vm);
+	po::notify(vm);
 
-	// pre-process for collection data
-	boost::shared_ptr<SemanticSpace> pDocVecSpace(new DocumentVectorSpace(colsspPath));
-	boost::shared_ptr<SemanticSpaceBuilder> pCollectionBuilder(new SemanticSpaceBuilder(pDocVecSpace, laResPath, colBasePath, maxDoc));
-	pCollectionBuilder->Build();
+	if (vm.count("help")) {
+		std::cout << desc << std::endl;
+		return 0;
+	}
+	if (vm.empty()) {
+		std::cout << desc << std::endl<< std::endl;
+	}
 
-	// for docVec in collection
-	//     interVec = interpret(docVec)
-	//     addtoInvertedIndex(interVec) //
+	if (esasspPath.empty()) {
+		esasspPath = "./esa_cnwiki_all";
+	}
+	cout << "esa-res-path: " <<  esasspPath << endl;
+	if (laResPath.empty()) {
+		laResPath = "/home/zhongxia/codebase/icma/db/icwb/utf8";
+	}
+	cout << "la-res-path: " <<  laResPath << endl;
+	if (colBasePath.empty()) {
+		colBasePath = "/home/zhongxia/codebase/sf1-revolution-dev/bin/collection/chinese-wiki-test";
+	}
+	cout << "col-base-path: " <<  colBasePath << endl;
+	if (colsspPath.empty()) {
+		colsspPath = "./ssp_col";
+	}
+	cout << "col-ssp-pathh: " <<  colsspPath << endl;
+	if (docSimPath.empty()) {
+		docSimPath = "./doc_sim";
+	}
+	cout << "doc-sim-path: " <<  docSimPath << endl;
 
+	std::cout << "threshold-sim: " << thresholdSim << endl;
+	std::cout << "max-doc: " << maxDoc << endl;
 
-	//DocumentSimilarity DocSim(esasspPath, colPath, pSemInter);
-	//DocSim.Compute();
-	//DocSim.ComputeAll(pDocVecSpace);
+	if (vm.count("rebuild-ssp-data")) {
+	    if (vm["rebuild-ssp-data"].as<std::string>() == "true" || vm["rebuild-ssp-data"].as<std::string>() == "t") {
+	        rebuild = true;
+	    }
+	}
+	std::cout << "rebuild (reprocess collection data): " << rebuild << endl;
+
+	// Mining manager ?
+
+	DocumentSimilarity DocSimilarity(
+			esasspPath, // esa resource(wiki) path
+			laResPath,  // la resource(cma) path
+			colBasePath, // collection base path, documents set  ==> using index data ?
+			colsspPath, // collection data processing path
+			docSimPath,  // data path for document similarity index
+			thresholdSim, // similarity threshold value
+			maxDoc,      // max documents of collection to be processed
+			rebuild // if rebuild collection ssp
+			);
+
+	DocSimilarity.DoSim();
 
 	return 0;
 }

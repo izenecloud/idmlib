@@ -58,27 +58,27 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
 
   MACRO_SET_BUILD_TYPES(
     RelWithDebInfo
-    "-O2 -g"
+    "-O2 -g -Wno-deprecated"
     "Flags used by the compiler during Release with Debug Info builds."
 
     Release
-    "-O3 -DNDEBUG"
+    "-O3 -DNDEBUG -Wno-deprecated"
     "Flags used by the compiler during release builds"
 
     MinSizeRel
-    "-Os -DNDEBUG"
+    "-Os -DNDEBUG -Wno-deprecated"
     "Flags used by the compiler during release minsize builds."
 
     Debug
-    "-g -O0 -fno-reorder-blocks -fno-schedule-insns -fno-inline"
+    "-g -O0 -fno-reorder-blocks -fno-schedule-insns -fno-inline -Wno-deprecated"
     "Flags used by the compiler during debug builds."
 
     DebugFull
-    "-g3 -fno-inline"
+    "-g3 -fno-inline -Wno-deprecated"
     "Debugfull build type"
 
     Profile
-    "-g -O0 -fno-inline -ftest-coverage -fprofile-arcs"
+    "-g -O0 -fno-inline -ftest-coverage -fprofile-arcs -Wno-deprecated"
     "Profile build type"
     )
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)

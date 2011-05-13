@@ -28,6 +28,8 @@
 
 using namespace boost::filesystem;
 using namespace izenelib::ir::idmanager;
+using namespace idmlib::util;
+
 
 NS_IDMLIB_SSP_BEGIN
 
@@ -52,16 +54,18 @@ public:
 		scdPath_ = colBasePath_ + "/scd/index";
 		colDataPath_ = colBasePath_ + "/collection-data/default-collection-dir";
 
-		pIdManager_ = createIdManager();
+		createIdManager(pIdManager_);
 		if (!pIdManager_) {
-			DLOG(WARNING) << "Failed to create IdManager!" << std::endl;
+			DLOG(ERROR) << "Failed to create IdManager!" << std::endl;
 		}
+		BOOST_ASSERT(pIdManager_);
 
 		pIdmAnalyzer_.reset(
 				new idmlib::util::IDMAnalyzer(
 						laResPath,
 						la::ChineseAnalyzer::minimum_match_no_overlap)
 		);
+		BOOST_ASSERT(pIdmAnalyzer_);
 	}
 
 	virtual ~SemanticSpaceBuilder()
@@ -76,24 +80,67 @@ public:
 		return pSSpace_;
 	}
 
-	bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
+	//bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
 
-private:
-	boost::shared_ptr<IDManager> createIdManager()
+	bool getDocTermIdList(const izenelib::util::UString& ustrDoc, TermIdList& termIdList, IdmTermList& termList = NULLTermList)
 	{
-	    std::string dir = colDataPath_ + "/id/";
-	    //boost::filesystem::create_directories(dir);
-	    // check dir
-	    boost::shared_ptr<IDManager> pIdManager( new IDManager(dir) );
+#ifdef SSP_TIME_CHECKER
+	    idmlib::util::TimeChecker timer("SemanticSpaceBuilder::getDocTermIdList");
+#endif
 
-	    return pIdManager;
+#ifndef SSP_BUIDER_TEST
+		// better performance
+		// termIdList.clear();
+		pIdmAnalyzer_->GetTermIdList(pIdManager_.get(), ustrDoc, termIdList);
+
+//		for (TermIdList::iterator iter = termIdList.begin(); iter != termIdList.end(); iter ++)
+//		{
+//			cout << "(" << iter->termid_ << ") " << endl;
+//		}
+//		cout << " ---- term count: " << termIdList.size() << endl;
+
+#else
+		termList_.clear();
+		pIdmAnalyzer_->GetTermList(ustrDoc, termList_, false);
+
+		//termList.clear();
+		termid_t termid;
+		for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
+		{
+			pIdManager_->getTermIdByTermString(iter->text_, termid);
+			termIdList.add(termid, iter->wordOffset_);
+
+			termList.insert(make_pair(termid, iter->textString()));
+
+//			cout << la::to_utf8(iter->text_) << "(" << termid << ") " << endl; //
+		}
+//		cout << "[SemanticSpaceBuilder::getDocTermIdList] finished --- term count: " << termList_.size() << endl;
+#endif
+		return true;
+	}
+
+	bool getTermStringById(termid_t& termId, izenelib::util::UString& termStr)
+	{
+	    return pIdManager_->getTermStringByTermId(termId, termStr);
 	}
 
 private:
+	bool createIdManager(boost::shared_ptr<IDManager>& pIdManager)
+	{
+	    std::string dir = colDataPath_ + "/id/";
+	    if (!exists(dir)) {
+	    	return false;
+	    }
+
+	    pIdManager.reset( new IDManager(dir) );
+	    return true;
+	}
+
+public:
 	/**
 	 * @brief get scd files in current directory
 	 */
-	bool getScdFileList(const std::string& scdDir, std::vector<std::string>& fileList);
+	static bool getScdFileList(const std::string& scdDir, std::vector<std::string>& fileList);
 
 	/**
 	 * @brief normalize file path string
@@ -135,7 +182,7 @@ protected:
 	// LA
 	boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer_;
 	// id
-	boost::shared_ptr<IDManager > pIdManager_;
+	boost::shared_ptr<IDManager> pIdManager_;
 };
 
 //class KpeSemanticSpaceBuilder : public SemanticSpaceBuilder
