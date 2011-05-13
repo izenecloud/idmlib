@@ -57,7 +57,7 @@ public:
 	 */
 	void InertDocument(docid_t& docid, interpretation_vector_type& interDocVec)
 	{
-#ifdef SSP_BUIDER_TEST
+#ifdef SSP_TIME_CHECKER
 		idmlib::util::TimeChecker timer("DocumentSimilarityIndex::InertDocument");
 #endif
 		basicInvertedIndexJoin_(docid, interDocVec);

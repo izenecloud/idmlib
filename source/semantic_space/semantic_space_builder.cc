@@ -1,6 +1,11 @@
 #include <idmlib/semantic_space/semantic_space_builder.h>
 
+#include <ir/index_manager/index/IndexerDocument.h>
+#include <ir/index_manager/index/IndexReader.h>
+
 using namespace idmlib::ssp;
+using namespace izenelib::util;
+using namespace izenelib::ir::indexmanager;
 
 bool SemanticSpaceBuilder::Build()
 {
@@ -104,33 +109,106 @@ bool SemanticSpaceBuilder::Build()
 	return true;
 }
 
+bool SemanticSpaceBuilder::BuildWikiSource()
+{
+    std::vector<std::string> scdFileList;
+    if (!getScdFileList(scdPath_, scdFileList)) {
+        return false;
+    }
+
+    // parsing all SCD files
+    for (size_t i = 0; i < scdFileList.size(); i++)
+    {
+        std::string scdFile = scdFileList[i];
+        izenelib::util::ScdParser scdParser(encoding_);
+        if(!scdParser.load(scdFile) )
+        {
+          DLOG(WARNING) << "Load scd file failed: " << scdFile << std::endl;
+          return false;
+        }
+
+        /// test
+        std::vector<izenelib::util::UString> list;
+        scdParser.getDocIdList(list);
+        size_t totalDocNum = list.size();
+        size_t curDocNum = 0;
+        size_t indexDocNum = 0;
+
+        // parse SCD
+        izenelib::util::ScdParser::iterator iter = scdParser.begin();
+        for ( ; iter != scdParser.end(); iter ++)
+        {
+            SCDDocPtr pDoc = *iter;
+            IndexerDocument indexDocument;
+
+            bool ret = prepareDocument_(pDoc, indexDocument);
+
+            if ( !ret)
+                continue;
+
+            pIndexer_->insertDocument(indexDocument);
+
+            curDocNum ++;
+            indexDocNum = pIndexer_->getIndexReader()->numDocs();
+
+            if (curDocNum % 1000 == 0) {
+                DLOG(INFO) << "["<<scdFile<<"] processing: " << curDocNum<<" = "<<indexDocNum<<" / total: "<<totalDocNum
+                           << " - "<< curDocNum*100.0f / totalDocNum << "%" << endl;
+            }
+        }
+    }
+
+    return true;
+}
+
 /// Private ////////////////////////////////////////////////////////////////////
 
-//bool SemanticSpaceBuilder::getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec)
-//{
-//	//termIdList_.clear();
-//	//pLA_->process(pIdManager_.get(), ustrDoc, termIdList_);
-//
-//	termList_.clear();
-//	//pLA_->process(ustrDoc, termList_);
-//	pIdmAnalyzer_->GetTermList(ustrDoc, termList_, false);
-//
-//	termid_t termid;
-//	for ( la::TermList::iterator iter = termList_.begin(); iter != termList_.end(); iter++ )
-//	{
-//		//if ( filter(iter->text_) )
-//		//	continue;
-//
-//		boost::shared_ptr<sTermUnit> pTerm(new sTermUnit());
-//		pIdManager_->getTermIdByTermString(iter->text_, termid);
-//		pTerm->termid = termid;
-//		termVec.push_back(pTerm);
-//
-//		//cout << iter->textString()  << "(" << termid << ") "; //
-//	}
-//
-//	return true;
-//}
+bool SemanticSpaceBuilder::prepareDocument_(SCDDocPtr& pDoc, IndexerDocument& indexDocument)
+{
+    docid_t docId = 0;
+
+    doc_properties_iterator proIter;
+    for (proIter = pDoc->begin(); proIter != pDoc->end(); proIter ++)
+    {
+        izenelib::util::UString propertyName = proIter->first;
+        const izenelib::util::UString & propertyValue = proIter->second;
+        propertyName.toLowerString();
+
+        IndexerPropertyConfig indexerPropertyConfig; // see setIndexConfig()
+
+        if (propertyName == izenelib::util::UString("docid", encoding_))
+        {
+            bool ret = pIdManager_->getDocIdByDocName(propertyValue, docId, false);
+            if (ret) /*exist*/;
+            indexDocument.setDocId(docId, 1);
+            continue;
+        }
+        else if ( propertyName == izenelib::util::UString("title", encoding_) ) {
+            indexerPropertyConfig.setPropertyId(3);
+            indexerPropertyConfig.setName("Title");
+        }
+        else if ( propertyName == izenelib::util::UString("content", encoding_)) {
+            indexerPropertyConfig.setPropertyId(4);
+            indexerPropertyConfig.setName("Content");
+        }
+        else {
+            continue;
+        }
+
+        // "Title" or "Content"
+        indexerPropertyConfig.setIsIndex(true);
+        indexerPropertyConfig.setIsAnalyzed(true);
+        indexerPropertyConfig.setIsFilter(false);
+        indexerPropertyConfig.setIsMultiValue(false);
+        indexerPropertyConfig.setIsStoreDocLen(true);
+
+        laInput_->resize(0);
+        getDocTermIdList(propertyValue, *laInput_);
+        indexDocument.insertProperty(indexerPropertyConfig, laInput_);
+    }
+
+    return true;
+}
 
 bool SemanticSpaceBuilder::getScdFileList(const std::string& scdDir, std::vector<std::string>& fileList)
 {

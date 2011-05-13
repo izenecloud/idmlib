@@ -6,10 +6,13 @@
 #include <idmlib/similarity/simple_similarity.h>
 #include <la/util/UStringUtil.h>
 #include <ir/id_manager/IDManager.h>
+#include <ir/index_manager/index/IndexReader.h>
+#include <ir/index_manager/index/Indexer.h>
 
 using namespace idmlib::ssp;
 using namespace idmlib::sim;
 using namespace idmlib::util;
+using namespace izenelib::ir::indexmanager;
 
 void DocumentSimilarity::DoSim()
 {
@@ -82,6 +85,14 @@ void DocumentSimilarity::DoSim()
 	pDocSimIndex_->FinishInert();
 
 	DLOG(INFO) << "End document similarity." << endl;
+}
+
+void DocumentSimilarity::computeSimilarity()
+{
+    izenelib::util::UString udoc("上海市打浦路越江隧道 建成于1970年，位于市区西南角，以货运为主。隧道西双车道，全长2761m。", izenelib::util::UString::UTF_8);
+
+    std::vector<weight_t> interVector;
+    pEsaInterpreter_->interpret(udoc, interVector);
 }
 
 

@@ -46,6 +46,8 @@ public:
 	 * @param colsspPath  Collection data processing path
 	 * @param docSimPath  Document similarity index path
 	 * @param maxDoc      Max documents of collection to be processed
+	 *
+	 * @deprecated the performance of SemanticSpace with db storage is low.
 	 */
 	DocumentSimilarity(
 			const std::string& esasspPath,
@@ -87,9 +89,29 @@ public:
 #ifdef DOCSIM_TEST
 		pDocVecSpace_->Print();
 #endif
+
 		// similarity index
 		pDocSimIndex_.reset(new DocumentSimilarityIndex(docSimPath, thresholdSim));
+
+
 	}
+
+    DocumentSimilarity(
+            const std::string& wikiIndexDir,
+            const std::string& laResPath,
+            const std::string& colBasePath,
+            const std::string& docSimPath,
+            weight_t thresholdSim,
+            const count_t& maxDoc
+            )
+    : colFileUtil_(new idmlib::util::CollectionFileUtil(colBasePath))
+    {
+        // xxx
+        string indexDir = "./wiki/index";
+        pWikiIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(indexDir);
+        pEsaInterpreter_.reset(new SemanticInterpreter(pWikiIndexer_, laResPath, colBasePath));
+    }
+
 
 	~DocumentSimilarity()
 	{
@@ -99,64 +121,19 @@ public:
 
 	void DoSim();
 
+	void computeSimilarity();
+
 
 private:
 	boost::shared_ptr<SemanticInterpreter> pEsaInterpreter_;
-	boost::shared_ptr<SemanticSpace> pDocVecSpace_; // processed collection data
+	boost::shared_ptr<Indexer> pWikiIndexer_;
+
+	boost::shared_ptr<SemanticSpace> pDocVecSpace_; // processed collection data, xxx
 
 	boost::shared_ptr<DocumentSimilarityIndex> pDocSimIndex_;
 
-
-#if TO_DEL
-
-	/**
-	 * @brief Compute similarity for all pair of documents & build index
-	 */
-
-	bool Compute();
-
-	/**
-	 * @breif Build Interpretation Vectors for all documents in the collection
-	 */
-	bool buildInterpretationVectors();
-
-	/**
-	 * @breif Compute similarities between all pairs of documents.
-	 */
-	bool computeSimilarities();
-
-	bool GetSimDocIdList(
-			uint32_t docId,
-			uint32_t maxNum,
-			std::vector<std::pair<uint32_t, float> >& result);
-
-private:
-	bool getScdFileListInDir(const std::string& scdDir, std::vector<std::string>& fileList);
-
-#endif
-
-private:
 	boost::shared_ptr<idmlib::util::CollectionFileUtil> colFileUtil_;
 
-#if TO_DEL
-	std::string colBasePath_;
-	std::string scdPath_;
-	izenelib::util::UString::EncodingType encoding_;
-	boost::shared_ptr<DocumentVectorSpace> pDocVecSpace_;
-
-	///
-	boost::shared_ptr<SemanticInterpreter> pSSPInter_;
-	boost::shared_ptr<IDManager > pIdManager_;
-
-	typedef std::map<termid_t, count_t> termid_df_map;
-	termid_df_map termid2DF_;
-
-	typedef std::vector< std::vector<weight_t> > docIVecsT;
-	docIVecsT docIVecs_;
-
-	///:~ docid_index_map docid2Index_;
-	///
-#endif
 };
 
 NS_IDMLIB_SIM_END

@@ -91,6 +91,7 @@ int main(int argc, char** argv)
 
 	// Mining manager ?
 
+	/* deprecated
 	DocumentSimilarity DocSimilarity(
 			esasspPath, // esa resource(wiki) path
 			laResPath,  // la resource(cma) path
@@ -101,8 +102,17 @@ int main(int argc, char** argv)
 			maxDoc,      // max documents of collection to be processed
 			rebuild // if rebuild collection ssp
 			);
+	DocSimilarity.DoSim(); */
 
-	DocSimilarity.DoSim();
+    DocumentSimilarity DocSimilarity(
+            esasspPath, // esa resource(wiki index) path
+            laResPath,  // la resource(cma) path
+            colBasePath, // collection base path, documents set  ==> using index data
+            docSimPath,  // data path for document similarity index
+            thresholdSim, // similarity threshold value
+            maxDoc      // max documents of collection to be processed
+            );
+	DocSimilarity.computeSimilarity();
 
 	return 0;
 }

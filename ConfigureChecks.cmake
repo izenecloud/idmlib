@@ -6,12 +6,13 @@
 #####
 FIND_PACKAGE(izenelib REQUIRED
   COMPONENTS
+  index_manager
   febird
   am
   izene_util
   procmeminfo
   izene_log
-  beansdb
+  beansdb  
   )
   
 FIND_PACKAGE(wisekma REQUIRED)

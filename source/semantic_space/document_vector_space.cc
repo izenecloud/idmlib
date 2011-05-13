@@ -67,7 +67,7 @@ bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, TermIdList& termIdLi
 	index_t doc_index = docid;
 	index_t term_index;
 	weight_t tf;
-	weight_t wegt; // df, idf, tf*idf
+	weight_t wegt=0; // df, idf, tf*idf
 	count_t doc_length = termIdList.size();
 	term_doc_tf_map::iterator dtfIter = termid2doctf.begin();
 	for (; dtfIter != termid2doctf.end(); dtfIter++)
@@ -100,6 +100,7 @@ bool DocumentVectorSpace::doDocumentProcess(docid_t& docid, TermIdList& termIdLi
                 << " wegt:" << dtfIter->second / doc_length * idf << ") " << endl;
 	}
 #endif
+	return true;
 }
 
 void DocumentVectorSpace::calcWeight()
@@ -113,7 +114,7 @@ void DocumentVectorSpace::calcWeight()
 		term_sp_vector representDocVec;
 		pDocRepVectors_->GetVector(docid, representDocVec);
 		weight_t idf;
-		weight_t weight;
+		//weight_t weight;
 
 		term_sp_vector::ValueType::iterator termIter = representDocVec.value.begin();
 		for (; termIter != representDocVec.value.end(); termIter++)
