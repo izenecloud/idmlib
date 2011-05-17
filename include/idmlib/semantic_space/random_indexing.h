@@ -63,7 +63,7 @@ public:
     if(reader.Open())
     {
       IdType key;
-      VT value;
+      SparseType value;
       while(reader.Next(key, value))
       {
         if(!writer_->Append(key, value))
