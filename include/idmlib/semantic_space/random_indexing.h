@@ -80,9 +80,11 @@ public:
   {
     if(writer_!=NULL)
     {
+      uint64_t count = writer_->Count();
       writer_->Close();
       delete writer_;
       writer_ = NULL;
+      if(count==0) return false;
     }
     if(boost::filesystem::exists(run_file_))
     {
