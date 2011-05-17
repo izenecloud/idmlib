@@ -13,6 +13,7 @@
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/semantic_space.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
+#include <idmlib/semantic_space/izene_index_helper.h>
 #include <idmlib/util/idm_analyzer.h>
 //#include <idmlib/keyphrase-extraction/kpe_algorithm.h>
 //#include <idmlib/keyphrase-extraction/kpe_output.h>
@@ -20,6 +21,8 @@
 #include <la/util/UStringUtil.h>
 #include <ir/id_manager/IDManager.h>
 #include <ir/index_manager/index/LAInput.h>
+#include <ir/index_manager/index/Indexer.h>
+#include <ir/index_manager/utility/StringUtils.h>
 // prevent conflicting with ScdParser when referred by sf1-revolution
 #ifndef __SCD__PARSER__H__
 #define __SCD__PARSER__H__
@@ -45,14 +48,16 @@ public:
 			const std::string& colBasePath,
 			docid_t maxDoc = MAX_DOC_ID,
 			izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
-	: pSSpace_(pSSpace)
-	, colBasePath_(colBasePath)
+	: colBasePath_(colBasePath)
 	, maxDoc_(maxDoc)
 	, encoding_(encoding)
+	, pSSpace_(pSSpace)
 	{
 		normalizeFilePath(colBasePath_);
 		scdPath_ = colBasePath_ + "/scd/index";
 		colDataPath_ = colBasePath_ + "/collection-data/default-collection-dir";
+
+		laInput_.reset(new TermIdList());
 
 		createIdManager(pIdManager_);
 		if (!pIdManager_) {
@@ -66,7 +71,18 @@ public:
 						la::ChineseAnalyzer::minimum_match_no_overlap)
 		);
 		BOOST_ASSERT(pIdmAnalyzer_);
+
+		std::string indexDir = "./wiki/index";   // todo, adjust wiki resource path
+        pIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(indexDir);
+        BOOST_ASSERT(pIndexer_);
 	}
+
+	SemanticSpaceBuilder(izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
+    : colBasePath_()
+    , maxDoc_(0)
+    , encoding_(encoding)
+    , pSSpace_()
+	{}
 
 	virtual ~SemanticSpaceBuilder()
 	{
@@ -75,12 +91,13 @@ public:
 public:
 	bool Build();
 
+	bool BuildWikiSource();
+
 	boost::shared_ptr<SemanticSpace>& getSemanticSpace()
 	{
 		return pSSpace_;
 	}
 
-	//bool getDocTerms(const izenelib::util::UString& ustrDoc, term_vector& termVec);
 
 	bool getDocTermIdList(const izenelib::util::UString& ustrDoc, TermIdList& termIdList, IdmTermList& termList = NULLTermList)
 	{
@@ -136,6 +153,8 @@ private:
 	    return true;
 	}
 
+	bool prepareDocument_(SCDDocPtr& doc, IndexerDocument& indexDocument);
+
 public:
 	/**
 	 * @brief get scd files in current directory
@@ -176,13 +195,17 @@ protected:
 	izenelib::util::UString::EncodingType encoding_;
 	// semantic space
 	boost::shared_ptr<SemanticSpace> pSSpace_;
-	// gather info
+	// term info
 	TermIdList termIdList_;
+	boost::shared_ptr<TermIdList> laInput_;
 	la::TermList termList_;
 	// LA
 	boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer_;
 	// id
 	boost::shared_ptr<IDManager> pIdManager_;
+	// indexer
+	boost::shared_ptr<Indexer> pIndexer_;
+
 };
 
 //class KpeSemanticSpaceBuilder : public SemanticSpaceBuilder

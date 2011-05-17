@@ -106,7 +106,8 @@ int main(int argc, char** argv)
 
 	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder(
 			new SemanticSpaceBuilder(pSSpace, laResPath, colPath, maxDoc) );
-	pSemBuilder->Build();
+	//pSemBuilder->Build();
+	pSemBuilder->BuildWikiSource();
 
 	if (print) {
 	    pSSpace->Print();

@@ -23,12 +23,14 @@
 #include <am/matrix/matrix_mem_io.h>
 #include <am/matrix/sparse_vector.h>
 #include <util/profiler/ProfilerGroup.h>
+#include <ir/index_manager/utility/system.h>
+using namespace izenelib::ir::indexmanager;
 
 NS_IDMLIB_SSP_BEGIN
 
-typedef uint32_t termid_t;
-typedef uint32_t docid_t;
-typedef uint32_t count_t;
+//typedef uint32_t termid_t;
+//typedef uint32_t docid_t;
+//typedef uint32_t count_t;
 typedef uint32_t index_t;
 typedef float weight_t;
 

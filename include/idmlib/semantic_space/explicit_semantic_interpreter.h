@@ -3,7 +3,6 @@
  * @author Zhongxia Li
  * @date Mar 10, 2011
  * @brief Explicit Semantic Analysis, refer to
- *
  * Evgeniy Gabrilovich and Shaul Markovitch. (2007).
  * "Computing Semantic Relatedness using Wikipedia-based Explicit Semantic Analysis,"
  * Proceedings of The 20th International Joint Conference on Artificial Intelligence
@@ -18,24 +17,60 @@
 #include <boost/shared_ptr.hpp>
 
 #include <util/ustring/UString.h>
+#include <ir/index_manager/index/IndexReader.h>
+#include <ir/index_manager/index/Indexer.h>
+#include <ir/index_manager/index/LAInput.h>
+#include <ir/index_manager/index/Indexer.h>
+#include <ir/id_manager/IDManager.h>
 #include <idmlib/idm_types.h>
+#include <idmlib/util/idm_analyzer.h>
 #include <idmlib/semantic_space/semantic_space.h>
 #include <idmlib/semantic_space/document_vector_space.h>
-#include <idmlib/semantic_space/semantic_space_builder.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
 
 NS_IDMLIB_SSP_BEGIN
 
 class SemanticInterpreter
 {
-	//typedef std::map<termid_t, weight_t> term_map;
 
 public:
-
+    /**
+     * Interpreter for Explicit Semantic Analysis
+     * @param pSSpaceWiki inverted index of Wiki concepts resource
+     *
+     * @deprecated The SemanticSpace with db storage it's quite slow,
+     * so it is replaced by a solution which using Indexer of SF1.
+     */
 	SemanticInterpreter(boost::shared_ptr<SemanticSpace>& pSSpaceWiki)
 	: sspWikiIndex_(pSSpaceWiki)
 	{
 	    conceptNum_ = sspWikiIndex_->getDocNum();
+	}
+
+	/**
+	 * Interpreter for Explicit Semantic Analysis
+	 * @param pIndexer inverted index of Wiki concepts resource
+	 */
+	SemanticInterpreter(boost::shared_ptr<Indexer>& pWikiIndexer, const string& laResPath, const string& colBasePath)
+	:pWikiIndexer_(pWikiIndexer)
+	{
+	    // Indexer
+	    BOOST_ASSERT(pWikiIndexer_);
+	    conceptNum_ = pWikiIndexer_->getIndexReader()->numDocs();
+	    cout << "[SemanticInterpreter] init, wiki concepts: " << conceptNum_ << endl;
+
+	    // LA
+	    pIdmAnalyzer_.reset(
+	            new idmlib::util::IDMAnalyzer(laResPath,la::ChineseAnalyzer::minimum_match_no_overlap)
+	            );
+	    BOOST_ASSERT(pIdmAnalyzer_);
+
+	    laInput_.reset(new TermIdList());
+
+	    // ID Manager
+	    string idDir = colBasePath + "/collection-data/default-collection-dir/id";
+	    pIdManager_.reset( new izenelib::ir::idmanager::IDManager(idDir) );
+	    BOOST_ASSERT(pIdManager_);
 	}
 
 	 ~SemanticInterpreter()
@@ -47,62 +82,16 @@ public:
 
 	/**
 	 * Interpret semantic of a text (document)
-	 * maps fragments of natural language text (document) into
-	 * a interpretation vector
+	 * @brief maps fragments of natural language text (document) into a interpretation vector
 	 * @param[IN] text a input natural language text or a document
 	 * @param[OUT] interVector interpretation vector of the input text (document)
 	 * @return true on success, false on failure.
 	 */
-	bool interpret(const UString& text, std::vector<weight_t>& interVector)
+	bool interpret(const UString& doc, std::vector<weight_t>& interVector)
 	{
-//		if (!pSSpace_)
-//			return false;
-		/*
-		term_vector termVec;
-		pSSPBuilder_->getDocTerms(text, termVec);
-
-		termMap_.clear();
-		getDocTerms(termVec, termMap_);
-
-		interVector.resize(topicNum_, 0.0f);
-		for (index_t docIdx = 0; docIdx < topicNum_; docIdx ++)
-		{
-			weight_t wTopic = 0.0f; // weight of text to topic with index 'docIdx'
-			termid_t termid;
-			for (term_map::iterator iter = termMap_.begin(); iter != termMap_.end(); iter ++)
-			{
-				termid = iter->first;
-				weight_t w = pSSpace_->getTermDocWeight(termid, docIdx);
-				cout << w << endl;
-				if (w > 0.000001f)
-					wTopic += iter->second * w; // iter->second(weight) should be tf.idf
-			}
-
-			interVector[docIdx] = wTopic;
-		}
-*/
-
-		return true;
-	}
-
-	/// Remove
-	bool interpret(boost::shared_ptr<SemanticSpace>& pDocSSpace)
-	{
-		std::vector<docid_t>& docList = pDocSSpace->getDocList();
-
-		// interpret all documents
-		std::vector<docid_t>::iterator docIter;
-		for (docIter = docList.begin(); docIter != docList.end(); docIter ++) {
-			term_sp_vector representDocVec;
-			pDocSSpace->getVectorByDocid(*docIter, representDocVec);
-
-			// interpret a document
-			interpretation_vector_type interpretationDocVec;
-			interpret(representDocVec, interpretationDocVec);
-			stringstream ss;
-			ss << "interpretation vector(" << *docIter << ")";
-			idmlib::ssp::PrintSparseVec(interpretationDocVec, ss.str());
-		}
+	    // make forward index of doc
+	    laInput_->resize(0);
+	    pIdmAnalyzer_->GetTermIdList(pIdManager_.get(), doc, *laInput_);
 
 		return true;
 	}
@@ -114,6 +103,8 @@ public:
 	 * dcj is the weight of DOC to CONCEPT cj.
 	 * @param[IN] repreDocVec
 	 * @param[OUT] interDocVec
+	 *
+	 * @deprecated may be not used
 	 */
 	bool interpret(term_sp_vector& repreDocVec, interpretation_vector_type& interDocVec)
 	{
@@ -186,7 +177,13 @@ private:
 
 	count_t topicNum_;
 
-	//term_map termMap_; // <termid, tf>
+	// wiki indexer
+	boost::shared_ptr<Indexer> pWikiIndexer_;
+	// LA
+	boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer_;
+	boost::shared_ptr<TermIdList> laInput_;
+	//
+	boost::shared_ptr<izenelib::ir::idmanager::IDManager> pIdManager_;
 };
 
 typedef SemanticInterpreter ExplicitSemanticInterpreter;
