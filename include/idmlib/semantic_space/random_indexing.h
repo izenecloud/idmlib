@@ -80,11 +80,9 @@ public:
   {
     if(writer_!=NULL)
     {
-      uint64_t count = writer_->Count();
       writer_->Close();
       delete writer_;
       writer_ = NULL;
-      if(count==0) return false;
     }
     if(boost::filesystem::exists(run_file_))
     {
@@ -114,7 +112,10 @@ public:
           last_key = key;
           first = false;
         }
-        if(!writer.Append(last_key, last_value)) return false;
+        if(!first)
+        {
+            if(!writer.Append(last_key, last_value)) return false;
+        }
         writer.Close();
       }
       reader.Close();
