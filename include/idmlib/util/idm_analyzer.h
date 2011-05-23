@@ -82,8 +82,9 @@ class IDMAnalyzer
     ml_analyzer->setDefaultAnalyzer( korean_analyzer );
     boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, false) );
     la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
-    pch->setAnalysisType(la::ChineseAnalyzer::minimum_match_no_overlap);
+    pch->setAnalysisType(la::ChineseAnalyzer::maximum_match);
     pch->setLabelMode();
+    pch->setRemoveStopwords(true);
     ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
     la_->setAnalyzer( ml_analyzer );
     stemmer_ = new la::stem::Stemmer();
@@ -96,12 +97,13 @@ class IDMAnalyzer
   {
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer( new la::MultiLanguageAnalyzer() );
     ml_analyzer->setExtractSpecialChar(false, false);
-    boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, true) );
+    boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, false) );
     la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
     if ( pch != NULL ) {
         pch->setExtractSpecialChar(false, false);
-        pch->setAnalysisType( ca_type /*la::ChineseAnalyzer::minimum_match_no_overlap*/);
+        pch->setAnalysisType( ca_type /*la::ChineseAnalyzer::maximum_match*/);
         pch->setLabelMode();
+        pch->setRemoveStopwords(true);
     }
     ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
     ml_analyzer->setDefaultAnalyzer( ch_analyzer );
