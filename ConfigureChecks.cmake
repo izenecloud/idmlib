@@ -12,7 +12,8 @@ FIND_PACKAGE(izenelib REQUIRED
   izene_util
   procmeminfo
   izene_log
-  beansdb  
+  beansdb
+  leveldb
   )
   
 FIND_PACKAGE(wisekma REQUIRED)

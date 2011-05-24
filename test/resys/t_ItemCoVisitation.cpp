@@ -113,25 +113,34 @@ struct RandomGenerators
     boost::variate_generator<mt19937, uniform_int<> > itemRandom;
     boost::uniform_int<> userDistribution;
     boost::variate_generator<mt19937, uniform_int<> > userRandom;
-    boost::uniform_int<> visitDistribution;	
-    boost::variate_generator<mt19937, uniform_int<> > visitRandom;
+    boost::uniform_int<> oldVisitDistribution;
+    boost::variate_generator<mt19937, uniform_int<> > oldVisitRandom;
+    boost::uniform_int<> newVisitDistribution;
+    boost::variate_generator<mt19937, uniform_int<> > newVisitRandom;
 
-    RandomGenerators(int ITEMLIMIT, int USERLIMIT, int VISITLIMIT)
+    RandomGenerators(int ITEMLIMIT, int USERLIMIT, int OLDVISITLIMIT, int NEWVISITLIMIT)
         :itemDistribution(1, ITEMLIMIT)
         ,itemRandom (engine, itemDistribution)
         ,userDistribution(1, USERLIMIT)
         ,userRandom (engine, userDistribution)
-        ,visitDistribution(1, VISITLIMIT)
-        ,visitRandom (engine, visitDistribution)
+        ,oldVisitDistribution(1, OLDVISITLIMIT)
+        ,oldVisitRandom (engine, oldVisitDistribution)
+        ,newVisitDistribution(1, NEWVISITLIMIT)
+        ,newVisitRandom (engine, newVisitDistribution)
     {
     }
 
-    void genItems(std::list<uint32_t>& items)
+    void genItems(std::list<uint32_t>& oldItems, std::list<uint32_t>& newItems)
     {
-        int N = visitRandom();
+        int N = oldVisitRandom();
         for(int i = 0; i < N; ++i)
         {
-            items.push_back(itemRandom());
+            oldItems.push_back(itemRandom());
+        }
+        N = newVisitRandom();
+        for(int i = 0; i < N; ++i)
+        {
+            newItems.push_back(itemRandom());
         }
     }
 
@@ -186,19 +195,21 @@ BOOST_AUTO_TEST_CASE(largeTest)
 
     int MaxITEM = 20000;
     int MaxUSER = 200000;
-    int MaxVisitPerOrder = 6;
-    RandomGenerators generators(MaxITEM, MaxUSER, MaxVisitPerOrder);
+    int MaxOldVisit = 200;
+    int MaxNewVisit = 20;
+    RandomGenerators generators(MaxITEM, MaxUSER, MaxOldVisit, MaxNewVisit);
 
     int ORDERS = 200000;
 
-    CoVisitManager coVisitManager(covisitPath.string()+"/visitdb");
+    CoVisitManager coVisitManager(covisitPath.string()+"/visitdb",1000);
 
     for(int i = 0; i < ORDERS; ++i)
     {
+	if(i%100 == 0)
+		std::cout<<i<<" orders have been processed"<<std::endl;
         std::list<uint32_t> oldItems;
         std::list<uint32_t> newItems;
-        generators.genItems(oldItems);
-        generators.genItems(newItems);
+        generators.genItems(oldItems,newItems);
         coVisitManager.visit(oldItems, newItems);
     }
 }

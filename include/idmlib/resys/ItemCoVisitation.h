@@ -5,6 +5,7 @@
 #include <idmlib/idm_types.h>
 
 #include <am/beansdb/Hash.h>
+#include <am/leveldb/Table.h>
 #include <sdb/SequentialDB.h>
 #include <cache/IzeneCache.h>
 #include <util/Int2String.h>
@@ -107,6 +108,7 @@ class ItemCoVisitation
     typedef __gnu_cxx::hash_map<ItemType, CoVisitation> HashType;
 
     //typedef izenelib::am::beansdb::Hash<Int2String, HashType > StorageType;
+    //typedef izenelib::am::leveldb::Table<Int2String, HashType > StorageType;
     typedef izenelib::sdb::unordered_sdb_tc<
         Int2String, 
         HashType, 
