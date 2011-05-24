@@ -65,7 +65,12 @@ class SimilarityMatrix
 {
     typedef __gnu_cxx::hash_map<ItemType, MeasureType> HashType;
 
-    typedef izenelib::am::beansdb::Hash<Int2String, HashType > ItemSimilarityMatrixType;
+    //typedef izenelib::am::beansdb::Hash<Int2String, HashType > ItemSimilarityMatrixType;
+    typedef izenelib::sdb::unordered_sdb_tc<
+        Int2String, 
+        HashType, 
+        ReadWriteLock
+        > ItemSimilarityMatrixType;
 
     typedef izenelib::cache::IzeneCache<
         ItemType,
@@ -100,6 +105,7 @@ public:
         , max_item_(0)
     {
         neighbor_store_.open();
+        store_.open();
         loadAllNeighbors();
     }
 
@@ -226,7 +232,7 @@ public:
 
     void gc()
     {
-        store_.optimize();
+        //store_.optimize();
     }
 
 private:
@@ -294,7 +300,7 @@ private:
     void saveRow(ItemType row,  boost::shared_ptr<HashType > rowdata)
     {
         Int2String rowKey(row);
-        store_.insert(rowKey, *rowdata);
+        store_.update(rowKey, *rowdata);
     }
 
 

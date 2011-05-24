@@ -10,6 +10,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/random.hpp>
 
 #include <list>
 #include <vector>
@@ -105,6 +106,37 @@ void checkCoVisitResult(
                                   goldResult.begin(), goldResult.end());
 }
 
+struct RandomGenerators
+{
+    boost::mt19937 engine ;
+    boost::uniform_int<> itemDistribution ;
+    boost::variate_generator<mt19937, uniform_int<> > itemRandom;
+    boost::uniform_int<> userDistribution;
+    boost::variate_generator<mt19937, uniform_int<> > userRandom;
+    boost::uniform_int<> visitDistribution;	
+    boost::variate_generator<mt19937, uniform_int<> > visitRandom;
+
+    RandomGenerators(int ITEMLIMIT, int USERLIMIT, int VISITLIMIT)
+        :itemDistribution(1, ITEMLIMIT)
+        ,itemRandom (engine, itemDistribution)
+        ,userDistribution(1, USERLIMIT)
+        ,userRandom (engine, userDistribution)
+        ,visitDistribution(1, VISITLIMIT)
+        ,visitRandom (engine, visitDistribution)
+    {
+    }
+
+    void genItems(std::list<uint32_t>& items)
+    {
+        int N = visitRandom();
+        for(int i = 0; i < N; ++i)
+        {
+            items.push_back(itemRandom());
+        }
+    }
+
+};
+
 BOOST_AUTO_TEST_SUITE(ItemCoVisitationTest)
 
 BOOST_AUTO_TEST_CASE(smokeTest)
@@ -114,7 +146,7 @@ BOOST_AUTO_TEST_CASE(smokeTest)
     bfs::create_directories(covisitPath);
 
     {
-        CoVisitManager coVisitManager(covisitPath.string());
+        CoVisitManager coVisitManager(covisitPath.string()+"/visitdb");
 
         uint32_t user1 = 1;
         checkVisit(coVisitManager, user1, "", "1 2 3");
@@ -124,7 +156,7 @@ BOOST_AUTO_TEST_CASE(smokeTest)
     }
 
     {
-        CoVisitManager coVisitManager(covisitPath.string());
+        CoVisitManager coVisitManager(covisitPath.string()+"/visitdb");
 
         checkCoVisitResult(coVisitManager, "1", "2 3");
         checkCoVisitResult(coVisitManager, "2", "1 3");
@@ -143,6 +175,31 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         checkCoVisitResult(coVisitManager, "7", "2 5 8 9");
         checkCoVisitResult(coVisitManager, "8", "2 5 7 9");
         checkCoVisitResult(coVisitManager, "9", "2 5 7 8");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(largeTest)
+{
+    bfs::path covisitPath(TEST_DIR_STR);
+    boost::filesystem::remove_all(covisitPath);
+    bfs::create_directories(covisitPath);
+
+    int MaxITEM = 20000;
+    int MaxUSER = 200000;
+    int MaxVisitPerOrder = 6;
+    RandomGenerators generators(MaxITEM, MaxUSER, MaxVisitPerOrder);
+
+    int ORDERS = 200000;
+
+    CoVisitManager coVisitManager(covisitPath.string()+"/visitdb");
+
+    for(int i = 0; i < ORDERS; ++i)
+    {
+        std::list<uint32_t> oldItems;
+        std::list<uint32_t> newItems;
+        generators.genItems(oldItems);
+        generators.genItems(newItems);
+        coVisitManager.visit(oldItems, newItems);
     }
 }
 

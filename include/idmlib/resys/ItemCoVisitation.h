@@ -5,6 +5,7 @@
 #include <idmlib/idm_types.h>
 
 #include <am/beansdb/Hash.h>
+#include <sdb/SequentialDB.h>
 #include <cache/IzeneCache.h>
 #include <util/Int2String.h>
 #include <util/ThreadModel.h>
@@ -105,6 +106,13 @@ class ItemCoVisitation
 {
     typedef __gnu_cxx::hash_map<ItemType, CoVisitation> HashType;
 
+    //typedef izenelib::am::beansdb::Hash<Int2String, HashType > StorageType;
+    typedef izenelib::sdb::unordered_sdb_tc<
+        Int2String, 
+        HashType, 
+        ReadWriteLock
+        > StorageType;
+
     typedef izenelib::cache::IzeneCache<
     ItemType,
     boost::shared_ptr<HashType >,
@@ -121,6 +129,7 @@ public:
         : store_(homePath)
         , row_cache_(row_cache_size)
     {
+        store_.open();
     }
 
     ~ItemCoVisitation()
@@ -237,7 +246,7 @@ public:
 
     void gc()
     {
-        store_.optimize();
+        //store_.optimize();
     }
 
 private:
@@ -272,11 +281,11 @@ private:
     void saveRow(ItemType row, boost::shared_ptr<HashType > rowdata)
     {
         Int2String rowKey(row);
-        store_.insert(rowKey, *rowdata);
+        store_.update(rowKey, *rowdata);
     }
 
 private:
-    izenelib::am::beansdb::Hash<Int2String, HashType > store_;
+    StorageType store_;
     RowCacheType row_cache_;	
     izenelib::util::ReadWriteLock lock_;
 };
