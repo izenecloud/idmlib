@@ -24,12 +24,19 @@ public:
         LOAD
     };
 
+    enum StorageType {
+        DB_TOKYO_CABINET,
+        DB_LevelDB,
+    };
+
 public:
 	DocumentSimilarityIndex(
 	        const std::string& docSimPath,
 	        weight_t thresholdSim = 0.0f,
+	        StorageType storageType = DB_TOKYO_CABINET,
 	        DocSimInitType initType = CREATE)
 	: docSimPath_(docSimPath)
+	, storageType_(storageType)
 	, thresholdSim_(thresholdSim)
 	{
 		idmlib::util::FSUtil::normalizeFilePath(docSimPath_);
@@ -37,9 +44,17 @@ public:
 		if (initType == CREATE) {
 		    idmlib::util::FSUtil::del(docSimPath_);
 		}
-		conceptDocIndex_.reset(new doc_doc_matrix_file_io(docSimPath_));
-		//conceptDocIndex_->setCacheSize(10000);
-		conceptDocIndex_->Open();
+
+		if (storageType == DB_TOKYO_CABINET)
+		{
+            index_tc_.reset(new doc_doc_matrix_file_io(docSimPath_));
+            //index_tc_->setCacheSize(10000);
+            index_tc_->Open();
+		}
+		else if (storageType == DB_LevelDB)
+		{
+            ;
+		}
 	}
 
 public:
@@ -55,6 +70,10 @@ public:
 	 * Join Algorithm with Cosine Similarity Predicate. In DEXA (2)(2010)
 	 *
 	 */
+
+	/**
+	 * @deprecated
+	 */
 	void InertDocument(docid_t& docid, interpretation_vector_type& interDocVec)
 	{
 #ifdef SSP_TIME_CHECKER
@@ -64,17 +83,37 @@ public:
 
 	}
 
+	void InertDocument(docid_t& docid, InterpretVector& interVec)
+	{
+	    basicInvertedIndexJoin_(docid, interVec);
+	}
+
 	void FinishInert()
 	{
-		conceptDocIndex_->Flush();
+	    if (storageType_ == DB_TOKYO_CABINET) {
+	        index_tc_->Flush();
+	    }
+	    else if (storageType_ == DB_LevelDB) {
+
+	    }
 //		buildSimIndex();
 	}
 
 private:
 	/**
 	 * @brief a basic Inverted Index Join approach
+	 * @deprecated
 	 */
 	void basicInvertedIndexJoin_(docid_t& docid, interpretation_vector_type& interDocVec);
+
+	/**
+	 * @brief a basic Inverted Index Join approach
+	 * @param docid
+	 * @param interVec
+	 */
+	void basicInvertedIndexJoin_(docid_t& docid, InterpretVector& interVec);
+
+	void accumulate_weight_tc_(std::map<docid_t, weight_t>& docWegtMap, docid_t& docid, docid_t& conceptId, weight_t& conW);
 
 	/**
 	 * @brief
@@ -118,7 +157,14 @@ private:
 
 private:
 	std::string docSimPath_;
-	boost::shared_ptr<doc_doc_matrix_file_io> conceptDocIndex_; // inverted index
+
+	StorageType storageType_;
+
+	// inverted index for score acculmulation of all pair similarity search,
+	// in different storage types
+	boost::shared_ptr<doc_doc_matrix_file_io> index_tc_; // TOKYO CABINET DB
+	///index_ldb_; // levelDB
+
 
 	weight_t thresholdSim_; // threshold
 

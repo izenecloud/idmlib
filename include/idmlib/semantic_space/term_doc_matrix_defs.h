@@ -48,36 +48,6 @@ const docid_t MAX_DOC_ID = 0xFFFFFFFF;
 typedef std::map<termid_t, string> IdmTermList;
 static IdmTermList NULLTermList; // default parameter value
 
-/* reserve */
-//#define RESET_MATRIX_INDEX
-
-/// matrix in fixed size (testing) /////////////////////////////////////////////
-//struct sTermDocUnit
-//{
-//	termid_t termid;
-//	docid_t docid;
-//	weight_t weight;
-//};
-//
-//struct sDocUnit
-//{
-//	docid_t docid;
-//	weight_t tf; // tf or weight
-//};
-//
-//struct sTermUnit
-//{
-//	termid_t termid;
-//	weight_t weight;
-//};
-//
-//typedef std::vector< boost::shared_ptr<sDocUnit> > doc_vector;
-//typedef std::vector< boost::shared_ptr<sTermUnit> > term_vector_;
-//
-//typedef std::vector< doc_vector > term_docs_map;
-//typedef std::vector< term_vector > doc_terms_map;
-
-
 /// sparse matrix i/o //////////////////////////////////////////////////////////
 typedef izenelib::am::SparseVector<weight_t, docid_t> doc_sp_vector;
 typedef izenelib::am::SparseVector<weight_t, termid_t> term_sp_vector;
@@ -91,6 +61,8 @@ typedef izenelib::am::MatrixFileVLIo<term_sp_vector, docid_t> doc_term_matrixv;
 typedef izenelib::am::MatrixFileVLIo<doc_sp_vector, docid_t> doc_doc_matrixv;
 
 
+typedef std::vector<std::pair<docid_t, weight_t> > InterpretVector;
+
 #ifdef SPARSE_MATRIX
 typedef term_sp_vector term_vector;
 typedef term_doc_matrixv term_doc_matrix_file_oi;
@@ -101,13 +73,6 @@ typedef term_vector_ term_vector;
 typedef term_docs_map term_doc_matrix;
 #endif
 
-/// map termid/docid to matrix index //////////////////////////////
-#ifdef RESET_MATRIX_INDEX
-typedef std::map< termid_t, index_t > termid_index_map;
-typedef std::map< docid_t, index_t > docid_index_map;
-
-static const count_t MATRIX_INDEX_START = 1; // start from 1
-#endif
 
 /// help functions
 struct sort_second {

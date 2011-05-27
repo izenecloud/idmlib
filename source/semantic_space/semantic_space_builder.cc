@@ -254,6 +254,7 @@ bool SemanticSpaceBuilder::getScdFileList(const std::string& scdDir, std::vector
 				izenelib::util::SCD_TYPE scd_type = izenelib::util::ScdParser::checkSCDType(file_name);
 				if( scd_type == izenelib::util::INSERT_SCD ||scd_type == izenelib::util::UPDATE_SCD )
 				{
+				    cout << "scd file: "<<iter->path().string() << endl;
 					fileList.push_back( iter->path().string() );
 				}
 			}

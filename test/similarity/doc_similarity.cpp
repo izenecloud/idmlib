@@ -25,7 +25,7 @@ using namespace idmlib::sim;
 
 int main(int argc, char** argv)
 {
-	string esasspPath; // resource data(Wiki) for explicit semantic analysis
+	string wikiIndexdir; // resource data(Wiki) for explicit semantic analysis
 	string laResPath;  // LA (CMA) resource path
 	string colBasePath; // collection of documents to perform doc-similarity computing
 	string colsspPath; // collection document vectors pre-processing
@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help,H", "produce help message")
-		("esa-res-path,E", po::value<std::string>(&esasspPath), "resource data (Wiki) directory for explicit semantic analysis.")
+		("esa-res-path,E", po::value<std::string>(&wikiIndexdir), "resource data (Wiki) directory for explicit semantic analysis.")
 		("la-res-path,L", po::value<std::string>(&laResPath), "LA(CMA) resource path.")
 		("col-base-path,C", po::value<std::string>(&colBasePath), "collection to be processed.")
 		("col-ssp-path,S", po::value<std::string>(&colsspPath), "collection semantic space data path.")
@@ -58,10 +58,10 @@ int main(int argc, char** argv)
 		std::cout << desc << std::endl<< std::endl;
 	}
 
-	if (esasspPath.empty()) {
-		esasspPath = "./esa_cnwiki_all";
+	if (wikiIndexdir.empty()) {
+	    wikiIndexdir = "./wiki/index";
 	}
-	cout << "esa-res-path: " <<  esasspPath << endl;
+	cout << "esa-res-path: " <<  wikiIndexdir << endl;
 	if (laResPath.empty()) {
 		laResPath = "/home/zhongxia/codebase/icma/db/icwb/utf8";
 	}
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
 	DocSimilarity.DoSim(); */
 
     DocumentSimilarity DocSimilarity(
-            esasspPath, // esa resource(wiki index) path
+            wikiIndexdir, // esa resource(wiki index) path
             laResPath,  // la resource(cma) path
             colBasePath, // collection base path, documents set  ==> using index data
             docSimPath,  // data path for document similarity index

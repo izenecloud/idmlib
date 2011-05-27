@@ -104,7 +104,7 @@ public:
         pIdmAnalyzer_.reset(
                 new idmlib::util::IDMAnalyzer(
                         laResPath_,
-                        la::ChineseAnalyzer::minimum_match)
+                        la::ChineseAnalyzer::maximum_match)
         );
         BOOST_ASSERT(pIdmAnalyzer_);
 	}
