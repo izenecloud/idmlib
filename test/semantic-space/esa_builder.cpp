@@ -39,7 +39,7 @@ void ScdModifier(const string& scdDir, count_t& maxDoc);
 
 int main(int argc, char** argv)
 {
-	string colPath, sspDataPath, laResPath;
+	string colPath, wikiIndexDir, laResPath;
 	uint32_t maxDoc = MAX_DOC_ID;
 	bool print = false;
 
@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 	desc.add_options()
 		("help,H", "produce help message")
 		("wiki-path,W", po::value<std::string>(&colPath), "base directory of wiki collection.")
-		("esa-data-path,S", po::value<std::string>(&sspDataPath), "semantic data path.")
+		("wiki-index-path,S", po::value<std::string>(&wikiIndexDir), "semantic resource data path.")
 		("la-res-path,L", po::value<std::string>(&laResPath), "LA(CMA) resource path.")
 		("max-doc,M", po::value<uint32_t>(&maxDoc), "max doc count that will be processed.")
 		("print,P", po::value<std::string>(), "Print result")
@@ -74,10 +74,10 @@ int main(int argc, char** argv)
 	}
 	cout << "la-res-path: " << laResPath << endl;
 
-	if (sspDataPath.empty()) {
-		sspDataPath = "./esa_wiki";
+	if (wikiIndexDir.empty()) {
+	    wikiIndexDir = "./cnwiki/index";
 	}
-	cout << "esa-data-path: " << sspDataPath << endl;
+	cout << "esa-data-path: " << wikiIndexDir << endl;
 
 	if (vm.count("max-doc")) {
         ;
@@ -102,16 +102,23 @@ int main(int argc, char** argv)
 
 
 	// Build knowledge matrix base on Chinese Wiki
-	boost::shared_ptr<SemanticSpace> pSSpace( new ExplicitSemanticSpace(sspDataPath) );
+	/* deprecated
+	boost::shared_ptr<SemanticSpace> pSSpace( new ExplicitSemanticSpace(wikiIndexDir) );
 
 	boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder(
 			new SemanticSpaceBuilder(pSSpace, laResPath, colPath, maxDoc) );
-	//pSemBuilder->Build();
-	pSemBuilder->BuildWikiSource();
+	pSemBuilder->Build();
 
 	if (print) {
-	    pSSpace->Print();
-	}
+        pSSpace->Print();
+    }
+	*/
+
+    boost::shared_ptr<SemanticSpaceBuilder> pSemBuilder(
+            new SemanticSpaceBuilder(wikiIndexDir, laResPath, colPath, maxDoc) );
+	pSemBuilder->BuildWikiSource();
+
+
 
 #ifdef SSP_TIME_CHECKER
 	idmlib::util::TimeChecker::ReportToFile();

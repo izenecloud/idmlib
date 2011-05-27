@@ -49,31 +49,30 @@ public:
 			docid_t maxDoc = MAX_DOC_ID,
 			izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
 	: colBasePath_(colBasePath)
+	, laResPath_(laResPath)
 	, maxDoc_(maxDoc)
 	, encoding_(encoding)
 	, pSSpace_(pSSpace)
 	{
-		normalizeFilePath(colBasePath_);
-		scdPath_ = colBasePath_ + "/scd/index";
-		colDataPath_ = colBasePath_ + "/collection-data/default-collection-dir";
 
-		laInput_.reset(new TermIdList());
+	    initialize();
+	}
 
-		createIdManager(pIdManager_);
-		if (!pIdManager_) {
-			DLOG(ERROR) << "Failed to create IdManager!" << std::endl;
-		}
-		BOOST_ASSERT(pIdManager_);
+	SemanticSpaceBuilder(
+	        const std::string& wikiIndexDir,
+	        const std::string& laResPath,
+            const std::string& colBasePath,
+            docid_t maxDoc = MAX_DOC_ID,
+            izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
+    : wikiIndexDir_(wikiIndexDir)
+	, laResPath_(laResPath)
+    , colBasePath_(colBasePath)
+    , maxDoc_(maxDoc)
+    , encoding_(encoding)
+	{
+        initialize();
 
-		pIdmAnalyzer_.reset(
-				new idmlib::util::IDMAnalyzer(
-						laResPath,
-						la::ChineseAnalyzer::minimum_match_no_overlap)
-		);
-		BOOST_ASSERT(pIdmAnalyzer_);
-
-		std::string indexDir = "./wiki/index";   // todo, adjust wiki resource path
-        pIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(indexDir);
+        pIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(wikiIndexDir_);
         BOOST_ASSERT(pIndexer_);
 	}
 
@@ -86,6 +85,28 @@ public:
 
 	virtual ~SemanticSpaceBuilder()
 	{
+	}
+
+	void initialize()
+	{
+        normalizeFilePath(colBasePath_);
+        scdPath_ = colBasePath_ + "/scd/index";
+        colDataPath_ = colBasePath_ + "/collection-data/default-collection-dir";
+
+        laInput_.reset(new TermIdList());
+
+        createIdManager(pIdManager_);
+        if (!pIdManager_) {
+            DLOG(ERROR) << "Failed to create IdManager!" << std::endl;
+        }
+        BOOST_ASSERT(pIdManager_);
+
+        pIdmAnalyzer_.reset(
+                new idmlib::util::IDMAnalyzer(
+                        laResPath_,
+                        la::ChineseAnalyzer::minimum_match)
+        );
+        BOOST_ASSERT(pIdmAnalyzer_);
 	}
 
 public:
@@ -188,6 +209,8 @@ public:
 
 protected:
 	// collection to be built
+	std::string wikiIndexDir_;
+	std::string laResPath_;
 	std::string colBasePath_;
 	std::string scdPath_;
 	std::string colDataPath_;
