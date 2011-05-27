@@ -92,7 +92,7 @@ class IDMAnalyzer
       
   }
   
-  IDMAnalyzer(const std::string& cma_res_path, la::ChineseAnalyzer::ChineseAnalysisType ca_type)
+  IDMAnalyzer(const std::string& cma_res_path, la::ChineseAnalyzer::ChineseAnalysisType ca_type, bool removeStopwords=false)
   :la_(new la::LA()), stemmer_(NULL), simpler_set_(false)
   {
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer( new la::MultiLanguageAnalyzer() );
@@ -109,7 +109,7 @@ class IDMAnalyzer
         pch->setExtractSpecialChar(false, false);
         pch->setAnalysisType( ca_type /*la::ChineseAnalyzer::maximum_match*/);
         pch->setLabelMode();
-        pch->setRemoveStopwords(true);
+        pch->setRemoveStopwords(removeStopwords);
     }
     ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
     ml_analyzer->setDefaultAnalyzer( ch_analyzer );
