@@ -10,6 +10,8 @@
 #include <idmlib/idm_types.h>
 #include <idmlib/semantic_space/explicit_semantic_interpreter.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
+#include <am/leveldb/Table.h>
+#include <cache/IzeneCache.h>
 #include <boost/bind.hpp>
 
 using namespace idmlib::ssp;
@@ -18,6 +20,17 @@ NS_IDMLIB_SIM_BEGIN
 
 class DocumentSimilarityIndex
 {
+	typedef izenelib::am::tc_hash<docid_t, doc_sp_vector> IndexStorageType;
+	//typedef izenelib::am::leveldb::Table<docid_t, InterpretVector > IndexStorageType;
+
+    typedef izenelib::cache::IzeneCache<
+    		docid_t,
+			boost::shared_ptr<doc_sp_vector >,
+			izenelib::util::ReadWriteLock,
+			izenelib::cache::RDE_HASH,
+			izenelib::cache::LFU
+    > RowCacheType;
+
 public:
     enum DocSimInitType {
         CREATE,
@@ -38,6 +51,7 @@ public:
 	: docSimPath_(docSimPath)
 	, storageType_(storageType)
 	, thresholdSim_(thresholdSim)
+	, row_cache_(100)
 	{
 		idmlib::util::FSUtil::normalizeFilePath(docSimPath_);
 
@@ -94,7 +108,8 @@ public:
 	        index_tc_->Flush();
 	    }
 	    else if (storageType_ == DB_LevelDB) {
-
+	    	index_.flush();
+	    	index_.close();
 	    }
 //		buildSimIndex();
 	}
@@ -114,6 +129,8 @@ private:
 	void basicInvertedIndexJoin_(docid_t& docid, InterpretVector& interVec);
 
 	void accumulate_weight_tc_(std::map<docid_t, weight_t>& docWegtMap, docid_t& docid, docid_t& conceptId, weight_t& conW);
+
+	void accumulate_weight_(std::map<docid_t, weight_t>& docWegtMap, docid_t& docid, docid_t& conceptId, weight_t& conW);
 
 	/**
 	 * @brief
@@ -156,15 +173,63 @@ private:
 	}
 
 private:
+	bool getConceptIndex(docid_t conceptId, InterpretVector& interVec)
+	{
+		doc_sp_vector conceptIndexVec;
+		bool ret;
+        if (storageType_ == DB_TOKYO_CABINET) {
+        	ret = index_tc_->GetVector(conceptId, conceptIndexVec);
+        }
+        else if (storageType_ == DB_LevelDB) {
+        	ret = index_.get(conceptId, conceptIndexVec);
+        }
+
+    	if (ret)
+    		interVec = conceptIndexVec.value;
+    	return ret;
+	}
+
+    void updateConceptIndex(docid_t conceptId, InterpretVector& interVec)
+    {
+//        boost::shared_ptr<InterpretVector > rowdata;
+//        if (!row_cache_.getValueNoInsert(item, rowdata))
+//        {
+//            rowdata = loadRow(conceptId);
+//            row_cache_.insertValue(conceptId, rowdata);
+//        }
+
+    	doc_sp_vector conceptIndexVec;
+    	conceptIndexVec.value = interVec;
+
+        if (storageType_ == DB_TOKYO_CABINET) {
+        	index_tc_->SetVector(conceptId, conceptIndexVec);
+        }
+        else if (storageType_ == DB_LevelDB) {
+        	index_.update(conceptId, conceptIndexVec);
+        }
+    }
+
+//    bool getRow(docid_t conceptId, InterpretVector& interVec)
+//    {
+//        return index_.get(conceptId, interVec);
+//    }
+//
+//    void saveRow(docid_t conceptId, InterpretVector& interVec)
+//    {
+//    	index_.update(conceptId, *rowdata);
+//    }
+
+private:
 	std::string docSimPath_;
 
 	StorageType storageType_;
 
-	// inverted index for score acculmulation of all pair similarity search,
+	// inverted index for score accumulation of all pair similarity search,
 	// in different storage types
 	boost::shared_ptr<doc_doc_matrix_file_io> index_tc_; // TOKYO CABINET DB
-	///index_ldb_; // levelDB
+	IndexStorageType index_;
 
+    RowCacheType row_cache_;
 
 	weight_t thresholdSim_; // threshold
 

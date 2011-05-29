@@ -106,6 +106,7 @@ public:
             const count_t& maxDoc
             )
     : colFileUtil_(new idmlib::util::CollectionFileUtil(colBasePath))
+    , maxDoc_(maxDoc)
     {
         pWikiIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(wikiIndexDir);
         pEsaInterpreter_.reset(new SemanticInterpreter(pWikiIndexer_, laResPath, colBasePath));
@@ -145,6 +146,7 @@ private:
 	boost::shared_ptr<IDManager> pIdManager_;
 
 	izenelib::util::UString::EncodingType encoding_;
+	count_t maxDoc_;
 
 	typedef std::vector<std::pair<izenelib::util::UString, izenelib::util::UString> >::iterator doc_properties_iterator;
 

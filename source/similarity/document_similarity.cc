@@ -136,13 +136,13 @@ bool DocumentSimilarity::computeSimilarity()
             processDocument_(pDoc);
 
             curDocNum ++;
-            if (curDocNum /*% 1000 == 0*/) {
+            if (curDocNum % 10 == 0) {
                 DLOG(INFO) << "["<<scdFile<<"] processing: " << curDocNum<<" / total: "<<totalDocNum
                            << " - "<< curDocNum*100.0f / totalDocNum << "%" << endl;
             }
 
             ///test
-            if (curDocNum > 3)
+            if (curDocNum > maxDoc_)
                 break;
         }
     }
@@ -168,15 +168,14 @@ void DocumentSimilarity::processDocument_(SCDDocPtr& pDoc)
             bool ret = pIdManager_->getDocIdByDocName(propertyValue, docId, false);
             if (ret) ;
 
-            cout << "docid: " << docId << endl;
         }
         if ( propertyName == izenelib::util::UString("title", encoding_) ) {
 
         }
         else if ( propertyName == izenelib::util::UString("content", encoding_)) {
             InterpretVector& interVec = pEsaInterpreter_->interpret(docId, propertyValue);
-//            pEsaInterpreter_->sortInterpretVector(); ///
-//            pEsaInterpreter_->printInterpretVector(); ///
+            //pEsaInterpreter_->sortInterpretVector(); //
+            //pEsaInterpreter_->printInterpretVector(); //
 
             pDocSimIndex_->InertDocument(docId, interVec); // <DOCID> property has to come first
         }

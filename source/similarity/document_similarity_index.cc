@@ -92,6 +92,40 @@ void DocumentSimilarityIndex::accumulate_weight_tc_(
 
 }
 
+void DocumentSimilarityIndex::accumulate_weight_(
+        std::map<docid_t, weight_t>& docWegtMap, docid_t& docid, docid_t& conceptId, weight_t& conW)
+{
+    docid_t candidateDocId;
+    weight_t canDocW;
+
+    InterpretVector conceptIndexVec;
+    bool ret = getConceptIndex(conceptId, conceptIndexVec);
+    cout << " concept: " << conceptId << " ";
+    if (ret)
+    {
+        // score accumulation based on inverted index
+    	InterpretVector::iterator conIter;
+        for (conIter = conceptIndexVec.begin(); conIter != conceptIndexVec.end(); conIter ++)
+        {
+            candidateDocId = conIter->first;
+            canDocW = conIter->second;
+            cout << "("<<candidateDocId<<","<<canDocW<<") ";
+            // accumulate, fill weight table
+            if (docWegtMap.find(candidateDocId) == docWegtMap.end()) {
+                docWegtMap.insert(std::make_pair(candidateDocId, canDocW * conW));
+            }
+            else {
+                docWegtMap[candidateDocId] += canDocW * conW;
+            }
+        }
+    }
+    cout << endl;
+
+    // update inverted index
+    conceptIndexVec.push_back(std::make_pair(docid, conW));
+    updateConceptIndex(conceptId, conceptIndexVec);
+}
+
 void DocumentSimilarityIndex::basicInvertedIndexJoin_(docid_t& docid, InterpretVector& interVec)
 {
     // cadidate docs with weights to given doc
@@ -106,12 +140,13 @@ void DocumentSimilarityIndex::basicInvertedIndexJoin_(docid_t& docid, InterpretV
         conceptId = vecIter->first;
         conW = vecIter->second;
 
-        if (storageType_ == DB_TOKYO_CABINET) {
-            accumulate_weight_tc_(docWegtMap, docid, conceptId, conW);
-        }
-        else if (storageType_ == DB_LevelDB) {
-
-        }
+        accumulate_weight_(docWegtMap, docid, conceptId, conW);
+//        if (storageType_ == DB_TOKYO_CABINET) {
+//            accumulate_weight_tc_(docWegtMap, docid, conceptId, conW);
+//        }
+//        else if (storageType_ == DB_LevelDB) {
+//
+//        }
     }
 
     // Output doc-pairs, todo build doc similarity index..
@@ -120,7 +155,7 @@ void DocumentSimilarityIndex::basicInvertedIndexJoin_(docid_t& docid, InterpretV
     {
         if (miter->second > this->thresholdSim_) {
             // output
-            //cout << "(" << docid <<"," << miter->first <<", " << miter->second<<")" << endl;
+            cout << "(" << docid <<"," << miter->first <<"  " << miter->second<<")" << endl;
             outputSimDocPair(docid, miter->first, miter->second);
             outputSimDocPair(miter->first, docid, miter->second);
         }

@@ -61,7 +61,7 @@ public:
 	    conceptNum_ = pWikiIndexer_->getIndexReader()->numDocs();
 	    cout << "[SemanticInterpreter] init, wiki concepts: " << conceptNum_ << endl;
 
-	    // LA
+	    // LA, remove stopwords performs better
 	    pIdmAnalyzer_.reset(
 	            new idmlib::util::IDMAnalyzer(laResPath, la::ChineseAnalyzer::maximum_match, true)
 	            );
