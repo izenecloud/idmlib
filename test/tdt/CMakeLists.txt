@@ -40,6 +40,21 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
   ADD_TEST(MACD "${PROJECT_SOURCE_DIR}/testbin/t_macd")
 ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
 
+IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+  INCLUDE_DIRECTORIES(
+    ${Boost_INCLUDE_DIRS}
+  )
+  ADD_EXECUTABLE(t_tdt_storage
+    Runner.cpp
+    t_storage.cc
+    )
+  TARGET_LINK_LIBRARIES(t_tdt_storage ${libs})
+  SET_TARGET_PROPERTIES(t_tdt_storage PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/testbin
+    )
+  ADD_TEST(TDT_STORAGE "${PROJECT_SOURCE_DIR}/testbin/t_tdt_storage")
+ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+
 ADD_EXECUTABLE(tdt_scd_tool
 tdt_scd_tool.cc
 )

@@ -29,6 +29,7 @@
 #include "../util/Util.hpp"
 #include "../util/idm_id_manager.h"
 #include "../idm_types.h"
+#include "tdt_types.h"
 
 NS_IDMLIB_TDT_BEGIN
 
@@ -39,43 +40,43 @@ class ScorerContextItem
         {
         }
         
-        ScorerContextItem(const std::vector<std::pair<uint32_t, uint32_t> >& iterm_list)
+        ScorerContextItem(const std::vector<std::pair<TermInNgram, uint32_t> >& iterm_list)
         :term_list(iterm_list)
         {
         }
         
-        ScorerContextItem(const std::vector<std::pair<uint32_t, uint32_t> >& iterm_list, 
+        ScorerContextItem(const std::vector<std::pair<TermInNgram, uint32_t> >& iterm_list, 
         const std::vector<double>& weightList):
         term_list(iterm_list), weight_list(weightList)
         {
         }
 
-//         std::string ToString(idmlib::util::IDMIdManager* id_manager) const
-//         {
-//           std::string result = "{SCI}";
-//           for(uint32_t i=0;i<termid_list.size();i++)
-//           {
-//               izenelib::util::UString ustr;
-//               bool b = id_manager->GetStringById(termid_list[i], ustr);
-//               if(b)
-//               {
-//                   std::string str;
-//                   ustr.convertString(str, izenelib::util::UString::UTF_8);
-//                   result += str+":"+boost::lexical_cast<std::string>(count_list[i])+"|";
-//               }
-//               else
-//               {
-//                   result += boost::lexical_cast<std::string>(termid_list[i])+":"+boost::lexical_cast<std::string>(count_list[i])+"|";
-//               }
-//           }
-//           return result;
-//         }
+        std::string ToString(idmlib::util::IDMIdManager* id_manager) const
+        {
+          std::string result = "{SCI}";
+          for(uint32_t i=0;i<term_list.size();i++)
+          {
+              izenelib::util::UString ustr;
+              bool b = id_manager->GetStringById(term_list[i].first.id, ustr);
+              if(b)
+              {
+                  std::string str;
+                  ustr.convertString(str, izenelib::util::UString::UTF_8);
+                  result += str+":"+boost::lexical_cast<std::string>(term_list[i].second)+":"+term_list[i].first.tag+"|";
+              }
+              else
+              {
+                  result += boost::lexical_cast<std::string>(term_list[i].first.id)+":"+boost::lexical_cast<std::string>(term_list[i].second)+":"+term_list[i].first.tag+"|";
+              }
+          }
+          return result;
+        }
         
 
         
         
     public:
-        std::vector<std::pair<uint32_t, uint32_t> > term_list;
+        std::vector<std::pair<TermInNgram, uint32_t> > term_list;
         std::vector<double> weight_list;
 
 };
@@ -83,23 +84,23 @@ typedef ScorerContextItem SCI;
 class ScorerItem
 {
     public:
-        ScorerItem():termid_list(), freq(0)
+        ScorerItem():term_list(), freq(0)
         {
         }
         
-        ScorerItem(const std::vector<uint32_t>& termIdList, 
+        ScorerItem(const std::vector<TermInNgram>& termList, 
         uint32_t f):
-        termid_list(termIdList), freq(f)
+        term_list(termList), freq(f)
         {
         }
         
         std::string ToString(idmlib::util::IDMIdManager* id_manager) const
         {
           std::string result = "{SI}["+boost::lexical_cast<std::string>(freq)+"]|";
-          for(uint32_t i=0;i<termid_list.size();i++)
+          for(uint32_t i=0;i<term_list.size();i++)
           {
               izenelib::util::UString ustr;
-              bool b = id_manager->GetStringById(termid_list[i], ustr);
+              bool b = id_manager->GetStringById(term_list[i].id, ustr);
               if(b)
               {
                   std::string str;
@@ -108,7 +109,7 @@ class ScorerItem
               }
               else
               {
-                  result += boost::lexical_cast<std::string>(termid_list[i])+",";
+                  result += boost::lexical_cast<std::string>(term_list[i].id)+",";
               }
           }
           return result;
@@ -152,7 +153,7 @@ class ScorerItem
 //         }
         
     public:
-        std::vector<uint32_t> termid_list;
+        std::vector<TermInNgram> term_list;
         uint32_t freq;
         
 };

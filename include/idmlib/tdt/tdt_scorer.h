@@ -31,7 +31,7 @@
 
 #include "../idm_types.h"
 #include "tdt_scorer_types.h"
-#include "../keyphrase-extraction/kpe_term_group.h"
+#include "tdt_term_group.h"
 NS_IDMLIB_TDT_BEGIN
 
 
@@ -208,11 +208,12 @@ class TDTScorer : public boost::noncopyable
         return (midAppearTerms_->find(termId)!=NULL);
     }
 
-    bool IsSplitTerm(const idmlib::util::IDMTerm& term, uint32_t& insertTermId)
+    bool IsSplitTerm(const idmlib::util::IDMTerm& term, TermInNgram& new_term)
     {
         //TODO need to refactor
         uint32_t indicateId = term.id;
-        insertTermId = term.id;
+        new_term.id = term.id;
+        new_term.tag = term.tag;
         bool result = false;
         char tag = term.tag;
     //             std::cout<<"aaa"<<std::endl;
@@ -229,13 +230,13 @@ class TDTScorer : public boost::noncopyable
             
             if( IsNonAppearTerm(indicateId) )
             {
-                insertTermId = indicateId;
+                new_term.id = indicateId;
                 return true;
             }
             if( lower.length() == 1 )
             {
                 InsertNonAppearTerm(indicateId);
-                insertTermId = indicateId;
+                new_term.id = indicateId;
                 return true;
             }
             
@@ -252,7 +253,7 @@ class TDTScorer : public boost::noncopyable
         {
             if( tag == idmlib::util::IDMTermTag::ENG)
             {
-                insertTermId = indicateId;
+                new_term.id = indicateId;
             }
             return true;
         }
@@ -303,10 +304,10 @@ class TDTScorer : public boost::noncopyable
         return result;
     }
     
-    int ContextVerify_(const std::vector<id2count_t>& term_list, uint32_t id1, uint32_t id2, uint32_t f)
+    int ContextVerify_(const std::vector<std::pair<TermInNgram,uint32_t> >& term_list, uint32_t id1, uint32_t id2, uint32_t f)
     {
         std::vector<uint32_t> freq_list;
-        idmlib::kpe::KPETermGroup::GetInstance().filter(term_list, freq_list);
+        TDTTermGroup::GetInstance().filter(term_list, freq_list);
         std::vector<double> pors_score_list(freq_list.size()+1);
         std::vector<double> b_score_list(freq_list.size()+1);
         std::vector<double> prob_list(freq_list.size()+1);
@@ -332,11 +333,11 @@ class TDTScorer : public boost::noncopyable
     std::pair<bool, double> Test(const SI& item,const SCI& left_citem, const SCI& right_citem)
     {
         std::pair<bool, double> result(false, 0.0);
-        if(item.termid_list.size()<2) return result;
-        uint32_t a = item.termid_list[0];
-        uint32_t b = item.termid_list[1];
-        uint32_t d = item.termid_list[item.termid_list.size()-2];
-        uint32_t e = item.termid_list[item.termid_list.size()-1];
+        if(item.term_list.size()<2) return result;
+        uint32_t a = item.term_list[0].id;
+        uint32_t b = item.term_list[1].id;
+        uint32_t d = item.term_list[item.term_list.size()-2].id;
+        uint32_t e = item.term_list[item.term_list.size()-1].id;
         int pab_status = ContextVerify_(left_citem.term_list, a, b, item.freq);
         if( pab_status == KPStatus::KP )
         {

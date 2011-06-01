@@ -11,8 +11,7 @@ using namespace idmlib::tdt;
 using namespace idmlib::util;
 using namespace boost::filesystem;
 namespace po = boost::program_options;
-typedef idmlib::sim::TermSimilarity<> TermSimilarityType;
-typedef TermSimilarityType::SimTableType SimTableType;
+
 int main(int ac, char** av)
 {
   po::options_description desc("Allowed options");
@@ -163,20 +162,11 @@ int main(int ac, char** av)
   }
   analyzer->ExtractSymbols();
   DateRange date_range;
-  date_range.start = boost::gregorian::from_string("2011-03-01");
-  date_range.end = boost::gregorian::from_string("2011-04-30");
+  date_range.start = boost::gregorian::from_string("2011-01-14");
+  date_range.end = boost::gregorian::from_string("2011-04-22");
   
   
-  SimTableType* table = new SimTableType(working_path+"/sim_table");
-  if(!table->Open())
-  {
-      std::cerr<<"sim table open error"<<std::endl;
-      return -1;
-  }
-  
-  
-  TermSimilarityType* sim = new TermSimilarityType(working_path+"/sim", rig_resource_path, table, 5, 0.2 );
-  TemporalKpe* kpe = new TemporalKpe(working_path, analyzer, date_range, sim);
+  TemporalKpe* kpe = new TemporalKpe(working_path, analyzer, date_range, rig_resource_path, 1000000);
   if( !kpe->load(kpe_resource_path) )
   {
     return -1;

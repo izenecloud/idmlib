@@ -1,49 +1,29 @@
 ///
-/// @file macd_histogram.h
-/// @brief For macd computation
+/// @file ema.h
+/// @brief For ema computation
 /// @author Jia Guo <guojia@gmail.com>
-/// @date Created 2011-04-19
-/// @date Updated 2011-04-19
+/// @date Created 2011-05-23
+/// @date Updated 2011-05-23
 ///
 
-#ifndef _IDMLIB_TDT_MACDHISTOGRAM_H_
-#define _IDMLIB_TDT_MACDHISTOGRAM_H_
+#ifndef _IDMLIB_TDT_EMA_H_
+#define _IDMLIB_TDT_EMA_H_
 
 #include "../idm_types.h"
-#include "../util/Util.hpp"
-#include <boost/tuple/tuple.hpp>
 #include <algorithm>
 #include <cmath>
-#include <am/external_sort/izene_sort.hpp>
-#include <am/sequence_file/SimpleSequenceFile.hpp>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/vector.hpp>
+
 NS_IDMLIB_TDT_BEGIN
 
-template <uint8_t S, uint8_t L, uint8_t M, uint32_t G = L+M-2>
-class MacdHistogram
+template <uint8_t N, typename T=uint32_t>
+class Ema
 {
     public:
-        const static uint32_t G_Value = G;
-        MacdHistogram()
+        
+        Ema()
         {
             std::vector<double> init(1, 1.0);
-            std::vector<double> emas;
-            std::vector<double> emal;
-            Ema_(S, init, emas);
-            Ema_(L, init, emal);
-            std::vector<double> macd(emas);
-            AddTo_(macd, emal, -1.0);
-            PrintVec_(emas);
-            PrintVec_(emal);
-            PrintVec_(macd);
-            std::vector<double> signal;
-            Ema_(M, macd, signal);
-            PrintVec_(signal);
-            std::vector<double> histogram(macd);
-            AddTo_(histogram, signal, -1.0);
-            coef_ = histogram;
+            Ema_(N, init, coef_);
         }
         
         static void Ema_(uint8_t n, const std::vector<double>& input, std::vector<double>& output)
@@ -61,25 +41,13 @@ class MacdHistogram
             }
         }
         
-        static void AddTo_(std::vector<double>& to, const std::vector<double>& from, double x)
-        {
-            uint32_t count = to.size()>from.size()?from.size():to.size();
-            for(uint32_t i=0;i<count;i++)
-            {
-                to[i] += from[i]*x;
-            }
-            uint32_t to_size = to.size();
-            for(uint32_t i=to_size;i<from.size();i++)
-            {
-                to.push_back(from[i]*x);
-            }
-        }
         
-        template <typename T>
+        
         void Compute(const std::vector<T>& source, std::vector<double>& result)
         {
 //             std::cout<<"before compute"<<std::endl;
             result.resize(source.size(), 0.0);
+            uint32_t G = 0;
             for(uint32_t i=0;i<source.size();i++)
             {
                 uint32_t count = (i+1) > coef_.size()?coef_.size():(i+1);
@@ -104,8 +72,8 @@ class MacdHistogram
         }
         
     private:
-        template <typename T>
-        void PrintVec_(const std::vector<T>& vec)
+        template <typename U>
+        void PrintVec_(const std::vector<U>& vec)
         {
             for(uint32_t i=0;i<vec.size();i++)
             {

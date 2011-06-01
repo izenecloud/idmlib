@@ -1,5 +1,5 @@
 ///
-/// @file kpe_term_group.h
+/// @file tdt_term_group.h
 /// @brief The term's group information used for context dependency check.
 /// @author Jia Guo <guojia@gmail.com>
 /// @date Created 2010-02-25
@@ -7,19 +7,19 @@
 ///  --- Log
 
 
-#ifndef IDM_KPETERMGROUP_H_
-#define IDM_KPETERMGROUP_H_
+#ifndef IDM_TDTTERMGROUP_H_
+#define IDM_TDTTERMGROUP_H_
 
 #include <idmlib/util/idm_id_converter.h>
 
-NS_IDMLIB_KPE_BEGIN
+NS_IDMLIB_TDT_BEGIN
 
-class KPETermGroup
+class TDTTermGroup
 {
     public:
         
         
-        KPETermGroup()
+        TDTTermGroup()
         {
             uint32_t groupId = 0;
             std::vector<izenelib::util::UString> vec;
@@ -84,11 +84,23 @@ class KPETermGroup
               insert(id, groupId);
             }
             vec.resize(0);
+            vec.push_back(izenelib::util::UString("前", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("昨", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("今", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("明", izenelib::util::UString::UTF_8) );
+            vec.push_back(izenelib::util::UString("后", izenelib::util::UString::UTF_8) );
+            groupId = 1;
+            for(uint32_t i=0;i<vec.size();i++)
+            {
+              uint32_t id = idmlib::util::IDMIdConverter::GetId( vec[i], idmlib::util::IDMTermTag::ENG );
+              insert(id, groupId);
+            }
+            vec.resize(0);
         }
         
-        static KPETermGroup& GetInstance()
+        static TDTTermGroup& GetInstance()
         {
-          static KPETermGroup term_group;
+          static TDTTermGroup term_group;
           return term_group;
         }
        
@@ -159,7 +171,37 @@ class KPETermGroup
             }
         }
         
-        
+        void filter(const std::vector<std::pair<TermInNgram,uint32_t> >& term_list,
+        std::vector<uint32_t>& result_count_list)
+        {
+            result_count_list.reserve(term_list.size());
+            std::vector<uint32_t> inGroupCount(0, 0);
+            uint32_t number_group = 0;
+            for( uint32_t i=0;i<term_list.size();i++)
+            {
+                uint32_t* groupId = groupMapping_.find(term_list[i].first.id);
+                if(term_list[i].first.tag== idmlib::util::IDMTermTag::NUM )
+                {
+                    groupId = &number_group;
+                }
+                if( groupId == NULL )
+                {
+                    result_count_list.push_back( term_list[i].second );
+                }
+                else
+                {
+                    if( *groupId >= inGroupCount.size() )
+                    {
+                        inGroupCount.resize( (*groupId) + 1, 0);
+                    }
+                    inGroupCount[*groupId] += term_list[i].second;
+                }
+            }
+            if( inGroupCount.size() > 0 )
+            {
+                result_count_list.insert( result_count_list.end(), inGroupCount.begin(), inGroupCount.end() );
+            }
+        }
         
         
         
@@ -172,6 +214,6 @@ class KPETermGroup
     
 
     
-NS_IDMLIB_KPE_END
+NS_IDMLIB_TDT_END
 
 #endif

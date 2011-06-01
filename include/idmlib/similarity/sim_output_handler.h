@@ -1,5 +1,5 @@
-#ifndef IDMLIB_SIM_SIMOUTPUTCOLLECTOR_H_
-#define IDMLIB_SIM_SIMOUTPUTCOLLECTOR_H_
+#ifndef IDMLIB_SIM_SIMOUTPUTHANDLER_H_
+#define IDMLIB_SIM_SIMOUTPUTHANDLER_H_
 
 
 #include <string>
@@ -16,18 +16,13 @@ public:
   typedef izenelib::am::ssf::Writer<uint8_t> WriterType;
   typedef typename Container::IdType IdType;
   
-  SimOutputCollector(const std::string& path, uint32_t max_count, bool print = false)
-  :path_(path), container_path_(path+"/container"), writer_path_(path+"/writer")
-  , max_count_(max_count), print_(print), writer_(NULL), max_id_(0)
+  SimOutputCollector(Container* container, const std::string& path, uint32_t max_count, bool print = false)
+  :container_(container), path_(path), max_count_(max_count), print_(print), writer_(NULL), max_id_(0)
   {
   }
   
   ~SimOutputCollector()
   {
-    if(container_!=NULL)
-    {
-        delete container_;
-    }
     if(writer_!=NULL)
     {
       delete writer_;
@@ -37,24 +32,9 @@ public:
   
   bool Open()
   {
-      try{
-          boost::filesystem::create_directories(path_);
-      }
-      catch(std::exception& ex)
-      {
-          std::cerr<<ex.what()<<std::endl;
-          return false;
-      }
-      container_ = new Container(container_path_);
-      if(!container_->Open())
-      {
-          std::cerr<<"sim output collector container open failed"<<std::endl;
-      }
-      return Init_();
+    return Init_();
     
   }
-  
-  
   
   bool Flush()
   {
@@ -63,8 +43,8 @@ public:
     delete writer_;
     writer_ = NULL;
     container_->ResizeIf(max_id_);
-    izenelib::am::ssf::Sorter<uint8_t, IdType, false>::Sort(writer_path_);
-    izenelib::am::ssf::Reader<uint8_t> reader(writer_path_);
+    izenelib::am::ssf::Sorter<uint8_t, IdType, false>::Sort(path_);
+    izenelib::am::ssf::Reader<uint8_t> reader(path_);
     if(!reader.Open()) return false;
     IdType base = 0;
     std::pair<IdType, double> sim;
@@ -102,17 +82,13 @@ public:
     return Init_();
   }
   
-  bool AddSimPair(IdType a, IdType b, double score)
+  bool Add(IdType a, IdType b, double score)
   {
     if(!Add_(a,b,score)) return false;
     if(!Add_(b,a,score)) return false;
     return true;
   }
   
-  Container* GetContainer() const
-  {
-      return container_;
-  }
  
  private:
   bool Init_()
@@ -120,8 +96,7 @@ public:
     try
     {
       max_id_ = 0;
-      boost::filesystem::remove_all(writer_path_);
-      writer_ = new WriterType(writer_path_);
+      writer_ = new WriterType(path_);
       if(!writer_->Open()) return false;
     }
     catch(std::exception& ex)
@@ -178,8 +153,6 @@ public:
  private: 
   Container* container_;
   std::string path_;
-  std::string container_path_;
-  std::string writer_path_;
   uint32_t max_count_;
   bool print_;
   WriterType* writer_;

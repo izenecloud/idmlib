@@ -8,9 +8,7 @@
 
 int main(int argc, char** argv)
 {
-  //use sparse vector as container
-  typedef idmlib::sim::TermSimilarity<> TermSimilarityType;
-//   typedef idmlib::sim::TermSimilarity<izenelib::am::MatrixFileVLIo, izenelib::am::SparseVector<int64_t,uint16_t> > TermSimilarityType;
+
   if(argc!=3)
   {
     std::cerr<<"Usage: ./kp_similarity <inverted_text_file> <output_file>"<<std::endl;
@@ -26,14 +24,17 @@ int main(int argc, char** argv)
   std::string rig_dir = "./rig_dir";
   boost::filesystem::remove_all(test_dir);
   uint8_t sim_per_term = 5;
-  typedef TermSimilarityType::SimTableType SimTableType;
-  SimTableType* table = new SimTableType(test_dir+"/table");
-  if(!table->Open())
+  typedef idmlib::sim::TermSimilarityTable<uint32_t> SimTableType;
+  typedef idmlib::sim::SimOutputCollector<SimTableType> SimCollectorType;
+  typedef idmlib::sim::TermSimilarity<SimCollectorType> TermSimilarityType;
+  SimCollectorType* sim_collector = new SimCollectorType(test_dir+"/sim_collector", sim_per_term);
+  
+  if(!sim_collector->Open()) 
   {
-    std::cerr<<"table open error"<<std::endl;
-//     return -1;
+    std::cerr<<"sim collector open error"<<std::endl;
+    return -1;
   }
-  TermSimilarityType* sim = new TermSimilarityType(test_dir, rig_dir, table, sim_per_term, 0.4);
+  TermSimilarityType* sim = new TermSimilarityType(test_dir, rig_dir, sim_collector, 0.4);
   if(!sim->Open())
   {
     std::cout<<"open error"<<std::endl;
@@ -99,12 +100,13 @@ int main(int argc, char** argv)
     return -1;
   }
   std::cout<<"Computing finished."<<std::endl;
+  SimTableType* table = sim_collector->GetContainer();
   std::ofstream ofs(output_file.c_str());
   for(uint32_t i=0;i<kp_list.size();i++)
   {
     uint32_t kp_id = i+1;
     std::vector<uint32_t> sim_list;
-    if(!sim->GetSimVector(kp_id, sim_list))
+    if(!table->Get(kp_id, sim_list))
     {
       std::cout<<"no sim list for kp id: "<<kp_id<<std::endl;
     }
