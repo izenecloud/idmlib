@@ -2,6 +2,7 @@
 #define IDMLIB_RESYS_SIMILARITY_MATRIX_H
 
 #include <idmlib/idm_types.h>
+#include <idmlib/resys/SerializationType.h>
 
 #include <cache/IzeneCache.h>
 #include <am/beansdb/Hash.h>
@@ -14,13 +15,7 @@
 #include <util/ThreadModel.h>
 #include <util/PriorityQueue.h>
 
-#include <ext/hash_map>
-#include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/hash_map.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 
 #include <string>
 #include <vector>
@@ -63,14 +58,12 @@ bool similarityCompare (const std::pair<ItemType,MeasureType>& p1, const std::pa
 template<typename ItemType = uint32_t, typename MeasureType = float>
 class SimilarityMatrix
 {
-    typedef __gnu_cxx::hash_map<ItemType, MeasureType> HashType;
+    //typedef __gnu_cxx::hash_map<ItemType, MeasureType> HashType;
+    typedef google::sparse_hash_map<ItemType, MeasureType> HashType;
 
     //typedef izenelib::am::beansdb::Hash<Int2String, HashType > ItemSimilarityMatrixType;
-    typedef izenelib::sdb::unordered_sdb_tc<
-        Int2String, 
-        HashType, 
-        ReadWriteLock
-        > ItemSimilarityMatrixType;
+    //typedef izenelib::am::leveldb::Table<Int2String, HashType > ItemSimilarityMatrixType;
+    typedef izenelib::sdb::unordered_sdb_tc<ItemType, HashType, ReadWriteLock > ItemSimilarityMatrixType;
 
     typedef izenelib::cache::IzeneCache<
         ItemType,
@@ -292,15 +285,15 @@ private:
     loadRow(ItemType row)
     {
         boost::shared_ptr<HashType > rowdata(new HashType);
-        Int2String rowKey(row);
-        store_.get(rowKey, *rowdata);
+        //Int2String rowKey(row);
+        store_.get(row, *rowdata);
         return rowdata;
     }
 
     void saveRow(ItemType row,  boost::shared_ptr<HashType > rowdata)
     {
-        Int2String rowKey(row);
-        store_.update(rowKey, *rowdata);
+        //Int2String rowKey(row);
+        store_.update(row, *rowdata);
     }
 
 

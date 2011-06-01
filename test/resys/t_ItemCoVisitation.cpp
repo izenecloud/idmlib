@@ -7,6 +7,9 @@
 
 #include <idmlib/resys/ItemCoVisitation.h>
 
+#include <util/ClockTimer.h>
+#include <boost/timer.hpp>
+
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -20,6 +23,7 @@
 using namespace std;
 using namespace boost;
 using namespace idmlib::recommender;
+using namespace izenelib::util;
 
 namespace bfs = boost::filesystem;
 
@@ -203,10 +207,12 @@ BOOST_AUTO_TEST_CASE(largeTest)
 
     CoVisitManager coVisitManager(covisitPath.string()+"/visitdb",1000);
 
+    ClockTimer t;
+
     for(int i = 0; i < ORDERS; ++i)
     {
 	if(i%100 == 0)
-		std::cout<<i<<" orders have been processed"<<std::endl;
+		std::cout<<i<<" orders have been processed "<<t.elapsed()<<std::endl;
         std::list<uint32_t> oldItems;
         std::list<uint32_t> newItems;
         generators.genItems(oldItems,newItems);
