@@ -286,6 +286,8 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         checkItemRecommend(cfManager, "2", "1 3 4");
         checkItemRecommend(cfManager, "3", "1 2 4");
         checkItemRecommend(cfManager, "4", "2 3");
+        checkItemRecommend(cfManager, "1 2", "3 4");
+        checkItemRecommend(cfManager, "1 2 3", "4");	
     }
 
     {

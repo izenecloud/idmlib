@@ -1,6 +1,7 @@
 #include <idmlib/resys/incremcf/IncrementalItemCF.h>
 
 #include <math.h> // for sqrt
+#include <algorithm>
 
 NS_IDMLIB_RESYS_BEGIN
 
@@ -126,14 +127,12 @@ void IncrementalItemCF::getTopItems(
 )
 {
     std::set<uint32_t> filterSet(itemIds.begin(), itemIds.end());
-
+    boost::unordered_map<uint32_t, float> resultSet;
     for(size_t i = 0; i < itemIds.size(); ++i)
     {
         std::vector<std::pair<uint32_t, uint8_t> > similarities;
         if(similarity_.itemSimilarity(itemIds[i], similarities))
         {
-            ///TODO 1. need a better policy to find the relevancy.
-            ///TODO 2. the items in topItems should be unique
             std::vector<std::pair<uint32_t, uint8_t> >::iterator iter;
             for(iter = similarities.begin(); iter != similarities.end(); ++iter)
             {
@@ -141,12 +140,25 @@ void IncrementalItemCF::getTopItems(
                    && (!rescorer || !rescorer->isFiltered(iter->first)))
                 {
                     float v = izenelib::util::SmallFloat::byte315ToFloat(iter->second);
-                    topItems.push_back(RecommendedItem(iter->first, v));
+                    float& weight = resultSet[iter->first];
+                    weight += v;
                 }
             }
         }
     }
-    if(topItems.size() > (size_t)howMany) topItems.resize(howMany);
+    TopItemsQueue resultQueue(howMany);
+    boost::unordered_map<uint32_t, float>::iterator it = resultSet.begin();
+    for(; it != resultSet.end(); ++it)
+    {
+        resultQueue.insert(RecommendedItem(it->first, it->second));
+    }
+    size_t count = resultQueue.size();
+    for(size_t i = 0; i < count; ++i)
+    {
+        RecommendedItem item = resultQueue.pop();
+        item.value /= filterSet.size(); ///for normalization
+        topItems.push_back(item);	
+    }
 }
 
 void IncrementalItemCF::getTopItems(
