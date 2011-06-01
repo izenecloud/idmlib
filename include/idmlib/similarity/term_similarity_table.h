@@ -9,10 +9,11 @@
 
 NS_IDMLIB_SIM_BEGIN
 
-template <typename IdType>
+template <typename _IdType>
 class TermSimilarityTable
 {
 public:
+  typedef _IdType IdType;
   typedef std::vector<IdType> ValueType;
   typedef izenelib::util::FileObject<std::vector<ValueType> > Container;
   

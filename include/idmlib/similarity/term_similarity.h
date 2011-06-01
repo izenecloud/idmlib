@@ -12,6 +12,7 @@
 #include "cosine_similarity.h"
 #include "simple_similarity.h"
 #include "term_similarity_table.h"
+#include "sim_output_collector.h"
 #include <idmlib/semantic_space/normalizer.h>
 #include <idmlib/semantic_space/vector_traits.h>
 #include <idmlib/semantic_space/apss.h>
@@ -19,7 +20,7 @@
 NS_IDMLIB_SIM_BEGIN
 
 ///@see RandomIndexing class
-template <typename IdType = uint32_t, typename ContextIdType = uint32_t, typename FreqType = uint32_t>
+template <class OutputHandlerType, typename IdType = uint32_t, typename ContextIdType = uint32_t, typename FreqType = uint32_t>
 class TermSimilarity : public idmlib::ssp::RandomIndexing<IdType, ContextIdType, FreqType>
 {
 public:
@@ -33,9 +34,9 @@ public:
   typedef TermSimilarityTable<uint32_t> SimTableType;
   typedef izenelib::am::SparseVector<double, typename RIType::DimensionsType> NormalizedType;
   
-  TermSimilarity(const std::string& dir, const std::string& rig_dir, SimTableType* table, uint8_t sim_per_term = 5, double sim_min_score = 0.4)
-  :RIType(dir+"/ri", rig_dir), dir_(dir), apss_(NULL), table_(table), sim_per_term_(sim_per_term), sim_min_score_(sim_min_score)
-  , sim_list_writer_(NULL)
+  TermSimilarity(const std::string& dir, const std::string& rig_dir, OutputHandlerType* output_handler, double sim_min_score = 0.4)
+  :RIType(dir+"/ri", rig_dir), dir_(dir), apss_(NULL)
+  , output_handler_(output_handler), sim_min_score_(sim_min_score)
   {
     apss_ = new ApssType(sim_min_score_, boost::bind( &TermSimilarity::FindSim_, this, _1, _2, _3), RIType::GetDimensions() );
   }
@@ -108,115 +109,35 @@ public:
     delete vector_reader;
     normal_matrix_writer.Close();
     std::cout<<"[TermSimilarity] normalization finished."<<std::endl;
-    if(sim_list_writer_!=NULL)
-    {
-      delete sim_list_writer_;
-    }
-    std::string sim_list_file = dir_+"/sim_list_file";
-    boost::filesystem::remove_all(sim_list_file);
-    sim_list_writer_ = new izenelib::am::ssf::Writer<uint8_t>(sim_list_file);
-    if(!sim_list_writer_->Open())
-    {
-      delete sim_list_writer_;
-      return false;
-    }
-    max_id_ = 0;
-    IdType id;
+
+    
+    IdType id = 0;
     NormalizedType normal_vec;
 
     apss_->Compute(normal_matrix_file, id, normal_vec);
     
-    sim_list_writer_->Close();
-    delete sim_list_writer_;
-    sim_list_writer_ = NULL;
-    table_->ResizeIf(max_id_);
-    izenelib::am::ssf::Sorter<uint8_t, IdType, false>::Sort(sim_list_file);
-    izenelib::am::ssf::Reader<uint8_t> sim_list_reader(sim_list_file);
-    if(!sim_list_reader.Open()) return false;
-    IdType base = 0;
-    std::pair<IdType, double> sim;
-    IdType last_base = 0;
-    std::vector<std::pair<double, IdType> > sim_list;
-    while(sim_list_reader.Next(base, sim))
+    if(!output_handler_->Flush())
     {
-      if(base!=last_base && !sim_list.empty())
-      {
-        std::sort(sim_list.begin(), sim_list.end(), std::greater<std::pair<double, IdType> >());
-        if(!UpdateSim_(last_base, sim_list))
-        {
-          return false;
-        }
-        sim_list.resize(0);
-      }
-      sim_list.push_back(std::make_pair(sim.second, sim.first));
-      last_base = base;
-    }
-    if(!sim_list.empty())
-    {
-      std::sort(sim_list.begin(), sim_list.end(), std::greater<std::pair<double, IdType> >());
-      if(!UpdateSim_(last_base, sim_list))
-      {
-        return false;
-      }
-      sim_list.resize(0);
-    }
-    sim_list_reader.Close();
-    boost::filesystem::remove_all(sim_list_file);
-    if(!table_->Flush())
-    {
-      std::cerr<<"sim table flush failed"<<std::endl;
+      std::cerr<<"output handler flush failed"<<std::endl;
       return false;
     }
     return true;
   }
   
-  bool GetSimVector(IdType id, std::vector<IdType>& vec)
-  {
-    return table_->Get(id, vec);
-  }
+//   bool GetSimVector(IdType id, std::vector<IdType>& vec)
+//   {
+//     return table_->Get(id, vec);
+//   }
   
  private:
   
   void FindSim_(IdType id1, IdType id2, double score)
   {
-    IdType lid = id1;
-    IdType rid = id2;
-    AddSim_(lid, rid, score);
-    AddSim_(rid, lid, score);
-//     std::cout<<id1<<","<<id2<<"\t"<<score<<std::endl;
+    output_handler_->AddSimPair(id1, id2, score);
   }
   
-  void AddSim_(IdType base, IdType sim, double score)
-  {
-    if(!sim_list_writer_->Append(base, std::make_pair(sim, score) ))
-    {
-      std::cerr<<"sim list append "<<base<<","<<sim<<","<<score<<" failed"<<std::endl;
-    }
-    if(base>max_id_) max_id_ = base;
-  }
   
-  bool UpdateSim_(IdType base, const std::vector<std::pair<double, IdType> >& sim_list)
-  {
-    uint32_t count = sim_list.size()>sim_per_term_?sim_per_term_:sim_list.size();
-    std::vector<IdType> sim_vec;
-    for(uint32_t c=0;c<count;c++)
-    {
-      
-      sim_vec.push_back(sim_list[c].second);
-      
-    }
-    //storage the similar items
-    if(!table_->Update(base, sim_vec))
-    {
-      std::cerr<<"sim table update on "<<base<<" failed."<<std::endl;
-      return false;
-    }
-    {
-      //debug score
-//         std::cout<<"[score] "<<i<<" : "<<for_sort[0].first<<","<<for_sort[count-1].first<<std::endl;
-    }
-    return true;
-  }
+  
   
   std::string time_string_()
   {
@@ -230,12 +151,8 @@ public:
   
   std::string dir_;
   ApssType* apss_;
-  SimTableType* table_;
-  uint8_t sim_per_term_;//max similar items count per id
+  OutputHandlerType* output_handler_;
   double sim_min_score_;//min score of similarity measure
-  izenelib::am::ssf::Writer<uint8_t>* sim_list_writer_;
-  IdType max_id_;
-//   std::vector<std::vector<std::pair<double, IdType> > > tmp_sim_list_;
 };
 
    

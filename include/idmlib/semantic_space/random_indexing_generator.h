@@ -59,6 +59,7 @@ public:
     value_.clear();
     value_.resize(max_id);
     I start = 1;
+    bool need_flush = false;
     {
       izenelib::am::ssf::Reader<uint32_t> reader(ser_file_);
       
@@ -93,11 +94,15 @@ public:
           value_[i-1].negative_position.push_back(t);
         }
       }
+      need_flush = true;
     }
-    if(!Flush_())
+    if(need_flush)
     {
-      std::cerr<<"rig Flush error"<<std::endl;
-      return false;
+        if(!Flush_())
+        {
+        std::cerr<<"rig Flush error"<<std::endl;
+        return false;
+        }
     }
     return true;
   }

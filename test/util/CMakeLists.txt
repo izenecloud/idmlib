@@ -46,6 +46,21 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
   ADD_TEST(ANALYZER "${IDMLIB_SOURCE_DIR}/testbin/t_analyzer")
 ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
 
+IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+  INCLUDE_DIRECTORIES(
+    ${Boost_INCLUDE_DIRS}
+  )
+  ADD_EXECUTABLE(t_container_switch
+    Runner.cpp
+    t_container_switch.cc
+    )
+  TARGET_LINK_LIBRARIES(t_container_switch ${libs})
+  SET_TARGET_PROPERTIES(t_container_switch PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/testbin
+    )
+  ADD_TEST(ANALYZER "${IDMLIB_SOURCE_DIR}/testbin/t_container_switch")
+ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+
 ADD_EXECUTABLE(resource_generate
 resource_generate.cc
 )
