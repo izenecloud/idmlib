@@ -19,13 +19,16 @@
 #include <idmlib/semantic_space/semantic_space_builder.h>
 #include <idmlib/semantic_space/explicit_semantic_interpreter.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
+#include <idmlib/util/idm_analyzer.h>
 #include <idmlib/similarity/document_similarity_index.h>
 #include <idmlib/util/collection_file_util.h>
 #include <idmlib/util/FSUtil.hpp>
+#include <ir/id_manager/IDManager.h>
 
 //#define DOCSIM_TEST
 
 using namespace idmlib::ssp;
+using namespace izenelib::ir::idmanager;
 
 NS_IDMLIB_SIM_BEGIN
 
@@ -92,8 +95,6 @@ public:
 
 		// similarity index
 		pDocSimIndex_.reset(new DocumentSimilarityIndex(docSimPath, thresholdSim));
-
-
 	}
 
     DocumentSimilarity(
@@ -105,13 +106,23 @@ public:
             const count_t& maxDoc
             )
     : colFileUtil_(new idmlib::util::CollectionFileUtil(colBasePath))
+    , maxDoc_(maxDoc)
     {
-        // xxx
-        string indexDir = "./wiki/index";
-        pWikiIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(indexDir);
+        pWikiIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(wikiIndexDir);
         pEsaInterpreter_.reset(new SemanticInterpreter(pWikiIndexer_, laResPath, colBasePath));
-    }
 
+        encoding_ = izenelib::util::UString::UTF_8;
+
+        string idDir = colFileUtil_->getCollectionDataDir() + "/id";
+        if (!exists(idDir)) {
+            DLOG(ERROR) << "id directory dose not exsited: " <<idDir << std::endl;;
+        }
+        pIdManager_.reset(new IDManager(idDir));
+        BOOST_ASSERT(pIdManager_);
+
+        // similarity index
+        pDocSimIndex_.reset(new DocumentSimilarityIndex(docSimPath, thresholdSim));
+    }
 
 	~DocumentSimilarity()
 	{
@@ -119,15 +130,27 @@ public:
 
 public:
 
+	/**
+	 * @deprecated
+	 */
 	void DoSim();
 
-	void computeSimilarity();
+	bool computeSimilarity();
 
+private:
+	void processDocument_(SCDDocPtr& pDoc);
 
 private:
 	boost::shared_ptr<SemanticInterpreter> pEsaInterpreter_;
 	boost::shared_ptr<Indexer> pWikiIndexer_;
+	boost::shared_ptr<IDManager> pIdManager_;
 
+	izenelib::util::UString::EncodingType encoding_;
+	count_t maxDoc_;
+
+	typedef std::vector<std::pair<izenelib::util::UString, izenelib::util::UString> >::iterator doc_properties_iterator;
+
+	// old
 	boost::shared_ptr<SemanticSpace> pDocVecSpace_; // processed collection data, xxx
 
 	boost::shared_ptr<DocumentSimilarityIndex> pDocSimIndex_;

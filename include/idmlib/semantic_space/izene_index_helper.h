@@ -20,7 +20,13 @@ NS_IDMLIB_SSP_BEGIN
 class IzeneIndexHelper
 {
 public:
-    static boost::shared_ptr<Indexer> createIndexer(std::string& indexDir, std::string collectionName = "ChnWiki")
+    /**
+     * Create default indexer for Chinese Wiki corpus
+     * @param indexDir
+     * @param collectionName
+     * @return Indexer
+     */
+    static boost::shared_ptr<Indexer> createIndexer(const std::string& indexDir, std::string collectionName = "ChnWiki")
     {
         boost::shared_ptr<Indexer> indexer(new Indexer());
 
@@ -30,7 +36,7 @@ public:
             setIndexConfig(config, collectionName, indexDir);
 
             std::map<std::string, unsigned int> collectionIdMapping;
-            collectionIdMapping[collectionName] = 1;
+            collectionIdMapping[collectionName] = COLLECTION_ID;
 
             indexer->setIndexManagerConfig(config, collectionIdMapping);
         }
@@ -38,11 +44,39 @@ public:
         return indexer;
     }
 
+    const static unsigned int COLLECTION_ID = 1;
+
+
+    static unsigned int getPropertyIdByName(std::string property)
+    {
+        if (property == "Content")
+        {
+            return 1;
+        }
+        else if (property == "DATE")
+        {
+            return 2;
+        }
+        else if (property == "DOCID")
+        {
+            return 3;
+        }
+        else if (property == "Title")
+        {
+            return 4;
+        }
+
+        return 0;
+    }
+
 private:
-    static void setIndexConfig(IndexManagerConfig& config, std::string& collectionName, std::string& indexDir)
+
+    static void setIndexConfig(IndexManagerConfig& config, std::string& collectionName, const std::string& indexDir)
     {
         // set as default configuration
-        boost::filesystem::create_directories(indexDir);
+        if (!boost::filesystem::exists(indexDir)) {
+            boost::filesystem::create_directories(indexDir);
+        }
         config.indexStrategy_.indexLocation_ = indexDir;
         config.indexStrategy_.memory_ = 128000000;
         config.indexStrategy_.indexDocLength_ = true;
@@ -55,19 +89,23 @@ private:
 
         IndexerCollectionMeta indexCollectionMeta;
         indexCollectionMeta.setName(collectionName);
-        indexCollectionMeta.addPropertyConfig( makeIndexPropertyConfig(1, "DOCID", false, false) );
-        indexCollectionMeta.addPropertyConfig( makeIndexPropertyConfig(2, "DATE", true, false) );
-        indexCollectionMeta.addPropertyConfig( makeIndexPropertyConfig(3, "Title", true, true) );
-        indexCollectionMeta.addPropertyConfig( makeIndexPropertyConfig(4, "Content", true, true) );
+        // ordered by property names
+        indexCollectionMeta.addPropertyConfig( makeIndexPropertyConfig(1, "Content", true, true) );
+        indexCollectionMeta.addPropertyConfig( makeIndexPropertyConfig(2, "DATE", true, false, true, false) );
+        indexCollectionMeta.addPropertyConfig( makeIndexPropertyConfig(3, "DOCID", false, false, false, false) );
+        indexCollectionMeta.addPropertyConfig( makeIndexPropertyConfig(4, "Title", true, true) );
+
         config.addCollectionMeta(indexCollectionMeta);
     }
 
-    static IndexerPropertyConfig makeIndexPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool analyzed)
+    static IndexerPropertyConfig makeIndexPropertyConfig(
+            unsigned int propertyid, std::string propertyname, bool index, bool analyzed,
+            bool filter=false, bool storeDocLen=true)
     {
         IndexerPropertyConfig indexerPropertyConfig(propertyid, propertyname, index, analyzed);
-        indexerPropertyConfig.setIsFilter(false);
+        indexerPropertyConfig.setIsFilter(filter);
         indexerPropertyConfig.setIsMultiValue(false);
-        indexerPropertyConfig.setIsStoreDocLen(true);
+        indexerPropertyConfig.setIsStoreDocLen(storeDocLen);
 
         return indexerPropertyConfig;
     }

@@ -87,181 +87,100 @@ void DocumentSimilarity::DoSim()
 	DLOG(INFO) << "End document similarity." << endl;
 }
 
-void DocumentSimilarity::computeSimilarity()
+bool DocumentSimilarity::computeSimilarity()
 {
-    izenelib::util::UString udoc("上海市打浦路越江隧道 建成于1970年，位于市区西南角，以货运为主。隧道西双车道，全长2761m。", izenelib::util::UString::UTF_8);
+    /*
+    docid_t docid = 1;
+    izenelib::util::UString udoc(
+            "打浦路隧道是上海第一条跨越黄浦江、连接浦东与浦西的隧道，为单管两车道相向行驶。隧道浦西出口在打浦路，浦东出口在周家渡路，全长2,736米。"
+"1960年，上海市隧道工程局成立，经过6年前期准备工作，1965年确定在打浦路与周家渡间建设越江隧道，同年6月动工，1970年9月建成。",
+            izenelib::util::UString::UTF_8);
 
-    std::vector<weight_t> interVector;
-    pEsaInterpreter_->interpret(udoc, interVector);
+    InterpretVector& interVec = pEsaInterpreter_->interpret(docid, udoc);
+    pEsaInterpreter_->sortInterpretVector();
+    pEsaInterpreter_->printInterpretVector();
+
+    return true;
+    //*/
+
+    std::vector<std::string> scdFileList;
+    if (!SemanticSpaceBuilder::getScdFileList(colFileUtil_->getScdDir(), scdFileList)) {
+        return false;
+    }
+
+    DLOG(INFO) << "Start document similarity." << endl;
+
+    // parsing all SCD files
+    for (size_t i = 1; i <= scdFileList.size(); i++)
+    {
+        std::string scdFile = scdFileList[i-1];
+        izenelib::util::ScdParser scdParser(encoding_);
+        if(!scdParser.load(scdFile) )
+        {
+          DLOG(WARNING) << "Load scd file failed: " << scdFile << std::endl;
+          return false;
+        }
+
+        /// test
+        std::vector<izenelib::util::UString> list;
+        scdParser.getDocIdList(list);
+        size_t totalDocNum = list.size();
+
+        DLOG(INFO) << "SCD (" << i <<" / " << scdFileList.size() <<") total documents: " << totalDocNum << endl;
+
+        // parse SCD
+        size_t curDocNum = 0;
+        for (izenelib::util::ScdParser::iterator iter = scdParser.begin(); iter != scdParser.end(); iter ++)
+        {
+            SCDDocPtr pDoc = *iter;
+            processDocument_(pDoc);
+
+            curDocNum ++;
+            if (curDocNum % 10 == 0) {
+                DLOG(INFO) << "["<<scdFile<<"] processing: " << curDocNum<<" / total: "<<totalDocNum
+                           << " - "<< curDocNum*100.0f / totalDocNum << "%" << endl;
+            }
+
+            ///test
+            if (curDocNum > maxDoc_)
+                break;
+        }
+    }
+
+    pDocSimIndex_->FinishInert();
+
+    DLOG(INFO) << "End document similarity." << endl;
+    return true;
 }
 
-
-#if TO_DEL
-bool DocumentSimilarity::Compute()
+void DocumentSimilarity::processDocument_(SCDDocPtr& pDoc)
 {
-	// preprocess .. gather TF, DF
-	if (!buildInterpretationVectors())
-		return false;
+    docid_t docId = 0;
 
-	// compute similarity & build inverted index..
-	if (!computeSimilarities())
-		return false;
+    doc_properties_iterator proIter;
+    for (proIter = pDoc->begin(); proIter != pDoc->end(); proIter ++)
+    {
+        izenelib::util::UString propertyName = proIter->first;
+        const izenelib::util::UString & propertyValue = proIter->second;
+        propertyName.toLowerString();
 
-	return true;
+        if ( propertyName == izenelib::util::UString("docid", encoding_) ) {
+            bool ret = pIdManager_->getDocIdByDocName(propertyValue, docId, false);
+            if (ret) ;
+
+        }
+        if ( propertyName == izenelib::util::UString("title", encoding_) ) {
+
+        }
+        else if ( propertyName == izenelib::util::UString("content", encoding_)) {
+            InterpretVector& interVec = pEsaInterpreter_->interpret(docId, propertyValue);
+            //pEsaInterpreter_->sortInterpretVector(); //
+            //pEsaInterpreter_->printInterpretVector(); //
+
+            pDocSimIndex_->InertDocument(docId, interVec); // <DOCID> property has to come first
+        }
+        else {
+            continue;
+        }
+    }
 }
-
-bool DocumentSimilarity::buildInterpretationVectors()
-{
-	if (!pSSPInter_) {
-		DLOG(WARNING) << "Semantic Interpreter has not been initialized." << endl;
-		return false;
-	}
-
-	std::vector<std::string> scdFileList;
-	if (!getScdFileListInDir(scdPath_, scdFileList)) {
-		return false;
-	}
-
-	typedef std::vector<std::pair<izenelib::util::UString, izenelib::util::UString> >::iterator doc_properties_iterator;
-
-    docid_t docid = 0;
-    docid_t last_docid = 0;
-    count_t doc_count = 0;
-
-	for (size_t i = 0; i < scdFileList.size(); i++)
-	{
-		//std::cout << scdFileList[i] << std::endl;
-		std::string scdFile = scdFileList[i];
-		izenelib::util::ScdParser scdParser(encoding_);
-		if(!scdParser.load(scdFile) )
-		{
-		  DLOG(WARNING) << "Load scd file failed: " << scdFile << std::endl;
-		  return false;
-		}
-
-		// parse SCD
-		izenelib::util::ScdParser::iterator iter = scdParser.begin();
-		for (; iter != scdParser.end(); iter ++)
-		{
-			izenelib::util::SCDDocPtr pDoc = *iter;
-
-			std::vector<weight_t> IVec; //
-
-			doc_properties_iterator proIter;
-			for (proIter = pDoc->begin(); proIter != pDoc->end(); proIter ++)
-			{
-				izenelib::util::UString propertyName = proIter->first;
-				const izenelib::util::UString & propertyValue = proIter->second;
-				propertyName.toLowerString();
-
-				if ( propertyName == izenelib::util::UString("docid", encoding_) ) {
-					last_docid = docid;
-					bool ret = pIdManager_->getDocIdByDocName(propertyValue, docid, false);
-					if (!ret) {
-						DLOG(WARNING) << "Document (" << propertyValue << ") does not existed: !" << std::endl;
-						return false;
-					}
-				}
-				else if ( propertyName == izenelib::util::UString("title", encoding_) ) {
-					//std::cout << la::to_utf8(proIter->second) << std::endl;
-				}
-				else if ( propertyName == izenelib::util::UString("content", encoding_)) {
-					pSSPInter_->interpret(propertyValue, IVec);
-				}
-			}
-
-			if (docid == last_docid)
-				return false;
-
-			///:~ docid2Index_.insert( make_pair(docid, doc_count ++) );
-			docIVecs_.push_back( IVec ); // ...
-		}
-
-		// idf factor
-		// pSSPInter_->getTermDF(termid)
-		// for doc in docIVecs
-		//
-	}
-
-	return true;
-}
-
-bool DocumentSimilarity::computeSimilarities()
-{
-	count_t N = docIVecs_.size();
-
-	weight_t* psimMatrix = new weight_t[N*N];
-	std::memset((void*)psimMatrix, 0, sizeof(weight_t)*(N*N));
-
-	// upper triangular matrix
-	weight_t* pw;
-	for (size_t i = 0; i < N; i ++) {
-		for (size_t j = i + 1; j < N; j ++) {
-			pw = psimMatrix + (N * i) + j;
-			//:*pw = CosineSimilarity::Sim(docIVecs_[i], docIVecs_[j]); // similarity
-		}
-	}
-
-	/// build inverted index
-	///
-
-	// doc similarity
-	for (size_t i = 0; i < N; i++)
-	{
-		for (size_t j = 0; j < N; j++)
-		{
-			cout << setw (10) << *(psimMatrix + (N * i) + j) ;
-		}
-		cout << endl;
-	}
-	return false;
-}
-
-bool DocumentSimilarity::GetSimDocIdList(
-		uint32_t docId,
-		uint32_t maxNum,
-		std::vector<std::pair<uint32_t, float> >& result)
-{
-	return false;
-}
-
-bool DocumentSimilarity::getScdFileListInDir(const std::string& scdDir, std::vector<std::string>& fileList)
-{
-	if ( exists(scdDir) )
-	{
-		if ( !is_directory(scdDir) ) {
-			//std::cout << "It's not a directory: " << scdDir << std::endl;
-			return false;
-		}
-
-		directory_iterator iterEnd;
-		for (directory_iterator iter(scdDir); iter != iterEnd; iter ++)
-		{
-			std::string file_name = iter->path().filename();
-			//std::cout << file_name << endl;
-
-			if (izenelib::util::ScdParser::checkSCDFormat(file_name) )
-			{
-				izenelib::util::SCD_TYPE scd_type = izenelib::util::ScdParser::checkSCDType(file_name);
-				if( scd_type == izenelib::util::INSERT_SCD ||scd_type == izenelib::util::UPDATE_SCD )
-				{
-					fileList.push_back( iter->path().string() );
-				}
-			}
-		}
-
-		if (fileList.size() > 0) {
-			return true;
-		}
-		else {
-			//std::cout << "There is no scd file in: " << scdDir << std::endl;
-			return false;
-		}
-	}
-	else
-	{
-		//std::cout << "File path dose not existed: " << scdDir << std::endl;
-		return false;
-	}
-}
-#endif

@@ -10,6 +10,10 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/random.hpp>
+
+#include <util/ClockTimer.h>
+#include <boost/timer.hpp>
 
 #include <list>
 #include <vector>
@@ -21,6 +25,8 @@
 using namespace std;
 using namespace boost;
 using namespace idmlib::recommender;
+
+using namespace izenelib::util;
 
 namespace bfs = boost::filesystem;
 
@@ -205,6 +211,51 @@ void checkItemRecommend(
                                   goldResult.begin(), goldResult.end());
 }
 
+struct RandomGenerators
+{
+    boost::mt19937 engine ;
+    boost::uniform_int<> itemDistribution ;
+    boost::variate_generator<mt19937, uniform_int<> > itemRandom;
+    boost::uniform_int<> userDistribution;
+    boost::variate_generator<mt19937, uniform_int<> > userRandom;
+    boost::uniform_int<> oldVisitDistribution;
+    boost::variate_generator<mt19937, uniform_int<> > oldVisitRandom;
+    boost::uniform_int<> newVisitDistribution;
+    boost::variate_generator<mt19937, uniform_int<> > newVisitRandom;
+
+    RandomGenerators(int ITEMLIMIT, int USERLIMIT, int OLDVISITLIMIT, int NEWVISITLIMIT)
+        :itemDistribution(1, ITEMLIMIT)
+        ,itemRandom (engine, itemDistribution)
+        ,userDistribution(1, USERLIMIT)
+        ,userRandom (engine, userDistribution)
+        ,oldVisitDistribution(1, OLDVISITLIMIT)
+        ,oldVisitRandom (engine, oldVisitDistribution)
+        ,newVisitDistribution(1, NEWVISITLIMIT)
+        ,newVisitRandom (engine, newVisitDistribution)
+    {
+    }
+
+    void genItems(std::list<uint32_t>& oldItems, std::list<uint32_t>& newItems)
+    {
+        int N = oldVisitRandom();
+        for(int i = 0; i < N; ++i)
+        {
+            oldItems.push_back(itemRandom());
+        }
+        N = newVisitRandom();
+        for(int i = 0; i < N; ++i)
+        {
+            newItems.push_back(itemRandom());
+        }
+    }
+
+    uint32_t genUser()
+    {
+        return userRandom();
+    }
+
+};
+
 BOOST_AUTO_TEST_SUITE(IncrementalItemCFTest)
 
 BOOST_AUTO_TEST_CASE(smokeTest)
@@ -235,12 +286,14 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         checkItemRecommend(cfManager, "2", "1 3 4");
         checkItemRecommend(cfManager, "3", "1 2 4");
         checkItemRecommend(cfManager, "4", "2 3");
+        checkItemRecommend(cfManager, "1 2", "3 4");
+        checkItemRecommend(cfManager, "1 2 3", "4");	
     }
 
     {
         IncrementalItemCF cfManager(
             cfPathStr + "/covisit", 1000,
-            cfPathStr + "/sim", 1000,
+            cfPathStr + "/sim.sdb", 1000,
             cfPathStr + "/nb.sdb", 30,
             cfPathStr + "/rec", 1000
         );
@@ -254,6 +307,46 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         checkItemRecommend(cfManager, "3", "1 2 4");
         checkItemRecommend(cfManager, "4", "2 3");
     }
+}
+
+
+BOOST_AUTO_TEST_CASE(largeTest)
+{
+    bfs::path cfPath(TEST_DIR_STR);
+    boost::filesystem::remove_all(cfPath);
+    bfs::create_directories(cfPath);
+    std::string cfPathStr = cfPath.string();
+
+    int MaxITEM = 100000;
+    MyItemIterator itemIterator(1, MaxITEM);
+
+    IncrementalItemCF cfManager(
+        cfPathStr + "/covisit", 10000,
+        cfPathStr + "/sim.sdb", 10000,
+        cfPathStr + "/nb.sdb", 30,
+        cfPathStr + "/rec", 1000
+    );
+
+    int MaxUSER = 500000;
+    int MaxOldVisit = 20;
+    int MaxNewVisit = 5;
+    RandomGenerators generators(MaxITEM, MaxUSER, MaxOldVisit, MaxNewVisit);
+
+    int ORDERS = 100000;
+
+    ClockTimer t;
+
+    for(int i = 0; i < ORDERS; ++i)
+    {
+        if(i%100 == 0)
+            std::cout<<i<<" orders have been processed "<<t.elapsed()<<std::endl;
+        std::list<uint32_t> oldItems;
+        std::list<uint32_t> newItems;
+        generators.genItems(oldItems, newItems);
+        uint32_t userId = generators.genUser();
+        cfManager.incrementalBuild(userId, oldItems, newItems, itemIterator);
+    }
+
 }
 
 BOOST_AUTO_TEST_SUITE_END() 

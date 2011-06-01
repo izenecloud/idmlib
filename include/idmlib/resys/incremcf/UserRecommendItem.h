@@ -4,6 +4,7 @@
 #include <idmlib/idm_types.h>
 
 #include <am/beansdb/Hash.h>
+#include <sdb/SequentialDB.h>
 #include <cache/IzeneCache.h>
 #include <util/Int2String.h>
 #include <util/ThreadModel.h>
@@ -33,12 +34,14 @@ typedef std::vector<std::pair<ItemType,MeasureType> > RecommendItemType;
 
 class UserRecommendItem
 {
+    typedef izenelib::am::beansdb::Hash<Int2String, RecommendItemType > StorageType;
 public:
     UserRecommendItem(
           const std::string& homePath
           )
         : store_(homePath)
     {
+        store_.open();
     }
 
     ~UserRecommendItem()
@@ -56,7 +59,7 @@ public:
     void setRecommendItem(UserType userId, RecommendItemType& recommendItem)
     {
         Int2String rowKey(userId);
-        store_.insert(rowKey, recommendItem);
+        store_.update(rowKey, recommendItem);
     }
 private:
     izenelib::am::beansdb::Hash<Int2String, RecommendItemType > store_;

@@ -174,37 +174,61 @@ bool SemanticSpaceBuilder::prepareDocument_(SCDDocPtr& pDoc, IndexerDocument& in
         const izenelib::util::UString & propertyValue = proIter->second;
         propertyName.toLowerString();
 
-        IndexerPropertyConfig indexerPropertyConfig; // see setIndexConfig()
+        // see IzeneIndexHelper::setIndexConfig()
+        IndexerPropertyConfig indexerPropertyConfig;
+        indexerPropertyConfig.setIsMultiValue(false);
 
         if (propertyName == izenelib::util::UString("docid", encoding_))
         {
+            indexerPropertyConfig.setPropertyId(idmlib::ssp::IzeneIndexHelper::getPropertyIdByName("DOCID"));
+            indexerPropertyConfig.setName("DOCID");
+            indexerPropertyConfig.setIsIndex(false);
+            indexerPropertyConfig.setIsFilter(false);
+            indexerPropertyConfig.setIsAnalyzed(false);
+            indexerPropertyConfig.setIsStoreDocLen(false);
+
             bool ret = pIdManager_->getDocIdByDocName(propertyValue, docId, false);
-            if (ret) /*exist*/;
-            indexDocument.setDocId(docId, 1);
-            continue;
+            if (ret)  /*exist*/;
+            indexDocument.setId(0);
+            indexDocument.setDocId(docId, idmlib::ssp::IzeneIndexHelper::COLLECTION_ID);
         }
-        else if ( propertyName == izenelib::util::UString("title", encoding_) ) {
-            indexerPropertyConfig.setPropertyId(3);
-            indexerPropertyConfig.setName("Title");
+        else if (propertyName == izenelib::util::UString("date", encoding_) )
+        {
+            indexerPropertyConfig.setPropertyId(idmlib::ssp::IzeneIndexHelper::getPropertyIdByName("DATE"));
+            indexerPropertyConfig.setName("DATE");
+            indexerPropertyConfig.setIsIndex(true);
+            indexerPropertyConfig.setIsFilter(true);
+            indexerPropertyConfig.setIsAnalyzed(false);
+            indexerPropertyConfig.setIsStoreDocLen(false);
+            struct tm atm;
+            int64_t time = mktime(&atm);
+            indexDocument.insertProperty(indexerPropertyConfig, time);
         }
-        else if ( propertyName == izenelib::util::UString("content", encoding_)) {
-            indexerPropertyConfig.setPropertyId(4);
-            indexerPropertyConfig.setName("Content");
-        }
-        else {
-            continue;
-        }
+        else
+        {
+            if ( propertyName == izenelib::util::UString("title", encoding_) ) {
+                indexerPropertyConfig.setPropertyId(idmlib::ssp::IzeneIndexHelper::getPropertyIdByName("Title"));
+                indexerPropertyConfig.setName("Title");
+            }
+            else if ( propertyName == izenelib::util::UString("content", encoding_)) {
+                indexerPropertyConfig.setPropertyId(idmlib::ssp::IzeneIndexHelper::getPropertyIdByName("Content"));
+                indexerPropertyConfig.setName("Content");
+            }
+            else {
+                continue;
+            }
 
-        // "Title" or "Content"
-        indexerPropertyConfig.setIsIndex(true);
-        indexerPropertyConfig.setIsAnalyzed(true);
-        indexerPropertyConfig.setIsFilter(false);
-        indexerPropertyConfig.setIsMultiValue(false);
-        indexerPropertyConfig.setIsStoreDocLen(true);
+            // "Title" or "Content"
+            indexerPropertyConfig.setIsIndex(true);
+            indexerPropertyConfig.setIsAnalyzed(true);
+            indexerPropertyConfig.setIsFilter(false);
+            indexerPropertyConfig.setIsStoreDocLen(true);
 
-        laInput_->resize(0);
-        getDocTermIdList(propertyValue, *laInput_);
-        indexDocument.insertProperty(indexerPropertyConfig, laInput_);
+            laInput_->resize(0);
+            laInput_->setDocId(docId); // <DOCID> property have to come first in SCD
+            getDocTermIdList(propertyValue, *laInput_);
+            indexDocument.insertProperty(indexerPropertyConfig, laInput_);
+        }
     }
 
     return true;
@@ -230,6 +254,7 @@ bool SemanticSpaceBuilder::getScdFileList(const std::string& scdDir, std::vector
 				izenelib::util::SCD_TYPE scd_type = izenelib::util::ScdParser::checkSCDType(file_name);
 				if( scd_type == izenelib::util::INSERT_SCD ||scd_type == izenelib::util::UPDATE_SCD )
 				{
+				    cout << "scd file: "<<iter->path().string() << endl;
 					fileList.push_back( iter->path().string() );
 				}
 			}

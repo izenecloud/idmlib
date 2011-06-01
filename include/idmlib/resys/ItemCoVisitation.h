@@ -2,22 +2,19 @@
 #define IDMLIB_RESYS_ITEM_COVISITATION_H
 
 #include "ItemRescorer.h"
+#include "SerializationType.h"
 #include <idmlib/idm_types.h>
 
 #include <am/beansdb/Hash.h>
+#include <am/leveldb/Table.h>
+#include <sdb/SequentialDB.h>
 #include <cache/IzeneCache.h>
+
 #include <util/Int2String.h>
 #include <util/ThreadModel.h>
-#include <util/timestamp.h>
 #include <util/PriorityQueue.h>
 
-#include <ext/hash_map>
-#include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/hash_map.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 
 #include <string>
 #include <vector>
@@ -35,45 +32,6 @@ using izenelib::util::Int2String;
 
 typedef uint32_t ItemType;
 
-struct CoVisitTimeFreq
-{
-    CoVisitTimeFreq():freq(0),timestamp(0){}
-
-    uint32_t freq;
-    int64_t timestamp;
-
-    void update()
-    {
-        freq += 1;
-        timestamp = (int64_t)izenelib::util::Timestamp::now();
-    }
-
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        ar &freq & timestamp;
-    }    
-};
-
-struct CoVisitFreq
-{
-    CoVisitFreq():freq(0){}
-
-    uint32_t freq;
-
-    void update()
-    {
-        freq += 1;
-    }
-
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        ar &freq;
-    }
-};
 
 template<typename CoVisitation>
 struct CoVisitationQueueItem
@@ -103,7 +61,12 @@ protected:
 template<typename CoVisitation>
 class ItemCoVisitation
 {
-    typedef __gnu_cxx::hash_map<ItemType, CoVisitation> HashType;
+    //typedef __gnu_cxx::hash_map<ItemType, CoVisitation> HashType;
+    typedef google::sparse_hash_map<ItemType, CoVisitation> HashType;
+
+    //typedef izenelib::am::beansdb::Hash<Int2String, HashType > StorageType;
+    //typedef izenelib::am::leveldb::Table<Int2String, HashType > StorageType;
+    typedef izenelib::sdb::unordered_sdb_tc<ItemType, HashType, ReadWriteLock > StorageType;
 
     typedef izenelib::cache::IzeneCache<
     ItemType,
@@ -121,6 +84,7 @@ public:
         : store_(homePath)
         , row_cache_(row_cache_size)
     {
+        store_.open();
     }
 
     ~ItemCoVisitation()
@@ -181,8 +145,8 @@ public:
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
         HashType rowdata;
-        Int2String rowKey(item);
-        store_.get(rowKey, rowdata);
+        //Int2String rowKey(item);
+        store_.get(item, rowdata);
         CoVisitationQueue<CoVisitation> queue(howmany);
         typename HashType::iterator iter = rowdata.begin();
         for(;iter != rowdata.end(); ++iter)
@@ -204,8 +168,8 @@ public:
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
         HashType rowdata;
-        Int2String rowKey(item);
-        store_.get(rowKey, rowdata);
+        //Int2String rowKey(item);
+        store_.get(item, rowdata);
         CoVisitationQueue<CoVisitation> queue(howmany);
         typename HashType::iterator iter = rowdata.begin();
         for(;iter != rowdata.end(); ++iter)
@@ -237,7 +201,7 @@ public:
 
     void gc()
     {
-        store_.optimize();
+        //store_.optimize();
     }
 
 private:
@@ -264,19 +228,19 @@ private:
     boost::shared_ptr<HashType > loadRow(ItemType row)
     {
         boost::shared_ptr<HashType > rowdata(new HashType);
-        Int2String rowKey(row);
-        store_.get(rowKey, *rowdata);
+        //Int2String rowKey(row);
+        store_.get(row, *rowdata);
         return rowdata;
     }
 
     void saveRow(ItemType row, boost::shared_ptr<HashType > rowdata)
     {
-        Int2String rowKey(row);
-        store_.insert(rowKey, *rowdata);
+        //Int2String rowKey(row);
+        store_.update(row, *rowdata);
     }
 
 private:
-    izenelib::am::beansdb::Hash<Int2String, HashType > store_;
+    StorageType store_;
     RowCacheType row_cache_;	
     izenelib::util::ReadWriteLock lock_;
 };

@@ -25,11 +25,11 @@ public:
 		idmlib::util::FSUtil::normalizeFilePath(basePath_);
 		// check path
 		if ( !exists(basePath_) ) {
-			std::cout << "Error: collection data path dose not existed!" << std::endl;
+			std::cout << "Error: collection data path dose not existed: " << basePath_ << std::endl;
 			return;
 		}
 		if ( !is_directory(basePath_) ) {
-			std::cout << "Error: collection data path should be a directory!" << std::endl;
+			std::cout << "Error: collection data path should be a directory: " <<basePath_ << std::endl;
 			return;
 		}
 

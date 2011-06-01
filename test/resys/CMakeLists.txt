@@ -1,5 +1,6 @@
 INCLUDE_DIRECTORIES(         
   ${izenelib_INCLUDE_DIRS}
+  ${izenelib_INCLUDE_DIRS}/3rdparty/am
   ${idmlib_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   )
