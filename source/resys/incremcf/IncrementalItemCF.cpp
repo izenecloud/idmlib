@@ -157,7 +157,7 @@ void IncrementalItemCF::getTopItems(
     {
         RecommendedItem item = resultQueue.pop();
         item.value /= filterSet.size(); ///for normalization
-        topItems.push_back(item);	
+        topItems.push_front(item);	
     }
 }
 
