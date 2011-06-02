@@ -144,12 +144,10 @@ public:
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
-        HashType rowdata;
-        //Int2String rowKey(item);
-        store_.get(item, rowdata);
+        boost::shared_ptr<HashType> rowdata = loadRow(item);
         CoVisitationQueue<CoVisitation> queue(howmany);
-        typename HashType::iterator iter = rowdata.begin();
-        for(;iter != rowdata.end(); ++iter)
+        typename HashType::iterator iter = rowdata->begin();
+        for(;iter != rowdata->end(); ++iter)
         {
             // escape the input item
             if (iter->first != item
@@ -167,12 +165,10 @@ public:
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
-        HashType rowdata;
-        //Int2String rowKey(item);
-        store_.get(item, rowdata);
+        boost::shared_ptr<HashType> rowdata = loadRow(item);
         CoVisitationQueue<CoVisitation> queue(howmany);
-        typename HashType::iterator iter = rowdata.begin();
-        for(;iter != rowdata.end(); ++iter)
+        typename HashType::iterator iter = rowdata->begin();
+        for(;iter != rowdata->end(); ++iter)
         {
             // escape the input item
             if (iter->timestamp >= timestamp && iter->first != item
@@ -188,14 +184,9 @@ public:
 
     uint32_t coeff(ItemType row, ItemType col)
     {
-        boost::shared_ptr<HashType > rowdata;
         //we do not use read lock here because coeff is called only after writing operation is finished
         //izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
-        if (!row_cache_.getValueNoInsert(row, rowdata))
-        {
-            rowdata = loadRow(row);
-            row_cache_.insertValue(row, rowdata);
-        }
+        boost::shared_ptr<HashType> rowdata = loadRow(row);
         return (*rowdata)[col].freq;
     }
 
@@ -208,12 +199,8 @@ private:
     void updateCoVisation(ItemType item, const std::list<ItemType>& coItems)
     {
         if(coItems.empty()) return;
-        boost::shared_ptr<HashType > rowdata;
-        if (!row_cache_.getValueNoInsert(item, rowdata))
-        {
-            rowdata = loadRow(item);
-            row_cache_.insertValue(item, rowdata);
-        }
+
+        boost::shared_ptr<HashType> rowdata = loadRow(item);
 
         for(std::list<ItemType>::const_iterator iter = coItems.begin();
             iter != coItems.end(); ++iter)
@@ -227,9 +214,15 @@ private:
 
     boost::shared_ptr<HashType > loadRow(ItemType row)
     {
-        boost::shared_ptr<HashType > rowdata(new HashType);
-        //Int2String rowKey(row);
-        store_.get(row, *rowdata);
+        boost::shared_ptr<HashType> rowdata;
+        if (!row_cache_.getValueNoInsert(row, rowdata))
+        {
+            rowdata.reset(new HashType);
+            //Int2String rowKey(row);
+            store_.get(row, *rowdata);
+            row_cache_.insertValue(row, rowdata);
+        }
+
         return rowdata;
     }
 
