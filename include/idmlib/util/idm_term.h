@@ -22,7 +22,7 @@ NS_IDMLIB_UTIL_BEGIN
 
 struct IDMTerm
 {
-  IDMTerm()
+  IDMTerm():text(), id(0), tag(0), position(0)
   {
   }
   

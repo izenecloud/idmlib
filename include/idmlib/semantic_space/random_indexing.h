@@ -9,19 +9,24 @@
 #include <am/sequence_file/ssfr.h>
 #include "random_indexing_generator.h"
 #include "vector_util.h"
+#include "random_indexing_vector_traits.h"
 NS_IDMLIB_SSP_BEGIN
 
 ///@brief Random indexing is used to generate a fix length(column) matrix. IdType is used for row id, if we used it for termsimilarity, then it is term id type.  ContextIdType is the type used to represent the context, if this is a term-document matrix, then ContextIdType is doc id type, otherwise, for a term - word context type, ContextIdType is word id type.
 template <typename IdType = uint32_t, typename ContextIdType = uint32_t, typename FreqType = uint32_t>
 class RandomIndexing
 {
+  
+    
 public:
   
   typedef uint16_t DimensionsType;
+  typedef RandomIndexingVectorTraits<FreqType> RIVTraitsType;
+  typedef typename RIVTraitsType::ValueType VectorValueType;
   ///@brief The random indexing vector generator
   typedef RandomIndexingGenerator<DimensionsType,ContextIdType>  RIGType;
-  typedef std::vector<int64_t> VT;
-  typedef izenelib::am::SparseVector<int64_t, DimensionsType> SparseType;
+  typedef std::vector<VectorValueType> VT;
+  typedef izenelib::am::SparseVector<VectorValueType, DimensionsType> SparseType;
   ///@brief The container matrix type
   RandomIndexing(const std::string& dir, const std::string& rig_dir)
   :dir_(dir), storage_file_(dir_+"/storage"), run_file_(dir_+"/run"), writer_(NULL), rig_(new RIGType(rig_dir, 5000, 5))
@@ -162,7 +167,7 @@ public:
   
   bool Append(IdType id, const std::vector<std::pair<ContextIdType, FreqType> >& item_list)
   {
-    VT vec(GetDimensions(), 0);
+    VT vec(GetDimensions(), RIVTraitsType::GetZero());
     for(uint32_t i=0;i<item_list.size();i++)
     {
       const std::pair<ContextIdType, FreqType>& item = item_list[i];

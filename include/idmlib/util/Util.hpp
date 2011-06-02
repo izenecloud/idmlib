@@ -101,10 +101,11 @@ inline static void getIdAndCountList(std::vector<id2count_t>& input, std::vector
     }
 }
 
-inline static void accumulateList(std::vector<id2count_t>& input)
+template <class T>
+inline static void accumulateList(std::vector<std::pair<T, uint32_t> >& input)
 {
   std::sort(input.begin(), input.end());
-  std::vector<id2count_t> another;
+  std::vector<std::pair<T, uint32_t> > another;
   for(uint32_t i=0;i<input.size();i++)
   {
       if(i==0)
