@@ -25,7 +25,7 @@ class DocumentSimilarityIndex
 
     typedef izenelib::cache::IzeneCache<
     		docid_t,
-			boost::shared_ptr<doc_sp_vector >,
+    		boost::shared_ptr<doc_sp_vector>,
 			izenelib::util::ReadWriteLock,
 			izenelib::cache::RDE_HASH,
 			izenelib::cache::LFU
@@ -51,7 +51,7 @@ public:
 	: docSimPath_(docSimPath)
 	, storageType_(storageType)
 	, thresholdSim_(thresholdSim)
-	, row_cache_(100)
+	, row_cache_(1000)
 	{
 		idmlib::util::FSUtil::normalizeFilePath(docSimPath_);
 
@@ -176,7 +176,17 @@ private:
 	bool getConceptIndex(docid_t conceptId, InterpretVector& interVec)
 	{
 		doc_sp_vector conceptIndexVec;
-		bool ret;
+
+		// check cache
+		boost::shared_ptr<doc_sp_vector > rowdata(new doc_sp_vector);
+        if (row_cache_.getValueNoInsert(conceptId, rowdata))
+        {
+            ///cout << "cached" << endl;
+            interVec = rowdata->value;
+            return true;
+        }
+
+        bool ret;
         if (storageType_ == DB_TOKYO_CABINET) {
         	ret = index_tc_->GetVector(conceptId, conceptIndexVec);
         }
@@ -191,15 +201,8 @@ private:
 
     void updateConceptIndex(docid_t conceptId, InterpretVector& interVec)
     {
-//        boost::shared_ptr<InterpretVector > rowdata;
-//        if (!row_cache_.getValueNoInsert(item, rowdata))
-//        {
-//            rowdata = loadRow(conceptId);
-//            row_cache_.insertValue(conceptId, rowdata);
-//        }
-
-    	doc_sp_vector conceptIndexVec;
-    	conceptIndexVec.value = interVec;
+        doc_sp_vector conceptIndexVec;
+        conceptIndexVec.value = interVec;
 
         if (storageType_ == DB_TOKYO_CABINET) {
         	index_tc_->SetVector(conceptId, conceptIndexVec);
@@ -207,6 +210,12 @@ private:
         else if (storageType_ == DB_LevelDB) {
         	index_.update(conceptId, conceptIndexVec);
         }
+
+        // always update cache while save
+        boost::shared_ptr<doc_sp_vector > rowdata(new doc_sp_vector);
+        rowdata->value = interVec;
+        row_cache_.del(conceptId); //?
+        row_cache_.insertValue(conceptId, rowdata);
     }
 
 //    bool getRow(docid_t conceptId, InterpretVector& interVec)

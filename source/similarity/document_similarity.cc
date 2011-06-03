@@ -2,7 +2,6 @@
 #include <idmlib/idm_types.h>
 #include <idmlib/similarity/document_similarity.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
-//#include <idmlib/similarity/cosine_similarity.h>
 #include <idmlib/similarity/simple_similarity.h>
 #include <la/util/UStringUtil.h>
 #include <ir/id_manager/IDManager.h>
@@ -19,6 +18,8 @@ void DocumentSimilarity::DoSim()
 #ifdef IDM_SSP_TIME_CHECKER
     idmlib::util::TimeChecker DocSimtimer("Do document similarity");
 #endif
+
+
 
 	// Compute similarities between all pair of documents
 
@@ -75,14 +76,14 @@ void DocumentSimilarity::DoSim()
 //*/
 #endif
 		// Build document similarity index ..
-		pDocSimIndex_->InertDocument(docid, interpretationDocVec);
+//		pDocSimIndex_->InertDocument(docid, interpretationDocVec);
 
 		if ((++progress) % 100 == 0 || progress >= docNum) {
 		    DLOG(INFO) << (progress * 100.0f / docNum)  << "% - total " << docNum << endl;
 		}
 	}
 
-	pDocSimIndex_->FinishInert();
+//	pDocSimIndex_->FinishInert();
 
 	DLOG(INFO) << "End document similarity." << endl;
 }
@@ -136,7 +137,7 @@ bool DocumentSimilarity::computeSimilarity()
             processDocument_(pDoc);
 
             curDocNum ++;
-            if (curDocNum % 10 == 0) {
+            if (curDocNum % 1000 == 0) {
                 DLOG(INFO) << "["<<scdFile<<"] processing: " << curDocNum<<" / total: "<<totalDocNum
                            << " - "<< curDocNum*100.0f / totalDocNum << "%" << endl;
             }
@@ -147,7 +148,7 @@ bool DocumentSimilarity::computeSimilarity()
         }
     }
 
-    pDocSimIndex_->FinishInert();
+    //pDocSimIndex_->FinishInert();
 
     DLOG(INFO) << "End document similarity." << endl;
     return true;
@@ -177,7 +178,7 @@ void DocumentSimilarity::processDocument_(SCDDocPtr& pDoc)
             //pEsaInterpreter_->sortInterpretVector(); //
             //pEsaInterpreter_->printInterpretVector(); //
 
-            pDocSimIndex_->InertDocument(docId, interVec); // <DOCID> property has to come first
+            //pDocSimIndex_->InertDocument(docId, interVec); // <DOCID> property has to come first
         }
         else {
             continue;
