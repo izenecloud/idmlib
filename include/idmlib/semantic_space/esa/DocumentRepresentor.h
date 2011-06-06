@@ -25,12 +25,19 @@ public:
         const std::string& colBasePath,
         const std::string& laResPath,
         size_t maxDoc = 0,
-        const std::string& docRepPath = "./doc_rep_tmp",
+        const std::string& docRepFileName = "./doc_rep.tmp",
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
     : CollectionProcessor(colBasePath, laResPath, maxDoc, encoding)
     , docCount_(0)
-    , docRepFile_(docRepPath)
+    , docRepVecFileName_(docRepFileName)
+    , docRepVecOFile_(docRepVecFileName_)
     {
+    	docRepVecOFile_.open();
+    }
+
+    ~DocumentRepresentor()
+    {
+    	docRepVecOFile_.close();
     }
 
 public:
@@ -39,21 +46,24 @@ public:
         processSCD();
     }
 
+private:
     /*virtual*/
     void processDocumentAnalyzedContent()
     {
         docCount_++;
         gatherTFDF_();
-        //print();
+
     }
 
     /*virtual*/
     void postProcess()
     {
-        spvecFile_.flush();
+    	finishInsert();
 
-        cout << "---- flush, reload ---" <<endl;
-        spvecFile_.load();
+    	cout << "term count: "<<term_df_map_.size() <<endl;
+    	cout << "document count: " << docCount_ << endl;
+
+    	calcWeight();
     }
 
 private:
@@ -98,8 +108,58 @@ private:
             sv.insertItem(iter->first, iter->second);
         }
 
-        sv.print();
-        spvecFile_.add(sv);
+//        sv.print();
+        docRepVecOFile_.put(sv);
+    }
+
+    void finishInsert()
+    {
+    	docRepVecOFile_.flush();
+    	cout << "---- saved:  " << docRepVecOFile_.size()<<endl;
+    	docRepVecOFile_.close();
+    }
+
+    void calcWeight()
+    {
+        DLOG(INFO) << "start calcWeight" <<endl;
+
+        SparseVectorSetIFile<> inf(docRepVecFileName_);
+        inf.open();
+
+        SparseVectorSetOFile<> docrepFile("docrep.tmp");
+        docrepFile.open();
+
+        size_t total = 0;
+        while(inf.next())
+        {
+        	SparseVector<> sv = inf.get();
+
+        	float idf;
+        	int df = 0;
+        	SparseVector<>::list_iter_t iter;
+        	for (iter = sv.list.begin(); iter != sv.list.end(); iter++)
+        	{
+        		df = term_df_map_[iter->itemid];
+        		if (df == 0)
+        			df = 1;
+
+        		idf = std::log((float)docCount_ / term_df_map_[iter->itemid]);
+        		iter->value *= idf;
+        	}
+
+        	docrepFile.put(sv);
+
+        	++total;
+        }
+
+        inf.close();
+        //inf.remove(); //remove it
+
+        docrepFile.close();
+
+        DLOG(INFO) << "end calcWeight" <<endl;
+
+        cout << "total vector: " <<total << endl;
     }
 
 public:
@@ -123,15 +183,14 @@ public:
 
 private:
     size_t docCount_;
-    std::string docRepFile_;
+    std::string docRepVecFileName_;
+    SparseVectorSetOFile<> docRepVecOFile_;
 
     typedef rde::hash_map<uint32_t, float> hashmap_t;
     typedef rde::hash_map<uint32_t, float>::iterator hashmap_iterator_t;
 
     hashmap_t term_tf_map_;
     hashmap_t term_df_map_;
-
-    SparseVectorSetFile<> spvecFile_;
 };
 
 NS_IDMLIB_SSP_END

@@ -12,6 +12,7 @@ using namespace std;
 #include <boost/program_options.hpp>
 
 #include <idmlib/semantic_space/esa/DocumentRepresentor.h>
+#include <idmlib/semantic_space/esa/ExplicitSemanticInterpreter.h>
 #include <la/LA.h>
 
 namespace po = boost::program_options;
@@ -35,8 +36,8 @@ int main(int argc, char** argv)
 		("wiki-index,W", po::value<std::string>(&wikiIndexdir), "resource data (Wiki) directory for explicit semantic analysis.")
 		("la-resource,L", po::value<std::string>(&laResPath), "LA(CMA) resource path.")
 		("doc-set,D", po::value<std::string>(&colBasePath), "collection to be processed.")
-		("doc-represent,S", po::value<std::string>(&docRepPath), "collection semantic space data path.")
-		("doc-similarity,D", po::value<std::string>(&docSimPath), "document similarity index path.")
+		("doc-represent-file,R", po::value<std::string>(&docRepPath), "document representation vectors file.")
+		("doc-sim-index,I", po::value<std::string>(&docSimPath), "document similarity index path.")
 		("threshold-sim,T", po::value<float>(&thresholdSim), "similarity threshold value.")
 		("max-doc,M", po::value<uint32_t>(&maxDoc), "max doc count that will be processed.")
 		//("rebuild-ssp-data,R", po::value<std::string>(), "whether rebuild collection s space data.")
@@ -69,9 +70,9 @@ int main(int argc, char** argv)
 	cout << "document set: " <<  colBasePath << endl;
 
 	if (docRepPath.empty()) {
-	    docRepPath = "./doc_rep_tmp";
+	    docRepPath = "./docrep.tmp";
 	}
-	cout << "document representation temporary files: " <<  docRepPath << endl;
+	cout << "document representation temporary file: " <<  docRepPath << endl;
 
 	if (docSimPath.empty()) {
 		docSimPath = "./doc_sim";
@@ -90,8 +91,11 @@ int main(int argc, char** argv)
 
 
 
-	DocumentRepresentor docRepresentor(colBasePath, laResPath, maxDoc);
-	docRepresentor.represent();
+//	DocumentRepresentor docRepresentor(colBasePath, laResPath, maxDoc);
+//	docRepresentor.represent();
+
+	ExplicitSemanticInterpreter esInter(wikiIndexdir, docRepPath);
+	esInter.interpret();
 
 	/*
 	DocumentSimilarity DocSimilarity(

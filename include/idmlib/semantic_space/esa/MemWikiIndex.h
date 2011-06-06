@@ -10,6 +10,7 @@
 #include <idmlib/idm_types.h>
 
 #include "WikiIndex.h"
+#include "SparseVector.h"
 
 #include <fstream>
 #include <iostream>
@@ -25,9 +26,17 @@ NS_IDMLIB_SSP_BEGIN
  * @brief To ensure the performance of ESA, the inverted index of Wikipeida should be
  * kept in memory, in case the heavy i/o overhead of a disk resident index.
  * The memory resident inverted index can be entirely saved to (or loaded from) disk.
+ *
  */
 class MemWikiIndex : public WikiIndex
 {
+public:
+	MemWikiIndex(const string& dataFile = "./wiki.idx")
+	: WikiIndex(dataFile)
+	{
+
+	}
+
 public:
     void insertDocument(WikiDoc& wikiDoc)
     {
@@ -44,12 +53,27 @@ public:
         calcWeight_();
 
         flush();
+        clear();
     }
 
     void load()
     {
         clear();
+
         loadIndex_();
+//        printWikiIndex();
+    }
+
+public:
+    SparseVectorType& getInvertedList(termid_t termid)
+    {
+    	invertedlists_iterator_t ret = invertedLists_.find(termid);
+		if (ret != invertedLists_.end())
+		{
+			return *(ret->second);
+		}
+
+		return NullInvertedList_;
     }
 
 private:
@@ -67,13 +91,13 @@ private:
             {
                 // term has not been indexed yet
                 boost::shared_ptr<InvertedList> invertList(new InvertedList(termid));
-                invertList->insertDoc(curDoc_, w);
+                invertList->insertItem(curDoc_, w);
                 invertedLists_.insert(invertedlists_t::value_type(termid, invertList));
             }
             else
             {
                 // term has been indexed
-                ret->second->insertDoc(curDoc_, w);
+                ret->second->insertItem(curDoc_, w);
             }
         }
     }
@@ -89,10 +113,10 @@ private:
         {
             idf = std::log((float)docCount_ / it->second->len);
 
-            std::vector<InvertItem>::iterator iit;
+            InvertedList::list_iter_t iit;
             for (iit = it->second->list.begin(); iit != it->second->list.end(); iit++)
             {
-                iit->weight *= idf; // tf * idf
+                iit->value *= idf; // tf * idf
             }
         }
     }
@@ -124,9 +148,11 @@ private:
         invertedLists_.clear();
     }
 
-    void loadIndex_()
+    bool loadIndex_()
     {
         std::ifstream fin(dataFile_.c_str());
+        if (!fin.is_open())
+        	return false;
         boost::archive::text_iarchive ia(fin);
 
         // read list count
@@ -137,9 +163,11 @@ private:
         {
             boost::shared_ptr<InvertedList> invertedList(new InvertedList());
             ia >> *invertedList;
-            invertedLists_.insert(invertedlists_t::value_type(invertedList->termid, invertedList));
+            invertedLists_.insert(invertedlists_t::value_type(invertedList->rowid, invertedList));
         }
         fin.close();
+
+        return true;
     }
 
 public:
@@ -149,18 +177,18 @@ public:
         cout << "---- Wiki Index -----" <<endl;
         for (invertedlists_iterator_t it = invertedLists_.begin(); it != invertedLists_.end(); it++)
         {
-            cout << "["<<it->second->termid << " " << it->second->len << "] --> ";
-            std::vector<InvertItem>::iterator iit;
+            cout << "["<<it->second->rowid << " " << it->second->len << "] --> ";
+            InvertedList::list_iter_t iit;
             for (iit = it->second->list.begin(); iit != it->second->list.end(); iit++)
             {
-                cout << "(" << iit->conceptId <<","<<iit->weight<<") ";
+                cout << "(" << iit->itemid <<","<<iit->value<<") ";
             }
             cout << endl;
         }
     }
 
 private:
-
+/*
     struct InvertItem
     {
         uint32_t conceptId;
@@ -207,12 +235,16 @@ private:
             ar & list;
         }
     };
-
+*/
 private:
+    typedef SparseVectorItemType InvertItem;
+    typedef SparseVectorType InvertedList;
+
     typedef rde::hash_map<uint32_t, boost::shared_ptr<InvertedList> > invertedlists_t;
     typedef rde::hash_map<uint32_t, boost::shared_ptr<InvertedList> >::iterator invertedlists_iterator_t;
 
     invertedlists_t invertedLists_;
+    SparseVectorType NullInvertedList_; // an empty inverted list
 };
 
 NS_IDMLIB_SSP_END

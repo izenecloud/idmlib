@@ -10,7 +10,7 @@
 #include <idmlib/idm_types.h>
 
 #include "WikiIndex.h"
-#include "izene_index_helper.h";
+#include "izene_index_helper.h"
 #include <idmlib/util/CollectionUtil.h>
 
 #include <ir/index_manager/index/IndexerDocument.h>

@@ -126,7 +126,7 @@ public:
                  }
 
                  // stop
-                 if (maxDoc_ != 0 && curDocNum > maxDoc_)
+                 if (maxDoc_ != 0 && curDocNum >= maxDoc_)
                      break;
              }
          }

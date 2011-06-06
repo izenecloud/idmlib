@@ -19,7 +19,6 @@ using namespace std;
 #include <boost/program_options.hpp>
 
 #include <idmlib/semantic_space/esa/WikiIndexBuilder.h>
-#include <idmlib/semantic_space/esa/ExplicitSemanticAnalyzer.h>
 //#include <idmlib/similarity/document_similarity.h>
 
 #include <la/LA.h>
@@ -90,6 +89,7 @@ int main(int argc, char** argv)
     boost::shared_ptr<WikiIndex> wikiIndex(new MemWikiIndex());
     WikiIndexBuilder wikiIndexBuilder(wikiColPath, laResPath, maxDoc);
     wikiIndexBuilder.build(wikiIndex);
+    //wikiIndex->load();
 
     //IzeneWikiIndexBuilder izeneWikiIndexBuilder(wikiColPath, laResPath, maxDoc);
     //izeneWikiIndexBuilder.build();
