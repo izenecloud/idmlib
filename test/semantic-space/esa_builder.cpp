@@ -89,11 +89,12 @@ int main(int argc, char** argv)
     boost::shared_ptr<WikiIndex> wikiIndex(new MemWikiIndex());
     WikiIndexBuilder wikiIndexBuilder(wikiColPath, laResPath, maxDoc);
     wikiIndexBuilder.build(wikiIndex);
-    //wikiIndex->load();
+    wikiIndex->load();
 
-    //IzeneWikiIndexBuilder izeneWikiIndexBuilder(wikiColPath, laResPath, maxDoc);
-    //izeneWikiIndexBuilder.build();
-
+    /* deprecated
+    IzeneWikiIndexBuilder izeneWikiIndexBuilder(wikiColPath, laResPath, maxDoc);
+    izeneWikiIndexBuilder.build();
+    //*/
 
     return 0;
     /////

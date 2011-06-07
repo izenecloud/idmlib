@@ -11,13 +11,17 @@ using namespace std;
 #include <boost/shared_ptr.hpp>
 #include <boost/program_options.hpp>
 
+#include <la/LA.h>
+
 #include <idmlib/semantic_space/esa/DocumentRepresentor.h>
 #include <idmlib/semantic_space/esa/ExplicitSemanticInterpreter.h>
-#include <la/LA.h>
+#include <idmlib/similarity/all-pairs-similarity-search/data_set_iterator.h>
+#include <idmlib/similarity/all-pairs-similarity-search/all_pairs_search.h>
+#include <idmlib/similarity/all-pairs-similarity-search/all_pairs_output.h>
 
 namespace po = boost::program_options;
 using namespace idmlib::ssp;
-
+using namespace idmlib::sim;
 
 int main(int argc, char** argv)
 {
@@ -90,12 +94,22 @@ int main(int argc, char** argv)
 	std::cout << "rebuild (reprocess collection data): " << rebuild << endl; */
 
 
-
-//	DocumentRepresentor docRepresentor(colBasePath, laResPath, maxDoc);
-//	docRepresentor.represent();
+    /* get doc vectors
+	DocumentRepresentor docRepresentor(colBasePath, laResPath, maxDoc);
+	docRepresentor.represent();
 
 	ExplicitSemanticInterpreter esInter(wikiIndexdir, docRepPath);
 	esInter.interpret();
+	//*/
+
+	//* all pairs similarity search
+	boost::shared_ptr<DataSetIterator> dataSetIterator(new SparseVectorSetIterator());
+	boost::shared_ptr<AllPairsOutput> output(new AllPairsOutput());
+
+	AllPairsSearch allPairs(output);
+	allPairs.findAllSimilarPairs(dataSetIterator);
+
+	//*/
 
 	/*
 	DocumentSimilarity DocSimilarity(

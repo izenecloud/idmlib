@@ -250,6 +250,10 @@ private:
     bool reached_eof_;
 };
 
+
+typedef SparseVectorSetOFile<uint32_t, float>  SparseVectorSetOFileType;
+typedef SparseVectorSetIFile<uint32_t, float>  SparseVectorSetIFileType;
+
 NS_IDMLIB_SSP_END
 
 #endif /* SPARSE_VECTOR_SETFILE_H_ */
