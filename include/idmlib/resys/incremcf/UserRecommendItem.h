@@ -34,7 +34,9 @@ typedef std::vector<std::pair<ItemType,MeasureType> > RecommendItemType;
 
 class UserRecommendItem
 {
-    typedef izenelib::am::beansdb::Hash<Int2String, RecommendItemType > StorageType;
+    // use unordered_sdb_tc instead of beansdb for thread safe
+    //typedef izenelib::am::beansdb::Hash<Int2String, RecommendItemType > StorageType;
+    typedef izenelib::sdb::unordered_sdb_tc<UserType, RecommendItemType, ReadWriteLock > StorageType;
 public:
     UserRecommendItem(
           const std::string& homePath
@@ -52,17 +54,15 @@ public:
 
     bool getRecommendItem(UserType userId, RecommendItemType& recommendItem)
     {
-        Int2String rowKey(userId);
-        return store_.get(rowKey, recommendItem);
+        return store_.get(userId, recommendItem);
     }
 
     void setRecommendItem(UserType userId, RecommendItemType& recommendItem)
     {
-        Int2String rowKey(userId);
-        store_.update(rowKey, recommendItem);
+        store_.update(userId, recommendItem);
     }
 private:
-    izenelib::am::beansdb::Hash<Int2String, RecommendItemType > store_;
+    StorageType store_;
 };
 
 
