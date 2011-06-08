@@ -14,6 +14,7 @@
 
 #include <3rdparty/am/rde_hashmap/hash_map.h>
 
+#include <boost/filesystem.hpp>
 
 using namespace izenelib::util;
 using namespace izenelib::ir::indexmanager;
@@ -36,9 +37,13 @@ struct WikiDoc
 class WikiIndex
 {
 public:
-    WikiIndex(const string& dataFile = "./wiki.idx")
-    : dataFile_(dataFile)
+    WikiIndex(const string& indexDir)
+    : dataFile_(indexDir+"/wiki.idx")
     {
+        if (!boost::filesystem::exists(indexDir)) {
+            boost::filesystem::create_directories(indexDir);
+            std::cout <<"[WikiIndex] create: "<<indexDir<<endl;
+        }
         init();
     }
 

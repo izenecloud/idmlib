@@ -27,8 +27,6 @@
 #include <idmlib/idm_types.h>
 #include <idmlib/util/idm_analyzer.h>
 #include <idmlib/semantic_space/izene_index_helper.h>
-#include <idmlib/semantic_space/semantic_space.h>
-#include <idmlib/semantic_space/document_vector_space.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
 
 NS_IDMLIB_SSP_BEGIN

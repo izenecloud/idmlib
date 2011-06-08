@@ -13,6 +13,8 @@ using namespace std;
 
 #include <la/LA.h>
 
+//#define DOC_SIM_TEST
+
 #include <idmlib/semantic_space/esa/DocumentRepresentor.h>
 #include <idmlib/semantic_space/esa/ExplicitSemanticInterpreter.h>
 #include <idmlib/similarity/all-pairs-similarity-search/data_set_iterator.h>
@@ -25,26 +27,26 @@ using namespace idmlib::sim;
 
 int main(int argc, char** argv)
 {
-	string wikiIndexdir; // resource data(Wiki) for explicit semantic analysis
-	string laResPath;  // LA (CMA) resource path
-	string colBasePath; // document collection to perform doc-similarity mining
-	string docRepPath; // temporary file to store document represention vectors which possibly out of memory capacity
-	string docSimPath; // document similarity index path
-	float thresholdSim = 0.0001; // similarity threshold value
+	string wikiIndexdir;
+	string laResPath;
+	string colBasePath;
+	string docSetPath;
+	string docSimPath;
+	float thresholdSim = 0.04;
 	uint32_t maxDoc = 0; // max number of documents to be processed, not limited if 0
-	//bool rebuild = false;
+	string test;
 
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help,H", "produce help message")
-		("wiki-index,W", po::value<std::string>(&wikiIndexdir), "resource data (Wiki) directory for explicit semantic analysis.")
-		("la-resource,L", po::value<std::string>(&laResPath), "LA(CMA) resource path.")
-		("doc-set,D", po::value<std::string>(&colBasePath), "collection to be processed.")
-		("doc-represent-file,R", po::value<std::string>(&docRepPath), "document representation vectors file.")
-		("doc-sim-index,I", po::value<std::string>(&docSimPath), "document similarity index path.")
+		("wiki-index,W", po::value<std::string>(&wikiIndexdir), "[Res]Wikipedia inverted index directory.")
+		("la-resource,L", po::value<std::string>(&laResPath), "[Res]LA(CMA) resource path.")
+		("doc-col-path,D", po::value<std::string>(&colBasePath), "[Input]collection to be processed.")
+		("doc-set-path,S", po::value<std::string>(&docSetPath), "[Output/tmp]document set output dir.")
+		("doc-sim-index,I", po::value<std::string>(&docSimPath), "[Output]document similarity index dir.")
 		("threshold-sim,T", po::value<float>(&thresholdSim), "similarity threshold value.")
-		("max-doc,M", po::value<uint32_t>(&maxDoc), "max doc count that will be processed.")
-		//("rebuild-ssp-data,R", po::value<std::string>(), "whether rebuild collection s space data.")
+		("max-doc,M", po::value<uint32_t>(&maxDoc), "max doc count that will be processed, not limited as defualt(0).")
+		("test,X", po::value<std::string>(&test), "max doc count that will be processed, not limited as defualt(0).")
 	;
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -58,8 +60,13 @@ int main(int argc, char** argv)
 		std::cout << desc << std::endl<< std::endl;
 	}
 
+	string esaDir = "./esa";
+	if (vm.count("test")) {
+	    esaDir += "_test";
+	}
+
 	if (wikiIndexdir.empty()) {
-	    wikiIndexdir = "./wiki/index";
+	    wikiIndexdir = esaDir + "/wiki";
 	}
 	cout << "Wikipedia index: " <<  wikiIndexdir << endl;
 
@@ -73,67 +80,47 @@ int main(int argc, char** argv)
 	}
 	cout << "document set: " <<  colBasePath << endl;
 
-	if (docRepPath.empty()) {
-	    docRepPath = "./docrep.tmp";
+	if (docSetPath.empty()) {
+	    docSetPath = esaDir+"/docset";
 	}
-	cout << "document representation temporary file: " <<  docRepPath << endl;
+	cout << "document set output path: " <<  docSetPath << endl;
 
 	if (docSimPath.empty()) {
-		docSimPath = "./doc_sim";
+		docSimPath = esaDir+"/docsim";
 	}
 	cout << "document similarity index: " <<  docSimPath << endl;
 
 	std::cout << "threshold-sim: " << thresholdSim << endl;
 	std::cout << "max-doc: " << maxDoc << endl;
 
-	/* if (vm.count("rebuild-ssp-data")) {
-	    if (vm["rebuild-ssp-data"].as<std::string>() == "true" || vm["rebuild-ssp-data"].as<std::string>() == "t") {
-	        rebuild = true;
-	    }
-	}
-	std::cout << "rebuild (reprocess collection data): " << rebuild << endl; */
-
-
     /* get doc vectors
-	DocumentRepresentor docRepresentor(colBasePath, laResPath, maxDoc);
+	DocumentRepresentor docRepresentor(colBasePath, laResPath, docSetPath, maxDoc);
 	docRepresentor.represent();
-
-	ExplicitSemanticInterpreter esInter(wikiIndexdir, docRepPath);
+	//
+	ExplicitSemanticInterpreter esInter(wikiIndexdir, docSetPath);
 	esInter.interpret();
 	//*/
 
 	//* all pairs similarity search
-	boost::shared_ptr<DataSetIterator> dataSetIterator(new SparseVectorSetIterator());
-	boost::shared_ptr<AllPairsOutput> output(new AllPairsOutput());
+	string datafile = docSetPath+"/doc_rep.tmp";//"/doc_int.vec";
+	boost::shared_ptr<DataSetIterator> dataSetIterator(new SparseVectorSetIterator(datafile));
+	boost::shared_ptr<DocSimOutput> output(new DocSimOutput(docSimPath));
 
-	AllPairsSearch allPairs(output);
+	AllPairsSearch allPairs(output, thresholdSim);
 	allPairs.findAllSimilarPairs(dataSetIterator);
-
 	//*/
 
-	/*
-	DocumentSimilarity DocSimilarity(
-	        wikiIndexdir, // esa resource(wiki) path
-			laResPath,  // la resource(cma) path
-			colBasePath, // collection base path, documents set  ==> using index data ?
-			colsspPath, // collection data processing path
-			docSimPath,  // data path for document similarity index
-			thresholdSim, // similarity threshold value
-			maxDoc,      // max documents of collection to be processed
-			rebuild // if rebuild collection ssp
-			);
-	DocSimilarity.DoSim(); //*/
+	//* test
+	std::vector<std::pair<uint32_t, float> > result;
 
-	/*
-    DocumentSimilarity DocSimilarity(
-            wikiIndexdir, // esa resource(wiki index) path
-            laResPath,  // la resource(cma) path
-            colBasePath, // collection base path, documents set  ==> using index data
-            docSimPath,  // data path for document similarity index
-            thresholdSim, // similarity threshold value
-            maxDoc      // max documents of collection to be processed
-            );
-	DocSimilarity.computeSimilarity(); */
+	for (size_t idx =1 ; idx <= 3; idx++) {
+        output->getSimilarDocIdScoreList(idx,10,result);
+
+        for (size_t i =0; i <result.size(); i++)
+            cout <<"("<<result[i].first<<","<<result[i].second<<") ";
+        cout << endl;
+	}
+	//*/
 
 	return 0;
 }

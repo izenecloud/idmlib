@@ -41,7 +41,7 @@ protected:
 class SparseVectorSetIterator : public DataSetIterator
 {
 public:
-    SparseVectorSetIterator(const std::string& filename="./inter_vec.dat")
+    SparseVectorSetIterator(const std::string& filename)
     : DataSetIterator(filename)
     , data_(filename)
     {

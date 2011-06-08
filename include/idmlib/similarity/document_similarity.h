@@ -13,10 +13,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <idmlib/idm_types.h>
-#include <idmlib/semantic_space/semantic_space.h>
-#include <idmlib/semantic_space/explicit_semantic_space.h>
-#include <idmlib/semantic_space/document_vector_space.h>
-#include <idmlib/semantic_space/semantic_space_builder.h>
+
 #include <idmlib/semantic_space/explicit_semantic_interpreter.h>
 #include <idmlib/semantic_space/term_doc_matrix_defs.h>
 #include <idmlib/util/idm_analyzer.h>

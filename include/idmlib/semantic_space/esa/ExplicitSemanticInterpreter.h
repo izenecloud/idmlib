@@ -33,45 +33,53 @@ public:
 	, docSetPath_(docSetPath)
 	{
 		pWikiIndex_.reset(new MemWikiIndex(wikiIndexPath));
+		cout << "loading wiki index.."<<endl;
 		pWikiIndex_->load();
 	}
 
 public:
-	void interpret()
+	bool interpret()
 	{
-		DLOG(INFO) << "start interpret" <<endl;
+		DLOG(INFO) << "start interpreting" <<endl;
 
-		SparseVectorSetIFile<> inf(docSetPath_);
-		inf.open();
+		SparseVectorSetIFileType inf(docSetPath_+"/doc_rep.tmp");
+		if (!inf.open())
+		{
+		    return false;
+		}
 
-		SparseVectorSetOFile<> interf("inter_vec.dat");
+		SparseVectorSetOFileType interf(docSetPath_+"/doc_int.vec");
 		interf.open();
 
 		size_t total = 0;
 		while(inf.next())
 		{
 			SparseVectorType& docvec = inf.get();
-			//docvec.print();
-
+#ifdef DOC_SIM_TEST
+			docvec.print();
+#endif
 			SparseVectorType ivec(docvec.rowid);
 			interpret_(docvec, ivec);
 
-//			cout << "**interpreted : " << endl;
-//			ivec.print();
-//			cout << endl;
-
+#ifdef DOC_SIM_TEST
+			cout << "**interpreted : " << endl;
+			ivec.print();
+			cout << endl;
+#endif
 			interf.put(ivec);
 
 			++total;
 
-			if ((total % 2000) == 0)
+			if ((total % 1000) == 0)
 				LOG(INFO) << "interpreted: " <<total << endl;
 		}
 
 		inf.close();
 		interf.close();
 
-		DLOG(INFO) << "end interpret" <<endl;
+		DLOG(INFO) << "end interpreting" <<endl;
+
+		return true;
 	}
 
 private:

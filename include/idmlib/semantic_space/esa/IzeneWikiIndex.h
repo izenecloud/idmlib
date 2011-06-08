@@ -32,13 +32,14 @@ public:
             boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer,
             boost::shared_ptr<IDManager> pIdManager,
             izenelib::util::UString::EncodingType encoding,
-            std::string wikiIndexDir = "./wikipedia/index"
+            std::string wikiIndexDir = "./esa/wiki"
             )
-    : pIdmAnalyzer_(pIdmAnalyzer)
+    : WikiIndex(wikiIndexDir)
+    , pIdmAnalyzer_(pIdmAnalyzer)
     , pIdManager_(pIdManager)
     , encoding_(encoding)
     {
-        pIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(wikiIndexDir);
+        pIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(wikiIndexDir+"/izene_index");
         laInput_.reset(new TermIdList());
     }
 

@@ -26,7 +26,7 @@ template <typename IdT = uint32_t, typename VT = float>
 class SparseVectorSetOFile
 {
 public:
-	SparseVectorSetOFile(const string& filename="./spvec.dat", size_t cache_size = 0)
+	SparseVectorSetOFile(const string& filename, size_t cache_size = 0)
     : filename_(filename)
     , cache_size_(cache_size)
 	, total_count_(0)
@@ -44,7 +44,7 @@ public:
     	pof_.reset(new std::ofstream(filename_.c_str(), mode));
     	if (!pof_->is_open())
     	{
-    		cerr << "failed to open (out): " << filename_ <<endl;
+    		cerr << "** failed to open (out): " << filename_ <<endl;
     		return false;
     	}
 
@@ -126,7 +126,7 @@ template <typename IdT = uint32_t, typename VT = float>
 class SparseVectorSetIFile
 {
 public:
-	SparseVectorSetIFile(const string& filename="./spvec.dat", size_t max_cache_size = 1000)
+	SparseVectorSetIFile(const string& filename, size_t max_cache_size = 1000)
     : filename_(filename)
     , max_cache_size_(max_cache_size)
 	, pos_(0)

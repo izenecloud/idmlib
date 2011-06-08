@@ -16,6 +16,7 @@
 #include <3rdparty/am/rde_hashmap/hash_map.h>
 
 
+
 NS_IDMLIB_SSP_BEGIN
 
 class DocumentRepresentor : public CollectionProcessor
@@ -24,14 +25,19 @@ public:
     DocumentRepresentor(
         const std::string& colBasePath,
         const std::string& laResPath,
+        const std::string& docSetDir,
         size_t maxDoc = 0,
-        const std::string& docRepFileName = "./doc_rep.tmp",
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
     : CollectionProcessor(colBasePath, laResPath, maxDoc, encoding)
     , docCount_(0)
-    , docRepVecFileName_(docRepFileName)
-    , docRepVecOFile_(docRepVecFileName_)
+    , docSetDir_(docSetDir)
+    , docRepVecOFile_(docSetDir+"/doc_rep_tf.tmp")
     {
+        if (!boost::filesystem::exists(docSetDir)) {
+            boost::filesystem::create_directories(docSetDir);
+            std::cout <<"** create: "<<docSetDir<<endl;
+        }
+
     	docRepVecOFile_.open();
     }
 
@@ -50,8 +56,9 @@ private:
     /*virtual*/
     void processDocumentAnalyzedContent()
     {
+        // todo, proess mining properties
         docCount_++;
-        gatherTFDF_();
+        gatherTFDF();
 
     }
 
@@ -67,7 +74,7 @@ private:
     }
 
 private:
-    void gatherTFDF_()
+    void gatherTFDF()
     {
         term_tf_map_.clear();
 
@@ -99,7 +106,7 @@ private:
         }
 
         // document representation vector
-        SparseVector<> sv(curDocId_, term_tf_map_.size());
+        SparseVectorType sv(curDocId_, term_tf_map_.size());
 
         size_t docLen = pTermIdList_->size();
         for(hashmap_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
@@ -108,37 +115,40 @@ private:
             sv.insertItem(iter->first, iter->second);
         }
 
-//        sv.print();
+#ifdef DOC_SIM_TEST
+        sv.print();//
+#endif
         docRepVecOFile_.put(sv);
     }
 
     void finishInsert()
     {
     	docRepVecOFile_.flush();
-    	cout << "---- saved:  " << docRepVecOFile_.size()<<endl;
+
     	docRepVecOFile_.close();
     }
 
     void calcWeight()
     {
-        DLOG(INFO) << "start calcWeight" <<endl;
+        DLOG(INFO) << "post processing (start calcWeight)" <<endl;
 
-        SparseVectorSetIFile<> inf(docRepVecFileName_);
+        SparseVectorSetIFileType inf(docSetDir_+"/doc_rep_tf.tmp");
         inf.open();
 
-        SparseVectorSetOFile<> docrepFile("docrep.tmp");
-        docrepFile.open();
+        SparseVectorSetOFileType docRepFile(docSetDir_+"/doc_rep.tmp");
+        docRepFile.open();
 
         size_t total = 0;
         while(inf.next())
         {
-        	SparseVector<> sv = inf.get();
+        	SparseVectorType sv = inf.get();
 
         	float idf;
         	int df = 0;
-        	SparseVector<>::list_iter_t iter;
+        	SparseVectorType::list_iter_t iter;
         	for (iter = sv.list.begin(); iter != sv.list.end(); iter++)
         	{
+        	    // todo filt
         		df = term_df_map_[iter->itemid];
         		if (df == 0)
         			df = 1;
@@ -147,19 +157,21 @@ private:
         		iter->value *= idf;
         	}
 
-        	docrepFile.put(sv);
+        	docRepFile.put(sv);
 
         	++total;
+        	if ((total % 5000) == 0)
+        	    DLOG(INFO) << total*100/docCount_ <<"%"<< endl;
         }
 
         inf.close();
-        //inf.remove(); //remove it
+        inf.remove(); //remove it
 
-        docrepFile.close();
+        docRepFile.close();
 
-        DLOG(INFO) << "end calcWeight" <<endl;
+        DLOG(INFO) << "post processing (end calcWeight)" <<endl;
 
-        cout << "total vector: " <<total << endl;
+        cout << "inerpretation vector count: " <<total << endl;
     }
 
 public:
@@ -183,8 +195,8 @@ public:
 
 private:
     size_t docCount_;
-    std::string docRepVecFileName_;
-    SparseVectorSetOFile<> docRepVecOFile_;
+    std::string docSetDir_;
+    SparseVectorSetOFileType docRepVecOFile_;
 
     typedef rde::hash_map<uint32_t, float> hashmap_t;
     typedef rde::hash_map<uint32_t, float>::iterator hashmap_iterator_t;

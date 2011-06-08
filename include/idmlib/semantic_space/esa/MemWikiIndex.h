@@ -19,6 +19,8 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
 
+//#define MEMWIKI_INDEX_TEST
+
 NS_IDMLIB_SSP_BEGIN
 
 /**
@@ -31,8 +33,8 @@ NS_IDMLIB_SSP_BEGIN
 class MemWikiIndex : public WikiIndex
 {
 public:
-	MemWikiIndex(const string& dataFile = "./wiki.idx")
-	: WikiIndex(dataFile)
+	MemWikiIndex(const string& indexDir = "./esa/wiki")
+	: WikiIndex(indexDir)
 	{
 
 	}
@@ -52,6 +54,10 @@ public:
     {
         calcWeight_();
 
+#ifdef MEMWIKI_INDEX_TEST
+        printWikiIndex();
+#endif
+
         flush();
         clear();
     }
@@ -61,7 +67,10 @@ public:
         clear();
 
         loadIndex_();
-//        printWikiIndex();
+
+#ifdef MEMWIKI_INDEX_TEST
+        printWikiIndex();
+#endif
     }
 
 public:
@@ -123,11 +132,18 @@ private:
 
     void flush()
     {
-        // file is opened in append mode, so remove it firstly.
-        boost::filesystem::remove(dataFile_);
+        // save whole inverted index (just 1 barrel)
+        // todo: if wikipedia corpus is large, we save each barrel as a sub inverted index which fit memory size.
+        // each sub index can be used to calculate a partial interpretation vector in esa.
 
-        // save whole inverted index
-        std::ofstream fout(dataFile_.c_str(), ios::app);
+        std::cout<<"Saving Wikipedia index: "<<dataFile_<<endl;
+        std::ofstream fout(dataFile_.c_str(), ios::out);
+        if (!fout.is_open())
+        {
+            std::cout <<"Failed to creatd: "<<dataFile_<<endl;
+            return;
+        }
+
         boost::archive::text_oarchive oa(fout);
 
         size_t count = invertedLists_.size();
@@ -151,8 +167,10 @@ private:
     bool loadIndex_()
     {
         std::ifstream fin(dataFile_.c_str());
-        if (!fin.is_open())
+        if (!fin.is_open()) {
+            std::cout <<"Failed to open: "<<dataFile_<<endl;
         	return false;
+        }
         boost::archive::text_iarchive ia(fin);
 
         // read list count

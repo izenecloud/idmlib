@@ -16,6 +16,8 @@
 #include <3rdparty/am/rde_hashmap/hash_map.h>
 #include <3rdparty/am/google/sparse_hash_map>
 
+#include <glog/logging.h>
+
 using namespace idmlib::ssp;
 
 NS_IDMLIB_SIM_BEGIN
@@ -29,12 +31,13 @@ class AllPairsSearch
 
 public:
     AllPairsSearch(
-            boost::shared_ptr<AllPairsOutput> allPairsOutput)
+            boost::shared_ptr<AllPairsOutput> allPairsOutput,
+            float thresholdSim = 0.04)
     : vector_index_num_max_(10)
     , vector_index_num_cur_(0)
+    , thresholdSim_(thresholdSim)
     , allPairsOutput_(allPairsOutput)
     {
-        thresholdSim_ = 0;
     }
 
 public:
@@ -51,15 +54,25 @@ public:
      */
     void findAllSimilarPairs(boost::shared_ptr<DataSetIterator>& dataSetIterator)
     {
+        DLOG(INFO) <<"Start all pairs similarity searching."<<std::endl;
+        size_t count = 0;
+
         while (dataSetIterator->next())
         {
             SparseVectorType& sv = dataSetIterator->get();
+#ifdef DOC_SIM_TEST
             sv.print();
-
+#endif
             invertedIndexJoin_(sv);
+
+            count ++;
+            if (count % 1000 == 0)
+                DLOG(INFO) << count << endl;
         }
 
         allPairsOutput_->finish();
+
+        DLOG(INFO) <<"End all pairs similarity searching."<<std::endl;
     }
 
 private:
@@ -110,9 +123,9 @@ private:
         {
             if (citer->second > this->thresholdSim_) {
                 // output
-                cout << "(" << vecid <<"," << citer->first <<", " << citer->second<<")" << endl;
-                allPairsOutput_->addPair(vecid, citer->first, citer->second);
-                allPairsOutput_->addPair(citer->first, vecid, citer->second);
+                //cout << "(" << vecid <<"," << citer->first <<", " << citer->second<<")" << endl;
+                allPairsOutput_->putPair(vecid, citer->first, citer->second);
+                allPairsOutput_->putPair(citer->first, vecid, citer->second);
             }
         }
     }
