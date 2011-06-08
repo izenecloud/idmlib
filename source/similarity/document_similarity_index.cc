@@ -100,7 +100,7 @@ void DocumentSimilarityIndex::accumulate_weight_(
 
     InterpretVector conceptIndexVec;
     bool ret = getConceptIndex(conceptId, conceptIndexVec);
-    cout << " concept: " << conceptId << " ";
+    ///cout << " concept: " << conceptId << " ";
     if (ret)
     {
         // score accumulation based on inverted index
@@ -109,7 +109,7 @@ void DocumentSimilarityIndex::accumulate_weight_(
         {
             candidateDocId = conIter->first;
             canDocW = conIter->second;
-            cout << "("<<candidateDocId<<","<<canDocW<<") ";
+            ///cout << "("<<candidateDocId<<","<<canDocW<<") ";
             // accumulate, fill weight table
             if (docWegtMap.find(candidateDocId) == docWegtMap.end()) {
                 docWegtMap.insert(std::make_pair(candidateDocId, canDocW * conW));
@@ -119,9 +119,10 @@ void DocumentSimilarityIndex::accumulate_weight_(
             }
         }
     }
-    cout << endl;
+    ///cout << endl;
 
     // update inverted index
+    ///cout << "update: " << docid << "," << conW <<endl;
     conceptIndexVec.push_back(std::make_pair(docid, conW));
     updateConceptIndex(conceptId, conceptIndexVec);
 }
@@ -155,7 +156,7 @@ void DocumentSimilarityIndex::basicInvertedIndexJoin_(docid_t& docid, InterpretV
     {
         if (miter->second > this->thresholdSim_) {
             // output
-            cout << "(" << docid <<"," << miter->first <<"  " << miter->second<<")" << endl;
+            ///cout << "(" << docid <<"," << miter->first <<"  " << miter->second<<")" << endl;
             outputSimDocPair(docid, miter->first, miter->second);
             outputSimDocPair(miter->first, docid, miter->second);
         }

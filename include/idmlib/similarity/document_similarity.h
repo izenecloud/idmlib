@@ -89,7 +89,7 @@ public:
 		else {
 			pDocVecSpace_.reset(new DocumentVectorSpace(colsspPath, SemanticSpace::LOAD));
 		}
-#ifdef DOCSIM_TEST
+#if 0
 		pDocVecSpace_->Print();
 #endif
 
