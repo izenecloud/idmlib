@@ -1,18 +1,19 @@
+//
+//#include <idmlib/idm_types.h>
+//
+//#include <idmlib/semantic_space/term_doc_matrix_defs.h>
+//
+//#include <la/util/UStringUtil.h>
+//#include <ir/id_manager/IDManager.h>
+//#include <ir/index_manager/index/IndexReader.h>
+//#include <ir/index_manager/index/Indexer.h>
+//
+//using namespace idmlib::ssp;
+//using namespace idmlib::sim;
+//using namespace idmlib::util;
+//using namespace izenelib::ir::indexmanager;
 
-#include <idmlib/idm_types.h>
-#include <idmlib/similarity/document_similarity.h>
-#include <idmlib/semantic_space/term_doc_matrix_defs.h>
-#include <idmlib/similarity/simple_similarity.h>
-#include <la/util/UStringUtil.h>
-#include <ir/id_manager/IDManager.h>
-#include <ir/index_manager/index/IndexReader.h>
-#include <ir/index_manager/index/Indexer.h>
-
-using namespace idmlib::ssp;
-using namespace idmlib::sim;
-using namespace idmlib::util;
-using namespace izenelib::ir::indexmanager;
-
+#if 0
 void DocumentSimilarity::DoSim()
 {
 #ifdef IDM_SSP_TIME_CHECKER
@@ -76,14 +77,14 @@ void DocumentSimilarity::DoSim()
 //*/
 #endif
 		// Build document similarity index ..
-//		pDocSimIndex_->InertDocument(docid, interpretationDocVec);
+///		pDocSimIndex_->InertDocument(docid, interpretationDocVec);
 
 		if ((++progress) % 100 == 0 || progress >= docNum) {
 		    DLOG(INFO) << (progress * 100.0f / docNum)  << "% - total " << docNum << endl;
 		}
 	}
 
-//	pDocSimIndex_->FinishInert();
+///	pDocSimIndex_->FinishInert();
 
 	DLOG(INFO) << "End document similarity." << endl;
 }
@@ -185,3 +186,4 @@ void DocumentSimilarity::processDocument_(SCDDocPtr& pDoc)
         }
     }
 }
+#endif

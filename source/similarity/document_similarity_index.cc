@@ -1,7 +1,8 @@
-#include <idmlib/similarity/document_similarity_index.h>
+//#include <idmlib/similarity/document_similarity_index.h>
+//
+//using namespace idmlib::sim;
 
-using namespace idmlib::sim;
-
+#if 0
 
 void DocumentSimilarityIndex::basicInvertedIndexJoin_(
 		docid_t& docid,
@@ -162,3 +163,4 @@ void DocumentSimilarityIndex::basicInvertedIndexJoin_(docid_t& docid, InterpretV
         }
     }
 }
+#endif
