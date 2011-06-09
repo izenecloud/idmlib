@@ -13,9 +13,14 @@
 
 #include <fstream>
 #include <iostream>
+#include <string>
 
-#include <boost/serialization/vector.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/archive_exception.hpp>
+
+using namespace std;
 
 NS_IDMLIB_SSP_BEGIN
 
@@ -107,7 +112,7 @@ public:
 
 private:
     std::string filename_;
-    boost::shared_ptr<std::ofstream> pof_;
+    boost::shared_ptr<ofstream> pof_;
     boost::shared_ptr<boost::archive::text_oarchive> poa_;
 
     typedef std::vector<SparseVector<IdT, VT> >  cache_t;
