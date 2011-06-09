@@ -36,10 +36,36 @@ public:
 public:
     void batchBuild();
 
-    void incrementalBuild(
-        uint32_t userId, 
-        std::list<uint32_t>& oldItems, 
-        std::list<uint32_t>& newItems, 
+    /**
+     * Update covisist matrix and similarity matrix.
+     * @param oldItems the items visited before
+     * @param newItems the new visited items
+     *
+     * As the covisit matrix records the number of users who have visited both item i and item j,
+     * it has below pre-conditions:
+     * @pre each items in @p oldItems should be unique
+     * @pre each items in @p newItems should be unique
+     * @pre there should be no items contained in both @p oldItems and @p newItems
+     *
+     * for performance reason, it has below post-condition:
+     * @post when this function returns, the items in @p newItems would be moved to the end of @p oldItems,
+     *       and @p newItems would be empty.
+     */
+    void buildMatrix(
+        std::list<uint32_t>& oldItems,
+        std::list<uint32_t>& newItems
+    );
+
+    /**
+     * Build recommend items for user.
+     * @param userId the user id
+     * @param items the items already visited by the user
+     * @param itemIterator iterate all items
+     * @param rescorer filter items
+     */
+    void buildUserRecommendItems(
+        uint32_t userId,
+        const std::list<uint32_t>& items,
         ItemIterator& itemIterator,
         ItemRescorer* rescorer = NULL
     );
@@ -58,9 +84,7 @@ public:
         ItemRescorer* rescorer = NULL
     );
 
-    float estimate(uint32_t itemId, std::list<uint32_t>& itemIds);
-
-    bool getUserRecommendItems(uint32_t userId, RecommendItemType& results);
+    float estimate(uint32_t itemId, const std::list<uint32_t>& itemIds);
 
     void gc();
 
