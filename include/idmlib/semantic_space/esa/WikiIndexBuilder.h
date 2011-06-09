@@ -27,8 +27,9 @@ public:
         const std::string& wikiColBasePath,
         const std::string& laResPath,
         size_t maxDoc = 0,
+        bool removeStopwords = false,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
-    : CollectionProcessor(wikiColBasePath, laResPath, maxDoc, encoding)
+    : CollectionProcessor(wikiColBasePath, laResPath, maxDoc, removeStopwords, encoding)
     {
     }
 

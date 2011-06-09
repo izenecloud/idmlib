@@ -93,21 +93,23 @@ int main(int argc, char** argv)
 	std::cout << "threshold-sim: " << thresholdSim << endl;
 	std::cout << "max-doc: " << maxDoc << endl;
 
-    /* get doc vectors
+
+    //* get doc vectors
 	DocumentRepresentor docRepresentor(colBasePath, laResPath, docSetPath, maxDoc);
 	docRepresentor.represent();
-	//
+	//*/
 	ExplicitSemanticInterpreter esInter(wikiIndexdir, docSetPath);
-	esInter.interpret();
+	esInter.interpret(maxDoc);
 	//*/
 
 	//* all pairs similarity search
-	string datafile = docSetPath+"/doc_rep.tmp";//"/doc_int.vec";
+	//string datafile = docSetPath+"/doc_rep.tmp";
+	string datafile = docSetPath+"/doc_int.vec";
 	boost::shared_ptr<DataSetIterator> dataSetIterator(new SparseVectorSetIterator(datafile));
 	boost::shared_ptr<DocSimOutput> output(new DocSimOutput(docSimPath));
 
 	AllPairsSearch allPairs(output, thresholdSim);
-	allPairs.findAllSimilarPairs(dataSetIterator);
+	allPairs.findAllSimilarPairs(dataSetIterator, maxDoc);
 	//*/
 
 	//* test

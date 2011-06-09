@@ -123,9 +123,24 @@ private:
             idf = std::log((float)docCount_ / it->second->len);
 
             InvertedList::list_iter_t iit;
-            for (iit = it->second->list.begin(); iit != it->second->list.end(); iit++)
+            for (iit = it->second->list.begin(); iit != it->second->list.end(); )
             {
                 iit->value *= idf; // tf * idf
+                if (iit->value > thresholdWegt_)
+                {
+                    iit++;
+                }
+                else
+                {
+                    // remove those concepts whose weights for a given word are too low
+                    iit = it->second->list.erase(iit);
+                    it->second->len --;
+                }
+            }
+
+            if (it->second->len <= 0)
+            {
+                it->second.reset();
             }
         }
     }
@@ -136,7 +151,7 @@ private:
         // todo: if wikipedia corpus is large, we save each barrel as a sub inverted index which fit memory size.
         // each sub index can be used to calculate a partial interpretation vector in esa.
 
-        std::cout<<"Saving Wikipedia index: "<<dataFile_<<endl;
+        std::cout<<"Saving Wikipedia index (term "<<invertedLists_.size()<<",concept "<<docCount_<<"): "<<dataFile_<<endl;
         std::ofstream fout(dataFile_.c_str(), ios::out);
         if (!fout.is_open())
         {
@@ -151,7 +166,8 @@ private:
 
         for (invertedlists_iterator_t it = invertedLists_.begin(); it != invertedLists_.end(); it++)
         {
-            oa << *it->second;
+            if (it->second)
+                oa << *it->second;
         }
 
         fout.close();
@@ -195,6 +211,8 @@ public:
         cout << "---- Wiki Index -----" <<endl;
         for (invertedlists_iterator_t it = invertedLists_.begin(); it != invertedLists_.end(); it++)
         {
+            if (!it->second)
+                continue;
             cout << "["<<it->second->rowid << " " << it->second->len << "] --> ";
             InvertedList::list_iter_t iit;
             for (iit = it->second->list.begin(); iit != it->second->list.end(); iit++)
@@ -205,8 +223,8 @@ public:
         }
     }
 
-private:
 /*
+private:
     struct InvertItem
     {
         uint32_t conceptId;
@@ -254,7 +272,10 @@ private:
         }
     };
 */
+
 private:
+    static const float thresholdWegt_ = 0.02f; // 0.015 ~ 0.02
+
     typedef SparseVectorItemType InvertItem;
     typedef SparseVectorType InvertedList;
 

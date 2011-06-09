@@ -71,6 +71,7 @@ public:
         const std::string& colBasePath,
         const std::string& laResPath,
         size_t maxDoc = 0,
+        bool removeStopwords = false,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
     : colPath_(colBasePath)
     , laResPath_(laResPath)
@@ -81,7 +82,7 @@ public:
     , pTermIdList_(new TermIdList())
     {
         createIdManager();
-        createAnalyzer();
+        createAnalyzer(removeStopwords);
     }
 
 public:
@@ -127,13 +128,16 @@ public:
 
                  // stop
                  if (maxDoc_ != 0 && curDocNum >= maxDoc_)
+                 {
+                     DLOG(INFO) << "processed: " << curDocNum << ")"<<endl;
                      break;
+                 }
              }
          }
 
          postProcess(); // xxx
 
-         DLOG(INFO) << "End Collection (SCD) processing." << endl;
+         DLOG(INFO) << "End Collection (SCD) processing. "<< endl;
          return true;
     }
 
@@ -210,10 +214,10 @@ protected:
         BOOST_ASSERT(pIdManager_);
     }
 
-    void createAnalyzer()
+    void createAnalyzer(bool removeStopwords=false)
     {
         pIdmAnalyzer_.reset(
-                new idmlib::util::IDMAnalyzer(laResPath_, la::ChineseAnalyzer::maximum_match) );
+                new idmlib::util::IDMAnalyzer(laResPath_, la::ChineseAnalyzer::maximum_match, removeStopwords) );
         BOOST_ASSERT(pIdmAnalyzer_);
     }
 

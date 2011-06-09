@@ -20,6 +20,7 @@ NS_IDMLIB_SSP_BEGIN
 
 /**
  * Wrap up izenelib indexer for building wiki index
+ * @deprecated
  * @brief For performance consideration, this indexer is not suitable for ESA,
  * and so will not be used currently practically (MemWikiIndex is in use).
  * 1. izenelib indexer has no cache mechanism for read currently.
