@@ -52,7 +52,7 @@ public:
      *
      * @param dataSetIterator
      */
-    void findAllSimilarPairs(boost::shared_ptr<DataSetIterator>& dataSetIterator)
+    void findAllSimilarPairs(boost::shared_ptr<DataSetIterator>& dataSetIterator, size_t maxDoc = 0)
     {
         DLOG(INFO) <<"Start all pairs similarity searching."<<std::endl;
         size_t count = 0;
@@ -68,11 +68,14 @@ public:
             count ++;
             if (count % 1000 == 0)
                 DLOG(INFO) << count << endl;
+
+            if (maxDoc != 0 && count >= maxDoc)
+                break;
         }
 
         allPairsOutput_->finish();
 
-        DLOG(INFO) <<"End all pairs similarity searching."<<std::endl;
+        DLOG(INFO) <<"End all pairs similarity searching.  processed "<< count<<std::endl;
     }
 
 private:

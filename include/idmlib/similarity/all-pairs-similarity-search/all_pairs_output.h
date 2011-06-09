@@ -48,6 +48,7 @@ public:
         }
 
         string sortfile = outDir+"/pair.sort";
+        boost::filesystem::remove(sortfile); //
         sorter_ = new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sortfile.c_str(), 100000000);
 
         metalen_ = sizeof(uint32_t)*2+sizeof(float);

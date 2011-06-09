@@ -5,6 +5,7 @@
 #include <util/ustring/UString.h>
 #include <am/3rdparty/rde_hash.h>
 #include "../idm_types.h"
+#include <boost/date_time/gregorian/gregorian.hpp>
 NS_IDMLIB_UTIL_BEGIN
 
 
@@ -61,6 +62,23 @@ class TimeUtil
             return true;
         }
         
+        static double GetCurrentTimeMS()
+        {
+            timeval now;
+            gettimeofday(&now,0);
+
+            time_t s = now.tv_sec;
+            time_t mms = now.tv_usec;
+
+            double ret = s + (double)mms/1000000.0;
+            return ret;
+        }
+
+        static time_t GetCurrentTimeS()
+        {
+            return time(NULL);
+        }
+
 };
     
 NS_IDMLIB_UTIL_END

@@ -27,8 +27,9 @@ public:
         const std::string& laResPath,
         const std::string& docSetDir,
         size_t maxDoc = 0,
+        bool removeStopwords = false,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
-    : CollectionProcessor(colBasePath, laResPath, maxDoc, encoding)
+    : CollectionProcessor(colBasePath, laResPath, maxDoc, removeStopwords, encoding)
     , docCount_(0)
     , docSetDir_(docSetDir)
     , docRepVecOFile_(docSetDir+"/doc_rep_tf.tmp")
