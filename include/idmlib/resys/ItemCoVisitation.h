@@ -2,15 +2,10 @@
 #define IDMLIB_RESYS_ITEM_COVISITATION_H
 
 #include "ItemRescorer.h"
-#include "SerializationType.h"
 #include <idmlib/idm_types.h>
 
-#include <am/beansdb/Hash.h>
-#include <am/leveldb/Table.h>
-#include <sdb/SequentialDB.h>
-#include <cache/IzeneCache.h>
+#include <am/matrix/matrix_db.h>
 
-#include <util/Int2String.h>
 #include <util/ThreadModel.h>
 #include <util/PriorityQueue.h>
 
@@ -28,10 +23,33 @@ using namespace std;
 
 NS_IDMLIB_RESYS_BEGIN
 
-using izenelib::util::Int2String;
-
 typedef uint32_t ItemType;
 
+struct CoVisitTimeFreq :public ::izenelib::util::pod_tag
+{
+    CoVisitTimeFreq():freq(0),timestamp(0){}
+
+    uint32_t freq;
+    int64_t timestamp;
+
+    void update()
+    {
+        freq += 1;
+        timestamp = (int64_t)izenelib::util::Timestamp::now();
+    }
+};
+
+struct CoVisitFreq :public ::izenelib::util::pod_tag
+{
+    CoVisitFreq():freq(0){}
+
+    uint32_t freq;
+
+    void update()
+    {
+        freq += 1;
+    }
+};
 
 template<typename CoVisitation>
 struct CoVisitationQueueItem
@@ -61,36 +79,19 @@ protected:
 template<typename CoVisitation>
 class ItemCoVisitation
 {
-    //typedef __gnu_cxx::hash_map<ItemType, CoVisitation> HashType;
-    typedef google::sparse_hash_map<ItemType, CoVisitation> HashType;
-
-    //typedef izenelib::am::beansdb::Hash<Int2String, HashType > StorageType;
-    //typedef izenelib::am::leveldb::Table<Int2String, HashType > StorageType;
-    typedef izenelib::sdb::unordered_sdb_tc<ItemType, HashType, ReadWriteLock > StorageType;
-
-    typedef izenelib::cache::IzeneCache<
-    ItemType,
-    boost::shared_ptr<HashType >,
-    izenelib::util::ReadWriteLock,
-    izenelib::cache::RDE_HASH,
-    izenelib::cache::LFU
-    > RowCacheType;
-
+    typedef izenelib::am::MatrixDB<ItemType, CoVisitation > MatrixDBType;
+    typedef typename MatrixDBType::row_type RowType;
 public:
     ItemCoVisitation(
           const std::string& homePath, 
-          size_t row_cache_size = 100
+          size_t cache_size = 1024*1024
           )
-        : store_(homePath)
-        , row_cache_(row_cache_size)
+        : db_(cache_size, homePath)
     {
-        store_.open();
     }
 
     ~ItemCoVisitation()
     {
-        store_.flush();
-        store_.close();
     }
 
     /**
@@ -144,9 +145,9 @@ public:
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
-        boost::shared_ptr<HashType> rowdata = loadRow(item);
+        boost::shared_ptr<RowType> rowdata = db_.row(item);
         CoVisitationQueue<CoVisitation> queue(howmany);
-        typename HashType::iterator iter = rowdata->begin();
+        typename RowType::iterator iter = rowdata->begin();
         for(;iter != rowdata->end(); ++iter)
         {
             // escape the input item
@@ -165,9 +166,10 @@ public:
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
-        boost::shared_ptr<HashType> rowdata = loadRow(item);
+        boost::shared_ptr<RowType> rowdata = db_.row(item);
+
         CoVisitationQueue<CoVisitation> queue(howmany);
-        typename HashType::iterator iter = rowdata->begin();
+        typename RowType::iterator iter = rowdata->begin();
         for(;iter != rowdata->end(); ++iter)
         {
             // escape the input item
@@ -186,55 +188,27 @@ public:
     {
         //we do not use read lock here because coeff is called only after writing operation is finished
         //izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
-        boost::shared_ptr<HashType> rowdata = loadRow(row);
-        return (*rowdata)[col].freq;
+        return db_.coeff(row,col).freq;
     }
 
-    void gc()
+    void dump()
     {
-        //store_.optimize();
+        db_.dump();
     }
 
+    void status(std::ostream& ostream)
+    {
+        db_.status(ostream);
+    }
 private:
     void updateCoVisation(ItemType item, const std::list<ItemType>& coItems)
     {
         if(coItems.empty()) return;
-
-        boost::shared_ptr<HashType> rowdata = loadRow(item);
-
-        for(std::list<ItemType>::const_iterator iter = coItems.begin();
-            iter != coItems.end(); ++iter)
-        {
-            CoVisitation& covisitation = (*rowdata)[*iter];
-            covisitation.update();
-        }
-
-        saveRow(item,rowdata);
-    }
-
-    boost::shared_ptr<HashType > loadRow(ItemType row)
-    {
-        boost::shared_ptr<HashType> rowdata;
-        if (!row_cache_.getValueNoInsert(row, rowdata))
-        {
-            rowdata.reset(new HashType);
-            //Int2String rowKey(row);
-            store_.get(row, *rowdata);
-            row_cache_.insertValue(row, rowdata);
-        }
-
-        return rowdata;
-    }
-
-    void saveRow(ItemType row, boost::shared_ptr<HashType > rowdata)
-    {
-        //Int2String rowKey(row);
-        store_.update(row, *rowdata);
+        db_.row_incre(item, coItems);
     }
 
 private:
-    StorageType store_;
-    RowCacheType row_cache_;	
+    MatrixDBType db_;
     izenelib::util::ReadWriteLock lock_;
 };
 

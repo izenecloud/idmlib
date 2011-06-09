@@ -205,14 +205,17 @@ BOOST_AUTO_TEST_CASE(largeTest)
 
     int ORDERS = 200000;
 
-    CoVisitManager coVisitManager(covisitPath.string()+"/visitdb",1000);
+    CoVisitManager coVisitManager(covisitPath.string()+"/visitdb",10*1024*1024);
 
     ClockTimer t;
 
     for(int i = 0; i < ORDERS; ++i)
     {
-	if(i%100 == 0)
-		std::cout<<i<<" orders have been processed "<<t.elapsed()<<std::endl;
+        if(i%500 == 0)
+        {
+            std::cout<<i<<" orders have been processed "<<t.elapsed()<<std::endl;
+            coVisitManager.status(std::cout);
+        }
         std::list<uint32_t> oldItems;
         std::list<uint32_t> newItems;
         generators.genItems(oldItems,newItems);

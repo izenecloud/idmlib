@@ -269,8 +269,8 @@ BOOST_AUTO_TEST_CASE(smokeTest)
 
     {
         IncrementalItemCF cfManager(
-            cfPathStr + "/covisit", 1000,
-            cfPathStr + "/sim", 1000,
+            cfPathStr + "/covisit", 1024*1024,
+            cfPathStr + "/sim", 1024*1024,
             cfPathStr + "/nb.sdb", 30,
             cfPathStr + "/rec", 1000
         );
@@ -292,8 +292,8 @@ BOOST_AUTO_TEST_CASE(smokeTest)
 
     {
         IncrementalItemCF cfManager(
-            cfPathStr + "/covisit", 1000,
-            cfPathStr + "/sim.sdb", 1000,
+            cfPathStr + "/covisit", 1024*1024,
+            cfPathStr + "/sim.sdb", 1024*1024,
             cfPathStr + "/nb.sdb", 30,
             cfPathStr + "/rec", 1000
         );
@@ -321,8 +321,8 @@ BOOST_AUTO_TEST_CASE(largeTest)
     MyItemIterator itemIterator(1, MaxITEM);
 
     IncrementalItemCF cfManager(
-        cfPathStr + "/covisit", 10000,
-        cfPathStr + "/sim.sdb", 10000,
+        cfPathStr + "/covisit", 1024*1024,
+        cfPathStr + "/sim.sdb", 1024*1024,
         cfPathStr + "/nb.sdb", 30,
         cfPathStr + "/rec", 1000
     );

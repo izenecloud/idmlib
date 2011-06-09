@@ -20,7 +20,7 @@ public:
 
     virtual float estimate(uint32_t itemId, std::list<uint32_t>& itemIds) =0;
 
-    virtual void gc() = 0;
+    virtual void dump() = 0;
 };
 
 class TopItemsQueue

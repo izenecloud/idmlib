@@ -2,14 +2,11 @@
 #define IDMLIB_RESYS_SIMILARITY_MATRIX_H
 
 #include <idmlib/idm_types.h>
-#include <idmlib/resys/SerializationType.h>
 
-#include <cache/IzeneCache.h>
-#include <am/beansdb/Hash.h>
+#include <am/matrix/matrix_db.h>
 #include <sdb/SequentialDB.h>
 #include <sdb/SDBCursorIterator.h>
 
-#include <util/Int2String.h>
 #include <util/smallfloat.h>
 #include <util/timestamp.h>
 #include <util/ThreadModel.h>
@@ -22,8 +19,6 @@
 #include <algorithm>
 
 NS_IDMLIB_RESYS_BEGIN
-
-using izenelib::util::Int2String;
 
 template<typename MeasureType>
 struct SimilarityQueueItem
@@ -58,20 +53,8 @@ bool similarityCompare (const std::pair<ItemType,MeasureType>& p1, const std::pa
 template<typename ItemType = uint32_t, typename MeasureType = float>
 class SimilarityMatrix
 {
-    //typedef __gnu_cxx::hash_map<ItemType, MeasureType> HashType;
-    typedef google::sparse_hash_map<ItemType, MeasureType> HashType;
-
-    //typedef izenelib::am::beansdb::Hash<Int2String, HashType > ItemSimilarityMatrixType;
-    //typedef izenelib::am::leveldb::Table<Int2String, HashType > ItemSimilarityMatrixType;
-    typedef izenelib::sdb::unordered_sdb_tc<ItemType, HashType, ReadWriteLock > ItemSimilarityMatrixType;
-
-    typedef izenelib::cache::IzeneCache<
-        ItemType,
-        boost::shared_ptr<HashType >,
-        izenelib::util::ReadWriteLock,
-        izenelib::cache::RDE_HASH,
-        izenelib::cache::LFU
-        > RowCacheType;
+    typedef izenelib::am::MatrixDB<ItemType, MeasureType > MatrixDBType;
+    typedef typename MatrixDBType::row_type RowType;
 
     typedef std::vector<std::pair<ItemType, MeasureType> > ItemNeighborType;
 
@@ -87,26 +70,23 @@ class SimilarityMatrix
 public:
     SimilarityMatrix(
           const std::string& item_item_matrix_path, 
-          size_t row_cache_size, 
+          size_t cache_size, 
           const std::string& item_neighbor_path, 
           size_t topK = 30
           )
-        : store_(item_item_matrix_path)
-        , row_cache_(row_cache_size)
+        : store_(cache_size, item_item_matrix_path)
         , neighbor_store_(item_neighbor_path)
         , topK_(topK)
         , max_item_(0)
     {
         neighbor_store_.open();
-        store_.open();
         loadAllNeighbors();
     }
 
     ~SimilarityMatrix()
     {
-        store_.flush();
-        store_.close();
         neighbor_store_.flush();
+        neighbor_store_.close();
     }
 
     bool itemSimilarity(
@@ -200,32 +180,17 @@ public:
 
     MeasureType coeff(ItemType row, ItemType col)
     {
-        boost::shared_ptr<HashType > rowdata;
-        if (!row_cache_.getValueNoInsert(row, rowdata))
-        {
-            rowdata = loadRow(row);
-            row_cache_.insertValue(row, rowdata);
-        }
-        typename HashType::iterator it = rowdata->find(col); 
-        if(it == rowdata->end()) return 0;
-        return it->second;
+        return store_.coeff(row,col);
     }
 
     void coeff(ItemType row, ItemType col, MeasureType measure)
     {
-	boost::shared_ptr<HashType > rowdata;
-	if (!row_cache_.getValueNoInsert(row, rowdata))
-	{
-            rowdata = loadRow(row);
-            row_cache_.insertValue(row, rowdata);
-	}
-	(*rowdata)[col] = measure;
-	saveRow(row,rowdata);
+        store_.coeff(row,col,measure);
     }
 
-    void gc()
+    void dump()
     {
-        //store_.optimize();
+        store_.dump();
     }
 
 private:
@@ -255,14 +220,9 @@ private:
     void loadNeighbor(ItemType itemId)
     {
         ///need to load neighbor data from disk
-        boost::shared_ptr<HashType > rowdata;
-        if (!row_cache_.getValueNoInsert(itemId, rowdata))
-        {
-            rowdata = loadRow(itemId);
-            row_cache_.insertValue(itemId, rowdata);
-        }
+        boost::shared_ptr<RowType> rowdata = store_.row(itemId);		
         SimilarityQueue<MeasureType> queue(topK_);
-        typename HashType::iterator iter = rowdata->begin();
+        typename RowType::iterator iter = rowdata->begin();
         for(;iter != rowdata->end(); ++iter)
             queue.insert(SimilarityQueueItem<MeasureType>(iter->first,iter->second));
         if(itemId >= neighbors_.size())
@@ -281,25 +241,8 @@ private:
         neighbor_store_.update(itemId,neighbor);
     }
 
-    boost::shared_ptr<HashType > 
-    loadRow(ItemType row)
-    {
-        boost::shared_ptr<HashType > rowdata(new HashType);
-        //Int2String rowKey(row);
-        store_.get(row, *rowdata);
-        return rowdata;
-    }
-
-    void saveRow(ItemType row,  boost::shared_ptr<HashType > rowdata)
-    {
-        //Int2String rowKey(row);
-        store_.update(row, *rowdata);
-    }
-
-
 private:
-    ItemSimilarityMatrixType store_;
-    RowCacheType row_cache_;
+    MatrixDBType store_;
     NeighborSDBType neighbor_store_;
     NeighborsType neighbors_;
     size_t topK_;

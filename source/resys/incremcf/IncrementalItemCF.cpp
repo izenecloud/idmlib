@@ -193,10 +193,10 @@ bool IncrementalItemCF::getUserRecommendItems(
     return userRecommendItems_.getRecommendItem(userId, results);
 }
 
-void IncrementalItemCF::gc()
+void IncrementalItemCF::dump()
 {
-    covisitation_.gc();
-    similarity_.gc();
+    covisitation_.dump();
+    similarity_.dump();
 }
 
 NS_IDMLIB_RESYS_END

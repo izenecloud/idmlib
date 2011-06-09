@@ -62,7 +62,7 @@ public:
 
     bool getUserRecommendItems(uint32_t userId, RecommendItemType& results);
 
-    void gc();
+    void dump();
 
 private:
     ItemCoVisitation<CoVisitFreq> covisitation_;
