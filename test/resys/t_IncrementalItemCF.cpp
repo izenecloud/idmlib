@@ -130,7 +130,8 @@ void checkPurchase(
     MyItemIterator itemIterator(1, MAX_ITEM_ID);
 
     const std::size_t totalNum = oldItems.size() + newItems.size();
-    cfManager.incrementalBuild(userId, oldItems, newItems, itemIterator);
+    cfManager.buildMatrix(oldItems, newItems);
+    cfManager.buildUserRecommendItems(userId, oldItems, itemIterator);
     // now newItems is moved into oldItems 
     BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
     BOOST_CHECK_EQUAL(newItems.size(), 0);
@@ -344,7 +345,8 @@ BOOST_AUTO_TEST_CASE(largeTest)
         std::list<uint32_t> newItems;
         generators.genItems(oldItems, newItems);
         uint32_t userId = generators.genUser();
-        cfManager.incrementalBuild(userId, oldItems, newItems, itemIterator);
+        cfManager.buildMatrix(oldItems, newItems);
+        cfManager.buildUserRecommendItems(userId, oldItems, itemIterator);
     }
 
 }
