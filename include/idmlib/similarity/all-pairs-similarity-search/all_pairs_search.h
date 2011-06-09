@@ -12,6 +12,7 @@
 #include "data_set_iterator.h"
 #include "all_pairs_output.h"
 #include <idmlib/semantic_space/esa/SparseVector.h>
+#include <idmlib/util/time_util.h>
 
 #include <3rdparty/am/rde_hashmap/hash_map.h>
 #include <3rdparty/am/google/sparse_hash_map>
@@ -22,6 +23,7 @@ using namespace idmlib::ssp;
 
 NS_IDMLIB_SIM_BEGIN
 
+static float sTotalTime = 0;
 
 class AllPairsSearch
 {
@@ -63,15 +65,22 @@ public:
 #ifdef DOC_SIM_TEST
             sv.print();
 #endif
+
+            double t1 = TimeUtil::GetCurrentTimeMS();
             invertedIndexJoin_(sv);
+            double t2 = TimeUtil::GetCurrentTimeMS();
+            sTotalTime += (t2-t1);
+            //cout <<"index a vector in "<<(t2-t1)<<"s."<<endl;
 
             count ++;
-            if (count % 1000 == 0)
+            if (count % 100 == 0)
                 DLOG(INFO) << count << endl;
 
             if (maxDoc != 0 && count >= maxDoc)
                 break;
         }
+
+        cout <<"average time: index a vector in "<<(sTotalTime/count)<<"s."<<endl;
 
         allPairsOutput_->finish();
 

@@ -61,7 +61,7 @@ public:
 	{
 		DLOG(INFO) << "start interpreting" <<endl;
 
-		SparseVectorSetIFileType inf(docSetPath_+"/doc_rep.tmp");
+		SparseVectorSetIFileType inf(docSetPath_+"/doc_rep.vec");
 		if (!inf.open())
 		{
 		    return false;
@@ -77,17 +77,18 @@ public:
 #ifdef DOC_SIM_TEST
 			docvec.print();
 #endif
+
 			SparseVectorType ivec(docvec.rowid);
 
-			double t1 = TimeUtil::GetCurrentTimeMS();
+			double t1 = TimeUtil::GetCurrentTimeMS(); // time
 #ifndef IZENE_INDEXER_
 			interpret_(docvec, ivec);
 #else
 			interpret_ir_(docvec, ivec);
 #endif
-			double t2 = TimeUtil::GetCurrentTimeMS();
-			sTotalTime += (t2-t1);
-			cout << "interpreted in "<< (t2-t1) <<"s."<< endl;
+			double t2 = TimeUtil::GetCurrentTimeMS(); // time
+			//cout << "interpreted in "<< (t2-t1) <<"s."<< endl;
+			sTotalTime += (t2-t1); // time
 
 #ifdef DOC_SIM_TEST
 			cout << "**interpreted vector: " << endl;
@@ -98,19 +99,19 @@ public:
 
 			++total;
 
-			if ((total % 10) == 0)
+			if ((total % 100) == 0)
 				LOG(INFO) << "interpreted: " <<total << endl;
 
 			if (maxCount != 0 && total >= maxCount)
 			    break;
 		}
 
-		cout << "average time: " << sTotalTime/total << "s." <<endl;
+		cout << "average time: " << sTotalTime/total << "s." <<endl; //time
 
 		inf.close();
 		interf.close();
 
-		DLOG(INFO) << "end interpreting" <<endl;
+		DLOG(INFO) << "end interpreting. "<<total <<endl;
 
 		return true;
 	}

@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 	string colBasePath;
 	string docSetPath;
 	string docSimPath;
-	float thresholdSim = 0.04;
+	float thresholdSim = 0.5;
 	uint32_t maxDoc = 0; // max number of documents to be processed, not limited if 0
 	string test;
 
@@ -94,16 +94,16 @@ int main(int argc, char** argv)
 	std::cout << "max-doc: " << maxDoc << endl;
 
 
-    //* get doc vectors
+    /* get doc vectors
 	DocumentRepresentor docRepresentor(colBasePath, laResPath, docSetPath, maxDoc);
 	docRepresentor.represent();
-	//*/
+	//
 	ExplicitSemanticInterpreter esInter(wikiIndexdir, docSetPath);
 	esInter.interpret(maxDoc);
 	//*/
 
 	//* all pairs similarity search
-	//string datafile = docSetPath+"/doc_rep.tmp";
+	//string datafile = docSetPath+"/doc_rep.vec";
 	string datafile = docSetPath+"/doc_int.vec";
 	boost::shared_ptr<DataSetIterator> dataSetIterator(new SparseVectorSetIterator(datafile));
 	boost::shared_ptr<DocSimOutput> output(new DocSimOutput(docSimPath));
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
 	allPairs.findAllSimilarPairs(dataSetIterator, maxDoc);
 	//*/
 
-	//* test
+	/* test
 	std::vector<std::pair<uint32_t, float> > result;
 
 	for (size_t idx =1 ; idx <= 3; idx++) {

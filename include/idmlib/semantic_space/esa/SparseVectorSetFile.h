@@ -198,6 +198,7 @@ public:
 private:
     void refresh_cache_()
     {
+        cout<<"[SparseVectorSetIFile] loading data ..."<<endl;
     	cache_.clear();
     	pos_in_cache_ = 0;
 
@@ -229,6 +230,8 @@ private:
             read ++;
             cache_.push_back(sv);
         };
+
+        cout<<"[SparseVectorSetIFile] cached "<<read<<endl;
     }
 
 public:

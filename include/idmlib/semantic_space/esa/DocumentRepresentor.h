@@ -136,7 +136,7 @@ private:
         SparseVectorSetIFileType inf(docSetDir_+"/doc_rep_tf.tmp");
         inf.open();
 
-        SparseVectorSetOFileType docRepFile(docSetDir_+"/doc_rep.tmp");
+        SparseVectorSetOFileType docRepFile(docSetDir_+"/doc_rep.vec");
         docRepFile.open();
 
         size_t total = 0;
@@ -147,18 +147,29 @@ private:
         	float idf;
         	int df = 0;
         	SparseVectorType::list_iter_t iter;
-        	for (iter = sv.list.begin(); iter != sv.list.end(); iter++)
+        	for (iter = sv.list.begin(); iter != sv.list.end(); )
         	{
-        	    // todo filt
         		df = term_df_map_[iter->itemid];
         		if (df == 0)
         			df = 1;
 
         		idf = std::log((float)docCount_ / term_df_map_[iter->itemid]);
         		iter->value *= idf;
+
+        		//filt
+        		if(iter->value > thresholdWegt_)
+        		{
+        		    iter++;
+        		}
+        		else
+        		{
+        		    iter = sv.list.erase(iter);
+        		    sv.len --;
+        		}
         	}
 
-        	docRepFile.put(sv);
+        	if (sv.len > 0)
+        	    docRepFile.put(sv);
 
         	++total;
         	if ((total % 5000) == 0)
@@ -195,6 +206,8 @@ public:
     }
 
 private:
+    static const float thresholdWegt_ = 0.01f;
+
     size_t docCount_;
     std::string docSetDir_;
     SparseVectorSetOFileType docRepVecOFile_;

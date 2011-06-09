@@ -161,7 +161,7 @@ private:
 
         boost::archive::text_oarchive oa(fout);
 
-        size_t count = invertedLists_.size();
+        size_t count = invertedLists_.size(); //xxx some lists are null
         oa << count;
 
         for (invertedlists_iterator_t it = invertedLists_.begin(); it != invertedLists_.end(); it++)
@@ -187,6 +187,8 @@ private:
             std::cout <<"Failed to open: "<<dataFile_<<endl;
         	return false;
         }
+        cout <<dataFile_<<endl;
+
         boost::archive::text_iarchive ia(fin);
 
         // read list count
@@ -196,7 +198,12 @@ private:
         for (size_t i = 0; i < count; i++)
         {
             boost::shared_ptr<InvertedList> invertedList(new InvertedList());
-            ia >> *invertedList;
+            try{
+                ia >> *invertedList;
+            }
+            catch(std::exception& ex) {
+                break;
+            }
             invertedLists_.insert(invertedlists_t::value_type(invertedList->rowid, invertedList));
         }
         fin.close();
@@ -274,7 +281,7 @@ private:
 */
 
 private:
-    static const float thresholdWegt_ = 0.02f; // 0.015 ~ 0.02
+    static const float thresholdWegt_ = 0.02f; // 0.015 ~ 0.02 ?
 
     typedef SparseVectorItemType InvertItem;
     typedef SparseVectorType InvertedList;

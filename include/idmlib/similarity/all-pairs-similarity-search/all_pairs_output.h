@@ -16,6 +16,8 @@
 #include <am/sdb_hash/sdb_fixedhash.h>
 #include <util/functional.h>
 
+
+
 NS_IDMLIB_SIM_BEGIN
 
 class AllPairsOutput
@@ -155,7 +157,7 @@ private:
             if (id1 != lastIndexId)
             {
                 if (lastIndexId != 0)
-                    updateSimIndex(lastIndexId, listData, 100, db);
+                    updateSimIndex(lastIndexId, listData, 100, db); // todo, Limit
                 listData.clear();
                 lastIndexId = id1;
             }
@@ -185,8 +187,7 @@ private:
         const boost::shared_ptr<Hash>& db)
     {
         typedef izenelib::util::second_greater<value_type> greater_than;
-        std::sort(list.begin(), list.end(),
-                  greater_than());
+        std::sort(list.begin(), list.end(), greater_than());
         if (list.size() > Limit)
         {
             list.resize(Limit);

@@ -71,10 +71,21 @@ struct SparseVector
         ar & list;
     }
 
+    struct sort_value {
+        bool operator()(const SparseVectorItem<IdT, VT> &left, const SparseVectorItem<IdT, VT> &right) {
+            return left.value > right.value;
+        }
+    };
+
+    void sort()
+    {
+        std::sort(list.begin(), list.end(), sort_value());
+    }
+
     void print()
     {
         cout << "vector [" << rowid << " " << len << "] => ";
-//        typename std::vector<SparseVectorItem<IdT, VT> >::iterator iter;
+        typename std::vector<SparseVectorItem<IdT, VT> >::iterator iter;
 //        for (iter = list.begin(); iter != list.end(); iter ++)
 //        {
 //            cout << "("<<iter->itemid<<","<<iter->value<< ") ";
