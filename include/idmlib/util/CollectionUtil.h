@@ -71,6 +71,7 @@ public:
         const std::string& colBasePath,
         const std::string& laResPath,
         size_t maxDoc = 0,
+        bool removeStopwords = false,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
     : colPath_(colBasePath)
     , laResPath_(laResPath)
@@ -81,61 +82,11 @@ public:
     , pTermIdList_(new TermIdList())
     {
         createIdManager();
-        createAnalyzer();
+        createAnalyzer(removeStopwords);
     }
 
 public:
-    bool processSCD()
-    {
-         std::vector<std::string> scdFileList;
-         if (!getScdFileList(colPath_.scdPath_, scdFileList)) {
-             return false;
-         }
-
-         DLOG(INFO) << "Start Collection (SCD) processing." << endl;
-
-         // parsing all SCD files
-         for (size_t i = 1; i <= scdFileList.size(); i++)
-         {
-             std::string scdFile = scdFileList[i-1];
-             ScdParser scdParser(encoding_);
-             if(!scdParser.load(scdFile) )
-             {
-               DLOG(WARNING) << "Load scd file failed: " << scdFile << std::endl;
-               return false;
-             }
-
-             // check total count
-             std::vector<izenelib::util::UString> list;
-             scdParser.getDocIdList(list);
-             size_t totalDocNum = list.size();
-
-             DLOG(INFO) << "Start to process SCD file (" << i <<" / " << scdFileList.size() <<"), total documents: " << totalDocNum << endl;
-
-             // parse documents
-             size_t curDocNum = 0;
-             for (ScdParser::iterator iter = scdParser.begin(); iter != scdParser.end(); iter ++)
-             {
-                 curSCDDoc_ = *iter;
-                 processDocument(); // xxx
-
-                 curDocNum ++;
-                 if (curDocNum % 2000 == 0) {
-                     DLOG(INFO) << "["<<scdFile<<"] processed: " << curDocNum<<" / total: "<<totalDocNum
-                                << " - "<< curDocNum*100.0f / totalDocNum << "%" << endl;
-                 }
-
-                 // stop
-                 if (maxDoc_ != 0 && curDocNum >= maxDoc_)
-                     break;
-             }
-         }
-
-         postProcess(); // xxx
-
-         DLOG(INFO) << "End Collection (SCD) processing." << endl;
-         return true;
-    }
+    bool processSCD();
 
 protected:
     /**
@@ -210,53 +161,14 @@ protected:
         BOOST_ASSERT(pIdManager_);
     }
 
-    void createAnalyzer()
+    void createAnalyzer(bool removeStopwords=false)
     {
         pIdmAnalyzer_.reset(
-                new idmlib::util::IDMAnalyzer(laResPath_, la::ChineseAnalyzer::maximum_match) );
+                new idmlib::util::IDMAnalyzer(laResPath_, la::ChineseAnalyzer::maximum_match, removeStopwords) );
         BOOST_ASSERT(pIdmAnalyzer_);
     }
 
-    bool getScdFileList(const std::string& scdDir, std::vector<std::string>& fileList)
-    {
-        if ( exists(scdDir) )
-        {
-            if ( !is_directory(scdDir) ) {
-                std::cout << "It's not a directory: " << scdDir << std::endl;
-                return false;
-            }
-
-            directory_iterator iterEnd;
-            for (directory_iterator iter(scdDir); iter != iterEnd; iter ++)
-            {
-                std::string file_name = iter->path().filename();
-                //std::cout << file_name << endl;
-
-                if (ScdParser::checkSCDFormat(file_name) )
-                {
-                    SCD_TYPE scd_type = ScdParser::checkSCDType(file_name);
-                    if( scd_type == INSERT_SCD ||scd_type == UPDATE_SCD )
-                    {
-                        cout << "scd file: "<<iter->path().string() << endl;
-                        fileList.push_back( iter->path().string() );
-                    }
-                }
-            }
-
-            if (fileList.size() > 0) {
-                return true;
-            }
-            else {
-                std::cout << "There is no scd file in: " << scdDir << std::endl;
-                return false;
-            }
-        }
-        else
-        {
-            std::cout << "File path dose not existed: " << scdDir << std::endl;
-            return false;
-        }
-    }
+    bool getScdFileList(const std::string& scdDir, std::vector<std::string>& fileList);
 
 protected:
     CollectionPath colPath_;

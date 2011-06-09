@@ -8,6 +8,8 @@
 #ifndef SPARSE_VECTOR_H_
 #define SPARSE_VECTOR_H_
 
+#include <iostream>
+
 #include <idmlib/idm_types.h>
 
 #include <boost/serialization/access.hpp>
@@ -71,15 +73,26 @@ struct SparseVector
         ar & list;
     }
 
+    struct sort_value {
+        bool operator()(const SparseVectorItem<IdT, VT> &left, const SparseVectorItem<IdT, VT> &right) {
+            return left.value > right.value;
+        }
+    };
+
+    void sort()
+    {
+        std::sort(list.begin(), list.end(), sort_value());
+    }
+
     void print()
     {
-        cout << "vector [" << rowid << " " << len << "] => ";
+        std::cout << "vector [" << rowid << " " << len << "] => ";
         typename std::vector<SparseVectorItem<IdT, VT> >::iterator iter;
-        for (iter = list.begin(); iter != list.end(); iter ++)
-        {
-            cout << "("<<iter->itemid<<","<<iter->value<< ") ";
-        }
-        cout << endl;
+//        for (iter = list.begin(); iter != list.end(); iter ++)
+//        {
+//            cout << "("<<iter->itemid<<","<<iter->value<< ") ";
+//        }
+        std::cout << std::endl;
     }
 };
 

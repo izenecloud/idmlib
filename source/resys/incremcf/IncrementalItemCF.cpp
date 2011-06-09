@@ -42,18 +42,13 @@ void IncrementalItemCF::batchBuild()
     //}
 }
 
-void IncrementalItemCF::incrementalBuild(
-    uint32_t userId, 
-    std::list<uint32_t>& oldItems, 
-    std::list<uint32_t>& newItems,
-    ItemIterator& itemIterator,
-    ItemRescorer* rescorer
+void IncrementalItemCF::buildMatrix(
+    std::list<uint32_t>& oldItems,
+    std::list<uint32_t>& newItems
 )
 {
     covisitation_.visit(oldItems, newItems);
     ///oldItems has already contained elements from newItems now
-
-    std::set<uint32_t> filterSet(oldItems.begin(), oldItems.end());
 
     for(std::list<uint32_t>::iterator it_i = oldItems.begin(); it_i !=oldItems.end(); ++it_i)
     {
@@ -72,6 +67,17 @@ void IncrementalItemCF::incrementalBuild(
         }
         similarity_.adjustNeighbor(*it_i, newValues);
     }
+}
+
+void IncrementalItemCF::buildUserRecommendItems(
+    uint32_t userId,
+    const std::list<uint32_t>& items,
+    ItemIterator& itemIterator,
+    ItemRescorer* rescorer
+)
+{
+    std::set<uint32_t> filterSet(items.begin(), items.end());
+
     RecommendItemType recommendItem;
     while(itemIterator.hasNext())
     {
@@ -79,20 +85,22 @@ void IncrementalItemCF::incrementalBuild(
         if(filterSet.find(itemId) == filterSet.end()
            && (!rescorer || !rescorer->isFiltered(itemId)))
         {
-            float preference = estimate(itemId,  oldItems);
+            float preference = estimate(itemId, items);
             if(preference > 0)
                 recommendItem.push_back(std::make_pair(itemId,preference));
         }
     }
     std::sort(recommendItem.begin(), recommendItem.end(),similarityCompare<ItemType,MeasureType>);
+
     if(recommendItem.size() > max_items_stored_for_each_user_) 
         recommendItem.resize(max_items_stored_for_each_user_);
+
     userRecommendItems_.setRecommendItem(userId, recommendItem);
 }
 
 float IncrementalItemCF::estimate(
     uint32_t itemId, 
-    std::list<uint32_t>& itemIds
+    const std::list<uint32_t>& itemIds
 )
 {
     float totalSimilarity = 0.0;
@@ -101,8 +109,8 @@ float IncrementalItemCF::estimate(
 
     std::map<uint32_t, float> similarities;
     totalSimilarity = similarity_.itemSimilarities(itemId, similarities);
-    std::list<uint32_t>::iterator it = itemIds.begin();
-    for (; it != itemIds.end(); ++it) 
+    for (std::list<uint32_t>::const_iterator it = itemIds.begin();
+        it != itemIds.end(); ++it) 
     {
         std::map<uint32_t, float>::iterator iter = similarities.find(*it);
         if(iter != similarities.end())
@@ -183,14 +191,6 @@ void IncrementalItemCF::getTopItems(
             }
         }
     }
-}
-
-bool IncrementalItemCF::getUserRecommendItems(
-    uint32_t userId, 
-    RecommendItemType& results
-)
-{
-    return userRecommendItems_.getRecommendItem(userId, results);
 }
 
 void IncrementalItemCF::dump()
