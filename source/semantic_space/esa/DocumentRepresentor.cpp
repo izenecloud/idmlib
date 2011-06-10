@@ -80,6 +80,7 @@ void DocumentRepresentor::calcWeight()
             //filt
             if(iter->value > thresholdWegt_)
             {
+                iter->value = (int)((iter->value+0.0005)*1000)/1000.0;
                 iter++;
             }
             else

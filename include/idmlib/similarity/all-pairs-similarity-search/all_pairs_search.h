@@ -25,6 +25,16 @@ NS_IDMLIB_SIM_BEGIN
 
 static float sTotalTime = 0;
 
+
+/**
+ * Finds all pairs of vectors in the dataset (vector set) with cosine
+ * similarity meeting the specified threshold.
+ *
+ * [1] Bayardo, R.J., Ma, Y., Srikant, R.: Scaling up all pairs similarity search.
+ * In: WWW(2007) 436 D. Lee et al.
+ * [2] Dongjoo Lee, Jaehui Park, Junho Shim, Sang-goo Lee. An Efficient Similarity
+ * Join Algorithm with Cosine Similarity Predicate. In DEXA (2)(2010)
+ */
 class AllPairsSearch
 {
     typedef SparseVectorItemType InvertItem;
@@ -43,22 +53,32 @@ public:
     }
 
 public:
+
     /**
-     * Finds all pairs of vectors in the dataset (vector set) with cosine
-     * similarity meeting the specified threshold.
-     *
-     * [1] Bayardo, R.J., Ma, Y., Srikant, R.: Scaling up all pairs similarity search.
-     * In: WWW(2007) 436 D. Lee et al.
-     * [2] Dongjoo Lee, Jaehui Park, Junho Shim, Sang-goo Lee. An Efficient Similarity
-     * Join Algorithm with Cosine Similarity Predicate. In DEXA (2)(2010)
-     *
+     * Memory Resident Data (inverted index for finding pairs is memory resident data)
      * @param dataSetIterator
+     * @param maxDoc
      */
     void findAllSimilarPairs(boost::shared_ptr<DataSetIterator>& dataSetIterator, size_t maxDoc = 0);
 
+    /**
+     * Extensions for Disk Resident Data
+     * @brief assume that each data set is memory containable when buiding inverted index.
+     * @param dataSetIteratorList  with multi data set inputs.
+     * @param maxDoc
+     */
+
+    void findAllSimilarPairs(std::vector<boost::shared_ptr<DataSetIterator> >& dataSetIteratorList, size_t maxDoc = 0);
+
+    /**
+     * Extensions for Disk Resident Data
+     * @brief TODO, process large input file
+     */
+
 private:
     /// basic join
-    void invertedIndexJoin_(SparseVectorType& sv);
+    void findMatchPairs0(SparseVectorType& sv);
+    void indexVector0(SparseVectorType& sv);
 
 private:
     InvertedList& getInvertedList(uint32_t ilid)

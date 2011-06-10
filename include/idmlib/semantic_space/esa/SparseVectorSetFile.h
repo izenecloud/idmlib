@@ -131,7 +131,7 @@ template <typename IdT = uint32_t, typename VT = float>
 class SparseVectorSetIFile
 {
 public:
-	SparseVectorSetIFile(const string& filename, size_t max_cache_size = 1000)
+	SparseVectorSetIFile(const string& filename, size_t max_cache_size = 100)
     : filename_(filename)
     , max_cache_size_(max_cache_size)
 	, pos_(0)
@@ -191,6 +191,7 @@ public:
     		return;
 
 		pif_->close();
+		pia_.reset();
 
 		cache_.clear();
     }
@@ -203,7 +204,7 @@ public:
 private:
     void refresh_cache_()
     {
-        cout<<"[SparseVectorSetIFile] loading data ..."<<endl;
+        //cout<<"[SparseVectorSetIFile] loading data ..."<<endl;
     	cache_.clear();
     	pos_in_cache_ = 0;
 
@@ -236,7 +237,7 @@ private:
             cache_.push_back(sv);
         };
 
-        cout<<"[SparseVectorSetIFile] cached "<<read<<endl;
+        //cout<<"[SparseVectorSetIFile] cached "<<read<<endl;
     }
 
 public:
