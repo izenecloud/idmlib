@@ -166,7 +166,7 @@ int main(int ac, char** av)
   date_range.end = boost::gregorian::from_string("2011-04-22");
   
   
-  TemporalKpe* kpe = new TemporalKpe(working_path, analyzer, date_range, rig_resource_path, 1000000);
+  TemporalKpe* kpe = new TemporalKpe(working_path, analyzer, date_range, rig_resource_path, 200000);
   if( !kpe->load(kpe_resource_path) )
   {
     return -1;

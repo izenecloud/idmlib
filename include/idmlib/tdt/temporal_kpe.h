@@ -13,6 +13,7 @@
 #include "tdt_types.h"
 #include "macd_histogram.h"
 #include "link_analysis.h"
+#include "link_analysis_similb.h"
 #include "storage.h"
 #include "../idm_types.h"
 #include <boost/type_traits.hpp>
@@ -43,6 +44,9 @@ typedef TDTScorer ScorerType;
 typedef idmlib::sim::TermSimilarityTable<uint32_t> SimTableType;
 typedef idmlib::sim::SimOutputCollector<SimTableType> SimCollectorType;
 typedef idmlib::sim::TermSimilarity<SimCollectorType> TermSimilarityType;
+
+// typedef LinkAnalysis LinkAnalysisType;
+typedef LinkAnalysisSimilB LinkAnalysisType;
 
 public:
   
@@ -575,7 +579,7 @@ private:
             return;
         }
         
-        link_ = new LinkAnalysis(tmp_dir_+"/link", rig_dir_);
+        link_ = new LinkAnalysisType(tmp_dir_+"/link", rig_dir_);
         if(!link_->Open(date_range_)) 
         {
             std::cerr<<"link open error"<<std::endl;
@@ -970,59 +974,9 @@ private:
 //             std::cout<<date_str<<"\t"<<time_series[i]<<"\t"<<macd_result[i]<<std::endl;
 //         }
 //         
-//         //output to file
-//         if(false)
-//         {
-//             std::string output_file = output_dir_+"/"+str+".dat";
-//             std::string output_burst_file = output_dir_+"/"+str+"-b.dat";
-//             std::ofstream ofs(output_file.c_str());
-//             
-//             for(uint32_t i=0;i<macd_result.size();i++)
-//             {
-//                 boost::gregorian::date_duration d(i);
-//                 boost::gregorian::date date = valid_range_.start + d;
-//                 std::string date_str = boost::gregorian::to_iso_extended_string(date);
-//                 ofs<<date_str<<"\t"<<time_series[i]<<"\t"<<macd_result[i]<<std::endl;
-//             }
-//             ofs.close();
-//             std::ofstream ofs_burst(output_burst_file.c_str());
-//             for(uint32_t i=0;i<track_result.items.size();i++)
-//             {
-//                 uint32_t start_diff = track_result.items[i].start_time_diff;
-//                 for(uint32_t j=0;j<track_result.items[i].period;j++)
-//                 {
-//                     uint32_t diff = start_diff+j;
-//                     boost::gregorian::date_duration d(diff);
-//                     boost::gregorian::date date = valid_range_.start + d;
-//                     //str burst on date
-//                     std::string date_str = boost::gregorian::to_iso_extended_string(date);
-//                     ofs_burst<<date_str<<"\t"<<time_series[diff]<<"\t"<<macd_result[diff]<<std::endl;
-//                     {
-//                         std::vector<std::pair<UString, double> >* vec= NULL;
-//                         vec = burst_items_.find(date);
-//                         std::pair<UString, double> p(text, macd_result[diff]);
-//                         if(vec==NULL)
-//                         {
-//                             std::vector<std::pair<UString, double> > item(1, p);
-//                             burst_items_.insert(date, item);
-//                         }
-//                         else
-//                         {
-//                             vec->push_back(p);
-//                         }
-//                     }
-//                 }
-//             }
-//             ofs_burst.close();
-//         }
-//         valid_topics_.push_back(text);
-//         freq_.push_back(time_series);
-//         
-//         plot_writer_<<"set output \""<<str<<".png\""<<std::endl;
-//         plot_writer_<<"set title \""<<str<<"\""<<std::endl;
-//         plot_writer_<<"plot [\""<<boost::gregorian::to_iso_extended_string(valid_range_.start)
-//         <<"\":\""<<boost::gregorian::to_iso_extended_string(valid_range_.end)
-//         <<"\"] '"<<str<<".dat' using 1:2 with boxes linetype 5 title '频率', '"<<str<<"-b.dat' using 1:2 with boxes linetype 1 title '高潮'"<<std::endl<<std::endl;
+
+         
+
         
         return true;
     }
@@ -1102,6 +1056,66 @@ private:
         topic_ofs.close();
     }
     
+    void OutputTopicToPlot_(const TrackResult& topic, const std::vector<UString>& similar)
+    {
+        double threshold = 1.0;
+        std::string str;
+        topic.text.convertString(str, izenelib::util::UString::UTF_8);
+        std::string output_file = output_dir_+"/"+str+".dat";
+//         std::string output_v_file = output_dir_+"/"+str+"-v.dat";
+//         std::string output_a_file = output_dir_+"/"+str+"-a.dat";
+        std::vector<double> v_value;
+        std::vector<double> a_value;
+        macd_.ComputeMacd(topic.ts, v_value);
+        macd_.Compute(topic.ts, a_value);
+        std::ofstream ofs(output_file.c_str());
+        
+        for(uint32_t i=0;i<topic.ts.size();i++)
+        {
+            boost::gregorian::date_duration d(i);
+            boost::gregorian::date date = date_range_.start + d;
+            std::string date_str = boost::gregorian::to_iso_extended_string(date);
+            ofs<<date_str<<"\t"<<topic.ts[i]<<"\t"<<v_value[i]<<"\t"<<a_value[i]<<"\t"<<threshold<<std::endl;
+        }
+        ofs.close();
+        
+        plot_writer_<<"set output \""<<str<<".png\""<<std::endl;
+        plot_writer_<<"set title \""<<str<<"\""<<std::endl;
+        plot_writer_<<"plot [\""<<boost::gregorian::to_iso_extended_string(valid_range_.start)
+        <<"\":\""<<boost::gregorian::to_iso_extended_string(valid_range_.end)
+        <<"\"] '"<<str<<".dat' using 1:2 with linespoints linetype 3 title 'frequency', '"<<str<<".dat' using 1:3 with linespoints linetype 5 title 'velocity', '"<<str<<".dat' using 1:4 with linespoints linetype 1 title 'acceleration', '"<<str<<".dat' using 1:5 with linespoints linetype 4 pointtype -1 title 'threshold'"<<std::endl<<std::endl;
+        
+//         std::ofstream ofs_burst(output_burst_file.c_str());
+//         for(uint32_t i=0;i<track_result.items.size();i++)
+//         {
+//             uint32_t start_diff = track_result.items[i].start_time_diff;
+//             for(uint32_t j=0;j<track_result.items[i].period;j++)
+//             {
+//                 uint32_t diff = start_diff+j;
+//                 boost::gregorian::date_duration d(diff);
+//                 boost::gregorian::date date = valid_range_.start + d;
+//                 //str burst on date
+//                 std::string date_str = boost::gregorian::to_iso_extended_string(date);
+//                 ofs_burst<<date_str<<"\t"<<time_series[diff]<<"\t"<<macd_result[diff]<<std::endl;
+//                 {
+//                     std::vector<std::pair<UString, double> >* vec= NULL;
+//                     vec = burst_items_.find(date);
+//                     std::pair<UString, double> p(text, macd_result[diff]);
+//                     if(vec==NULL)
+//                     {
+//                         std::vector<std::pair<UString, double> > item(1, p);
+//                         burst_items_.insert(date, item);
+//                     }
+//                     else
+//                     {
+//                         vec->push_back(p);
+//                     }
+//                 }
+//             }
+//         }
+//         ofs_burst.close();
+    }
+    
     void OutputTopic_(const TrackResult& topic, const std::vector<UString>& similar)
     {
         if(storage_!=NULL)
@@ -1111,6 +1125,7 @@ private:
         else
         {
             OutputTopicToFile_(topic, similar);
+            OutputTopicToPlot_(topic, similar);
         }
     }
     
@@ -1899,7 +1914,7 @@ private:
   DateRange date_range_;
   SimCollectorType* sim_collector_;
   TermSimilarityType* sim_;
-  LinkAnalysis* link_;
+  LinkAnalysisType* link_;
   idmlib::util::IDMIdManager* id_manager_;
   bool outside_idmanager_;
   uint8_t max_phrase_len_;

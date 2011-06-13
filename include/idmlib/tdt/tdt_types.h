@@ -420,12 +420,12 @@ class TrackResult
             ts = new_ts;
         }
         
-        inline TimeIdType GetTimeByShift(uint32_t shift)
+        inline TimeIdType GetTimeByShift(uint32_t shift) const
         {
             return GetTimeByShift(start_time, shift);
         }
         
-        inline TimeIdType GetTimeByShift(const TimeIdType& start, uint32_t shift)
+        inline static TimeIdType GetTimeByShift(const TimeIdType& start, uint32_t shift)
         {
             return start+DD(shift);
         }

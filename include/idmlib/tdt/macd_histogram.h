@@ -33,15 +33,16 @@ class MacdHistogram
             std::vector<double> emal;
             Ema_(S, init, emas);
             Ema_(L, init, emal);
-            std::vector<double> macd(emas);
-            AddTo_(macd, emal, -1.0);
+            macd_coef_.assign(emas.begin(), emas.end());
+//             std::vector<double> macd(emas);
+            AddTo_(macd_coef_, emal, -1.0);
             PrintVec_(emas);
             PrintVec_(emal);
-            PrintVec_(macd);
+            PrintVec_(macd_coef_);
             std::vector<double> signal;
-            Ema_(M, macd, signal);
+            Ema_(M, macd_coef_, signal);
             PrintVec_(signal);
-            std::vector<double> histogram(macd);
+            std::vector<double> histogram(macd_coef_);
             AddTo_(histogram, signal, -1.0);
             coef_ = histogram;
         }
@@ -78,11 +79,34 @@ class MacdHistogram
         template <typename T>
         void Compute(const std::vector<T>& source, std::vector<double>& result)
         {
+            Compute_(coef_, source, result);
+        }
+        
+        template <typename T>
+        void ComputeMacd(const std::vector<T>& source, std::vector<double>& result)
+        {
+            Compute_(macd_coef_, source, result);
+        }
+        
+        
+        
+        void Print()
+        {
+            PrintVec_(coef_);
+        }
+        
+    
+        
+    private:
+        
+        template <typename T>
+        void Compute_(const std::vector<double>& coef, const std::vector<T>& source, std::vector<double>& result)
+        {
 //             std::cout<<"before compute"<<std::endl;
             result.resize(source.size(), 0.0);
             for(uint32_t i=0;i<source.size();i++)
             {
-                uint32_t count = (i+1) > coef_.size()?coef_.size():(i+1);
+                uint32_t count = (i+1) > coef.size()?coef.size():(i+1);
 //                 uint32_t gap = coef_.size()-count;
                 if(count<=G)
                 {
@@ -92,18 +116,12 @@ class MacdHistogram
                 
                 for(uint32_t j=0;j<count;j++)
                 {
-                    result[i] += coef_[j] * source[i-j];
+                    result[i] += coef[j] * source[i-j];
                 }
             }
 //             std::cout<<"after compute"<<std::endl;
         }
         
-        void Print()
-        {
-            PrintVec_(coef_);
-        }
-        
-    private:
         template <typename T>
         void PrintVec_(const std::vector<T>& vec)
         {
@@ -117,6 +135,7 @@ class MacdHistogram
     private:
         
         std::vector<double> coef_;
+        std::vector<double> macd_coef_;
 };
 
 NS_IDMLIB_TDT_END
