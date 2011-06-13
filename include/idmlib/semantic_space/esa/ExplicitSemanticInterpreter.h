@@ -43,7 +43,7 @@ public:
 	: wikiIndexPath_(wikiIndexPath)
 	, docSetPath_(docSetPath)
 	{
-	    thresholdWegt_ = 0; // xxx
+	    thresholdWegt_ = 0.01; // xxx
 
 #ifndef IZENE_INDEXER_
 		pWikiIndex_.reset(new MemWikiIndex(wikiIndexPath));
@@ -56,7 +56,13 @@ public:
 	}
 
 public:
-	bool interpret(size_t maxCount = 0);
+	/**
+	 * Convert document representation vectors set to interpretation vectors set
+	 * @param maxOutFileSize max number of vectors that an output file contains
+	 * @param maxCount max number of vectors to be processed
+	 * @return
+	 */
+	bool interpret(size_t maxOutFileSize = 1000, size_t maxCount = 0);
 
 
 private:

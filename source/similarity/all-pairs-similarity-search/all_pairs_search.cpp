@@ -17,29 +17,87 @@ void AllPairsSearch::findAllSimilarPairs(boost::shared_ptr<DataSetIterator>& dat
 #endif
 
         double t1 = TimeUtil::GetCurrentTimeMS();
-        invertedIndexJoin_(sv);
+        findMatchPairs0(sv);
         double t2 = TimeUtil::GetCurrentTimeMS();
         sTotalTime += (t2-t1);
-        //cout <<"index a vector in "<<(t2-t1)<<"s."<<endl;
+        //cout <<"find matched paris in "<<(t2-t1)<<"s."<<endl;
+
+        indexVector0(sv);
 
         count ++;
-        if (count % 100 == 0)
+        if (count % 1000 == 0)
             DLOG(INFO) << count << endl;
 
         if (maxDoc != 0 && count >= maxDoc)
             break;
     }
 
-    cout <<"average time: index a vector in "<<(sTotalTime/count)<<"s."<<endl;
+    cout <<"average time: find matches for a vector in "<<(sTotalTime/count)<<"s."<<endl;
 
     allPairsOutput_->finish();
 
     DLOG(INFO) <<"End all pairs similarity searching.  processed "<< count<<std::endl;
 }
 
+/// Extensions for Disk Resident Data
+void AllPairsSearch::findAllSimilarPairs(std::vector<boost::shared_ptr<DataSetIterator> >& dataSetIteratorList, size_t maxDoc)
+{
+    DLOG(INFO) <<"Start all pairs similarity searching."<<std::endl;
+    size_t count = 0;
+
+    size_t fileSize = 0;
+    size_t dataSetNum = dataSetIteratorList.size();
+    for (size_t i = 0; i < dataSetNum; i++)
+    {
+        DLOG(INFO) <<"===> Resume(start rebuilding inverted index) at vector "<<count <<endl;
+        // for memory resident part of vectors, build inverted index and find all pairs.
+        invertedLists_.clear();
+        boost::shared_ptr<DataSetIterator>& dataSetIterator = dataSetIteratorList[i];
+        dataSetIterator->init();
+        while (dataSetIterator->next())
+        {
+            SparseVectorType& sv = dataSetIterator->get();
+            findMatchPairs0(sv);
+            indexVector0(sv);
+
+            count ++;
+            if (count % 1000 == 0)
+                DLOG(INFO) << count << endl;
+        }
+
+        if (i == 0)
+            fileSize = count;
+
+        DLOG(INFO) <<"===> Halting(stop building inverted index) at vector "<<count <<endl;
+
+        // for left vectors in data set, find all pairs with memory resident vectors,
+        // but not update inverted index.
+        size_t left = 0;
+        for (size_t j = i+1; j < dataSetNum; j ++)
+        {
+            boost::shared_ptr<DataSetIterator>& dataSetIterator = dataSetIteratorList[j];
+            dataSetIterator->init();
+            while (dataSetIterator->next())
+            {
+                SparseVectorType& sv = dataSetIterator->get();
+                findMatchPairs0(sv);
+
+                left ++;
+                if (left % 3000 == 0)
+                    DLOG(INFO) << left*100/(fileSize*(dataSetNum-i+1))<<"%" << endl;
+            }
+        }
+    }
+
+    allPairsOutput_->finish();
+
+    DLOG(INFO) <<"End all pairs similarity searching.  processed "<< count<<std::endl;
+}
+
+
 /// private ////
 
-void AllPairsSearch::invertedIndexJoin_(SparseVectorType& sv)
+void AllPairsSearch::findMatchPairs0(SparseVectorType& sv)
 {
     // empty map from doc id to weight, forward
     candidateVecs_.clear();
@@ -76,9 +134,6 @@ void AllPairsSearch::invertedIndexJoin_(SparseVectorType& sv)
                 }
             }
         }
-
-        // update inverted index
-        updateInvertedList(vecitemid, vecid, vecitemv);
     }
 
     // Output similar pairs
@@ -92,3 +147,23 @@ void AllPairsSearch::invertedIndexJoin_(SparseVectorType& sv)
         }
     }
 }
+
+void AllPairsSearch::indexVector0(SparseVectorType& sv)
+{
+    uint32_t vecid = sv.rowid;
+    uint32_t vecitemid;
+    float vecitemv;
+
+    SparseVectorType::list_iter_t vecIter;
+    for (vecIter = sv.list.begin(); vecIter != sv.list.end(); vecIter++)
+    {
+        vecitemid = vecIter->itemid;
+        vecitemv = vecIter->value;
+
+        updateInvertedList(vecitemid, vecid, vecitemv);
+    }
+}
+
+
+
+

@@ -10,6 +10,7 @@ using namespace std;
 
 #include <boost/shared_ptr.hpp>
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 #include <la/LA.h>
 
@@ -25,6 +26,8 @@ namespace po = boost::program_options;
 using namespace idmlib::ssp;
 using namespace idmlib::sim;
 
+void getDataSetIterators(const string& dataSetDir, std::vector<boost::shared_ptr<DataSetIterator> >& dataSetIteratorList);
+
 int main(int argc, char** argv)
 {
 	string wikiIndexdir;
@@ -32,7 +35,7 @@ int main(int argc, char** argv)
 	string colBasePath;
 	string docSetPath;
 	string docSimPath;
-	float thresholdSim = 0.5;
+	float thresholdSim = 0.8;
 	uint32_t maxDoc = 0; // max number of documents to be processed, not limited if 0
 	string test;
 
@@ -99,17 +102,22 @@ int main(int argc, char** argv)
 	docRepresentor.represent();
 	//
 	ExplicitSemanticInterpreter esInter(wikiIndexdir, docSetPath);
-	esInter.interpret(maxDoc);
+	esInter.interpret(10000, maxDoc);
 	//*/
 
 	//* all pairs similarity search
 	//string datafile = docSetPath+"/doc_rep.vec";
-	string datafile = docSetPath+"/doc_int.vec";
+	string datafile = docSetPath+"/doc_int.vec1";
 	boost::shared_ptr<DataSetIterator> dataSetIterator(new SparseVectorSetIterator(datafile));
 	boost::shared_ptr<DocSimOutput> output(new DocSimOutput(docSimPath));
 
 	AllPairsSearch allPairs(output, thresholdSim);
-	allPairs.findAllSimilarPairs(dataSetIterator, maxDoc);
+	///allPairs.findAllSimilarPairs(dataSetIterator, maxDoc);
+
+	std::vector<boost::shared_ptr<DataSetIterator> > dataSetIteratorList;
+	getDataSetIterators(docSetPath, dataSetIteratorList);
+	allPairs.findAllSimilarPairs(dataSetIteratorList, maxDoc);
+
 	//*/
 
 	/* test
@@ -125,4 +133,27 @@ int main(int argc, char** argv)
 	//*/
 
 	return 0;
+}
+
+void getDataSetIterators(const string& dataSetDir, std::vector<boost::shared_ptr<DataSetIterator> >& dataSetIteratorList)
+{
+    if ( exists(dataSetDir) )
+    {
+        if ( !is_directory(dataSetDir) ) {
+            std::cout << "It's not a directory: " << dataSetDir << std::endl;
+            return;
+        }
+
+        directory_iterator iterEnd;
+        for (directory_iterator iter(dataSetDir); iter != iterEnd; iter ++)
+        {
+            string datafile = iter->path().string();
+            if (datafile.find("doc_int.vec") != string::npos)
+            {
+                //cout << "file path : "<<datafile << endl;
+                boost::shared_ptr<DataSetIterator> dataSetIterator(new SparseVectorSetIterator(datafile));
+                dataSetIteratorList.push_back(dataSetIterator);
+            }
+        }
+    }
 }

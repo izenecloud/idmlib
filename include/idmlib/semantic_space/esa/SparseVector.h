@@ -87,7 +87,7 @@ struct SparseVector
     void print()
     {
         std::cout << "vector [" << rowid << " " << len << "] => ";
-        typename std::vector<SparseVectorItem<IdT, VT> >::iterator iter;
+//        typename std::vector<SparseVectorItem<IdT, VT> >::iterator iter;
 //        for (iter = list.begin(); iter != list.end(); iter ++)
 //        {
 //            cout << "("<<iter->itemid<<","<<iter->value<< ") ";

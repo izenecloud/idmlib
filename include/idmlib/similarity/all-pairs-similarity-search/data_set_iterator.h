@@ -28,6 +28,8 @@ public:
     }
 
 public:
+    virtual bool init() = 0;
+
     virtual bool next() = 0;
 
     virtual SparseVectorType& get() = 0;
@@ -59,6 +61,12 @@ public:
     {
         //data_.close();
         return false;
+    }
+
+    bool init()
+    {
+        data_.close();
+        data_.open();
     }
 
     bool next()

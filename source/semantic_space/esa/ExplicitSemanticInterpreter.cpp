@@ -3,10 +3,16 @@
 
 #include <glog/logging.h>
 
+#include <sstream>
+using namespace std;
 using namespace idmlib::ssp;
 using namespace idmlib::util;
 
-bool ExplicitSemanticInterpreter::interpret(size_t maxCount)
+
+//#define DOC_SIM_TEST
+
+
+bool ExplicitSemanticInterpreter::interpret(size_t maxOutFileSize, size_t maxCount)
 {
     DLOG(INFO) << "start interpreting" <<endl;
 
@@ -16,8 +22,15 @@ bool ExplicitSemanticInterpreter::interpret(size_t maxCount)
         return false;
     }
 
-    SparseVectorSetOFileType interf(docSetPath_+"/doc_int.vec");
-    interf.open();
+    // output file
+    size_t fileCount = 1;
+    stringstream outFileName;
+    outFileName << docSetPath_<< "/doc_int.vec" << (fileCount++);
+    cout << outFileName.str() <<endl;
+
+    boost::shared_ptr<SparseVectorSetOFileType> pof(new SparseVectorSetOFileType(outFileName.str()));
+    if (!pof->open())
+        return false;
 
     size_t total = 0;
     while(inf.next())
@@ -41,26 +54,42 @@ bool ExplicitSemanticInterpreter::interpret(size_t maxCount)
 
 #ifdef DOC_SIM_TEST
         cout << "**interpreted vector: " << endl;
+        //ivec.sort();
         ivec.print();
-        cout << endl;
+        cout <<ivec.rowid<< endl;
 #endif
-        interf.put(ivec);
+        pof->put(ivec);
 
         ++total;
 
-        if ((total % 100) == 0)
+        if ((total % 1000) == 0)
             LOG(INFO) << "interpreted: " <<total << endl;
 
         if (maxCount != 0 && total >= maxCount)
             break;
+
+        // check output file
+        if ((total % maxOutFileSize) == 0)
+        {
+            pof->close();
+
+            stringstream outFileName;
+            outFileName << docSetPath_<< "/doc_int.vec" << (fileCount++);
+            cout << outFileName.str() <<endl;
+            pof.reset(new SparseVectorSetOFileType(outFileName.str()));
+            if(!pof->open()) {
+                cout<<"failed to open: "<<outFileName.str()<<endl;
+                return false;
+            }
+        }
     }
 
     cout << "average time: " << sTotalTime/total << "s." <<endl; //time
 
     inf.close();
-    interf.close();
+    pof->close();
 
-    DLOG(INFO) << "end interpreting. "<<total <<endl;
+    DLOG(INFO) << "end interpreting. ("<<total <<")"<<endl;
 
     return true;
 }
@@ -120,9 +149,12 @@ void ExplicitSemanticInterpreter::interpret_(SparseVectorType& docvec, SparseVec
     for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
     {
          w = cwIter->second / vecLength;
-         //if (w > thresholdWegt_)
-         //   interDocVec.value.push_back(make_pair(cwIter->first, w));
-            ivec.insertItem(cwIter->first, w);
+         if (w > thresholdWegt_)
+         {
+             w = (int)((w+0.0005)*1000)/1000.0; // 4 after decimal point
+             ivec.insertItem(cwIter->first, w);
+         }
+
     }
 }
 
