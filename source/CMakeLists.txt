@@ -38,10 +38,12 @@ FILE(GLOB wiki_SRC
 
 FILE(GLOB ssp_SRC
   "semantic_space/*.cc"
+  "semantic_space/esa/*.cpp"
 )
 
 FILE(GLOB sim_SRC
   "similarity/*.cc"
+  "similarity/all-pairs-similarity-search/*.cpp"
 )
 
 FILE(GLOB_RECURSE resys_SRC
