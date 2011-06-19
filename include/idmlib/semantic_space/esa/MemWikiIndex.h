@@ -74,7 +74,7 @@ public:
     }
 
 public:
-    SparseVectorType& getInvertedList(termid_t termid)
+    SparseVectorType& getInvertedList(uint32_t termid)
     {
     	invertedlists_iterator_t ret = invertedLists_.find(termid);
 		if (ret != invertedLists_.end())
@@ -88,7 +88,7 @@ public:
 private:
     void updateInvertIndex_()
     {
-        termid_t termid;
+    	uint32_t termid;
         float w;
         for(termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
         {

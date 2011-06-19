@@ -182,7 +182,7 @@ protected:
     boost::shared_ptr<IDManager> pIdManager_;
 
     // temporary: current document information
-    docid_t curDocId_;
+    uint32_t curDocId_;
     SCDDocPtr curSCDDoc_;
     izenelib::util::UString content_;
     boost::shared_ptr<TermIdList> pTermIdList_;

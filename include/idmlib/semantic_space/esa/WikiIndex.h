@@ -26,7 +26,7 @@ NS_IDMLIB_SSP_BEGIN
 /** Wikipedia concept */
 struct WikiDoc
 {
-    docid_t docid;
+    uint32_t docid;
     boost::shared_ptr<TermIdList> pTermIdList;
 };
 
@@ -82,7 +82,7 @@ protected:
     void gatherTF_(WikiDoc& wikiDoc)
     {
         term_tf_map_.clear();
-        termid_t termid;
+        uint32_t termid;
         for (TermIdList::iterator iter = wikiDoc.pTermIdList->begin(); iter != wikiDoc.pTermIdList->end(); iter++)
         {
             termid = iter->termid_;
@@ -107,7 +107,7 @@ protected:
 protected:
     string dataFile_;
     size_t docCount_;
-    docid_t curDoc_;
+    uint32_t curDoc_;
 
     typedef rde::hash_map<uint32_t, float> termtf_map_t;
     typedef rde::hash_map<uint32_t, float>::iterator termtf_map_iterator_t;

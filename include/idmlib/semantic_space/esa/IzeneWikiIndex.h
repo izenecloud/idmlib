@@ -75,7 +75,7 @@ public:
 public:
     bool prepareDocument_(SCDDocPtr& pDoc, IndexerDocument& indexDocument)
     {
-        docid_t docId = 0;
+    	uint32_t docId = 0;
 
         CollectionProcessor::doc_properties_iterator proIter;
         for (proIter = pDoc->begin(); proIter != pDoc->end(); proIter ++)

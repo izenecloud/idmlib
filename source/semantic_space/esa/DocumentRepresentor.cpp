@@ -6,7 +6,7 @@ void DocumentRepresentor::gatherTFDF()
 {
     term_tf_map_.clear();
 
-    termid_t termid;
+    uint32_t termid;
     for (TermIdList::iterator iter = pTermIdList_->begin(); iter != pTermIdList_->end(); iter++)
     {
         termid = iter->termid_;
