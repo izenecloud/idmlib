@@ -2,7 +2,7 @@
  * @file DocumentRepresentor.h
  * @author Zhongxia Li
  * @date Jun 3, 2011
- * @brief 
+ * @brief
  */
 #ifndef DOCUMENT_REPRESENTOR_H_
 #define DOCUMENT_REPRESENTOR_H_
@@ -29,22 +29,23 @@ public:
         size_t maxDoc = 0,
         bool removeStopwords = false,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
-    : CollectionProcessor(colBasePath, laResPath, maxDoc, removeStopwords, encoding)
-    , docCount_(0)
-    , docSetDir_(docSetDir)
-    , docRepVecOFile_(docSetDir+"/doc_rep_tf.tmp")
+            : CollectionProcessor(colBasePath, laResPath, maxDoc, removeStopwords, encoding)
+            , docCount_(0)
+            , docSetDir_(docSetDir)
+            , docRepVecOFile_(docSetDir+"/doc_rep_tf.tmp")
     {
-        if (!boost::filesystem::exists(docSetDir)) {
+        if (!boost::filesystem::exists(docSetDir))
+        {
             boost::filesystem::create_directories(docSetDir);
             std::cout <<"** create: "<<docSetDir<<endl;
         }
 
-    	docRepVecOFile_.open();
+        docRepVecOFile_.open();
     }
 
-    ~DocumentRepresentor()
+    virtual ~DocumentRepresentor()
     {
-    	docRepVecOFile_.close();
+        docRepVecOFile_.close();
     }
 
 public:
@@ -66,12 +67,12 @@ private:
     /*virtual*/
     void postProcess()
     {
-    	finishInsert();
+        finishInsert();
 
-    	cout << "term count: "<<term_df_map_.size() <<endl;
-    	cout << "document count: " << docCount_ << endl;
+        cout << "term count: "<<term_df_map_.size() <<endl;
+        cout << "document count: " << docCount_ << endl;
 
-    	calcWeight();
+        calcWeight();
     }
 
 private:
@@ -79,9 +80,9 @@ private:
 
     void finishInsert()
     {
-    	docRepVecOFile_.flush();
+        docRepVecOFile_.flush();
 
-    	docRepVecOFile_.close();
+        docRepVecOFile_.close();
     }
 
     void calcWeight();
@@ -92,13 +93,13 @@ public:
     {
         cout << "--- Doc Count: " << docCount_ <<endl;
         cout << "--- TF --- " << endl;
-        for(hashmap_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
+        for (hashmap_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
         {
             cout << iter->first << " : " << iter->second << endl;
         }
         cout << endl;
         cout << "--- DF --- " << endl;
-        for(hashmap_iterator_t iter = term_df_map_.begin(); iter != term_df_map_.end(); iter++)
+        for (hashmap_iterator_t iter = term_df_map_.begin(); iter != term_df_map_.end(); iter++)
         {
             cout << iter->first << " : " << iter->second << endl;
         }

@@ -27,7 +27,7 @@ struct SparseVectorItem
     SparseVectorItem() : itemid(0), value(0) {}
 
     SparseVectorItem(IdT id, VT v)
-    : itemid(id), value(v) {}
+            : itemid(id), value(v) {}
 
     friend class boost::serialization::access;
     template<class Archive>
@@ -53,7 +53,7 @@ struct SparseVector
     SparseVector() : rowid(0), len(0)  {}
 
     SparseVector(IdT rowid, size_t size=0)
-    : rowid(rowid), len(0)
+            : rowid(rowid), len(0)
     {
         //list.resize(size); //xxx
     }
@@ -73,8 +73,10 @@ struct SparseVector
         ar & list;
     }
 
-    struct sort_value {
-        bool operator()(const SparseVectorItem<IdT, VT> &left, const SparseVectorItem<IdT, VT> &right) {
+    struct sort_value
+    {
+        bool operator()(const SparseVectorItem<IdT, VT> &left, const SparseVectorItem<IdT, VT> &right)
+        {
             return left.value > right.value;
         }
     };

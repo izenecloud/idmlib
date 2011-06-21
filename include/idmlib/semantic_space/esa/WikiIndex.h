@@ -38,14 +38,17 @@ class WikiIndex
 {
 public:
     WikiIndex(const string& indexDir)
-    : dataFile_(indexDir+"/wiki.idx")
+            : dataFile_(indexDir+"/wiki.idx")
     {
-        if (!boost::filesystem::exists(indexDir)) {
+        if (!boost::filesystem::exists(indexDir))
+        {
             boost::filesystem::create_directories(indexDir);
             std::cout <<"[WikiIndex] create: "<<indexDir<<endl;
         }
         init();
     }
+
+    virtual ~WikiIndex() {}
 
 public:
     /**
@@ -65,7 +68,7 @@ public:
     {
         cout << "--- Doc Count: " << docCount_ <<endl;
         cout << "--- TF --- " << endl;
-        for(termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
+        for (termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
         {
             cout << iter->first << " : " << iter->second << endl;
         }
@@ -88,17 +91,19 @@ protected:
             termid = iter->termid_;
 
             termtf_map_iterator_t ret = term_tf_map_.find(termid);
-            if (ret == term_tf_map_.end()) {
+            if (ret == term_tf_map_.end())
+            {
                 term_tf_map_.insert(termtf_map_t::value_type(termid, 1));
             }
-            else {
+            else
+            {
                 ret->second ++;
             }
         }
 
         // normalize tf
         size_t docLen = wikiDoc.pTermIdList->size();
-        for(termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
+        for (termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
         {
             iter->second /= docLen;
         }

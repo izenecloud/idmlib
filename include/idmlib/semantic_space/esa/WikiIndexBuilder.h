@@ -29,7 +29,7 @@ public:
         size_t maxDoc = 0,
         bool removeStopwords = false,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
-    : CollectionProcessor(wikiColBasePath, laResPath, maxDoc, removeStopwords, encoding)
+            : CollectionProcessor(wikiColBasePath, laResPath, maxDoc, removeStopwords, encoding)
     {
     }
 
@@ -71,7 +71,7 @@ public:
         const std::string& laResPath,
         size_t maxDoc = 0,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
-    : CollectionProcessor(wikiColBasePath, laResPath, maxDoc, encoding)
+            : CollectionProcessor(wikiColBasePath, laResPath, maxDoc, encoding)
     {
         wikiIndex_.reset(new IzeneWikiIndex(pIdmAnalyzer_, pIdManager_, encoding_));
     }

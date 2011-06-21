@@ -2,7 +2,7 @@
  * @file MemWikiIndex.h
  * @author Zhongxia Li
  * @date Jun 2, 2011
- * @brief 
+ * @brief
  */
 #ifndef MEM_WIKI_INDEX_H_
 #define MEM_WIKI_INDEX_H_
@@ -33,12 +33,13 @@ NS_IDMLIB_SSP_BEGIN
 class MemWikiIndex : public WikiIndex
 {
 public:
-	MemWikiIndex(const string& indexDir = "./esa/wiki")
-	: WikiIndex(indexDir)
-	{
+    MemWikiIndex(const string& indexDir = "./esa/wiki")
+            : WikiIndex(indexDir)
+    {
 
-	}
+    }
 
+    virtual ~MemWikiIndex() {}
 public:
     void insertDocument(WikiDoc& wikiDoc)
     {
@@ -76,21 +77,21 @@ public:
 public:
     SparseVectorType& getInvertedList(uint32_t termid)
     {
-    	invertedlists_iterator_t ret = invertedLists_.find(termid);
-		if (ret != invertedLists_.end())
-		{
-			return *(ret->second);
-		}
+        invertedlists_iterator_t ret = invertedLists_.find(termid);
+        if (ret != invertedLists_.end())
+        {
+            return *(ret->second);
+        }
 
-		return NullInvertedList_;
+        return NullInvertedList_;
     }
 
 private:
     void updateInvertIndex_()
     {
-    	uint32_t termid;
+        uint32_t termid;
         float w;
-        for(termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
+        for (termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
         {
             termid = iter->first;
             w = iter->second; // tf
@@ -183,9 +184,10 @@ private:
     bool loadIndex_()
     {
         std::ifstream fin(dataFile_.c_str());
-        if (!fin.is_open()) {
+        if (!fin.is_open())
+        {
             std::cout <<"Failed to open: "<<dataFile_<<endl;
-        	return false;
+            return false;
         }
         cout <<dataFile_<<endl;
 
@@ -198,10 +200,12 @@ private:
         for (size_t i = 0; i < count; i++)
         {
             boost::shared_ptr<InvertedList> invertedList(new InvertedList());
-            try{
+            try
+            {
                 ia >> *invertedList;
             }
-            catch(std::exception& ex) {
+            catch (std::exception& ex)
+            {
                 break;
             }
             invertedLists_.insert(invertedlists_t::value_type(invertedList->rowid, invertedList));
@@ -230,55 +234,55 @@ public:
         }
     }
 
-/*
-private:
-    struct InvertItem
-    {
-        uint32_t conceptId;
-        float weight;
-
-        InvertItem() {}
-        InvertItem(uint32_t conceptId, float w)
-        : conceptId(conceptId), weight(w) {}
-
-        friend class boost::serialization::access;
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int version)
+    /*
+    private:
+        struct InvertItem
         {
-            ar & conceptId;
-            ar & weight;
-        }
-    };
+            uint32_t conceptId;
+            float weight;
 
-    struct InvertedList
-    {
-        uint32_t termid;
-        uint32_t len; ///< list length, or Document Frequence(DF).
-        std::vector<InvertItem> list;
+            InvertItem() {}
+            InvertItem(uint32_t conceptId, float w)
+            : conceptId(conceptId), weight(w) {}
 
-        InvertedList() {}
-        InvertedList(uint32_t termid, size_t size=0)
-        : termid(termid), len(0)
+            friend class boost::serialization::access;
+            template<class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+            {
+                ar & conceptId;
+                ar & weight;
+            }
+        };
+
+        struct InvertedList
         {
-            //list.resize(size); //xxx
-        }
+            uint32_t termid;
+            uint32_t len; ///< list length, or Document Frequence(DF).
+            std::vector<InvertItem> list;
 
-        void insertDoc(uint32_t docid, float w)
-        {
-            len ++;
-            list.push_back(InvertItem(docid, w));
-        }
+            InvertedList() {}
+            InvertedList(uint32_t termid, size_t size=0)
+            : termid(termid), len(0)
+            {
+                //list.resize(size); //xxx
+            }
 
-        friend class boost::serialization::access;
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int version)
-        {
-            ar & termid;
-            ar & len;
-            ar & list;
-        }
-    };
-*/
+            void insertDoc(uint32_t docid, float w)
+            {
+                len ++;
+                list.push_back(InvertItem(docid, w));
+            }
+
+            friend class boost::serialization::access;
+            template<class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+            {
+                ar & termid;
+                ar & len;
+                ar & list;
+            }
+        };
+    */
 
 private:
     static const float thresholdWegt_ = 0.02f; // 0.015 ~ 0.02 ?

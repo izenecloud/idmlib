@@ -30,15 +30,15 @@ class IzeneWikiIndex : public WikiIndex
 {
 public:
     IzeneWikiIndex(
-            boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer,
-            boost::shared_ptr<IDManager> pIdManager,
-            izenelib::util::UString::EncodingType encoding,
-            std::string wikiIndexDir = "./esa/wiki"
-            )
-    : WikiIndex(wikiIndexDir)
-    , pIdmAnalyzer_(pIdmAnalyzer)
-    , pIdManager_(pIdManager)
-    , encoding_(encoding)
+        boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer,
+        boost::shared_ptr<IDManager> pIdManager,
+        izenelib::util::UString::EncodingType encoding,
+        std::string wikiIndexDir = "./esa/wiki"
+    )
+            : WikiIndex(wikiIndexDir)
+            , pIdmAnalyzer_(pIdmAnalyzer)
+            , pIdManager_(pIdManager)
+            , encoding_(encoding)
     {
         pIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(wikiIndexDir+"/izene_index");
         laInput_.reset(new TermIdList());
@@ -75,7 +75,7 @@ public:
 public:
     bool prepareDocument_(SCDDocPtr& pDoc, IndexerDocument& indexDocument)
     {
-    	uint32_t docId = 0;
+        uint32_t docId = 0;
 
         CollectionProcessor::doc_properties_iterator proIter;
         for (proIter = pDoc->begin(); proIter != pDoc->end(); proIter ++)
@@ -116,15 +116,18 @@ public:
             }
             else
             {
-                if ( propertyName == izenelib::util::UString("title", encoding_) ) {
+                if ( propertyName == izenelib::util::UString("title", encoding_) )
+                {
                     indexerPropertyConfig.setPropertyId(idmlib::ssp::IzeneIndexHelper::getPropertyIdByName("Title"));
                     indexerPropertyConfig.setName("Title");
                 }
-                else if ( propertyName == izenelib::util::UString("content", encoding_)) {
+                else if ( propertyName == izenelib::util::UString("content", encoding_))
+                {
                     indexerPropertyConfig.setPropertyId(idmlib::ssp::IzeneIndexHelper::getPropertyIdByName("Content"));
                     indexerPropertyConfig.setName("Content");
                 }
-                else {
+                else
+                {
                     continue;
                 }
 

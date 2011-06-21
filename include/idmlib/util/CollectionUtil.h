@@ -85,6 +85,7 @@ public:
         createAnalyzer(removeStopwords);
     }
 
+    virtual ~CollectionProcessor(){}
 public:
     bool processSCD();
 

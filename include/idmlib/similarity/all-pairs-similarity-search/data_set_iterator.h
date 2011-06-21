@@ -67,6 +67,7 @@ public:
     {
         data_.close();
         data_.open();
+        return true;
     }
 
     bool next()

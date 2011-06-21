@@ -4,6 +4,8 @@
 using namespace idmlib::sim;
 using namespace idmlib::util;
 
+static double sTotalTime = 0;
+
 void AllPairsSearch::findAllSimilarPairs(boost::shared_ptr<DataSetIterator>& dataSetIterator, size_t maxDoc)
 {
     DLOG(INFO) <<"Start all pairs similarity searching."<<std::endl;

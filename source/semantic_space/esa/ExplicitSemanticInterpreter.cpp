@@ -8,9 +8,8 @@ using namespace std;
 using namespace idmlib::ssp;
 using namespace idmlib::util;
 
-
+static double sTotalTime = 0;
 //#define DOC_SIM_TEST
-
 
 bool ExplicitSemanticInterpreter::interpret(size_t maxOutFileSize, size_t maxCount)
 {
@@ -33,7 +32,7 @@ bool ExplicitSemanticInterpreter::interpret(size_t maxOutFileSize, size_t maxCou
         return false;
 
     size_t total = 0;
-    while(inf.next())
+    while (inf.next())
     {
         SparseVectorType& docvec = inf.get();
 #ifdef DOC_SIM_TEST
@@ -77,7 +76,8 @@ bool ExplicitSemanticInterpreter::interpret(size_t maxOutFileSize, size_t maxCou
             outFileName << docSetPath_<< "/doc_int.vec" << (fileCount++);
             cout << outFileName.str() <<endl;
             pof.reset(new SparseVectorSetOFileType(outFileName.str()));
-            if(!pof->open()) {
+            if (!pof->open())
+            {
                 cout<<"failed to open: "<<outFileName.str()<<endl;
                 return false;
             }
@@ -126,7 +126,8 @@ void ExplicitSemanticInterpreter::interpret_(SparseVectorType& docvec, SparseVec
             {
                 conceptWeightMap[conceptId] += wdoc * wcon;
             }
-            else {
+            else
+            {
                 conceptWeightMap.insert(std::make_pair(conceptId, wdoc * wcon));
             }
         }
@@ -148,101 +149,106 @@ void ExplicitSemanticInterpreter::interpret_(SparseVectorType& docvec, SparseVec
     weight_t w;
     for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
     {
-         w = cwIter->second / vecLength;
-         if (w > thresholdWegt_)
-         {
-             w = (int)((w+0.0005)*1000)/1000.0; // 4 after decimal point
-             ivec.insertItem(cwIter->first, w);
-         }
+        w = cwIter->second / vecLength;
+        if (w > thresholdWegt_)
+        {
+            w = (int)((w+0.0005)*1000)/1000.0; // 4 after decimal point
+            ivec.insertItem(cwIter->first, w);
+        }
 
     }
 }
 
 
 #ifdef IZENE_INDEXER_
-    void ExplicitSemanticInterpreter::interpret_ir_(SparseVectorType& docvec, SparseVectorType& ivec)
+void ExplicitSemanticInterpreter::interpret_ir_(SparseVectorType& docvec, SparseVectorType& ivec)
+{
+    std::map<docid_t, weight_t> conceptWeightMap;
+
+    for (size_t i = 0; i < docvec.list.size(); i++)
     {
-        std::map<docid_t, weight_t> conceptWeightMap;
+        weight_t wtext = docvec.list[i].value;
 
-        for (size_t i = 0; i < docvec.list.size(); i++)
+        // mining properties
+        Term term("Content", docvec.list[i].itemid);
+
+        izenelib::ir::indexmanager::IndexReader* indexReader = pIndexer_->getIndexReader();
+        izenelib::ir::indexmanager::TermReader*
+        pTermReader = indexReader->getTermReader(idmlib::ssp::IzeneIndexHelper::COLLECTION_ID);
+        if (!pTermReader)
         {
-            weight_t wtext = docvec.list[i].value;
+            continue;
+        }
 
-            // mining properties
-            Term term("Content", docvec.list[i].itemid);
+        bool find = pTermReader->seek(&term);
+        if (find)
+        {
+            // term indexed
+            weight_t DF = pTermReader->docFreq(&term);
+            weight_t IDF = std::log(wikiDocNum_ / DF);
+            ///cout <<"DF: "<< DF << ", IDF: " << IDF <<" ";
 
-            izenelib::ir::indexmanager::IndexReader* indexReader = pIndexer_->getIndexReader();
-            izenelib::ir::indexmanager::TermReader*
-            pTermReader = indexReader->getTermReader(idmlib::ssp::IzeneIndexHelper::COLLECTION_ID);
-            if (!pTermReader) {
-                continue;
-            }
+            izenelib::ir::indexmanager::TermDocFreqs* pTermDocReader = NULL;
+            pTermDocReader = pTermReader->termDocFreqs();
 
-            bool find = pTermReader->seek(&term);
-            if (find)
+            weight_t TF = 0;
+            if (pTermDocReader != NULL)
             {
-                // term indexed
-                weight_t DF = pTermReader->docFreq(&term);
-                weight_t IDF = std::log(wikiDocNum_ / DF);
-                ///cout <<"DF: "<< DF << ", IDF: " << IDF <<" ";
+                // iterate concepts indexed by term
+                while (pTermDocReader->next())
+                {
+                    docid_t conceptId = pTermDocReader->doc();
+                    TF = pTermDocReader->freq();
 
-                izenelib::ir::indexmanager::TermDocFreqs* pTermDocReader = NULL;
-                pTermDocReader = pTermReader->termDocFreqs();
-
-                weight_t TF = 0;
-                if (pTermDocReader != NULL) {
-                    // iterate concepts indexed by term
-                    while (pTermDocReader->next()) {
-                        docid_t conceptId = pTermDocReader->doc();
-                        TF = pTermDocReader->freq();
-
-                        size_t docLen =
+                    size_t docLen =
                         indexReader->docLength(conceptId, idmlib::ssp::IzeneIndexHelper::getPropertyIdByName("Content"));
-                        ///cout << "( doc:"<<conceptId<<", tf:"<<TF<<", doclen:"<<docLen<<", tf:"<<(TF / docLen) <<" ) " ;
+                    ///cout << "( doc:"<<conceptId<<", tf:"<<TF<<", doclen:"<<docLen<<", tf:"<<(TF / docLen) <<" ) " ;
 
-                        // TF*IDF
-                        weight_t wcon = IDF * (TF / docLen);
-                        if (conceptWeightMap.find(conceptId) != conceptWeightMap.end())
-                        {
-                            // xxx, wtext is TF of text, IDF should be statistic in corpus where text is from ?
-                            conceptWeightMap[conceptId] += (wtext*IDF) * wcon;
-                        }
-                        else
-                        {
-                            conceptWeightMap.insert(std::make_pair(conceptId, (wtext*IDF) * wcon));
-                        }
+                    // TF*IDF
+                    weight_t wcon = IDF * (TF / docLen);
+                    if (conceptWeightMap.find(conceptId) != conceptWeightMap.end())
+                    {
+                        // xxx, wtext is TF of text, IDF should be statistic in corpus where text is from ?
+                        conceptWeightMap[conceptId] += (wtext*IDF) * wcon;
                     }
-                    ///cout << endl;
+                    else
+                    {
+                        conceptWeightMap.insert(std::make_pair(conceptId, (wtext*IDF) * wcon));
+                    }
                 }
-
-                if (pTermDocReader) {
-                    delete pTermDocReader;
-                    pTermDocReader = NULL;
-                }
+                ///cout << endl;
             }
 
-            if (pTermReader) {
-                delete pTermReader;
-                pTermReader = NULL;
+            if (pTermDocReader)
+            {
+                delete pTermDocReader;
+                pTermDocReader = NULL;
             }
         }
 
-        // construct interpretation vector
-        weight_t w;
-        std::map<docid_t, weight_t>::iterator cwIter;
-        weight_t vecLength = 0; // (or magnitude) for normalization
-        for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
+        if (pTermReader)
         {
-            vecLength +=  cwIter->second * cwIter->second;
-        }
-        vecLength = std::sqrt(vecLength);
-
-        ivec.list.resize(0); // init
-        for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
-        {
-             w = cwIter->second / vecLength;
-             if (w > thresholdWegt_)
-                 ivec.insertItem(cwIter->first, w);
+            delete pTermReader;
+            pTermReader = NULL;
         }
     }
+
+    // construct interpretation vector
+    weight_t w;
+    std::map<docid_t, weight_t>::iterator cwIter;
+    weight_t vecLength = 0; // (or magnitude) for normalization
+    for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
+    {
+        vecLength +=  cwIter->second * cwIter->second;
+    }
+    vecLength = std::sqrt(vecLength);
+
+    ivec.list.resize(0); // init
+    for (cwIter = conceptWeightMap.begin(); cwIter != conceptWeightMap.end(); cwIter++)
+    {
+        w = cwIter->second / vecLength;
+        if (w > thresholdWegt_)
+            ivec.insertItem(cwIter->first, w);
+    }
+}
 #endif
