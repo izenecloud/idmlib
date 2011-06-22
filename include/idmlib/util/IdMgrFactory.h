@@ -29,7 +29,14 @@ public:
 	 */
 	static IdManager* getIdManager();
 
+	/**
+	 * \brief get a singleton IDManager
+	 */
+	static IDManagerESA* getIdManagerESA();
+
 };
+
+
 }
 
 #endif /* IDMGRFACTORY_H_ */

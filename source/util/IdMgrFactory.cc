@@ -15,4 +15,10 @@ IdManager* IdMgrFactory::getIdManager()
 	return &idMgr;
 }
 
+IDManagerESA* IdMgrFactory::getIdManagerESA()
+{
+	static IDManagerESA IdManagerESA;
+	return &IdManagerESA;
+}
+
 }

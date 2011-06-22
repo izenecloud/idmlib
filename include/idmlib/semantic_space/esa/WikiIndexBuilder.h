@@ -73,7 +73,7 @@ public:
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
             : CollectionProcessor(wikiColBasePath, laResPath, maxDoc, encoding)
     {
-        wikiIndex_.reset(new IzeneWikiIndex(pIdmAnalyzer_, pIdManager_, encoding_));
+        wikiIndex_.reset(new IzeneWikiIndex(pIdmAnalyzer_, encoding_));
     }
 
 public:
