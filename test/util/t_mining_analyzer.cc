@@ -105,6 +105,26 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 
 }
 
+BOOST_AUTO_TEST_CASE(chinese_test)
+{
+  std::cout<<"[]"<<IZENECMA_KNOWLEDGE<<std::endl;
+  IDMAnalyzer analyzer(IZENECMA_KNOWLEDGE,la::ChineseAnalyzer::maximum_match) ;
+//   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
+  izenelib::util::UString text("国家经 济 Sites year, 呵呵! United configuration", izenelib::util::UString::UTF_8);
+  
+  
+    
+  la::TermList term_list;
+  analyzer.GetTermList(text, term_list);
+  std::cout<<"CHINESE-TEST"<<std::endl;
+  for( uint32_t i=0;i<term_list.size();++i )
+  {
+    std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
+  }
+  
+  
+}
+
 BOOST_AUTO_TEST_CASE(korean_test)
 {
   IDMAnalyzer analyzer(WISEKMA_KNOWLEDGE);

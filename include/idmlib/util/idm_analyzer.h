@@ -113,6 +113,9 @@ class IDMAnalyzer
     }
     ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
     ml_analyzer->setDefaultAnalyzer( ch_analyzer );
+    boost::shared_ptr<la::Analyzer>  en_analyzer(new la::EnglishAnalyzer() );
+    static_cast<la::EnglishAnalyzer*>(en_analyzer.get())->setCaseSensitive(false, false);
+    ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::ENGLISH, en_analyzer );
     la_->setAnalyzer(ml_analyzer);
   }
 
