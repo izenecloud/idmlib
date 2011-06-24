@@ -23,8 +23,6 @@ using namespace idmlib::ssp;
 
 NS_IDMLIB_SIM_BEGIN
 
-static float sTotalTime = 0;
-
 
 /**
  * Finds all pairs of vectors in the dataset (vector set) with cosine

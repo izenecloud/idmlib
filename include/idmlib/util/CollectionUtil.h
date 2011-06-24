@@ -10,12 +10,12 @@
 #include <idmlib/idm_types.h>
 #include <idmlib/util/idm_analyzer.h>
 #include <idmlib/util/FSUtil.hpp>
+#include <idmlib/util/IdMgrFactory.h>
 
 #include <la/LA.h>
 #include <la/util/UStringUtil.h>
 
 #include <ir/index_manager/utility/system.h>
-#include <ir/id_manager/IDManager.h>
 #include <ir/index_manager/index/LAInput.h>
 // prevent conflicting with ScdParser of sf1-revolution
 #ifndef __SCD__PARSER__H__
@@ -81,10 +81,12 @@ public:
     , content_("", encoding)
     , pTermIdList_(new TermIdList())
     {
-        createIdManager();
+    	s_pIdManager_ = idmlib::IdMgrFactory::getIdManagerESA();
+
         createAnalyzer(removeStopwords);
     }
 
+    virtual ~CollectionProcessor(){}
 public:
     bool processSCD();
 
@@ -105,7 +107,7 @@ protected:
             propertyName.toLowerString();
 
             if ( propertyName == izenelib::util::UString("docid", encoding_) ) {
-                bool ret = pIdManager_->getDocIdByDocName(propertyValue, curDocId_, false);
+                bool ret = s_pIdManager_->getDocIdByDocName(propertyValue, curDocId_, false);
                 if (ret) ;
             }
             if ( propertyName == izenelib::util::UString("title", encoding_) ) {
@@ -121,6 +123,8 @@ protected:
             }
         }
 
+        //cout <<"docid: "<<curDocId_<<endl;
+
         processDocumentContent(); // xxx
     }
 
@@ -130,7 +134,14 @@ protected:
         //cout << la::to_utf8(content_) << endl;
 
         pTermIdList_->clear();
-        pIdmAnalyzer_->GetTermIdList(pIdManager_.get(), content_, *pTermIdList_);
+        pIdmAnalyzer_->GetTermIdList(s_pIdManager_, content_, *pTermIdList_);
+
+//        TermIdList::iterator iter;
+//        for (iter = pTermIdList_->begin(); iter != pTermIdList_->end(); iter++)
+//        {
+//        	cout << iter->termid_<<" ";
+//        }
+//        cout<<endl;
 
         processDocumentAnalyzedContent(); // xxx
     }
@@ -152,14 +163,14 @@ protected:
     }
 
 protected:
-    void createIdManager()
-    {
-        if (!exists(colPath_.dataIdPath_)) {
-            DLOG(ERROR) <<"Not existed: " <<colPath_.dataIdPath_ <<std::endl;
-        }
-        pIdManager_.reset(new IDManager(colPath_.dataIdPath_));
-        BOOST_ASSERT(pIdManager_);
-    }
+//    void createIdManager()
+//    {
+//        if (!exists(colPath_.dataIdPath_)) {
+//            DLOG(ERROR) <<"Not existed: " <<colPath_.dataIdPath_ <<std::endl;
+//        }
+//        pIdManager_.reset(new IDManager(colPath_.dataIdPath_));
+//        BOOST_ASSERT(pIdManager_);
+//    }
 
     void createAnalyzer(bool removeStopwords=false)
     {
@@ -179,10 +190,11 @@ protected:
     // Language Analyzer
     boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer_;
     // ID Manager
-    boost::shared_ptr<IDManager> pIdManager_;
+    //boost::shared_ptr<IDManager> pIdManager_;
+    IDManagerESA* s_pIdManager_;
 
     // temporary: current document information
-    docid_t curDocId_;
+    uint32_t curDocId_;
     SCDDocPtr curSCDDoc_;
     izenelib::util::UString content_;
     boost::shared_ptr<TermIdList> pTermIdList_;

@@ -2,7 +2,7 @@
  * @file SparseVectorSetFile.h
  * @author Zhongxia Li
  * @date Jun 3, 2011
- * @brief 
+ * @brief
  */
 #ifndef SPARSE_VECTOR_SETFILE_H_
 #define SPARSE_VECTOR_SETFILE_H_
@@ -31,46 +31,46 @@ template <typename IdT = uint32_t, typename VT = float>
 class SparseVectorSetOFile
 {
 public:
-	SparseVectorSetOFile(const string& filename, size_t cache_size = 0)
-    : filename_(filename)
-    , cache_size_(cache_size)
-	, total_count_(0)
-	{
+    SparseVectorSetOFile(const string& filename, size_t cache_size = 0)
+            : filename_(filename)
+            , cache_size_(cache_size)
+            , total_count_(0)
+    {
     }
 
     ~SparseVectorSetOFile()
     {
-    	close();
+        close();
     }
 
 public:
     bool open(ios::openmode mode = ios::out)
     {
-    	pof_.reset(new std::ofstream(filename_.c_str(), mode));
-    	if (!pof_->is_open())
-    	{
-    		cerr << "** failed to open (out): " << filename_ <<endl;
-    		return false;
-    	}
+        pof_.reset(new std::ofstream(filename_.c_str(), mode));
+        if (!pof_->is_open())
+        {
+            cerr << "** failed to open (out): " << filename_ <<endl;
+            return false;
+        }
 
-    	poa_.reset(new boost::archive::text_oarchive(*pof_));
-    	return true;
+        poa_.reset(new boost::archive::text_oarchive(*pof_));
+        return true;
     }
 
     size_t size()
     {
-    	return total_count_;
+        return total_count_;
     }
 
     void put(SparseVector<IdT, VT>& spvec)
     {
-    	(*poa_) << spvec;
-    	total_count_ ++;
+        (*poa_) << spvec;
+        total_count_ ++;
     }
 
     void flush()
     {
-    	pof_->flush();
+        pof_->flush();
     }
 
     /// todo
@@ -82,8 +82,8 @@ public:
     /// todo
     void flush_cache()
     {
-    	if (!pof_->is_open())
-    		return;
+        if (!pof_->is_open())
+            return;
 
         size_t count = 0;
         for (cache_iterator_t it = cache_.begin(); it != cache_.end(); it++)
@@ -99,15 +99,15 @@ public:
 
     void close()
     {
-    	if (!pof_->is_open())
-    		return;
+        if (!pof_->is_open())
+            return;
 
-		if (cache_.size() > 0)
-			flush_cache();
+        if (cache_.size() > 0)
+            flush_cache();
 
-		pof_->close();
+        pof_->close();
 
-		total_count_ = 0;
+        total_count_ = 0;
     }
 
 private:
@@ -131,12 +131,12 @@ template <typename IdT = uint32_t, typename VT = float>
 class SparseVectorSetIFile
 {
 public:
-	SparseVectorSetIFile(const string& filename, size_t max_cache_size = 100)
-    : filename_(filename)
-    , max_cache_size_(max_cache_size)
-	, pos_(0)
-	, pos_in_cache_(0)
-	, reached_eof_(false)
+    SparseVectorSetIFile(const string& filename, size_t max_cache_size = 100)
+            : filename_(filename)
+            , max_cache_size_(max_cache_size)
+            , pos_(0)
+            , pos_in_cache_(0)
+            , reached_eof_(false)
     {
 
     }
@@ -144,22 +144,22 @@ public:
 public:
     bool open(ios::openmode mode = ios::in)
     {
-    	pif_.reset(new std::ifstream(filename_.c_str(), mode));
-    	if (!pif_->is_open())
-    	{
-    		cerr << "failed to open (in): " << filename_ <<endl;
-    		return false;
-    	}
+        pif_.reset(new std::ifstream(filename_.c_str(), mode));
+        if (!pif_->is_open())
+        {
+            cerr << "failed to open (in): " << filename_ <<endl;
+            return false;
+        }
 
-    	pia_.reset(new boost::archive::text_iarchive(*pif_));
-    	return true;
+        pia_.reset(new boost::archive::text_iarchive(*pif_));
+        return true;
     }
 
     void init()
     {
-    	pos_ = 0;
-    	reached_eof_ = false;
-    	refresh_cache_();
+        pos_ = 0;
+        reached_eof_ = false;
+        refresh_cache_();
     }
 
     /**
@@ -167,54 +167,54 @@ public:
      */
     bool next()
     {
-    	if (pos_in_cache_ >= cache_.size())
-    	{
-    		if (reached_eof_)
-    			return false;
+        if (pos_in_cache_ >= cache_.size())
+        {
+            if (reached_eof_)
+                return false;
 
-    		refresh_cache_();
-    		return next();
-    	}
+            refresh_cache_();
+            return next();
+        }
 
-    	return true;
+        return true;
     }
 
     SparseVector<IdT, VT>& get()
     {
-    	pos_ ++;
-    	return cache_[(pos_in_cache_ ++)];
+        pos_ ++;
+        return cache_[(pos_in_cache_ ++)];
     }
 
     void close()
     {
-    	if (!pif_->is_open())
-    		return;
+        if (!pif_->is_open())
+            return;
 
-		pif_->close();
-		pia_.reset();
+        pif_->close();
+        pia_.reset();
 
-		cache_.clear();
+        cache_.clear();
     }
 
     void remove()
     {
-    	boost::filesystem::remove(filename_);
+        boost::filesystem::remove(filename_);
     }
 
 private:
     void refresh_cache_()
     {
         //cout<<"[SparseVectorSetIFile] loading data ..."<<endl;
-    	cache_.clear();
-    	pos_in_cache_ = 0;
+        cache_.clear();
+        pos_in_cache_ = 0;
 
-    	if (!pif_->is_open())
-    	{
-    		reached_eof_ = true;
-    		return;
-    	}
+        if (!pif_->is_open())
+        {
+            reached_eof_ = true;
+            return;
+        }
 
-    	size_t read = 0;
+        size_t read = 0;
         while (read < max_cache_size_)
         {
             SparseVector<IdT, VT> sv;
@@ -229,7 +229,7 @@ private:
 //            }
             catch (std::exception& ex)
             {
-            	reached_eof_ = true;
+                reached_eof_ = true;
                 return;
             }
 

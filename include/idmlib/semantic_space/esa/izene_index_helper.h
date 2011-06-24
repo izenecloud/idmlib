@@ -2,7 +2,7 @@
  * @file izene_index_helper.h
  * @author Zhongxia Li
  * @date May 13, 2011
- * @brief 
+ * @brief
  */
 #ifndef IZENE_INDEX_HELPER_H_
 #define IZENE_INDEX_HELPER_H_
@@ -74,7 +74,8 @@ private:
     static void setIndexConfig(IndexManagerConfig& config, std::string& collectionName, const std::string& indexDir)
     {
         // set as default configuration
-        if (!boost::filesystem::exists(indexDir)) {
+        if (!boost::filesystem::exists(indexDir))
+        {
             boost::filesystem::create_directories(indexDir);
         }
         config.indexStrategy_.indexLocation_ = indexDir;
@@ -99,8 +100,8 @@ private:
     }
 
     static IndexerPropertyConfig makeIndexPropertyConfig(
-            unsigned int propertyid, std::string propertyname, bool index, bool analyzed,
-            bool filter=false, bool storeDocLen=true)
+        unsigned int propertyid, std::string propertyname, bool index, bool analyzed,
+        bool filter=false, bool storeDocLen=true)
     {
         IndexerPropertyConfig indexerPropertyConfig(propertyid, propertyname, index, analyzed);
         indexerPropertyConfig.setIsFilter(filter);

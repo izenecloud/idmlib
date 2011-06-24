@@ -6,7 +6,7 @@ void DocumentRepresentor::gatherTFDF()
 {
     term_tf_map_.clear();
 
-    termid_t termid;
+    uint32_t termid;
     for (TermIdList::iterator iter = pTermIdList_->begin(); iter != pTermIdList_->end(); iter++)
     {
         termid = iter->termid_;
@@ -37,7 +37,7 @@ void DocumentRepresentor::gatherTFDF()
     SparseVectorType sv(curDocId_, term_tf_map_.size());
 
     size_t docLen = pTermIdList_->size();
-    for(hashmap_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
+    for (hashmap_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
     {
         iter->second /= docLen;  // normalize tf
         sv.insertItem(iter->first, iter->second);
@@ -61,7 +61,7 @@ void DocumentRepresentor::calcWeight()
     docRepFile.open();
 
     size_t total = 0;
-    while(inf.next())
+    while (inf.next())
     {
         SparseVectorType sv = inf.get();
 
@@ -78,7 +78,7 @@ void DocumentRepresentor::calcWeight()
             iter->value *= idf;
 
             //filt
-            if(iter->value > thresholdWegt_)
+            if (iter->value > thresholdWegt_)
             {
                 iter->value = (int)((iter->value+0.0005)*1000)/1000.0;
                 iter++;

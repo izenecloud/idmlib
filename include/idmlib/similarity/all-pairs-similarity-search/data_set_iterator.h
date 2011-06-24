@@ -66,7 +66,10 @@ public:
     bool init()
     {
         data_.close();
-        data_.open();
+        if (!data_.open())
+            return false;
+        data_.init();
+        return true;
     }
 
     bool next()

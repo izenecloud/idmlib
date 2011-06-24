@@ -12,6 +12,7 @@
 #include "WikiIndex.h"
 #include "izene_index_helper.h"
 #include <idmlib/util/CollectionUtil.h>
+#include <idmlib/util/IdMgrFactory.h>
 
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/index/IndexReader.h>
@@ -30,16 +31,14 @@ class IzeneWikiIndex : public WikiIndex
 {
 public:
     IzeneWikiIndex(
-            boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer,
-            boost::shared_ptr<IDManager> pIdManager,
-            izenelib::util::UString::EncodingType encoding,
-            std::string wikiIndexDir = "./esa/wiki"
-            )
-    : WikiIndex(wikiIndexDir)
-    , pIdmAnalyzer_(pIdmAnalyzer)
-    , pIdManager_(pIdManager)
-    , encoding_(encoding)
+        boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer,
+        izenelib::util::UString::EncodingType encoding,
+        std::string wikiIndexDir = "./esa/wiki")
+	: WikiIndex(wikiIndexDir)
+	, pIdmAnalyzer_(pIdmAnalyzer)
+	, encoding_(encoding)
     {
+    	s_pIdManager_ = idmlib::IdMgrFactory::getIdManagerESA();
         pIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(wikiIndexDir+"/izene_index");
         laInput_.reset(new TermIdList());
     }
@@ -75,7 +74,7 @@ public:
 public:
     bool prepareDocument_(SCDDocPtr& pDoc, IndexerDocument& indexDocument)
     {
-        docid_t docId = 0;
+        uint32_t docId = 0;
 
         CollectionProcessor::doc_properties_iterator proIter;
         for (proIter = pDoc->begin(); proIter != pDoc->end(); proIter ++)
@@ -97,7 +96,7 @@ public:
                 indexerPropertyConfig.setIsAnalyzed(false);
                 indexerPropertyConfig.setIsStoreDocLen(false);
 
-                bool ret = pIdManager_->getDocIdByDocName(propertyValue, docId, false);
+                bool ret = s_pIdManager_->getDocIdByDocName(propertyValue, docId, false);
                 if (ret)  /*exist*/;
                 indexDocument.setId(0);
                 indexDocument.setDocId(docId, idmlib::ssp::IzeneIndexHelper::COLLECTION_ID);
@@ -116,15 +115,18 @@ public:
             }
             else
             {
-                if ( propertyName == izenelib::util::UString("title", encoding_) ) {
+                if ( propertyName == izenelib::util::UString("title", encoding_) )
+                {
                     indexerPropertyConfig.setPropertyId(idmlib::ssp::IzeneIndexHelper::getPropertyIdByName("Title"));
                     indexerPropertyConfig.setName("Title");
                 }
-                else if ( propertyName == izenelib::util::UString("content", encoding_)) {
+                else if ( propertyName == izenelib::util::UString("content", encoding_))
+                {
                     indexerPropertyConfig.setPropertyId(idmlib::ssp::IzeneIndexHelper::getPropertyIdByName("Content"));
                     indexerPropertyConfig.setName("Content");
                 }
-                else {
+                else
+                {
                     continue;
                 }
 
@@ -136,7 +138,7 @@ public:
 
                 laInput_->resize(0);
                 laInput_->setDocId(docId); // <DOCID> property have to come first in SCD
-                pIdmAnalyzer_->GetTermIdList(pIdManager_.get(), propertyValue, *laInput_);
+                pIdmAnalyzer_->GetTermIdList(s_pIdManager_, propertyValue, *laInput_);
                 indexDocument.insertProperty(indexerPropertyConfig, laInput_);
             }
         }
@@ -146,7 +148,7 @@ public:
 
 private:
     boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer_;
-    boost::shared_ptr<IDManager> pIdManager_;
+    IDManagerESA* s_pIdManager_;
 
     izenelib::util::UString::EncodingType encoding_;
 

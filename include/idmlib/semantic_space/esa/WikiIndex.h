@@ -26,7 +26,7 @@ NS_IDMLIB_SSP_BEGIN
 /** Wikipedia concept */
 struct WikiDoc
 {
-    docid_t docid;
+    uint32_t docid;
     boost::shared_ptr<TermIdList> pTermIdList;
 };
 
@@ -38,14 +38,17 @@ class WikiIndex
 {
 public:
     WikiIndex(const string& indexDir)
-    : dataFile_(indexDir+"/wiki.idx")
+            : dataFile_(indexDir+"/wiki.idx")
     {
-        if (!boost::filesystem::exists(indexDir)) {
+        if (!boost::filesystem::exists(indexDir))
+        {
             boost::filesystem::create_directories(indexDir);
             std::cout <<"[WikiIndex] create: "<<indexDir<<endl;
         }
         init();
     }
+
+    virtual ~WikiIndex() {}
 
 public:
     /**
@@ -65,7 +68,7 @@ public:
     {
         cout << "--- Doc Count: " << docCount_ <<endl;
         cout << "--- TF --- " << endl;
-        for(termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
+        for (termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
         {
             cout << iter->first << " : " << iter->second << endl;
         }
@@ -82,23 +85,25 @@ protected:
     void gatherTF_(WikiDoc& wikiDoc)
     {
         term_tf_map_.clear();
-        termid_t termid;
+        uint32_t termid;
         for (TermIdList::iterator iter = wikiDoc.pTermIdList->begin(); iter != wikiDoc.pTermIdList->end(); iter++)
         {
             termid = iter->termid_;
 
             termtf_map_iterator_t ret = term_tf_map_.find(termid);
-            if (ret == term_tf_map_.end()) {
+            if (ret == term_tf_map_.end())
+            {
                 term_tf_map_.insert(termtf_map_t::value_type(termid, 1));
             }
-            else {
+            else
+            {
                 ret->second ++;
             }
         }
 
         // normalize tf
         size_t docLen = wikiDoc.pTermIdList->size();
-        for(termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
+        for (termtf_map_iterator_t iter = term_tf_map_.begin(); iter != term_tf_map_.end(); iter++)
         {
             iter->second /= docLen;
         }
@@ -107,7 +112,7 @@ protected:
 protected:
     string dataFile_;
     size_t docCount_;
-    docid_t curDoc_;
+    uint32_t curDoc_;
 
     typedef rde::hash_map<uint32_t, float> termtf_map_t;
     typedef rde::hash_map<uint32_t, float>::iterator termtf_map_iterator_t;
