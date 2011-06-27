@@ -17,7 +17,7 @@ public:
   typedef typename Container::IdType IdType;
   
   SimOutputCollector(const std::string& path, uint32_t max_count, bool print = false)
-  :path_(path), container_path_(path+"/container"), writer_path_(path+"/writer")
+  :container_(NULL), path_(path), container_path_(path+"/container"), writer_path_(path+"/writer")
   , max_count_(max_count), print_(print), writer_(NULL), max_id_(0)
   {
   }
