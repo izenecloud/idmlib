@@ -16,6 +16,7 @@ SET(libs
   ${imllib_LIBRARIES}
   ${wisekma_LIBRARIES}
   ${izenecma_LIBRARIES}
+  ${izenejma_LIBRARIES}
   ${iise_LIBRARIES}
   ${izenelib_LIBRARIES}
 
