@@ -126,6 +126,109 @@ class Apss
       normal_matrix_reader.Close();
     }
     
+    template <typename IdType, typename KK>
+    void ComputeMR(const std::string& file, IdType id, izenelib::am::SparseVector<double, KK>& vec, const std::string& work_dir)
+    {
+      boost::filesystem::create_directories(work_dir);
+      
+      izenelib::am::ssf::Writer<> mapper1(work_dir+"/map1");
+      mapper1.Open();
+      
+      izenelib::am::ssf::Reader<> normal_matrix_reader(file);
+      if(!normal_matrix_reader.Open())
+      {
+        return;
+      }
+      std::cout<<"x count : "<<normal_matrix_reader.Count()<<std::endl;
+      std::size_t x = 0;
+//       IdType id;
+//       izenelib::am::SparseVector<double, KK> vec;
+      while(normal_matrix_reader.Next(id, vec))
+      {
+        if(x%100==0)
+        {
+          std::cout<<"m1:"<<x<<std::endl;
+        }
+        for(uint32_t i=0;i<vec.value.size();i++)
+        {
+            mapper1.Append(vec.value[i].first, std::make_pair(id, (float)vec.value[i].second));
+        }
+        ++x;
+      }
+      normal_matrix_reader.Close();
+      mapper1.Close();
+      izenelib::am::ssf::Sorter<uint32_t, KK>::Sort(mapper1.GetPath());
+      std::cout<<"mapper 1 finished"<<std::endl;
+      
+      //mapper2
+      izenelib::am::ssf::Writer<> mapper2(work_dir+"/map2");
+      mapper2.Open();
+      
+      {
+        izenelib::am::ssf::Joiner<uint32_t, KK, std::pair<IdType, float> > joiner1(mapper1.GetPath());
+        joiner1.Open();
+        std::vector<std::pair<IdType, float> > value_list;
+        
+        KK col_num = 0;
+        x = 0;
+        while(joiner1.Next(col_num, value_list))
+        {
+            if(x%1==0)
+            {
+                std::cout<<"j1: "<<x<<std::endl;
+            }
+            std::cout<<"j1 size:"<<value_list.size()<<std::endl;
+            for(uint32_t i=0;i<value_list.size();i++)
+            {
+                for(uint32_t j=i+1;j<value_list.size();j++)
+                {
+                    float v = value_list[i].second*value_list[j].second;
+                    std::pair<IdType, IdType> key(value_list[i].first, value_list[j].first);
+                    if(key.first>key.second)
+                    {
+                        IdType temp = key.first;
+                        key.first = key.second;
+                        key.second = temp;
+                    }
+                    mapper2.Append(key, v);
+                }
+            }
+            
+            ++x;
+        }
+      }
+      mapper2.Close();
+      izenelib::am::ssf::Sorter<uint32_t, std::pair<IdType, IdType> >::Sort(mapper2.GetPath());
+      std::cout<<"mapper 2 finished"<<std::endl;
+      {
+        izenelib::am::ssf::Joiner<uint32_t, std::pair<IdType, IdType>, float > joiner2(mapper2.GetPath());
+        joiner2.Open();
+        std::vector<float> value_list;
+        
+        std::pair<IdType, IdType> key_pair;
+        x = 0;
+        while(joiner2.Next(key_pair, value_list))
+        {
+            if(x%100000==0)
+            {
+                std::cout<<"j2: "<<x<<std::endl;
+            }
+            float sum = 0;
+//             std::cout<<"j2:"<<key_pair.first<<","<<key_pair.second<<std::endl;
+            for(uint32_t i=0;i<value_list.size();i++)
+            {
+                sum+=value_list[i];
+            }
+            if(sum>=t_)
+            {
+              callback_(key_pair.first, key_pair.second, sum);
+            }
+            ++x;
+        }
+      }
+      boost::filesystem::remove_all(work_dir);
+    }
+    
     template <typename KK>
     void ComputeNaive(const std::vector<izenelib::am::SparseVector<double, KK> >& matrix)
     {
