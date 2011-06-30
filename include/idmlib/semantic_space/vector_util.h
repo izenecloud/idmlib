@@ -27,8 +27,8 @@ class VectorUtil
       }
     }
     
-    template<typename V, typename T>
-    inline static void VectorAdd(izenelib::am::SparseVector<V, T>& to, const izenelib::am::SparseVector<V, T>& from)
+    template<typename V, typename T, typename I>
+    inline static void VectorAdd(izenelib::am::SparseVector<V, T>& to, const izenelib::am::SparseVector<V, T>& from, I times)
     {
       std::vector<std::pair<T, V> > new_value(to.value.size()+from.value.size());
       T p = 0;
@@ -39,7 +39,8 @@ class VectorUtil
       }
       for(uint32_t i=0;i<from.value.size();i++)
       {
-        new_value[p] = from.value[i];
+        new_value[p].first = from.value[i].first;
+        new_value[p].second = from.value[i].second*times;
         ++p;
       }
 
@@ -62,6 +63,73 @@ class VectorUtil
       {
         to.value.push_back(std::make_pair(key, value) );
       }
+    }
+    
+    template<typename V, typename T>
+    inline static void VectorAdd(izenelib::am::SparseVector<V, T>& to, const izenelib::am::SparseVector<V, T>& from)
+    {
+      VectorAdd<V,T, uint32_t>(to, from, 1);
+    }
+    
+    
+    template<typename V, typename T, typename I>
+    inline static void Push(izenelib::am::SparseVector<V, T>& to, const izenelib::am::SparseVector<V, T>& from, I times)
+    {
+      T p = to.value.size();
+      to.value.resize(to.value.size()+from.value.size());
+      
+      for(uint32_t i=0;i<from.value.size();i++)
+      {
+        to.value[p].first = from.value[i].first;
+        to.value[p].second = from.value[i].second*times;
+        ++p;
+      }       
+    }
+    
+    template<typename V, typename T>
+    inline static void Flush(izenelib::am::SparseVector<V, T>& vec)
+    {
+      std::vector<std::pair<T, V> > new_value(vec.value.begin(), vec.value.end());
+      std::sort(new_value.begin(), new_value.end());
+      T key = 0;
+      V value = 0;
+      vec.value.resize(0);
+      for(uint32_t i=0;i<new_value.size();i++)
+      {
+        T current_key = new_value[i].first;
+        if(current_key!=key && value!=0)
+        {
+          vec.value.push_back(std::make_pair(key, value) );
+          value = 0;
+        }
+        value += new_value[i].second;
+        key = current_key;
+      }
+      if(value!=0)
+      {
+        vec.value.push_back(std::make_pair(key, value) );
+      }      
+    }
+    
+    template<typename V, typename T>
+    inline static void VectorMultiple(const izenelib::am::SparseVector<V, T>& from, izenelib::am::SparseVector<V, T>& to, int m)
+    {
+        to.value.assign(from.value.begin(), from.value.end());
+        for(uint32_t i=0; i<to.value.size();i++)
+        {
+            to.value[i].second *= m;
+        }
+    }
+    
+    template<typename V, typename D, typename T>
+    inline static void VectorCopy(const izenelib::am::SparseVector<V, T>& from, izenelib::am::SparseVector<D, T>& to)
+    {
+        to.value.resize(from.value.size());
+        for(uint32_t i=0; i<to.value.size();i++)
+        {
+            to.value[i].first = from.value[i].first;
+            to.value[i].second = (D)from.value[i].second;
+        }
     }
 };
 

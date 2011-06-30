@@ -9,4 +9,8 @@
 # define IZENECMA_KNOWLEDGE "@izenecma_KNOWLEDGE@"
 #endif
 
+#ifndef IZENEJMA_KNOWLEDGE
+# define IZENEJMA_KNOWLEDGE "@izenejma_KNOWLEDGE@"
+#endif
+
 #endif // INCLUDED_TEST_RESOURCES_H

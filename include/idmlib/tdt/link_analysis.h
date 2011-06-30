@@ -13,13 +13,13 @@
 
 #include <algorithm>
 #include <cmath>
-#include <am/external_sort/izene_sort.hpp>
-#include <am/sequence_file/SimpleSequenceFile.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/function.hpp>
 #include <idmlib/similarity/term_similarity.h>
+#include <idmlib/similarity/term_similarity_table.h>
+#include <idmlib/similarity/sim_output_collector.h>
 #include "ema.h"
 NS_IDMLIB_TDT_BEGIN
 

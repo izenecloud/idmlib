@@ -6,7 +6,7 @@
 #include <iostream>
 #include <idmlib/idm_types.h>
 #include <util/file_object.h>
-
+#include <am/sequence_file/ssfr.h>
 NS_IDMLIB_SIM_BEGIN
 
 template <class Container>

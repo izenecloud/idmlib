@@ -1,6 +1,7 @@
 #include <idmlib/similarity/term_similarity.h>
 #include <am/matrix/matrix_mem_io.h>
 #include <am/matrix/matrix_file_io.h>
+#include <util/ClockTimer.h>
 #include <boost/regex.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
@@ -14,6 +15,7 @@ int main(int argc, char** argv)
     std::cerr<<"Usage: ./kp_similarity <inverted_text_file> <output_file>"<<std::endl;
     return -1;
   }
+  izenelib::util::ClockTimer timer;
   std::string kp_inverted_file(argv[1]);
   std::string output_file(argv[2]);
   std::cout<<"file : "<<kp_inverted_file<<std::endl;
@@ -35,12 +37,13 @@ int main(int argc, char** argv)
     return -1;
   }
   TermSimilarityType* sim = new TermSimilarityType(test_dir, rig_dir, sim_collector, 0.4);
+  sim->SetDocSim(true);
   if(!sim->Open())
   {
     std::cout<<"open error"<<std::endl;
     return -1;
   }
-  uint32_t context_max = 10000000;
+  uint32_t context_max = 200000;
   if(!sim->SetContextMax(context_max))
   {
     std::cerr<<"SetContextMax error"<<std::endl;
@@ -124,6 +127,7 @@ int main(int argc, char** argv)
   }
   ofs.close();
   std::cout<<"Output finished"<<std::endl;
+  std::cout<<"Totally cost "<<timer.elapsed()<<" seconds"<<std::endl;
   delete sim;
   delete table;
   return 0;
