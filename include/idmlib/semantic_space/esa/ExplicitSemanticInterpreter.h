@@ -46,11 +46,16 @@ public:
 #ifndef IZENE_INDEXER_
         pWikiIndex_.reset(new MemWikiIndex(wikiIndexPath));
         cout << "loading wiki index.."<<endl;
-        pWikiIndex_->load();
+        bWikiIndexState_ = pWikiIndex_->load();
 #else
         pIndexer_ = idmlib::ssp::IzeneIndexHelper::createIndexer(wikiIndexPath+"/izene_index");
         wikiDocNum_ = pIndexer_->getIndexReader()->numDocs();
 #endif
+    }
+
+    bool getWikiIndexState()
+    {
+        return bWikiIndexState_;
     }
 
 public:
@@ -78,6 +83,8 @@ private:
     boost::shared_ptr<MemWikiIndex> pWikiIndex_;
 
     weight_t thresholdWegt_;
+
+    bool bWikiIndexState_;
 
 #ifdef IZENE_INDEXER_
     boost::shared_ptr<Indexer> pIndexer_;

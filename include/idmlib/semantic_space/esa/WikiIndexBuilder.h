@@ -26,10 +26,11 @@ public:
     WikiIndexBuilder(
         const std::string& wikiColBasePath,
         const std::string& laResPath,
+        const std::vector<std::string>& processProperties,
         size_t maxDoc = 0,
         bool removeStopwords = false,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
-            : CollectionProcessor(wikiColBasePath, laResPath, maxDoc, removeStopwords, encoding)
+            : CollectionProcessor(wikiColBasePath, laResPath, processProperties, maxDoc, removeStopwords, encoding)
     {
     }
 
@@ -69,9 +70,10 @@ public:
     IzeneWikiIndexBuilder(
         const std::string& wikiColBasePath,
         const std::string& laResPath,
+        const std::vector<std::string>& processProperties,
         size_t maxDoc = 0,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
-            : CollectionProcessor(wikiColBasePath, laResPath, maxDoc, encoding)
+            : CollectionProcessor(wikiColBasePath, laResPath, processProperties, maxDoc, encoding)
     {
         wikiIndex_.reset(new IzeneWikiIndex(pIdmAnalyzer_, encoding_));
     }

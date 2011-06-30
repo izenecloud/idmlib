@@ -66,7 +66,7 @@ public:
     }
 
     /*virtual*/
-    void load()
+    bool load()
     {
         // todo add cache for izenelib indexer
     }

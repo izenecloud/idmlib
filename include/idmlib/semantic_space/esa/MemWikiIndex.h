@@ -63,11 +63,11 @@ public:
         clear();
     }
 
-    void load()
+    bool load()
     {
         clear();
 
-        loadIndex_();
+        return loadIndex_();
 
 #ifdef MEMWIKI_INDEX_TEST
         printWikiIndex();

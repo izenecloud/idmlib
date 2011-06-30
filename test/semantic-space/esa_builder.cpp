@@ -79,14 +79,18 @@ int main(int argc, char** argv)
     }
     std::cout << "print: " << print << endl;
 
+    std::vector<std::string> processProperties;
+    processProperties.push_back("Title");
+    processProperties.push_back("Content");
+
     //*
+    WikiIndexBuilder wikiIndexBuilder(wikiColPath, laResPath, processProperties, maxDoc);
     boost::shared_ptr<MemWikiIndex> wikiIndex(new MemWikiIndex(wikiIndexDir));
-    WikiIndexBuilder wikiIndexBuilder(wikiColPath, laResPath, maxDoc);
     wikiIndexBuilder.build(wikiIndex);
     //wikiIndex->load(); // test */
 
     /* xxx
-    IzeneWikiIndexBuilder izeneWikiIndexBuilder(wikiColPath, laResPath, maxDoc);
+    IzeneWikiIndexBuilder izeneWikiIndexBuilder(wikiColPath, laResPath, processProperties, maxDoc);
     izeneWikiIndexBuilder.build();
     //*/
 

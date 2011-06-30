@@ -97,8 +97,11 @@ int main(int argc, char** argv)
 	std::cout << "max-doc: " << maxDoc << endl;
 
 
-    /* get doc vectors
-	DocumentRepresentor docRepresentor(colBasePath, laResPath, docSetPath, maxDoc);
+    //* get doc vectors
+	std::vector<std::string> mining_properties;
+	mining_properties.push_back("Title");
+	mining_properties.push_back("Content");
+	DocumentRepresentor docRepresentor(colBasePath, laResPath, docSetPath, mining_properties, maxDoc);
 	docRepresentor.represent();
 	//
 	ExplicitSemanticInterpreter esInter(wikiIndexdir, docSetPath);
@@ -112,11 +115,11 @@ int main(int argc, char** argv)
 	boost::shared_ptr<DocSimOutput> output(new DocSimOutput(docSimPath));
 
 	AllPairsSearch allPairs(output, thresholdSim);
-	///allPairs.findAllSimilarPairs(dataSetIterator, maxDoc);
+	allPairs.findAllSimilarPairs(dataSetIterator, maxDoc);
 
 	std::vector<boost::shared_ptr<DataSetIterator> > dataSetIteratorList;
 	getDataSetIterators(docSetPath, dataSetIteratorList);
-	allPairs.findAllSimilarPairs(dataSetIteratorList, maxDoc);
+	//allPairs.findAllSimilarPairs(dataSetIteratorList, maxDoc);
 
 	//*/
 
@@ -125,6 +128,7 @@ int main(int argc, char** argv)
 
 	for (size_t idx =1 ; idx <= 3; idx++) {
         output->getSimilarDocIdScoreList(idx,10,result);
+        cout << output->getSimilarDocNum(idx) <<endl;
 
         for (size_t i =0; i <result.size(); i++)
             cout <<"("<<result[i].first<<","<<result[i].second<<") ";

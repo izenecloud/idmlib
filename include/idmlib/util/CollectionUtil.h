@@ -70,6 +70,7 @@ public:
     CollectionProcessor(
         const std::string& colBasePath,
         const std::string& laResPath,
+        const std::vector<std::string>& processProperties,
         size_t maxDoc = 0,
         bool removeStopwords = false,
         izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8)
@@ -81,6 +82,14 @@ public:
     , content_("", encoding)
     , pTermIdList_(new TermIdList())
     {
+        std::vector<std::string>::const_iterator iter;
+        for (iter = processProperties.begin(); iter != processProperties.end(); iter++)
+        {
+            izenelib::util::UString propertyName(*iter, encoding);
+            propertyName.toLowerString();
+            processProperties_[propertyName] = true;
+        }
+
     	s_pIdManager_ = idmlib::IdMgrFactory::getIdManagerESA();
 
         createAnalyzer(removeStopwords);
@@ -98,6 +107,7 @@ protected:
     virtual void processDocument()
     {
         content_.clear();
+        bool hasDocid = false;
 
         doc_properties_iterator proIter;
         for (proIter = curSCDDoc_->begin(); proIter != curSCDDoc_->end(); proIter ++)
@@ -107,15 +117,21 @@ protected:
             propertyName.toLowerString();
 
             if ( propertyName == izenelib::util::UString("docid", encoding_) ) {
-                bool ret = s_pIdManager_->getDocIdByDocName(propertyValue, curDocId_, false);
-                if (ret) ;
+                s_pIdManager_->getDocIdByDocName(propertyValue, curDocId_, false);
+                hasDocid = true;
             }
-            if ( propertyName == izenelib::util::UString("title", encoding_) ) {
+
+            /*if ( propertyName == izenelib::util::UString("title", encoding_) ) {
                 // increase the weight of title?
                 content_ += propertyValue;
                 content_ += propertyValue;
             }
             else if ( propertyName == izenelib::util::UString("content", encoding_)) {
+                content_ += propertyValue;
+            }*/
+
+            if ( isProcessProperty(propertyName) )
+            {
                 content_ += propertyValue;
             }
             else {
@@ -124,6 +140,11 @@ protected:
         }
 
         //cout <<"docid: "<<curDocId_<<endl;
+        if ( !hasDocid )
+        {
+            std::cerr<<"SCDoc ERROR: no DOCID detected, skipped."<<std::endl;
+            return;
+        }
 
         processDocumentContent(); // xxx
     }
@@ -163,14 +184,15 @@ protected:
     }
 
 protected:
-//    void createIdManager()
-//    {
-//        if (!exists(colPath_.dataIdPath_)) {
-//            DLOG(ERROR) <<"Not existed: " <<colPath_.dataIdPath_ <<std::endl;
-//        }
-//        pIdManager_.reset(new IDManager(colPath_.dataIdPath_));
-//        BOOST_ASSERT(pIdManager_);
-//    }
+    bool isProcessProperty(izenelib::util::UString propertyName)
+    {
+        std::map<izenelib::util::UString, bool>::iterator iter;
+        iter = processProperties_.find(propertyName);
+
+        if (iter != processProperties_.end())
+            return true;
+        return false;
+    }
 
     void createAnalyzer(bool removeStopwords=false)
     {
@@ -186,6 +208,7 @@ protected:
     std::string laResPath_;
     size_t maxDoc_;
     izenelib::util::UString::EncodingType encoding_;
+    std::map<izenelib::util::UString, bool> processProperties_;
 
     // Language Analyzer
     boost::shared_ptr<idmlib::util::IDMAnalyzer> pIdmAnalyzer_;

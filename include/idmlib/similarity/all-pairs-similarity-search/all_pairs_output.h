@@ -12,6 +12,9 @@
 #include <idmlib/idm_types.h>
 
 #include <boost/assert.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
+
 #include <am/tc/raw/Hash.h>
 #include <am/external_sort/izene_sort.hpp>
 #include <am/sdb_hash/sdb_fixedhash.h>
@@ -93,6 +96,9 @@ public:
         unsigned maxNum,
         std::vector<std::pair<uint32_t, float> >& result);
 
+    ///
+    uint32_t getSimilarDocNum(uint32_t documentId);
+
 
 private:
     bool constructSimIndex();
@@ -152,6 +158,8 @@ private:
     uint8_t metalen_;
 
     boost::shared_ptr<Hash> db_;
+
+    mutable boost::shared_mutex mutex_;
 };
 
 NS_IDMLIB_SIM_END

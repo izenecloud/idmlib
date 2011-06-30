@@ -10,10 +10,10 @@ void DocSimOutput::getSimilarDocIdScoreList(
 {
     result.clear();
 
-    //boost::lock_guard<boost::shared_mutex> lg(mutex_);
+    boost::lock_guard<boost::shared_mutex> lg(mutex_);
     if (!db_->is_open() && !db_->open())
     {
-        std::cerr << "similarity index db is not opened" << std::endl;
+        std::cerr << "esa similarity index db is not opened" << std::endl;
         return ;
     }
 
@@ -39,6 +39,28 @@ void DocSimOutput::getSimilarDocIdScoreList(
     }
 
     return;
+}
+
+uint32_t DocSimOutput::getSimilarDocNum(uint32_t documentId)
+{
+    boost::lock_guard<boost::shared_mutex> lg(mutex_);
+    if (!db_->is_open() && !db_->open())
+    {
+        std::cerr << "esa similarity index db is not opened" << std::endl;
+        return 0;
+    }
+
+    Buffer key(reinterpret_cast<char*>(&documentId), sizeof(uint32_t));
+    Buffer value;
+    if (db_->get(key, value))
+    {
+        value_type* first = reinterpret_cast<value_type*>(value.data());
+        std::size_t size = value.size() / sizeof(value_type);
+
+        return size;
+    }
+
+    return 0;
 }
 
 /// private ////

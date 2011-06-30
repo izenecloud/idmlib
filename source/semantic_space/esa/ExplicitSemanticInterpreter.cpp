@@ -15,6 +15,12 @@ bool ExplicitSemanticInterpreter::interpret(size_t maxOutFileSize, size_t maxCou
 {
     DLOG(INFO) << "start interpreting" <<endl;
 
+    if (!bWikiIndexState_)
+    {
+        std::cerr << "WikiIndex load failed!"<< std::endl;
+        return false;
+    }
+
     SparseVectorSetIFileType inf(docSetPath_+"/doc_rep.vec");
     if (!inf.open())
     {
@@ -41,15 +47,15 @@ bool ExplicitSemanticInterpreter::interpret(size_t maxOutFileSize, size_t maxCou
 
         SparseVectorType ivec(docvec.rowid);
 
-        double t1 = TimeUtil::GetCurrentTimeMS(); // time
+        //double t1 = TimeUtil::GetCurrentTimeMS(); // time
 #ifndef IZENE_INDEXER_
         interpret_(docvec, ivec);
 #else
         interpret_ir_(docvec, ivec);
 #endif
-        double t2 = TimeUtil::GetCurrentTimeMS(); // time
+        //double t2 = TimeUtil::GetCurrentTimeMS(); // time
         //cout << "interpreted in "<< (t2-t1) <<"s."<< endl;
-        sTotalTime += (t2-t1); // time
+        //sTotalTime += (t2-t1); // time
 
 #ifdef DOC_SIM_TEST
         cout << "**interpreted vector: " << endl;

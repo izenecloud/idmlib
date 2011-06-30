@@ -60,7 +60,7 @@ public:
     virtual void postProcess() = 0;
     /** @} */
 
-    virtual void load() = 0;
+    virtual bool load() = 0;
 
 public:
     /// for test
