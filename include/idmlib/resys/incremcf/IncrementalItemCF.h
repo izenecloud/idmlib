@@ -37,7 +37,7 @@ public:
     void batchBuild();
 
     /**
-     * Update covisist matrix and similarity matrix.
+     * Update covisist and similarity matrix.
      * @param oldItems the items visited before
      * @param newItems the new visited items
      *
@@ -89,10 +89,44 @@ public:
     void dump();
 
 private:
+    /**
+     * Update covisist matrix.
+     * @param oldItems the items visited before
+     * @param newItems the new visited items
+     *
+     * for performance reason, it has below post-condition:
+     * @post when this function returns, the items in @p newItems would be moved to the end of @p oldItems,
+     *       and @p newItems would be empty.
+     */
+    void updateVisitMatrix_(
+        std::list<uint32_t>& oldItems,
+        std::list<uint32_t>& newItems
+    );
+
+    /**
+     * Update similarity matrix.
+     * @param rows the row numbers to update
+     */
+    void updateSimMatrix_(const std::list<uint32_t>& rows);
+
+    /**
+     * Calculate the value of similarity matrix[row][col].
+     * @param row the row number of similarity matrix
+     * @param col the column number of similarity matrix
+     * @return the value for similarity matrix[row][col]
+     */
+    float calcSimValue_(
+        uint32_t row,
+        uint32_t col
+    );
+
+private:
     ItemCoVisitation<CoVisitFreq> covisitation_;
-    SimilarityMatrix<uint32_t,uint8_t> similarity_;
+    SimilarityMatrix<uint32_t,float> similarity_;
     UserRecommendItem userRecommendItems_;
     size_t max_items_stored_for_each_user_;
+
+    friend class ItemCFTest;
 };
 
 NS_IDMLIB_RESYS_END

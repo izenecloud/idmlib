@@ -92,6 +92,7 @@ public:
 
     ~ItemCoVisitation()
     {
+        dump();
     }
 
     /**

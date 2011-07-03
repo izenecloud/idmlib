@@ -47,26 +47,93 @@ void IncrementalItemCF::buildMatrix(
     std::list<uint32_t>& newItems
 )
 {
-    covisitation_.visit(oldItems, newItems);
-    ///oldItems has already contained elements from newItems now
+    updateVisitMatrix_(oldItems, newItems);
 
-    for(std::list<uint32_t>::iterator it_i = oldItems.begin(); it_i !=oldItems.end(); ++it_i)
+    updateSimMatrix_(oldItems);
+}
+
+void IncrementalItemCF::updateVisitMatrix_(
+    std::list<uint32_t>& oldItems,
+    std::list<uint32_t>& newItems
+)
+{
+    covisitation_.visit(oldItems, newItems);
+}
+
+void IncrementalItemCF::updateSimMatrix_(const std::list<uint32_t>& rows)
+{
+    typedef SimilarityMatrix<uint32_t,float>::RowType RowType;
+    std::set<uint32_t> inputSet(rows.begin(), rows.end());
+    std::set<uint32_t> colSet;
+
+    for (std::list<uint32_t>::const_iterator it_i = rows.begin();
+        it_i != rows.end(); ++it_i)
     {
-        uint32_t Int_I_I = covisitation_.coeff(*it_i, *it_i);
-        std::list<std::pair<uint32_t, uint8_t> > newValues;
-        for(std::list<uint32_t>::iterator it_j = oldItems.begin(); it_j !=oldItems.end(); ++it_j)
+        uint32_t row = *it_i;
+
+        // phase 1: update columns in each row
+        boost::shared_ptr<RowType> rowItems = similarity_.rowItems(row);
+        for (RowType::const_iterator it_j = rowItems->begin();
+            it_j != rowItems->end(); ++it_j)
         {
-            if(*it_j == *it_i) continue;
-            uint32_t Int_J_J = covisitation_.coeff(*it_j, *it_j);
-            uint32_t Int_I_J = covisitation_.coeff(*it_i, *it_j);
-            float denominator = sqrt(Int_I_I) * sqrt(Int_J_J);
-            float sim = (denominator == 0)? 0: (float)Int_I_J/denominator;
-            uint8_t simv = izenelib::util::SmallFloat::floatToByte315(sim);
-            similarity_.coeff(*it_i,*it_j,simv);
-            newValues.push_back(std::make_pair(*it_j, simv));
+            uint32_t col = it_j->first;
+            assert(col != row && "there should be no similarity value on diagonal line!");
+
+            // except those in inputSet as they would be updated in phase 2
+            if (inputSet.find(col) == inputSet.end())
+            {
+                float sim = calcSimValue_(row, col);
+                similarity_.coeff(row, col, sim);
+                similarity_.coeff(col, row, sim);
+
+                colSet.insert(col);
+            }
         }
-        similarity_.adjustNeighbor(*it_i, newValues);
+
+        // phase 2: update all pairs in rows
+        for (std::list<uint32_t>::const_iterator it_j = rows.begin();
+            it_j != rows.end(); ++it_j)
+        {
+            uint32_t col = *it_j;
+
+            if (row == col)
+                continue;
+
+            float sim = calcSimValue_(row, col);
+            similarity_.coeff(row, col, sim);
+        }
+
+        // update neighbor for this row
+        similarity_.loadNeighbor(row);
     }
+
+    // update neighbor for col items
+    for (std::set<uint32_t>::const_iterator it = colSet.begin();
+        it != colSet.end(); ++it)
+    {
+        similarity_.loadNeighbor(*it);
+    }
+}
+
+float IncrementalItemCF::calcSimValue_(
+    uint32_t row,
+    uint32_t col
+)
+{
+    const uint32_t visit_i_i = covisitation_.coeff(row, row);
+    const uint32_t visit_i_j = covisitation_.coeff(row, col);
+    const uint32_t visit_j_j = covisitation_.coeff(col, col);
+
+    float sim = 0;
+
+    if (visit_i_j)
+    {
+        assert(visit_i_i && visit_j_j);
+
+        sim = (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
+    }
+
+    return sim;
 }
 
 void IncrementalItemCF::buildUserRecommendItems(
@@ -124,7 +191,7 @@ float IncrementalItemCF::estimate(
         }
     }
     if(count == 0) return 0;
-    return totalSimilarity / preference;
+    return preference / totalSimilarity;
 }
 
 void IncrementalItemCF::getTopItems(
@@ -138,18 +205,16 @@ void IncrementalItemCF::getTopItems(
     boost::unordered_map<uint32_t, float> resultSet;
     for(size_t i = 0; i < itemIds.size(); ++i)
     {
-        std::vector<std::pair<uint32_t, uint8_t> > similarities;
+        std::vector<std::pair<uint32_t, float> > similarities;
         if(similarity_.itemSimilarity(itemIds[i], similarities))
         {
-            std::vector<std::pair<uint32_t, uint8_t> >::iterator iter;
+            std::vector<std::pair<uint32_t, float> >::iterator iter;
             for(iter = similarities.begin(); iter != similarities.end(); ++iter)
             {
                 if(filterSet.find(iter->first) == filterSet.end()
                    && (!rescorer || !rescorer->isFiltered(iter->first)))
                 {
-                    float v = izenelib::util::SmallFloat::byte315ToFloat(iter->second);
-                    float& weight = resultSet[iter->first];
-                    weight += v;
+                    resultSet[iter->first] += iter->second;
                 }
             }
         }
@@ -164,8 +229,8 @@ void IncrementalItemCF::getTopItems(
     for(size_t i = 0; i < count; ++i)
     {
         RecommendedItem item = resultQueue.pop();
-        item.value /= filterSet.size(); ///for normalization
-        topItems.push_front(item);	
+        item.value /= itemIds.size(); ///for normalization
+        topItems.push_front(item);
     }
 }
 
