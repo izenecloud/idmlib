@@ -388,7 +388,7 @@ int main(int ac, char** av)
   if (vm.count("kma-path")) {
     std::string kma_path = vm["kma-path"].as<std::string>();
     std::cout << "kma-path: " << kma_path <<std::endl;
-    analyzer = new idmlib::util::IDMAnalyzer(kma_path);
+    analyzer = new idmlib::util::IDMAnalyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(kma_path,"",""));
   } else {
     std::cout << "kma-path not set"<<std::endl;
     analyzer = new idmlib::util::IDMAnalyzer();

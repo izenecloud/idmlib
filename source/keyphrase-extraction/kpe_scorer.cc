@@ -545,7 +545,7 @@ bool KPEScorer::isSplitTerm(const izenelib::util::UString& ustr, char tag, uint3
         insertNonAppearTerm(termId);
         result = true;
     }
-    else if( (tag == idmlib::util::IDMTermTag::KOR||tag == idmlib::util::IDMTermTag::KOR_NOUN) && ustr.length()==1 )
+    else if( (tag == idmlib::util::IDMTermTag::KOR||tag == idmlib::util::IDMTermTag::NOUN) && ustr.length()==1 )
     {
         insertNonAppearTerm(termId);
         result = true;

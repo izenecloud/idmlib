@@ -17,6 +17,7 @@
 #include <idmlib/util/resource_util.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <boost/algorithm/string/trim.hpp>
+#include "idm_analyzer_config.h"
 #include "idm_id_converter.h"
 #include "idm_term.h"
 #include "Util.hpp"
@@ -27,15 +28,12 @@ NS_IDMLIB_UTIL_BEGIN
 class IDMAnalyzer
 {
  public:
-  IDMAnalyzer();
+     
+  IDMAnalyzer();   
+  
+  IDMAnalyzer(const IDMAnalyzerConfig& config);
    
    
-  IDMAnalyzer(const std::string& kma_resource_path);
-  
-  IDMAnalyzer(const std::string& kma_resource_path, const std::string& cma_res_path);
-  
-  IDMAnalyzer(const std::string& cma_res_path, la::ChineseAnalyzer::ChineseAnalysisType ca_type, bool removeStopwords=false);
-
   ~IDMAnalyzer();
   
   void ExtractSpecialChar(bool extractSpecialChar, bool convertToPlaceHolder);
@@ -72,6 +70,8 @@ class IDMAnalyzer
   void GetTgTermList(const izenelib::util::UString& text, std::vector<idmlib::util::IDMTerm>& term_list);
   
  private:
+     
+  void InitWithConfig_(const IDMAnalyzerConfig& config);
   void simple_(izenelib::util::UString& content);
    
  private:

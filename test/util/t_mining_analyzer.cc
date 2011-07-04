@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_SUITE(analyzer_test)
 
 BOOST_AUTO_TEST_CASE(display_test)
 {
-  IDMAnalyzer analyzer(WISEKMA_KNOWLEDGE);
+  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",""));
 //   analyzer.ExtractSpecialChar(true, false);
 //   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
   izenelib::util::UString text(" Ｙｏｕ ａｒＥ　ａ　ｐｉｇ,， ａｒｅ　ｙｏｕ?２００１年| [[数理逻辑|數學邏輯]] || [[集合论|集合論]] || [[範疇論, 你呢, 呵呵,", izenelib::util::UString::UTF_8);
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 BOOST_AUTO_TEST_CASE(chinese_test)
 {
   std::cout<<"[]"<<IZENECMA_KNOWLEDGE<<std::endl;
-  IDMAnalyzer analyzer(IZENECMA_KNOWLEDGE,la::ChineseAnalyzer::maximum_match) ;
+  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig("",IZENECMA_KNOWLEDGE,"")) ;
 //   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
   izenelib::util::UString text("国家经 济 Sites year, 呵呵! United configuration", izenelib::util::UString::UTF_8);
   
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(chinese_test)
 
 BOOST_AUTO_TEST_CASE(korean_test)
 {
-  IDMAnalyzer analyzer(WISEKMA_KNOWLEDGE);
+  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",""));
 //   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
   izenelib::util::UString text("정형석기자", izenelib::util::UString::UTF_8);
   uint32_t term_count = 3;
@@ -181,6 +181,25 @@ BOOST_AUTO_TEST_CASE(korean_test)
     BOOST_CHECK( term_list[i].wordOffset_ == position_vec[i] );
     BOOST_CHECK( term_list[i].pos_ == tag_vec[i] );
   }
+
+}
+
+
+BOOST_AUTO_TEST_CASE(ja_test)
+{
+  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig("","",IZENEJMA_KNOWLEDGE));
+//   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
+  izenelib::util::UString text("イラク共和国（イラクきょうわこく）、通称イラクは、中東・西アジアの連邦共和制国家である。首都はバグダード（バグダッド）で、サウジアラビア、クウェート、シリア、トルコ、イラン、ヨルダンと隣接する。古代メソポタミア文明を受け継ぐ土地にあり、世界で3番目の原油埋蔵国である。", izenelib::util::UString::UTF_8);
+  
+  la::TermList term_list;
+  
+  analyzer.GetTermList(text, term_list);
+  
+  for( uint32_t i=0;i<term_list.size();++i )
+  {
+    std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
+  }
+  
 
 }
 

@@ -5,94 +5,118 @@ using namespace idmlib::util;
 IDMAnalyzer::IDMAnalyzer()
 :la_(new la::LA() ), simpler_set_(false)
 {
-    boost::shared_ptr<la::Analyzer> char_analyzer(new la::CharAnalyzer() );
-    la::CharAnalyzer* p_char_analyzer = static_cast<la::CharAnalyzer*>(char_analyzer.get());
-    p_char_analyzer->setSeparateAll(false);
-    //     la_->setAnalyzer( char_analyzer );
-
-    boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
-    ml_analyzer->setExtractSpecialChar(false, false);
-    ml_analyzer->setDefaultAnalyzer( char_analyzer );
-
-    la_->setAnalyzer( ml_analyzer );
-    stemmer_ = new la::stem::Stemmer();
-    stemmer_->init(la::stem::STEM_LANG_ENGLISH);
+    InitWithConfig_(IDMAnalyzerConfig::GetCommonConfig("","",""));
 }
 
-
-IDMAnalyzer::IDMAnalyzer(const std::string& kma_resource_path)
+IDMAnalyzer::IDMAnalyzer(const IDMAnalyzerConfig& config)
 :la_(new la::LA() ), simpler_set_(false)
+{
+    InitWithConfig_(config);
+}
+
+void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
 {
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
     ml_analyzer->setExtractSpecialChar(false, false);
-    boost::shared_ptr<la::Analyzer> korean_analyzer(new la::KoreanAnalyzer( kma_resource_path ) );
-    la::KoreanAnalyzer* p_korean_analyzer = static_cast<la::KoreanAnalyzer*>(korean_analyzer.get());
-    p_korean_analyzer->setLabelMode();
-    //     p_korean_analyzer->setNBest(1);
-    p_korean_analyzer->setExtractEngStem( false );
-    p_korean_analyzer->setExtractSynonym(false);
-    p_korean_analyzer->setCaseSensitive(true, false);
-    ml_analyzer->setDefaultAnalyzer( korean_analyzer );
-    boost::shared_ptr<la::Analyzer> char_analyzer(new la::CharAnalyzer() );
-    la::CharAnalyzer* p_char_analyzer = static_cast<la::CharAnalyzer*>(char_analyzer.get());
-    p_char_analyzer->setSeparateAll(false);
-    ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, char_analyzer );
-    la_->setAnalyzer( ml_analyzer );
-    stemmer_ = new la::stem::Stemmer();
-    stemmer_->init(la::stem::STEM_LANG_ENGLISH);
-}
-
-IDMAnalyzer::IDMAnalyzer(const std::string& kma_resource_path, const std::string& cma_res_path)
-:la_(new la::LA() ), simpler_set_(false)
-{
-    boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
-    ml_analyzer->setExtractSpecialChar(false, false);
-    boost::shared_ptr<la::Analyzer> korean_analyzer(new la::KoreanAnalyzer( kma_resource_path ) );
-    la::KoreanAnalyzer* p_korean_analyzer = static_cast<la::KoreanAnalyzer*>(korean_analyzer.get());
-    p_korean_analyzer->setLabelMode();
-    //     p_korean_analyzer->setNBest(1);
-    p_korean_analyzer->setExtractEngStem( false );
-    p_korean_analyzer->setExtractSynonym(false);
-    p_korean_analyzer->setCaseSensitive(true, false);
-    ml_analyzer->setDefaultAnalyzer( korean_analyzer );
-    boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, false) );
-    la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
-    pch->setAnalysisType(la::ChineseAnalyzer::maximum_match);
-    pch->setLabelMode();
-    //pch->setRemoveStopwords(true);
-    ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
-    la_->setAnalyzer( ml_analyzer );
-    stemmer_ = new la::stem::Stemmer();
-    stemmer_->init(la::stem::STEM_LANG_ENGLISH);
     
+    boost::shared_ptr<la::Analyzer> ema_analyzer;
+    boost::shared_ptr<la::Analyzer> kma_analyzer;
+    boost::shared_ptr<la::Analyzer> cma_analyzer;
+    boost::shared_ptr<la::Analyzer> jma_analyzer;
+    
+    if(config.ema_config.enable)
+    {
+        ema_analyzer.reset(new la::EnglishAnalyzer() );
+        static_cast<la::EnglishAnalyzer*>(ema_analyzer.get())->setCaseSensitive(config.ema_config.case_sensitive, false);
+    }
+    
+    if(config.kma_config.path!="")
+    {
+        kma_analyzer.reset(new la::KoreanAnalyzer( config.kma_config.path ) );
+        la::KoreanAnalyzer* p_korean_analyzer = static_cast<la::KoreanAnalyzer*>(kma_analyzer.get());
+        p_korean_analyzer->setLabelMode();
+        //     p_korean_analyzer->setNBest(1);
+        p_korean_analyzer->setExtractEngStem( false );
+        p_korean_analyzer->setExtractSynonym(false);
+        p_korean_analyzer->setCaseSensitive(config.ema_config.case_sensitive, false);
+        ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::KOREAN, kma_analyzer );
+    }
+    
+    if(config.cma_config.use_char)
+    {
+        cma_analyzer.reset(new la::CharAnalyzer() );
+        la::CharAnalyzer* p_char_analyzer = static_cast<la::CharAnalyzer*>(cma_analyzer.get());
+        p_char_analyzer->setSeparateAll(false);
+    }
+    else
+    {
+        if(config.cma_config.path!="")
+        {
+            bool load_model = false;
+            if (config.cma_config.type == la::ChineseAnalyzer::maximum_entropy) {
+                load_model = true;
+            }
+            cma_analyzer.reset( new la::ChineseAnalyzer(config.cma_config.path, load_model) );
+
+            la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(cma_analyzer.get());
+            if ( pch != NULL ) {
+                pch->setExtractSpecialChar(false, false);
+                pch->setAnalysisType( config.cma_config.type);
+                pch->setLabelMode();
+                pch->setRemoveStopwords(config.cma_config.remove_stopwords);
+            }
+        }
+    }
+    
+    if(config.jma_config.path!="")
+    {
+        jma_analyzer.reset( new la::JapaneseAnalyzer(config.jma_config.path) );
+        la::JapaneseAnalyzer* pja = dynamic_cast<la::JapaneseAnalyzer*>(jma_analyzer.get());
+        pja->setExtractSpecialChar(false, false);
+        pja->setLabelMode();
+    }
+    
+    if(ema_analyzer)
+    {
+        ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::ENGLISH, ema_analyzer );
+    }
+    if(kma_analyzer)
+    {
+        ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::KOREAN, kma_analyzer );
+    }
+    if(cma_analyzer)
+    {
+        ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, cma_analyzer );
+    }
+    if(jma_analyzer)
+    {
+        ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::JAPANESE, jma_analyzer );
+    }
+
+    if(config.default_language == IDMAnalyzerConfig::ENGLISH)
+    {
+        ml_analyzer->setDefaultAnalyzer( ema_analyzer );
+    }
+    else if(config.default_language == IDMAnalyzerConfig::KOREAN)
+    {
+        ml_analyzer->setDefaultAnalyzer( kma_analyzer );
+    }
+    else if(config.default_language == IDMAnalyzerConfig::CHINESE)
+    {
+        ml_analyzer->setDefaultAnalyzer( cma_analyzer );
+    }
+    else if(config.default_language == IDMAnalyzerConfig::JAPANESE)
+    {
+        ml_analyzer->setDefaultAnalyzer( jma_analyzer );
+    }
+    
+    la_->setAnalyzer( ml_analyzer );
+    
+    stemmer_ = new la::stem::Stemmer();
+    stemmer_->init(la::stem::STEM_LANG_ENGLISH);
 }
 
-IDMAnalyzer::IDMAnalyzer(const std::string& cma_res_path, la::ChineseAnalyzer::ChineseAnalysisType ca_type, bool removeStopwords)
-:la_(new la::LA()), stemmer_(NULL), simpler_set_(false)
-{
-    boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer( new la::MultiLanguageAnalyzer() );
-    ml_analyzer->setExtractSpecialChar(false, false);
 
-    bool loadModel = false;
-    if (ca_type == la::ChineseAnalyzer::maximum_entropy) {
-        loadModel = true;
-    }
-    boost::shared_ptr<la::Analyzer> ch_analyzer( new la::ChineseAnalyzer(cma_res_path, loadModel) );
-
-    la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(ch_analyzer.get());
-    if ( pch != NULL ) {
-        pch->setExtractSpecialChar(false, false);
-        pch->setAnalysisType( ca_type /*la::ChineseAnalyzer::maximum_match*/);
-        pch->setLabelMode();
-        pch->setRemoveStopwords(removeStopwords);
-    }
-    ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::CHINESE, ch_analyzer );
-    ml_analyzer->setDefaultAnalyzer( ch_analyzer );
-    boost::shared_ptr<la::Analyzer>  en_analyzer(new la::EnglishAnalyzer() );
-    static_cast<la::EnglishAnalyzer*>(en_analyzer.get())->setCaseSensitive(false, false);
-    ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::ENGLISH, en_analyzer );
-    la_->setAnalyzer(ml_analyzer);
-}
 
 IDMAnalyzer::~IDMAnalyzer()
 {
@@ -338,75 +362,74 @@ void IDMAnalyzer::GetTgTermList(const izenelib::util::UString& text, std::vector
         if(p == size) bCheckTmpTermList = true;
         else
         {
-        position = raw_term_list[p].position;
-        if(last_position != position) bCheckTmpTermList = true;
+            position = raw_term_list[p].position;
+            if(last_position != position) bCheckTmpTermList = true;
         }
         if( bCheckTmpTermList )
         {
-        if( tmp_term_list.size() > 0 )
-        {
-            //TODO
-            if(tmp_term_list.size()==1)//
+            if( tmp_term_list.size() > 0 )
             {
-            uint32_t termId = 0;
-            if(tmp_term_list[0].tag== idmlib::util::IDMTermTag::KOR_NOUN && tmp_term_list[0].text.length()>=4)
-            {
-                tmp_term_list[0].tag = idmlib::util::IDMTermTag::KOR_COMP_NOUN;
-            }
-            else
-            {
-                if( tmp_term_list[0].text.isKoreanChar(0) && tmp_term_list[0].tag!=idmlib::util::IDMTermTag::KOR_NOUN
-                    && tmp_term_list[0].tag!=idmlib::util::IDMTermTag::KOR)
+                //TODO
+                if(tmp_term_list.size()==1)//
                 {
-                    tmp_term_list[0].tag = idmlib::util::IDMTermTag::KOR;
-                }
-            }
-            
-            termId = IDMIdConverter::GetId( tmp_term_list[0].text, tmp_term_list[0].tag );
-            TgTerm term(tmp_term_list[0].text, termId, tmp_term_list[0].tag, tmp_term_list[0].position);
-            term_list.push_back(term);
+                    uint32_t termId = 0;
+                    if(tmp_term_list[0].text.isKoreanChar(0) && tmp_term_list[0].tag== idmlib::util::IDMTermTag::NOUN && tmp_term_list[0].text.length()>=4)
+                    {
+                        tmp_term_list[0].tag = idmlib::util::IDMTermTag::KOR_COMP_NOUN;
+                    }
+                    else
+                    {
+                        if( tmp_term_list[0].text.isKoreanChar(0) && tmp_term_list[0].tag!=idmlib::util::IDMTermTag::NOUN
+                            && tmp_term_list[0].tag!=idmlib::util::IDMTermTag::KOR)
+                        {
+                            tmp_term_list[0].tag = idmlib::util::IDMTermTag::KOR;
+                        }
+                    }
+                    
+                    termId = IDMIdConverter::GetId( tmp_term_list[0].text, tmp_term_list[0].tag );
+                    TgTerm term(tmp_term_list[0].text, termId, tmp_term_list[0].tag, tmp_term_list[0].position);
+                    term_list.push_back(term);
 
-            }
-            else
-            {
-            if(tmp_term_list[0].tag == idmlib::util::IDMTermTag::KOR)
-            {
-                izenelib::util::UString combination;
-                for(uint32_t p=1;p<tmp_term_list.size();p++)
-                {
-                if( tmp_term_list[p].tag == idmlib::util::IDMTermTag::KOR_NOUN )
-                {
-                    combination.append(tmp_term_list[p].text);
                 }
                 else
                 {
-                    break;
-                }
-                }
-                if( combination.length() >= tmp_term_list[0].text.length()-1 && combination.length() >= 3 )
-                {
+                    if(tmp_term_list[0].tag == idmlib::util::IDMTermTag::KOR)
+                    {
+                        izenelib::util::UString combination;
+                        for(uint32_t p=1;p<tmp_term_list.size();p++)
+                        {
+                            if( tmp_term_list[p].text.isKoreanChar(0) && tmp_term_list[p].tag == idmlib::util::IDMTermTag::NOUN )
+                            {
+                                combination.append(tmp_term_list[p].text);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        if( combination.isKoreanChar(0) && combination.length() >= tmp_term_list[0].text.length()-1 && combination.length() >= 3 )
+                        {
+                            char tag = idmlib::util::IDMTermTag::NOUN;
+                            if(combination.length()>=4)
+                            {
+                                tag = idmlib::util::IDMTermTag::KOR_COMP_NOUN;
+                            }
+                            
+                            uint32_t termId = IDMIdConverter::GetId( combination, tag );
+                            TgTerm term(combination, termId, tag, tmp_term_list[0].position);
+                            term_list.push_back(term);
+                        }
+                        else
+                        {
+                            uint32_t termId = IDMIdConverter::GetId( tmp_term_list[0].text, tmp_term_list[0].tag );
+                            TgTerm term(tmp_term_list[0].text, termId, tmp_term_list[0].tag, tmp_term_list[0].position);
+                            term_list.push_back(term);
 
-                char tag = idmlib::util::IDMTermTag::KOR_NOUN;
-                if(combination.length()>=4)
-                {
-                    tag = idmlib::util::IDMTermTag::KOR_COMP_NOUN;
+                        }
+                    }
                 }
-                
-                uint32_t termId = IDMIdConverter::GetId( combination, tag );
-                TgTerm term(combination, termId, tag, tmp_term_list[0].position);
-                term_list.push_back(term);
-                }
-                else
-                {
-                uint32_t termId = IDMIdConverter::GetId( tmp_term_list[0].text, tmp_term_list[0].tag );
-                TgTerm term(tmp_term_list[0].text, termId, tmp_term_list[0].tag, tmp_term_list[0].position);
-                term_list.push_back(term);
-
-                }
+                tmp_term_list.clear();
             }
-            }
-            tmp_term_list.clear();
-        }
         }
         if(p == size) break;
 
@@ -419,14 +442,14 @@ void IDMAnalyzer::GetTgTermList(const izenelib::util::UString& text, std::vector
         char tag = raw_term_list[p].tag;
         if (tag == idmlib::util::IDMTermTag::ENG || tag == idmlib::util::IDMTermTag::CHN)//english or chinese
         {
-        uint32_t termId = IDMIdConverter::GetId( raw_term_list[p].text, tag );
-        TgTerm term(raw_term_list[p].text, termId, tag, position);
-        term_list.push_back(term);
+            uint32_t termId = IDMIdConverter::GetId( raw_term_list[p].text, tag );
+            TgTerm term(raw_term_list[p].text, termId, tag, position);
+            term_list.push_back(term);
         }
         else
         {
-        TgTerm term(raw_term_list[p].text, 0, tag, position);
-        tmp_term_list.push_back(term);
+            TgTerm term(raw_term_list[p].text, 0, tag, position);
+            tmp_term_list.push_back(term);
         }
         last_position = position;
         ++p;

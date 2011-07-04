@@ -196,8 +196,10 @@ protected:
 
     void createAnalyzer(bool removeStopwords=false)
     {
+        IDMAnalyzerConfig common_config = IDMAnalyzerConfig::GetCommonConfig("", laResPath_, "");
+        common_config.cma_config.remove_stopwords = removeStopwords;
         pIdmAnalyzer_.reset(
-                new idmlib::util::IDMAnalyzer(laResPath_, la::ChineseAnalyzer::maximum_match, removeStopwords) );
+                new idmlib::util::IDMAnalyzer(common_config) );
         BOOST_ASSERT(pIdmAnalyzer_);
     }
 

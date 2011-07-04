@@ -17,7 +17,7 @@ int main(int ac, char** av)
   std::string resource_path(av[1]);
   std::string file_dir(av[2]);
   typedef KPEOutput<true, false, false> OutputType ;
-  IDMAnalyzer* analyzer = new IDMAnalyzer(WISEKMA_KNOWLEDGE);
+  IDMAnalyzer* analyzer = new IDMAnalyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",""));
   analyzer->LoadT2SMapFile(resource_path+"/cs_ct");
   std::string work_dir = "./kpe_working";
   boost::filesystem::remove_all(work_dir);

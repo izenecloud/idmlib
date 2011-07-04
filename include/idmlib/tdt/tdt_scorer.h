@@ -263,7 +263,7 @@ class TDTScorer : public boost::noncopyable
             InsertNonAppearTerm(term.id);
             result = true;
         }
-        else if( (tag == idmlib::util::IDMTermTag::KOR||tag == idmlib::util::IDMTermTag::KOR_NOUN) && term.text.length()==1 )
+        else if( (tag == idmlib::util::IDMTermTag::KOR||tag == idmlib::util::IDMTermTag::NOUN) && term.text.length()==1 )
         {
             InsertNonAppearTerm(term.id);
             result = true;
