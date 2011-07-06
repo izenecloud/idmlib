@@ -86,7 +86,7 @@ public:
 
     float estimate(uint32_t itemId, const std::list<uint32_t>& itemIds);
 
-    void dump();
+    void flush();
 
 private:
     /**

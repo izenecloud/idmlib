@@ -258,10 +258,11 @@ void IncrementalItemCF::getTopItems(
     }
 }
 
-void IncrementalItemCF::dump()
+void IncrementalItemCF::flush()
 {
     covisitation_.dump();
     similarity_.dump();
+    userRecommendItems_.flush();
 }
 
 NS_IDMLIB_RESYS_END

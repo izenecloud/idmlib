@@ -48,8 +48,13 @@ public:
 
     ~UserRecommendItem()
     {
-        store_.flush();
+        flush();
         store_.close();
+    }
+
+    void flush()
+    {
+        store_.flush();
     }
 
     bool getRecommendItem(UserType userId, RecommendItemType& recommendItem)
