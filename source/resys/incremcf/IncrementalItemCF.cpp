@@ -72,7 +72,7 @@ void IncrementalItemCF::updateSimMatrix_(const std::list<uint32_t>& rows)
         uint32_t row = *it_i;
 
         // phase 1: update columns in each row
-        boost::shared_ptr<RowType> rowItems = similarity_.rowItems(row);
+        boost::shared_ptr<const RowType> rowItems = similarity_.rowItems(row);
         for (RowType::const_iterator it_j = rowItems->begin();
             it_j != rowItems->end(); ++it_j)
         {

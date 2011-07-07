@@ -133,9 +133,9 @@ public:
     void loadNeighbor(ItemType itemId)
     {
         /// load row data from disk to queue
-        boost::shared_ptr<RowType> rowdata = store_.row(itemId);		
+        boost::shared_ptr<const RowType> rowdata = store_.row(itemId);		
         SimilarityQueue<MeasureType> queue(topK_);
-        typename RowType::iterator iter = rowdata->begin();
+        typename RowType::const_iterator iter = rowdata->begin();
         for(;iter != rowdata->end(); ++iter)
             queue.insert(SimilarityQueueItem<MeasureType>(iter->first,iter->second));
 
@@ -181,7 +181,7 @@ public:
      * @param row the row number
      * @return the row items
      */
-    boost::shared_ptr<RowType> rowItems(ItemType row)
+    boost::shared_ptr<const RowType> rowItems(ItemType row)
     {
         return store_.row(row);
     }

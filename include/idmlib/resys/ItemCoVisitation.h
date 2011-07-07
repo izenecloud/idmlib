@@ -146,9 +146,9 @@ public:
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
-        boost::shared_ptr<RowType> rowdata = db_.row(item);
+        boost::shared_ptr<const RowType> rowdata = db_.row(item);
         CoVisitationQueue<CoVisitation> queue(howmany);
-        typename RowType::iterator iter = rowdata->begin();
+        typename RowType::const_iterator iter = rowdata->begin();
         for(;iter != rowdata->end(); ++iter)
         {
             // escape the input item
@@ -167,10 +167,10 @@ public:
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
-        boost::shared_ptr<RowType> rowdata = db_.row(item);
+        boost::shared_ptr<const RowType> rowdata = db_.row(item);
 
         CoVisitationQueue<CoVisitation> queue(howmany);
-        typename RowType::iterator iter = rowdata->begin();
+        typename RowType::const_iterator iter = rowdata->begin();
         for(;iter != rowdata->end(); ++iter)
         {
             // escape the input item
