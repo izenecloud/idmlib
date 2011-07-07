@@ -186,6 +186,16 @@ public:
         return store_.row(row);
     }
 
+    /**
+     * update the items in @p row with columns @p cols.
+     * @param row the row number
+     * @param cols the column items
+     */
+    void updateRowItems(ItemType row, const RowType& cols)
+    {
+        return store_.update_row_without_cache(row, cols);
+    }
+
     void dump()
     {
         store_.dump();

@@ -80,8 +80,11 @@ template<typename CoVisitation>
 class ItemCoVisitation
 {
     typedef izenelib::am::MatrixDB<ItemType, CoVisitation > MatrixDBType;
-    typedef typename MatrixDBType::row_type RowType;
+
 public:
+    typedef typename MatrixDBType::row_type RowType;
+    typedef typename MatrixDBType::iterator iterator; // first is ItemType, second is RowType
+
     ItemCoVisitation(
           const std::string& homePath, 
           size_t cache_size = 1024*1024
@@ -201,6 +204,17 @@ public:
     {
         db_.status(ostream);
     }
+
+    iterator begin()
+    {
+        return db_.begin();
+    }
+
+    iterator end()
+    {
+        return db_.end();
+    }
+
 private:
     void updateCoVisation(ItemType item, const std::list<ItemType>& coItems)
     {

@@ -85,11 +85,14 @@ public:
      * it calls @c IncrementalItemCF::buildMatrix(), and checks each value in visit matrix and similarity matrix,
      * it also calls @c IncrementalItemCF::buildUserRecommendItems() and @c getTopItems(),
      * and checks each recommended item.
+     * @param rebuildSimMatrix if true, IncrementalItemCF::buildSimMatrix() is called,
+     *                         if false, IncrementalItemCF::updateVisitMatrix() is called instead.
      */
     void checkPurchase(
         uint32_t userId,
         const char* oldItemStr,
-        const char* newItemStr
+        const char* newItemStr,
+        bool rebuildSimMatrx = false
     );
 
     /**

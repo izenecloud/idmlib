@@ -147,7 +147,8 @@ void ItemCFTest::checkCoVisitResult_(uint32_t inputItem)
 void ItemCFTest::checkPurchase(
     uint32_t userId,
     const char* oldItemStr,
-    const char* newItemStr
+    const char* newItemStr,
+    bool rebuildSimMatrx
 )
 {
     list<uint32_t> oldItems;
@@ -165,7 +166,15 @@ void ItemCFTest::checkPurchase(
     updateGoldVisitMatrix_(oldItems, newItems);
 
     const std::size_t totalNum = oldItems.size() + newItems.size();
-    cfManager_->buildMatrix(oldItems, newItems);
+    if (rebuildSimMatrx)
+    {
+        cfManager_->updateVisitMatrix(oldItems, newItems);
+        cfManager_->buildSimMatrix();
+    }
+    else
+    {
+        cfManager_->buildMatrix(oldItems, newItems);
+    }
 
     // now newItems is moved into oldItems 
     BOOST_CHECK_EQUAL(oldItems.size(), totalNum);

@@ -3,6 +3,25 @@
 #include <math.h> // for sqrt
 #include <algorithm>
 
+namespace
+{
+
+/**
+ * Calculate similarity value from covisit values.
+ */
+inline float similarity(
+    uint32_t visit_i_j,
+    uint32_t visit_i_i,
+    uint32_t visit_j_j
+)
+{
+    assert(visit_i_i && visit_j_j);
+
+    return (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
+}
+
+}
+
 NS_IDMLIB_RESYS_BEGIN
 
 IncrementalItemCF::IncrementalItemCF(
@@ -47,17 +66,57 @@ void IncrementalItemCF::buildMatrix(
     std::list<uint32_t>& newItems
 )
 {
-    updateVisitMatrix_(oldItems, newItems);
+    updateVisitMatrix(oldItems, newItems);
 
     updateSimMatrix_(oldItems);
 }
 
-void IncrementalItemCF::updateVisitMatrix_(
+void IncrementalItemCF::updateVisitMatrix(
     std::list<uint32_t>& oldItems,
     std::list<uint32_t>& newItems
 )
 {
     covisitation_.visit(oldItems, newItems);
+}
+
+void IncrementalItemCF::buildSimMatrix()
+{
+    typedef ItemCoVisitation<CoVisitFreq>::RowType CoVisitRow;
+    typedef SimilarityMatrix<uint32_t,float>::RowType SimRow;
+
+    for (ItemCoVisitation<CoVisitFreq>::iterator it_i = covisitation_.begin();
+        it_i != covisitation_.end(); ++it_i)
+    {
+        const uint32_t row = it_i->first;
+        const CoVisitRow& cols = it_i->second;
+
+        SimRow simRow;
+        for (CoVisitRow::const_iterator it_j = cols.begin();
+            it_j != cols.end(); ++it_j)
+        {
+            const uint32_t col = it_j->first;
+
+            // no similarity value on diagonal line
+            if (row == col)
+                continue;
+
+            const uint32_t visit_i_j = it_j->second.freq;
+            assert(visit_i_j && "the freq value in visit matrix should be positive.");
+
+            uint32_t visit_i_i = 0;
+            CoVisitRow::const_iterator findIt = cols.find(row);
+            if (findIt != cols.end())
+            {
+                visit_i_i = findIt->second.freq;
+            }
+            const uint32_t visit_j_j = covisitation_.coeff(col, col);
+
+            simRow[col] = similarity(visit_i_j, visit_i_i, visit_j_j);
+        }
+
+        similarity_.updateRowItems(row, simRow);
+        similarity_.loadNeighbor(row);
+    }
 }
 
 void IncrementalItemCF::updateSimMatrix_(const std::list<uint32_t>& rows)
@@ -120,17 +179,14 @@ float IncrementalItemCF::calcSimValue_(
     uint32_t col
 )
 {
-    const uint32_t visit_i_i = covisitation_.coeff(row, row);
-    const uint32_t visit_i_j = covisitation_.coeff(row, col);
-    const uint32_t visit_j_j = covisitation_.coeff(col, col);
-
     float sim = 0;
+    const uint32_t visit_i_j = covisitation_.coeff(row, col);
 
     if (visit_i_j)
     {
-        assert(visit_i_i && visit_j_j);
-
-        sim = (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
+        const uint32_t visit_i_i = covisitation_.coeff(row, row);
+        const uint32_t visit_j_j = covisitation_.coeff(col, col);
+        sim = similarity(visit_i_j, visit_i_i, visit_j_j);
     }
 
     return sim;

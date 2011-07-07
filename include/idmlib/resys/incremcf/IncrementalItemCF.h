@@ -57,6 +57,28 @@ public:
     );
 
     /**
+     * Update covisist matrix.
+     * @param oldItems the items visited before
+     * @param newItems the new visited items
+     *
+     * for performance reason, it has below post-condition:
+     * @post when this function returns, the items in @p newItems would be moved to the end of @p oldItems,
+     *       and @p newItems would be empty.
+     */
+    void updateVisitMatrix(
+        std::list<uint32_t>& oldItems,
+        std::list<uint32_t>& newItems
+    );
+
+    /**
+     * Rebuild the whole similarity matrix in batch mode.
+     * For each row in @c covisitation_, to calculate:
+     * 1. the similarity value for each column
+     * 2. the top K nieghbors for the row
+     */
+    void buildSimMatrix();
+
+    /**
      * Build recommend items for user.
      * @param userId the user id
      * @param items the items already visited by the user
@@ -89,20 +111,6 @@ public:
     void flush();
 
 private:
-    /**
-     * Update covisist matrix.
-     * @param oldItems the items visited before
-     * @param newItems the new visited items
-     *
-     * for performance reason, it has below post-condition:
-     * @post when this function returns, the items in @p newItems would be moved to the end of @p oldItems,
-     *       and @p newItems would be empty.
-     */
-    void updateVisitMatrix_(
-        std::list<uint32_t>& oldItems,
-        std::list<uint32_t>& newItems
-    );
-
     /**
      * Update similarity matrix.
      * @param rows the row numbers to update
