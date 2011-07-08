@@ -63,7 +63,7 @@ void ItemCFTest::checkVisit(
     visitMatrix_->visit(oldItems, newItems);
     // now newItems is moved into oldItems 
     BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
-    BOOST_CHECK_EQUAL(newItems.size(), 0);
+    BOOST_CHECK_EQUAL(newItems.size(), 0U);
 
     checkVisitMatrix();
 }
@@ -100,7 +100,8 @@ void ItemCFTest::checkVisitMatrix()
         for (int j=0; j<ITEM_NUM; ++j)
         {
             BOOST_TEST_MESSAGE("check visit coeff [" << i << "][" << j << "]: " << goldVisitMatrix_[i][j]);
-            BOOST_CHECK_EQUAL(visitMatrix_->coeff(i, j), goldVisitMatrix_[i][j]);
+            BOOST_CHECK_EQUAL(static_cast<int>(visitMatrix_->coeff(i, j)),
+                              goldVisitMatrix_[i][j]);
         }
     }
 }
@@ -178,14 +179,14 @@ void ItemCFTest::checkPurchase(
 
     // now newItems is moved into oldItems 
     BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
-    BOOST_CHECK_EQUAL(newItems.size(), 0);
+    BOOST_CHECK_EQUAL(newItems.size(), 0U);
 
     checkVisitMatrix();
     updateGoldSimMatrix_();
     checkSimMatrix();
 
-    MyItemIterator itemIterator(1, ItemCFTest::ITEM_NUM);
-    cfManager_->buildUserRecommendItems(userId, oldItems, itemIterator);
+    std::set<uint32_t> visitItems(oldItems.begin(), oldItems.end());
+    cfManager_->buildUserRecommendItems(userId, visitItems);
 
     // get recommend items
     std::list<RecommendedItem> topItems;

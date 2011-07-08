@@ -3,6 +3,8 @@
 #include <math.h> // for sqrt
 #include <algorithm>
 
+#include <glog/logging.h>
+
 namespace
 {
 
@@ -84,9 +86,17 @@ void IncrementalItemCF::buildSimMatrix()
     typedef ItemCoVisitation<CoVisitFreq>::RowType CoVisitRow;
     typedef SimilarityMatrix<uint32_t,float>::RowType SimRow;
 
+    LOG(INFO) << "start building similarity matrix...";
+
+    int rowNum = 0;
     for (ItemCoVisitation<CoVisitFreq>::iterator it_i = covisitation_.begin();
         it_i != covisitation_.end(); ++it_i)
     {
+        if (++rowNum % 1000 == 0)
+        {
+            std::cout << "\rbuilding row num: " << rowNum << std::flush;
+        }
+                                            
         const uint32_t row = it_i->first;
         const CoVisitRow& cols = it_i->second;
 
@@ -117,6 +127,9 @@ void IncrementalItemCF::buildSimMatrix()
         similarity_.updateRowItems(row, simRow);
         similarity_.loadNeighbor(row);
     }
+    std::cout << "\rbuilding row num: " << rowNum << std::endl;
+
+    LOG(INFO) << "finish building similarity matrix";
 }
 
 void IncrementalItemCF::updateSimMatrix_(const std::list<uint32_t>& rows)
@@ -194,23 +207,38 @@ float IncrementalItemCF::calcSimValue_(
 
 void IncrementalItemCF::buildUserRecommendItems(
     uint32_t userId,
-    const std::list<uint32_t>& items,
-    ItemIterator& itemIterator,
+    const std::set<uint32_t>& visitItems,
     ItemRescorer* rescorer
 )
 {
-    std::set<uint32_t> filterSet(items.begin(), items.end());
+    typedef SimilarityMatrix<uint32_t,float>::RowType RowType;
+
+    // get candidate items which has similarity value with items
+    std::set<uint32_t> candidateSet;
+    for (std::set<uint32_t>::const_iterator it_i = visitItems.begin();
+        it_i != visitItems.end(); ++it_i)
+    {
+        boost::shared_ptr<const RowType> cols = similarity_.rowItems(*it_i);
+        for (RowType::const_iterator it_j = cols->begin();
+            it_j != cols->end(); ++it_j)
+        {
+            uint32_t col = it_j->first;
+            assert(col != *it_i && "there should be no similarity value on diagonal line!");
+            candidateSet.insert(col);
+        }
+    }
 
     RecommendItemType recommendItem;
-    while(itemIterator.hasNext())
+    for (std::set<uint32_t>::const_iterator it = candidateSet.begin();
+        it != candidateSet.end(); ++it)
     {
-        uint32_t itemId = itemIterator.next();
-        if(filterSet.find(itemId) == filterSet.end()
+        uint32_t itemId = *it;
+        if(visitItems.find(itemId) == visitItems.end()
            && (!rescorer || !rescorer->isFiltered(itemId)))
         {
-            float preference = estimate(itemId, items);
-            if(preference > 0)
-                recommendItem.push_back(std::make_pair(itemId,preference));
+            float weight = similarity_.weight(itemId, visitItems);
+            if(weight > 0)
+                recommendItem.push_back(std::make_pair(itemId,weight));
         }
     }
     std::sort(recommendItem.begin(), recommendItem.end(),similarityCompare<ItemType,MeasureType>);
@@ -219,35 +247,6 @@ void IncrementalItemCF::buildUserRecommendItems(
         recommendItem.resize(max_items_stored_for_each_user_);
 
     userRecommendItems_.setRecommendItem(userId, recommendItem);
-}
-
-float IncrementalItemCF::estimate(
-    uint32_t itemId, 
-    const std::list<uint32_t>& itemIds
-)
-{
-    float totalSimilarity = 0.0;
-    float preference = 0.0;
-    int count = 0;
-
-    std::map<uint32_t, float> similarities;
-    totalSimilarity = similarity_.itemSimilarities(itemId, similarities);
-    for (std::list<uint32_t>::const_iterator it = itemIds.begin();
-        it != itemIds.end(); ++it) 
-    {
-        std::map<uint32_t, float>::iterator iter = similarities.find(*it);
-        if(iter != similarities.end())
-        {
-            float theSimilarity = iter->second;
-            if (theSimilarity !=0) 
-            {
-                preference += theSimilarity;
-                count++;
-            }
-        }
-    }
-    if(count == 0) return 0;
-    return preference / totalSimilarity;
 }
 
 void IncrementalItemCF::getTopItems(

@@ -16,6 +16,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <algorithm>
 
 NS_IDMLIB_RESYS_BEGIN
@@ -107,27 +108,40 @@ public:
         return true;
     }
 
-    float itemSimilarities(
-            ItemType itemId, 
-            std::map<ItemType, float>& similarities
+    /**
+     * given the items @p historySet as user's purchase history ,
+     * calculate the similarity weight for the item @p candidate.
+     * @param candidate calculate weight for this item
+     * @param historySet the user's purchased items
+     * @return the similarity weight
+     */
+    float weight(
+        ItemType candidate, 
+        const std::set<ItemType>& historySet
     )
     {
-        if(itemId >= neighbors_.size())
+        if(candidate >= neighbors_.size())
             return 0;
 
-        float v = 0;
+        float sim = 0;
+        float total = 0;
+
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
 
-        ItemNeighborType& neighbor = neighbors_[itemId];
-        typename ItemNeighborType::iterator it = neighbor.begin();
-        for(; it != neighbor.end(); ++it)
+        const ItemNeighborType& neighbor = neighbors_[candidate];
+        for(typename ItemNeighborType::const_iterator it = neighbor.begin();
+           it != neighbor.end(); ++it)
         {
-            float myv = it->second;
-            similarities[it->first] = myv;
-            v += myv;
+            if (historySet.find(it->first) != historySet.end())
+                sim += it->second;
+
+            total += it->second;
         }
 
-        return v;
+        if (sim != 0)
+            return sim / total;
+
+        return 0;
     }
 
     void loadNeighbor(ItemType itemId)

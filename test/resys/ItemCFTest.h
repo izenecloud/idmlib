@@ -22,23 +22,6 @@ public:
     typedef ItemCoVisitation<CoVisitFreq> VisitMatrix;
     typedef SimilarityMatrix<uint32_t,float> SimMatrix;
 
-    struct MyItemIterator : public ItemIterator
-    {
-        MyItemIterator(uint32_t min, uint32_t max) :min_(min), max_(max), now_(min) {}
-
-        ~MyItemIterator() {}
-
-        bool hasNext() { return now_ <= max_; }
-
-        uint32_t next() { return now_++; }
-
-        void reset() { now_ = min_; }
-
-        const uint32_t min_;
-        const uint32_t max_;
-        uint32_t now_;
-    };
-
     ItemCFTest()
     : cfManager_(NULL)
     , visitMatrix_(NULL)

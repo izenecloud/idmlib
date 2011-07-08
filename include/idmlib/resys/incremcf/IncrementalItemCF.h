@@ -5,7 +5,6 @@
 
 #include "UserRecommendItem.h"
 #include <idmlib/resys/ItemCF.h>
-#include <idmlib/resys/ItemIterator.h>
 #include <idmlib/resys/ItemRescorer.h>
 #include <idmlib/resys/RecommendedItem.h>
 #include <idmlib/resys/ItemCoVisitation.h>
@@ -81,14 +80,12 @@ public:
     /**
      * Build recommend items for user.
      * @param userId the user id
-     * @param items the items already visited by the user
-     * @param itemIterator iterate all items
+     * @param visitItems the items already visited by the user
      * @param rescorer filter items
      */
     void buildUserRecommendItems(
         uint32_t userId,
-        const std::list<uint32_t>& items,
-        ItemIterator& itemIterator,
+        const std::set<uint32_t>& visitItems,
         ItemRescorer* rescorer = NULL
     );
 
@@ -105,8 +102,6 @@ public:
         std::list<RecommendedItem>& topItems,
         ItemRescorer* rescorer = NULL
     );
-
-    float estimate(uint32_t itemId, const std::list<uint32_t>& itemIds);
 
     void flush();
 

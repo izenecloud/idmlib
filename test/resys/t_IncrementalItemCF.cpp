@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         itemCFTest.checkPurchase(user1, "", "1 2 3");
 
         uint32_t user2 = 2;
-        itemCFTest.checkPurchase(user2, "", "3 4 5");
+        itemCFTest.checkPurchase(user2, "", "3 4 5", true);
 
         itemCFTest.checkItemRecommend("1");
         itemCFTest.checkItemRecommend("2");
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         itemCFTest.checkSimMatrix();
 
         uint32_t user1 = 1;
-        itemCFTest.checkPurchase(user1, "1 2 3", "4 6 8");
+        itemCFTest.checkPurchase(user1, "1 2 3", "4 6 8", true);
 
         uint32_t user2 = 2;
         itemCFTest.checkPurchase(user2, "3 4 5", "6 7 9");
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(smokeTest)
 
         uint32_t user4 = 4;
         itemCFTest.checkPurchase(user4, "", "4 2 9");
-        itemCFTest.checkPurchase(user4, "4 2 9", "7 6 5");
+        itemCFTest.checkPurchase(user4, "4 2 9", "7 6 5", true);
 
         uint32_t user5 = 5;
         itemCFTest.checkPurchase(user5, "", "1");
@@ -154,7 +154,6 @@ BOOST_AUTO_TEST_CASE(largeTest)
     std::string cfPathStr = cfPath.string();
 
     int MaxITEM = 100000;
-    ItemCFTest::MyItemIterator itemIterator(1, MaxITEM);
 
     IncrementalItemCF cfManager(
         cfPathStr + "/covisit", 1024*1024,
@@ -181,7 +180,8 @@ BOOST_AUTO_TEST_CASE(largeTest)
 
         uint32_t userId = generators.genUser();
         cfManager.buildMatrix(oldItems, newItems);
-        cfManager.buildUserRecommendItems(userId, oldItems, itemIterator);
+        std::set<uint32_t> visitItems(oldItems.begin(), oldItems.end());
+        cfManager.buildUserRecommendItems(userId, visitItems);
     }
 
 }
