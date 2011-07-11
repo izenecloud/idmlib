@@ -181,7 +181,7 @@ BOOST_AUTO_TEST_CASE(largeTest)
         uint32_t userId = generators.genUser();
         cfManager.buildMatrix(oldItems, newItems);
         std::set<uint32_t> visitItems(oldItems.begin(), oldItems.end());
-        cfManager.buildUserRecommendItems(userId, visitItems);
+        cfManager.buildUserRecItems(userId, visitItems);
     }
 
 }

@@ -3,10 +3,10 @@
 
 #include <idmlib/idm_types.h>
 
-#include "UserRecommendItem.h"
+#include "UserRecStorage.h"
 #include <idmlib/resys/ItemCF.h>
 #include <idmlib/resys/ItemRescorer.h>
-#include <idmlib/resys/RecommendedItem.h>
+#include <idmlib/resys/RecommendItem.h>
 #include <idmlib/resys/ItemCoVisitation.h>
 #include <idmlib/resys/similarity/SimilarityMatrix.h>
 
@@ -33,8 +33,6 @@ public:
     ~IncrementalItemCF();
 
 public:
-    void batchBuild();
-
     /**
      * Update covisist and similarity matrix.
      * @param oldItems the items visited before
@@ -83,23 +81,37 @@ public:
      * @param visitItems the items already visited by the user
      * @param rescorer filter items
      */
-    void buildUserRecommendItems(
+    void buildUserRecItems(
         uint32_t userId,
         const std::set<uint32_t>& visitItems,
         ItemRescorer* rescorer = NULL
     );
 
-    void getTopItems(
+    /**
+     * Given @p userId, recommend @p recItems, which is built by @c buildUserRecItems() previously.
+     * @param howMany the max number of items to recommend
+     * @param userId the user id
+     * @param recItems the recommend result
+     * @param rescorer filter items
+     */
+    void getRecByUser(
         int howMany, 
         uint32_t userId,
-        std::list<RecommendedItem>& topItems, 
+        RecommendItemVec& recItems, 
         ItemRescorer* rescorer = NULL
     );
 
-    void getTopItems(
+    /**
+     * Given @p visitItems, recommend @p recItems.
+     * @param howMany the max number of items to recommend
+     * @param visitItems the items already visited by user
+     * @param recItems the recommend result
+     * @param rescorer filter items
+     */
+    void getRecByItem(
         int howMany,
-        const std::vector<uint32_t>& itemIds,
-        std::list<RecommendedItem>& topItems,
+        const std::vector<uint32_t>& visitItems,
+        RecommendItemVec& recItems, 
         ItemRescorer* rescorer = NULL
     );
 
@@ -123,10 +135,24 @@ private:
         uint32_t col
     );
 
+    /**
+     * Given @p visitItems, recommend @p recItems.
+     * @param howMany the max number of items to recommend
+     * @param visitItems the items already visited by user
+     * @param recItems the recommend result
+     * @param rescorer filter items
+     */
+    void recommend_(
+        int howMany, 
+        const std::set<uint32_t>& visitItems,
+        RecommendItemVec& recItems, 
+        ItemRescorer* rescorer = NULL
+    );
+
 private:
     ItemCoVisitation<CoVisitFreq> covisitation_;
     SimilarityMatrix<uint32_t,float> similarity_;
-    UserRecommendItem userRecommendItems_;
+    UserRecStorage userRecStorage_;
     size_t max_items_stored_for_each_user_;
 
     friend class ItemCFTest;

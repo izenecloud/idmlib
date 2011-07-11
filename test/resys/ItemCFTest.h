@@ -132,7 +132,7 @@ private:
      */
     void checkUserRecommend_(
         const std::list<uint32_t>& inputItems,
-        const std::list<RecommendedItem>& recItems
+        const RecommendItemVec& recItems
     ) const;
 
 private:

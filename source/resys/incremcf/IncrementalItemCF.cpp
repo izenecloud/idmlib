@@ -1,5 +1,7 @@
 #include <idmlib/resys/incremcf/IncrementalItemCF.h>
 
+#include <util/PriorityQueue.h>
+
 #include <math.h> // for sqrt
 #include <algorithm>
 
@@ -22,6 +24,24 @@ inline float similarity(
     return (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
 }
 
+class TopItemsQueue
+    :public izenelib::util::PriorityQueue<idmlib::recommender::RecommendItem>
+{
+public:
+    TopItemsQueue(size_t size)
+    {
+        this->initialize(size);
+    }
+protected:
+    bool lessThan(
+        idmlib::recommender::RecommendItem o1,
+        idmlib::recommender::RecommendItem o2
+    )
+    {
+        return (o1.weight_ < o2.weight_);
+    }
+};
+
 }
 
 NS_IDMLIB_RESYS_BEGIN
@@ -38,29 +58,13 @@ IncrementalItemCF::IncrementalItemCF(
 )
     : covisitation_(covisit_path, covisit_row_cache_size)
     , similarity_(item_item_similarity_path,similarity_row_cache_size,item_neighbor_path,topK)
-    , userRecommendItems_(user_recommendItem_path)
+    , userRecStorage_(user_recommendItem_path)
     , max_items_stored_for_each_user_(max_items_stored_for_each_user)
 {
 }
 
 IncrementalItemCF::~IncrementalItemCF()
 {
-}
-
-void IncrementalItemCF::batchBuild()
-{
-    ///batchBuild is not used currently
-    //while(userIterator.hasNext())
-    //{
-	///build covisit
-    //}
-    ///build similarity
-    ///build neightor
-    //userIterator.reset();
-    //while(userIterator.hasNext())
-    //{
-       ///store recommenditems for user
-    //}
 }
 
 void IncrementalItemCF::buildMatrix(
@@ -205,9 +209,64 @@ float IncrementalItemCF::calcSimValue_(
     return sim;
 }
 
-void IncrementalItemCF::buildUserRecommendItems(
+void IncrementalItemCF::buildUserRecItems(
     uint32_t userId,
     const std::set<uint32_t>& visitItems,
+    ItemRescorer* rescorer
+)
+{
+    RecommendItemVec recItems;
+    recommend_(max_items_stored_for_each_user_, visitItems, recItems, rescorer);
+
+    userRecStorage_.update(userId, recItems);
+}
+
+void IncrementalItemCF::getRecByUser(
+    int howMany, 
+    uint32_t userId,
+    RecommendItemVec& recItems, 
+    ItemRescorer* rescorer
+)
+{
+    RecommendItemVec totalItemVec;
+    if(userRecStorage_.get(userId, totalItemVec))
+    {
+        int count = 0;
+        for (RecommendItemVec::const_iterator it = totalItemVec.begin();
+            it != totalItemVec.end() && count < howMany; ++it)
+        {
+            if(!rescorer || !rescorer->isFiltered(it->itemId_))
+            {
+                recItems.push_back(*it);
+                ++count;
+            }
+        }
+    }
+}
+
+void IncrementalItemCF::getRecByItem(
+    int howMany,
+    const std::vector<uint32_t>& visitItems,
+    RecommendItemVec& recItems,
+    ItemRescorer* rescorer
+)
+{
+    std::set<uint32_t> itemSet(visitItems.begin(), visitItems.end());
+
+    recommend_(howMany, itemSet, recItems, rescorer);
+}
+
+void IncrementalItemCF::flush()
+{
+    covisitation_.dump();
+    similarity_.dump();
+    userRecStorage_.flush();
+}
+
+void IncrementalItemCF::recommend_(
+    int howMany, 
+    const std::set<uint32_t>& visitItems,
+    RecommendItemVec& recItems, 
     ItemRescorer* rescorer
 )
 {
@@ -228,7 +287,7 @@ void IncrementalItemCF::buildUserRecommendItems(
         }
     }
 
-    RecommendItemType recommendItem;
+    TopItemsQueue queue(howMany);
     for (std::set<uint32_t>::const_iterator it = candidateSet.begin();
         it != candidateSet.end(); ++it)
     {
@@ -238,86 +297,17 @@ void IncrementalItemCF::buildUserRecommendItems(
         {
             float weight = similarity_.weight(itemId, visitItems);
             if(weight > 0)
-                recommendItem.push_back(std::make_pair(itemId,weight));
-        }
-    }
-    std::sort(recommendItem.begin(), recommendItem.end(),similarityCompare<ItemType,MeasureType>);
-
-    if(recommendItem.size() > max_items_stored_for_each_user_) 
-        recommendItem.resize(max_items_stored_for_each_user_);
-
-    userRecommendItems_.setRecommendItem(userId, recommendItem);
-}
-
-void IncrementalItemCF::getTopItems(
-    int howMany,
-    const std::vector<uint32_t>& itemIds,
-    std::list<RecommendedItem>& topItems,
-    ItemRescorer* rescorer
-)
-{
-    std::set<uint32_t> filterSet(itemIds.begin(), itemIds.end());
-    boost::unordered_map<uint32_t, float> resultSet;
-    for(size_t i = 0; i < itemIds.size(); ++i)
-    {
-        std::vector<std::pair<uint32_t, float> > similarities;
-        if(similarity_.itemSimilarity(itemIds[i], similarities))
-        {
-            std::vector<std::pair<uint32_t, float> >::iterator iter;
-            for(iter = similarities.begin(); iter != similarities.end(); ++iter)
             {
-                if(filterSet.find(iter->first) == filterSet.end()
-                   && (!rescorer || !rescorer->isFiltered(iter->first)))
-                {
-                    resultSet[iter->first] += iter->second;
-                }
+                queue.insert(RecommendItem(itemId,weight));
             }
         }
     }
-    TopItemsQueue resultQueue(howMany);
-    boost::unordered_map<uint32_t, float>::iterator it = resultSet.begin();
-    for(; it != resultSet.end(); ++it)
-    {
-        resultQueue.insert(RecommendedItem(it->first, it->second));
-    }
-    size_t count = resultQueue.size();
-    for(size_t i = 0; i < count; ++i)
-    {
-        RecommendedItem item = resultQueue.pop();
-        item.value /= itemIds.size(); ///for normalization
-        topItems.push_front(item);
-    }
-}
 
-void IncrementalItemCF::getTopItems(
-    int howMany, 
-    uint32_t userId,
-    std::list<RecommendedItem>& topItems, 
-    ItemRescorer* rescorer
-)
-{
-    RecommendItemType recommendItem;
-    if(userRecommendItems_.getRecommendItem(userId, recommendItem))
+    recItems.resize(queue.size());
+    for(RecommendItemVec::reverse_iterator rit = recItems.rbegin(); rit != recItems.rend(); ++rit)
     {
-        int count = 0;
-        for(size_t i = 0; i < recommendItem.size(); ++i)
-        {
-            std::pair<uint32_t, float>& item = recommendItem[i];
-            if(!rescorer || !rescorer->isFiltered(item.first))
-            {
-                topItems.push_back(RecommendedItem(item.first, item.second));
-                if(++count >= howMany)
-                    break;
-            }
-        }
+        *rit = queue.pop();
     }
-}
-
-void IncrementalItemCF::flush()
-{
-    covisitation_.dump();
-    similarity_.dump();
-    userRecommendItems_.flush();
 }
 
 NS_IDMLIB_RESYS_END

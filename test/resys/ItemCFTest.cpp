@@ -186,23 +186,23 @@ void ItemCFTest::checkPurchase(
     checkSimMatrix();
 
     std::set<uint32_t> visitItems(oldItems.begin(), oldItems.end());
-    cfManager_->buildUserRecommendItems(userId, visitItems);
+    cfManager_->buildUserRecItems(userId, visitItems);
 
     // get recommend items
-    std::list<RecommendedItem> topItems;
-    cfManager_->getTopItems(ITEM_NUM, userId, topItems);
+    RecommendItemVec recItems;
+    cfManager_->getRecByUser(ITEM_NUM, userId, recItems);
 
-    /*std::list<uint32_t> recItems;
-    for (std::list<RecommendedItem>::const_iterator it = topItems.begin();
-        it != topItems.end(); ++it)
+    /*std::list<uint32_t> recItemIDs;
+    for (RecommendItemVec::const_iterator it = recItems.begin();
+        it != recItems.end(); ++it)
     {
-        recItems.push_back(it->itemId);
+        recItemIDs.push_back(it->itemId_);
     }
     cout << "\t<= recommend to user " << userId << " with items: ";
-    copy(recItems.begin(), recItems.end(), COUT_IT);
+    copy(recItemIDs.begin(), recItemIDs.end(), COUT_IT);
     cout << endl;*/
 
-    checkUserRecommend_(oldItems, topItems);
+    checkUserRecommend_(oldItems, recItems);
 }
 
 void ItemCFTest::checkItemRecommend(const char* inputItemStr)
@@ -211,15 +211,15 @@ void ItemCFTest::checkItemRecommend(const char* inputItemStr)
     splitItems(inputItemStr, back_insert_iterator< list<uint32_t> >(inputItems));
 
     // get recommend items
-    std::list<RecommendedItem> topItems;
+    RecommendItemVec recItems;
     std::vector<uint32_t> inputVec(inputItems.begin(), inputItems.end());
-    cfManager_->getTopItems(ITEM_NUM, inputVec, topItems);
+    cfManager_->getRecByItem(ITEM_NUM, inputVec, recItems);
 
-    std::list<uint32_t> recItems;
-    for (std::list<RecommendedItem>::const_iterator it = topItems.begin();
-        it != topItems.end(); ++it)
+    std::list<uint32_t> recItemIDs;
+    for (RecommendItemVec::const_iterator it = recItems.begin();
+        it != recItems.end(); ++it)
     {
-        recItems.push_back(it->itemId);
+        recItemIDs.push_back(it->itemId_);
     }
 
     /*cout << "\t<= given items ";
@@ -228,7 +228,7 @@ void ItemCFTest::checkItemRecommend(const char* inputItemStr)
     copy(recItems.begin(), recItems.end(), COUT_IT);
     cout << endl;*/
 
-    checkBABResult_(inputItems, recItems);
+    checkBABResult_(inputItems, recItemIDs);
 }
 
 void ItemCFTest::updateGoldSimMatrix_()
@@ -297,7 +297,7 @@ void ItemCFTest::checkBABResult_(
 
 void ItemCFTest::checkUserRecommend_(
     const std::list<uint32_t>& inputItems,
-    const std::list<RecommendedItem>& recItems
+    const RecommendItemVec& recItems
 ) const
 {
     // calculate weight
@@ -330,11 +330,11 @@ void ItemCFTest::checkUserRecommend_(
 
     // check weight in descreasing order
     float prevWeight = FLT_MAX;
-    for (std::list<RecommendedItem>::const_iterator it = recItems.begin();
+    for (RecommendItemVec::const_iterator it = recItems.begin();
         it != recItems.end(); ++it)
     {
-        uint32_t itemId = it->itemId;
-        float weight = it->value;
+        uint32_t itemId = it->itemId_;
+        float weight = it->weight_;
 
         //cout << "item: " << itemId << ", weight: " << weight << endl;
         BOOST_CHECK_CLOSE(weight, goldWeightVec[itemId], 0.0001);
