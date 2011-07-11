@@ -16,6 +16,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <algorithm>
 
 NS_IDMLIB_RESYS_BEGIN
@@ -53,9 +54,11 @@ bool similarityCompare (const std::pair<ItemType,MeasureType>& p1, const std::pa
 template<typename ItemType = uint32_t, typename MeasureType = float>
 class SimilarityMatrix
 {
+public:
     typedef izenelib::am::MatrixDB<ItemType, MeasureType > MatrixDBType;
     typedef typename MatrixDBType::row_type RowType;
 
+private:
     typedef std::vector<std::pair<ItemType, MeasureType> > ItemNeighborType;
 
     typedef izenelib::sdb::unordered_sdb_tc<
@@ -77,7 +80,6 @@ public:
         : store_(cache_size, item_item_matrix_path)
         , neighbor_store_(item_neighbor_path)
         , topK_(topK)
-        , max_item_(0)
     {
         neighbor_store_.open();
         loadAllNeighbors();
@@ -85,6 +87,8 @@ public:
 
     ~SimilarityMatrix()
     {
+        dump();
+
         neighbor_store_.flush();
         neighbor_store_.close();
     }
@@ -94,7 +98,9 @@ public:
             std::vector<std::pair<ItemType, MeasureType> >& similarities
     )
     {
-        if(itemId > max_item_) return false;
+        if(itemId >= neighbors_.size())
+            return false;
+
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
         ItemNeighborType& neighbor = neighbors_[itemId];
         similarities.resize(neighbor.size());
@@ -102,79 +108,75 @@ public:
         return true;
     }
 
-    float itemSimilarities(
-            ItemType itemId, 
-            std::map<ItemType, float>& similarities
+    /**
+     * given the items @p historySet as user's purchase history ,
+     * calculate the similarity weight for the item @p candidate.
+     * @param candidate calculate weight for this item
+     * @param historySet the user's purchased items
+     * @return the similarity weight
+     */
+    float weight(
+        ItemType candidate, 
+        const std::set<ItemType>& historySet
     )
     {
-        izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
-        if(itemId >= neighbors_.size()) 
-            loadNeighbor(itemId);
+        if(candidate >= neighbors_.size())
+            return 0;
 
-        ItemNeighborType& neighbor = neighbors_[itemId];
-        float v = 0;
-        typename ItemNeighborType::iterator it = neighbor.begin();
-        for(; it != neighbor.end(); ++it)
+        float sim = 0;
+        float total = 0;
+
+        izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
+
+        const ItemNeighborType& neighbor = neighbors_[candidate];
+        for(typename ItemNeighborType::const_iterator it = neighbor.begin();
+           it != neighbor.end(); ++it)
         {
-            float myv = izenelib::util::SmallFloat::byte315ToFloat(it->second);
-            similarities[it->first] = myv;
-            v += myv;
+            if (historySet.find(it->first) != historySet.end())
+                sim += it->second;
+
+            total += it->second;
         }
-        return v;
+
+        if (sim != 0)
+            return sim / total;
+
+        return 0;
     }
 
-    void adjustNeighbor(
-            ItemType itemId, 
-            std::list<std::pair<ItemType, MeasureType> >& newValues
-    )
+    void loadNeighbor(ItemType itemId)
     {
-        if(itemId >= neighbors_.size()) 
-        {
-            izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);        
-            loadNeighbor(itemId);
-        }
-        else
-        {
-            ///only need to adjust in-memory neighbor data
-            ItemNeighborType& neighbor = neighbors_[itemId];
-            {
-            izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
-            if(neighbor.empty())
-            {
-                typename std::list<std::pair<ItemType, MeasureType> >::iterator iter = newValues.begin();
-                for(;iter != newValues.end(); ++iter)
-                {
-                    neighbor.push_back(*iter);
-                }
-            }
-            else
-            {
-                typename std::list<std::pair<ItemType, MeasureType> >::iterator iter = newValues.begin();
-                for(;iter != newValues.end(); ++iter)
-                {
-                    bool isFind = false;
-                    for(typename ItemNeighborType::iterator nbIt = neighbor.begin();
-                       nbIt != neighbor.end(); ++nbIt)
-                    {
-                        if (nbIt->first == iter->first)
-                        {
-                            nbIt->second = iter->second;
-                            isFind = true;
-                            break;
-                        }
-                    }
+        /// load row data from disk to queue
+        boost::shared_ptr<const RowType> rowdata = store_.row(itemId);		
+        SimilarityQueue<MeasureType> queue(topK_);
+        typename RowType::const_iterator iter = rowdata->begin();
+        for(;iter != rowdata->end(); ++iter)
+            queue.insert(SimilarityQueueItem<MeasureType>(iter->first,iter->second));
 
-                    if(isFind == false)
-                    {
-                        neighbor.push_back(*iter);
-                    }
-                }
+        /// get topk neighbors
+        {
+            izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
+
+            if(itemId >= neighbors_.size())
+            {
+                neighbors_.resize(itemId+1);
+                max_item_ = itemId;
             }
-            std::sort(neighbor.begin(), neighbor.end(),similarityCompare<ItemType,MeasureType>);
-            if(neighbor.size() > topK_)
-                neighbor.resize(topK_);
+            ItemNeighborType& neighbor = neighbors_[itemId];
+            neighbor.resize(queue.size());
+            for(typename ItemNeighborType::reverse_iterator rit = neighbor.rbegin(); rit != neighbor.rend(); ++rit)
+            {
+                SimilarityQueueItem<MeasureType> item = queue.pop();
+                rit->first = item.itemId;
+                rit->second = item.similarity;
             }
-            neighbor_store_.update(itemId,neighbor);
+
+            /// set dirty flag
+            if (itemId >= dirtyNeighbors_.size())
+            {
+                dirtyNeighbors_.resize(itemId+1);
+            }
+            dirtyNeighbors_[itemId] = true;
         }
     }
 
@@ -188,9 +190,43 @@ public:
         store_.coeff(row,col,measure);
     }
 
+    /**
+     * return the items in @p row.
+     * @param row the row number
+     * @return the row items
+     */
+    boost::shared_ptr<const RowType> rowItems(ItemType row)
+    {
+        return store_.row(row);
+    }
+
+    /**
+     * update the items in @p row with columns @p cols.
+     * @param row the row number
+     * @param cols the column items
+     */
+    void updateRowItems(ItemType row, const RowType& cols)
+    {
+        return store_.update_row_without_cache(row, cols);
+    }
+
     void dump()
     {
         store_.dump();
+
+        {
+            izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
+
+            assert(dirtyNeighbors_.size() <= neighbors_.size());
+            for (unsigned int i = 0; i < dirtyNeighbors_.size(); ++i)
+            {
+                if (dirtyNeighbors_[i])
+                {
+                    neighbor_store_.update(i, neighbors_[i]);
+                    dirtyNeighbors_[i] = false;
+                }
+            }
+        }
     }
 
 private:
@@ -217,30 +253,6 @@ private:
         }
     }
 
-    void loadNeighbor(ItemType itemId)
-    {
-        ///need to load neighbor data from disk
-        boost::shared_ptr<RowType> rowdata = store_.row(itemId);		
-        SimilarityQueue<MeasureType> queue(topK_);
-        typename RowType::iterator iter = rowdata->begin();
-        for(;iter != rowdata->end(); ++iter)
-            queue.insert(SimilarityQueueItem<MeasureType>(iter->first,iter->second));
-        if(itemId >= neighbors_.size())
-        {
-            neighbors_.resize(itemId+1);
-            max_item_ = itemId;
-        }
-        ItemNeighborType& neighbor = neighbors_[itemId];
-        neighbor.resize(queue.size());
-        for(typename ItemNeighborType::reverse_iterator rit = neighbor.rbegin(); rit != neighbor.rend(); ++rit)
-        {
-            SimilarityQueueItem<MeasureType> item = queue.pop();
-            rit->first = item.itemId;
-            rit->second = item.similarity;
-        }
-        neighbor_store_.update(itemId,neighbor);
-    }
-
 private:
     MatrixDBType store_;
     NeighborSDBType neighbor_store_;
@@ -248,6 +260,11 @@ private:
     size_t topK_;
     ItemType max_item_;
     izenelib::util::ReadWriteLock neighbor_lock_;	
+    /**
+     * dirty flags to dump from @c neighbors_ to @c neighbor_store_,
+     * true for dirty and need to dump.
+     */
+    std::vector<bool> dirtyNeighbors_; 
 };
 
 

@@ -3,6 +3,27 @@
 #include <math.h> // for sqrt
 #include <algorithm>
 
+#include <glog/logging.h>
+
+namespace
+{
+
+/**
+ * Calculate similarity value from covisit values.
+ */
+inline float similarity(
+    uint32_t visit_i_j,
+    uint32_t visit_i_i,
+    uint32_t visit_j_j
+)
+{
+    assert(visit_i_i && visit_j_j);
+
+    return (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
+}
+
+}
+
 NS_IDMLIB_RESYS_BEGIN
 
 IncrementalItemCF::IncrementalItemCF(
@@ -47,47 +68,177 @@ void IncrementalItemCF::buildMatrix(
     std::list<uint32_t>& newItems
 )
 {
-    covisitation_.visit(oldItems, newItems);
-    ///oldItems has already contained elements from newItems now
+    updateVisitMatrix(oldItems, newItems);
 
-    for(std::list<uint32_t>::iterator it_i = oldItems.begin(); it_i !=oldItems.end(); ++it_i)
+    updateSimMatrix_(oldItems);
+}
+
+void IncrementalItemCF::updateVisitMatrix(
+    std::list<uint32_t>& oldItems,
+    std::list<uint32_t>& newItems
+)
+{
+    covisitation_.visit(oldItems, newItems);
+}
+
+void IncrementalItemCF::buildSimMatrix()
+{
+    typedef ItemCoVisitation<CoVisitFreq>::RowType CoVisitRow;
+    typedef SimilarityMatrix<uint32_t,float>::RowType SimRow;
+
+    LOG(INFO) << "start building similarity matrix...";
+
+    int rowNum = 0;
+    for (ItemCoVisitation<CoVisitFreq>::iterator it_i = covisitation_.begin();
+        it_i != covisitation_.end(); ++it_i)
     {
-        uint32_t Int_I_I = covisitation_.coeff(*it_i, *it_i);
-        std::list<std::pair<uint32_t, uint8_t> > newValues;
-        for(std::list<uint32_t>::iterator it_j = oldItems.begin(); it_j !=oldItems.end(); ++it_j)
+        if (++rowNum % 1000 == 0)
         {
-            if(*it_j == *it_i) continue;
-            uint32_t Int_J_J = covisitation_.coeff(*it_j, *it_j);
-            uint32_t Int_I_J = covisitation_.coeff(*it_i, *it_j);
-            float denominator = sqrt(Int_I_I) * sqrt(Int_J_J);
-            float sim = (denominator == 0)? 0: (float)Int_I_J/denominator;
-            uint8_t simv = izenelib::util::SmallFloat::floatToByte315(sim);
-            similarity_.coeff(*it_i,*it_j,simv);
-            newValues.push_back(std::make_pair(*it_j, simv));
+            std::cout << "\rbuilding row num: " << rowNum << std::flush;
         }
-        similarity_.adjustNeighbor(*it_i, newValues);
+                                            
+        const uint32_t row = it_i->first;
+        const CoVisitRow& cols = it_i->second;
+
+        SimRow simRow;
+        for (CoVisitRow::const_iterator it_j = cols.begin();
+            it_j != cols.end(); ++it_j)
+        {
+            const uint32_t col = it_j->first;
+
+            // no similarity value on diagonal line
+            if (row == col)
+                continue;
+
+            const uint32_t visit_i_j = it_j->second.freq;
+            assert(visit_i_j && "the freq value in visit matrix should be positive.");
+
+            uint32_t visit_i_i = 0;
+            CoVisitRow::const_iterator findIt = cols.find(row);
+            if (findIt != cols.end())
+            {
+                visit_i_i = findIt->second.freq;
+            }
+            const uint32_t visit_j_j = covisitation_.coeff(col, col);
+
+            simRow[col] = similarity(visit_i_j, visit_i_i, visit_j_j);
+        }
+
+        similarity_.updateRowItems(row, simRow);
+        similarity_.loadNeighbor(row);
     }
+    std::cout << "\rbuilding row num: " << rowNum << std::endl;
+
+    LOG(INFO) << "finish building similarity matrix";
+}
+
+void IncrementalItemCF::updateSimMatrix_(const std::list<uint32_t>& rows)
+{
+    typedef SimilarityMatrix<uint32_t,float>::RowType RowType;
+    std::set<uint32_t> inputSet(rows.begin(), rows.end());
+    std::set<uint32_t> colSet;
+
+    for (std::list<uint32_t>::const_iterator it_i = rows.begin();
+        it_i != rows.end(); ++it_i)
+    {
+        uint32_t row = *it_i;
+
+        // phase 1: update columns in each row
+        boost::shared_ptr<const RowType> rowItems = similarity_.rowItems(row);
+        for (RowType::const_iterator it_j = rowItems->begin();
+            it_j != rowItems->end(); ++it_j)
+        {
+            uint32_t col = it_j->first;
+            assert(col != row && "there should be no similarity value on diagonal line!");
+
+            // except those in inputSet as they would be updated in phase 2
+            if (inputSet.find(col) == inputSet.end())
+            {
+                float sim = calcSimValue_(row, col);
+                similarity_.coeff(row, col, sim);
+                similarity_.coeff(col, row, sim);
+
+                colSet.insert(col);
+            }
+        }
+
+        // phase 2: update all pairs in rows
+        for (std::list<uint32_t>::const_iterator it_j = rows.begin();
+            it_j != rows.end(); ++it_j)
+        {
+            uint32_t col = *it_j;
+
+            if (row == col)
+                continue;
+
+            float sim = calcSimValue_(row, col);
+            similarity_.coeff(row, col, sim);
+        }
+
+        // update neighbor for this row
+        similarity_.loadNeighbor(row);
+    }
+
+    // update neighbor for col items
+    for (std::set<uint32_t>::const_iterator it = colSet.begin();
+        it != colSet.end(); ++it)
+    {
+        similarity_.loadNeighbor(*it);
+    }
+}
+
+float IncrementalItemCF::calcSimValue_(
+    uint32_t row,
+    uint32_t col
+)
+{
+    float sim = 0;
+    const uint32_t visit_i_j = covisitation_.coeff(row, col);
+
+    if (visit_i_j)
+    {
+        const uint32_t visit_i_i = covisitation_.coeff(row, row);
+        const uint32_t visit_j_j = covisitation_.coeff(col, col);
+        sim = similarity(visit_i_j, visit_i_i, visit_j_j);
+    }
+
+    return sim;
 }
 
 void IncrementalItemCF::buildUserRecommendItems(
     uint32_t userId,
-    const std::list<uint32_t>& items,
-    ItemIterator& itemIterator,
+    const std::set<uint32_t>& visitItems,
     ItemRescorer* rescorer
 )
 {
-    std::set<uint32_t> filterSet(items.begin(), items.end());
+    typedef SimilarityMatrix<uint32_t,float>::RowType RowType;
+
+    // get candidate items which has similarity value with items
+    std::set<uint32_t> candidateSet;
+    for (std::set<uint32_t>::const_iterator it_i = visitItems.begin();
+        it_i != visitItems.end(); ++it_i)
+    {
+        boost::shared_ptr<const RowType> cols = similarity_.rowItems(*it_i);
+        for (RowType::const_iterator it_j = cols->begin();
+            it_j != cols->end(); ++it_j)
+        {
+            uint32_t col = it_j->first;
+            assert(col != *it_i && "there should be no similarity value on diagonal line!");
+            candidateSet.insert(col);
+        }
+    }
 
     RecommendItemType recommendItem;
-    while(itemIterator.hasNext())
+    for (std::set<uint32_t>::const_iterator it = candidateSet.begin();
+        it != candidateSet.end(); ++it)
     {
-        uint32_t itemId = itemIterator.next();
-        if(filterSet.find(itemId) == filterSet.end()
+        uint32_t itemId = *it;
+        if(visitItems.find(itemId) == visitItems.end()
            && (!rescorer || !rescorer->isFiltered(itemId)))
         {
-            float preference = estimate(itemId, items);
-            if(preference > 0)
-                recommendItem.push_back(std::make_pair(itemId,preference));
+            float weight = similarity_.weight(itemId, visitItems);
+            if(weight > 0)
+                recommendItem.push_back(std::make_pair(itemId,weight));
         }
     }
     std::sort(recommendItem.begin(), recommendItem.end(),similarityCompare<ItemType,MeasureType>);
@@ -96,35 +247,6 @@ void IncrementalItemCF::buildUserRecommendItems(
         recommendItem.resize(max_items_stored_for_each_user_);
 
     userRecommendItems_.setRecommendItem(userId, recommendItem);
-}
-
-float IncrementalItemCF::estimate(
-    uint32_t itemId, 
-    const std::list<uint32_t>& itemIds
-)
-{
-    float totalSimilarity = 0.0;
-    float preference = 0.0;
-    int count = 0;
-
-    std::map<uint32_t, float> similarities;
-    totalSimilarity = similarity_.itemSimilarities(itemId, similarities);
-    for (std::list<uint32_t>::const_iterator it = itemIds.begin();
-        it != itemIds.end(); ++it) 
-    {
-        std::map<uint32_t, float>::iterator iter = similarities.find(*it);
-        if(iter != similarities.end())
-        {
-            float theSimilarity = iter->second;
-            if (theSimilarity !=0) 
-            {
-                preference += theSimilarity;
-                count++;
-            }
-        }
-    }
-    if(count == 0) return 0;
-    return totalSimilarity / preference;
 }
 
 void IncrementalItemCF::getTopItems(
@@ -138,18 +260,16 @@ void IncrementalItemCF::getTopItems(
     boost::unordered_map<uint32_t, float> resultSet;
     for(size_t i = 0; i < itemIds.size(); ++i)
     {
-        std::vector<std::pair<uint32_t, uint8_t> > similarities;
+        std::vector<std::pair<uint32_t, float> > similarities;
         if(similarity_.itemSimilarity(itemIds[i], similarities))
         {
-            std::vector<std::pair<uint32_t, uint8_t> >::iterator iter;
+            std::vector<std::pair<uint32_t, float> >::iterator iter;
             for(iter = similarities.begin(); iter != similarities.end(); ++iter)
             {
                 if(filterSet.find(iter->first) == filterSet.end()
                    && (!rescorer || !rescorer->isFiltered(iter->first)))
                 {
-                    float v = izenelib::util::SmallFloat::byte315ToFloat(iter->second);
-                    float& weight = resultSet[iter->first];
-                    weight += v;
+                    resultSet[iter->first] += iter->second;
                 }
             }
         }
@@ -164,8 +284,8 @@ void IncrementalItemCF::getTopItems(
     for(size_t i = 0; i < count; ++i)
     {
         RecommendedItem item = resultQueue.pop();
-        item.value /= filterSet.size(); ///for normalization
-        topItems.push_front(item);	
+        item.value /= itemIds.size(); ///for normalization
+        topItems.push_front(item);
     }
 }
 
@@ -193,10 +313,11 @@ void IncrementalItemCF::getTopItems(
     }
 }
 
-void IncrementalItemCF::dump()
+void IncrementalItemCF::flush()
 {
     covisitation_.dump();
     similarity_.dump();
+    userRecommendItems_.flush();
 }
 
 NS_IDMLIB_RESYS_END

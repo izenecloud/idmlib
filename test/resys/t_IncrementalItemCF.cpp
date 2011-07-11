@@ -5,6 +5,7 @@
 /// @date Created 2011-04-29
 ///
 
+#include "ItemCFTest.h"
 #include <idmlib/resys/incremcf/IncrementalItemCF.h>
 
 #include <boost/test/unit_test.hpp>
@@ -16,11 +17,9 @@
 #include <boost/timer.hpp>
 
 #include <list>
-#include <vector>
-#include <algorithm> // copy
-#include <iterator>
 #include <string>
-#include <sstream>
+
+#include <cmath>
 
 using namespace std;
 using namespace boost;
@@ -33,183 +32,6 @@ namespace bfs = boost::filesystem;
 namespace
 {
 const char* TEST_DIR_STR = "cf";
-
-ostream_iterator<uint32_t> COUT_IT(cout, ", ");
-
-const uint32_t MAX_ITEM_ID = 10;
-
-struct MyItemIterator : public ItemIterator
-{
-    MyItemIterator(uint32_t min, uint32_t max)
-        :min_(min)
-        ,max_(max)
-        ,now_(min)
-    {
-    }
-
-    ~MyItemIterator()
-    {
-    }
-
-    bool hasNext()
-    {
-        return now_ <= max_;
-    }
-
-    uint32_t next()
-    {
-        return now_++;
-    }
-
-    void reset()
-    {
-        now_ = min_;
-    }
-
-    const uint32_t min_;
-    const uint32_t max_;
-    uint32_t now_;
-};
-
-struct MyItemRescorer : public ItemRescorer
-{
-    MyItemRescorer(const std::list<uint32_t>& filterList)
-        :filterSet_(filterList.begin(), filterList.end())
-    {
-    }
-
-    ~MyItemRescorer()
-    {
-    }
-
-    float rescore(uint32_t itemId, float originalScore)
-    {
-        return 0;
-    }
-
-    bool isFiltered(uint32_t itemId)
-    {
-        return filterSet_.find(itemId) != filterSet_.end();
-    }
-
-    std::set<uint32_t> filterSet_;
-};
-
-}
-
-template <class OutputIterator>
-void splitItems(const char* inputStr, OutputIterator result)
-{
-    uint32_t itemId;
-    stringstream ss(inputStr);
-    while (ss >> itemId)
-    {
-        *result++ = itemId;
-    }
-}
-
-void checkPurchase(
-    IncrementalItemCF& cfManager,
-    uint32_t userId,
-    const char* oldItemStr,
-    const char* newItemStr
-)
-{
-    list<uint32_t> oldItems;
-    list<uint32_t> newItems;
-
-    splitItems(oldItemStr, back_insert_iterator< list<uint32_t> >(oldItems));
-    splitItems(newItemStr, back_insert_iterator< list<uint32_t> >(newItems));
-
-    cout << "=> purchase event, userId: " << userId << ", old items: ";
-    copy(oldItems.begin(), oldItems.end(), COUT_IT);
-    cout << ", new items: ";
-    copy(newItems.begin(), newItems.end(), COUT_IT);
-    cout << endl;
-
-    MyItemIterator itemIterator(1, MAX_ITEM_ID);
-
-    const std::size_t totalNum = oldItems.size() + newItems.size();
-    cfManager.buildMatrix(oldItems, newItems);
-    cfManager.buildUserRecommendItems(userId, oldItems, itemIterator);
-    // now newItems is moved into oldItems 
-    BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
-    BOOST_CHECK_EQUAL(newItems.size(), 0);
-}
-
-/**
- * it get recommended items for @p userId, and compare them with @p goldItemStr.
- */
-void checkUserRecommend(
-    IncrementalItemCF& cfManager,
-    uint32_t userId,
-    const char* goldItemStr
-)
-{
-    // sort gold items
-    vector<uint32_t> goldResult;
-    splitItems(goldItemStr, back_insert_iterator< vector<uint32_t> >(goldResult));
-    sort(goldResult.begin(), goldResult.end());
-
-    // get recommend items
-    std::list<RecommendedItem> topItems;
-    cfManager.getTopItems(goldResult.size(), userId, topItems);
-
-    vector<uint32_t> result;
-    for (std::list<RecommendedItem>::const_iterator it = topItems.begin();
-        it != topItems.end(); ++it)
-    {
-        result.push_back(it->itemId);
-    }
-
-    cout << "\t<= recommend to user " << userId << " with items: ";
-    copy(result.begin(), result.end(), COUT_IT);
-    cout << endl;
-
-    // check recommend items
-    sort(result.begin(), result.end());
-    BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(),
-                                  goldResult.begin(), goldResult.end());
-}
-
-/**
- * it get recommended items for @p inputItemStr, and compare them with @p goldItemStr.
- */
-void checkItemRecommend(
-    IncrementalItemCF& cfManager,
-    const char* inputItemStr,
-    const char* goldItemStr
-)
-{
-    std::vector<uint32_t> inputItemIds;
-    splitItems(inputItemStr, back_insert_iterator< vector<uint32_t> >(inputItemIds));
-
-    // sort gold items
-    vector<uint32_t> goldResult;
-    splitItems(goldItemStr, back_insert_iterator< vector<uint32_t> >(goldResult));
-    sort(goldResult.begin(), goldResult.end());
-
-    // get recommend items
-    std::list<RecommendedItem> topItems;
-    cfManager.getTopItems(goldResult.size(), inputItemIds, topItems);
-
-    vector<uint32_t> result;
-    for (std::list<RecommendedItem>::const_iterator it = topItems.begin();
-        it != topItems.end(); ++it)
-    {
-        result.push_back(it->itemId);
-    }
-
-    cout << "\t<= given items ";
-    copy(inputItemIds.begin(), inputItemIds.end(), COUT_IT);
-    cout << "recommend other items: ";
-    copy(result.begin(), result.end(), COUT_IT);
-    cout << endl;
-
-    // check recommend items
-    sort(result.begin(), result.end());
-    BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(),
-                                  goldResult.begin(), goldResult.end());
 }
 
 struct RandomGenerators
@@ -219,31 +41,25 @@ struct RandomGenerators
     boost::variate_generator<mt19937, uniform_int<> > itemRandom;
     boost::uniform_int<> userDistribution;
     boost::variate_generator<mt19937, uniform_int<> > userRandom;
-    boost::uniform_int<> oldVisitDistribution;
-    boost::variate_generator<mt19937, uniform_int<> > oldVisitRandom;
     boost::uniform_int<> newVisitDistribution;
     boost::variate_generator<mt19937, uniform_int<> > newVisitRandom;
 
-    RandomGenerators(int ITEMLIMIT, int USERLIMIT, int OLDVISITLIMIT, int NEWVISITLIMIT)
+    RandomGenerators(int ITEMLIMIT, int USERLIMIT, int NEWVISITLIMIT)
         :itemDistribution(1, ITEMLIMIT)
         ,itemRandom (engine, itemDistribution)
         ,userDistribution(1, USERLIMIT)
         ,userRandom (engine, userDistribution)
-        ,oldVisitDistribution(1, OLDVISITLIMIT)
-        ,oldVisitRandom (engine, oldVisitDistribution)
         ,newVisitDistribution(1, NEWVISITLIMIT)
         ,newVisitRandom (engine, newVisitDistribution)
     {
     }
 
-    void genItems(std::list<uint32_t>& oldItems, std::list<uint32_t>& newItems)
+    /**
+     * to avoid assert fail in IncrementalItemCF::calcSimValue_(),
+     * it only generates new items. */
+    void genItems(std::list<uint32_t>& newItems)
     {
-        int N = oldVisitRandom();
-        for(int i = 0; i < N; ++i)
-        {
-            oldItems.push_back(itemRandom());
-        }
-        N = newVisitRandom();
+        int N = newVisitRandom();
         for(int i = 0; i < N; ++i)
         {
             newItems.push_back(itemRandom());
@@ -266,29 +82,29 @@ BOOST_AUTO_TEST_CASE(smokeTest)
     bfs::create_directories(cfPath);
     std::string cfPathStr = cfPath.string();
 
-    MyItemIterator itemIterator(1, 10);
-
+    ItemCFTest itemCFTest;
     {
         IncrementalItemCF cfManager(
             cfPathStr + "/covisit", 1024*1024,
-            cfPathStr + "/sim", 1024*1024,
+            cfPathStr + "/sim.sdb", 1024*1024,
             cfPathStr + "/nb.sdb", 30,
             cfPathStr + "/rec", 1000
         );
+        itemCFTest.setCFManager(&cfManager);
 
         uint32_t user1 = 1;
-        checkPurchase(cfManager, user1, "", "1 2 3");
+        itemCFTest.checkPurchase(user1, "", "1 2 3");
 
         uint32_t user2 = 2;
-        checkPurchase(cfManager, user2, "", "2 3 4");
-        checkUserRecommend(cfManager, user2, "1");
+        itemCFTest.checkPurchase(user2, "", "3 4 5", true);
 
-        checkItemRecommend(cfManager, "1", "2 3");
-        checkItemRecommend(cfManager, "2", "1 3 4");
-        checkItemRecommend(cfManager, "3", "1 2 4");
-        checkItemRecommend(cfManager, "4", "2 3");
-        checkItemRecommend(cfManager, "1 2", "3 4");
-        checkItemRecommend(cfManager, "1 2 3", "4");	
+        itemCFTest.checkItemRecommend("1");
+        itemCFTest.checkItemRecommend("2");
+        itemCFTest.checkItemRecommend("3");
+        itemCFTest.checkItemRecommend("4");
+        itemCFTest.checkItemRecommend("1 2");
+        itemCFTest.checkItemRecommend("1 2 3");
+        itemCFTest.checkItemRecommend("1 2 3 4");
     }
 
     {
@@ -298,18 +114,37 @@ BOOST_AUTO_TEST_CASE(smokeTest)
             cfPathStr + "/nb.sdb", 30,
             cfPathStr + "/rec", 1000
         );
+        itemCFTest.setCFManager(&cfManager);
+        itemCFTest.checkVisitMatrix();
+        itemCFTest.checkSimMatrix();
 
-        // it should recommend user2 with item 1
+        uint32_t user1 = 1;
+        itemCFTest.checkPurchase(user1, "1 2 3", "4 6 8", true);
+
         uint32_t user2 = 2;
-        checkUserRecommend(cfManager, user2, "1");
+        itemCFTest.checkPurchase(user2, "3 4 5", "6 7 9");
 
-        checkItemRecommend(cfManager, "1", "2 3");
-        checkItemRecommend(cfManager, "2", "1 3 4");
-        checkItemRecommend(cfManager, "3", "1 2 4");
-        checkItemRecommend(cfManager, "4", "2 3");
+        uint32_t user3 = 3;
+        itemCFTest.checkPurchase(user3, "", "1 3 5");
+        itemCFTest.checkPurchase(user3, "1 3 5", "2 8 4");
+
+        uint32_t user4 = 4;
+        itemCFTest.checkPurchase(user4, "", "4 2 9");
+        itemCFTest.checkPurchase(user4, "4 2 9", "7 6 5", true);
+
+        uint32_t user5 = 5;
+        itemCFTest.checkPurchase(user5, "", "1");
+
+        itemCFTest.checkItemRecommend("1");
+        itemCFTest.checkItemRecommend("2");
+        itemCFTest.checkItemRecommend("3");
+        itemCFTest.checkItemRecommend("4");
+        itemCFTest.checkItemRecommend("1 2");
+        itemCFTest.checkItemRecommend("1 2 3");
+        itemCFTest.checkItemRecommend("1 2 3 4");
+        itemCFTest.checkItemRecommend("1 3 5 7 9");
     }
 }
-
 
 BOOST_AUTO_TEST_CASE(largeTest)
 {
@@ -319,7 +154,6 @@ BOOST_AUTO_TEST_CASE(largeTest)
     std::string cfPathStr = cfPath.string();
 
     int MaxITEM = 100000;
-    MyItemIterator itemIterator(1, MaxITEM);
 
     IncrementalItemCF cfManager(
         cfPathStr + "/covisit", 1024*1024,
@@ -329,11 +163,10 @@ BOOST_AUTO_TEST_CASE(largeTest)
     );
 
     int MaxUSER = 500000;
-    int MaxOldVisit = 20;
-    int MaxNewVisit = 5;
-    RandomGenerators generators(MaxITEM, MaxUSER, MaxOldVisit, MaxNewVisit);
+    int MaxNewVisit = 10;
+    RandomGenerators generators(MaxITEM, MaxUSER, MaxNewVisit);
 
-    int ORDERS = 100000;
+    int ORDERS = 1000;
 
     ClockTimer t;
 
@@ -343,10 +176,12 @@ BOOST_AUTO_TEST_CASE(largeTest)
             std::cout<<i<<" orders have been processed "<<t.elapsed()<<std::endl;
         std::list<uint32_t> oldItems;
         std::list<uint32_t> newItems;
-        generators.genItems(oldItems, newItems);
+        generators.genItems(newItems);
+
         uint32_t userId = generators.genUser();
         cfManager.buildMatrix(oldItems, newItems);
-        cfManager.buildUserRecommendItems(userId, oldItems, itemIterator);
+        std::set<uint32_t> visitItems(oldItems.begin(), oldItems.end());
+        cfManager.buildUserRecommendItems(userId, visitItems);
     }
 
 }

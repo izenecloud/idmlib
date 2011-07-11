@@ -5,6 +5,7 @@
 /// @date Created 2011-04-29
 ///
 
+#include "ItemCFTest.h"
 #include <idmlib/resys/ItemCoVisitation.h>
 
 #include <util/ClockTimer.h>
@@ -16,9 +17,6 @@
 #include <boost/random.hpp>
 
 #include <list>
-#include <vector>
-#include <algorithm> // copy
-#include <iterator>
 
 using namespace std;
 using namespace boost;
@@ -30,84 +28,6 @@ namespace bfs = boost::filesystem;
 namespace
 {
 const char* TEST_DIR_STR = "covisit";
-
-ostream_iterator<ItemType> COUT_IT(cout, ", ");
-}
-
-typedef ItemCoVisitation<CoVisitFreq> CoVisitManager;
-
-template <class OutputIterator>
-void splitItems(const char* inputStr, OutputIterator result)
-{
-    ItemType itemId;
-    stringstream ss(inputStr);
-    while (ss >> itemId)
-    {
-        *result++ = itemId;
-    }
-}
-
-void checkVisit(
-    CoVisitManager& coVisitManager,
-    uint32_t userId,
-    const char* oldItemStr,
-    const char* newItemStr
-)
-{
-    list<uint32_t> oldItems;
-    list<uint32_t> newItems;
-
-    splitItems(oldItemStr, back_insert_iterator< list<uint32_t> >(oldItems));
-    splitItems(newItemStr, back_insert_iterator< list<uint32_t> >(newItems));
-
-    cout << "=> visit event, userId: " << userId << ", old items: ";
-    copy(oldItems.begin(), oldItems.end(), COUT_IT);
-    cout << ", new items: ";
-    copy(newItems.begin(), newItems.end(), COUT_IT);
-    cout << endl;
-
-    const std::size_t totalNum = oldItems.size() + newItems.size();
-    coVisitManager.visit(oldItems, newItems);
-    // now newItems is moved into oldItems 
-    BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
-    BOOST_CHECK_EQUAL(newItems.size(), 0);
-}
-
-/**
- * it get covisit items for the 1st item in @p inputItemStr,
- * and compare them with @p goldItemStr.
- */
-void checkCoVisitResult(
-    CoVisitManager& coVisitManager,
-    const char* inputItemStr,
-    const char* goldItemStr
-)
-{
-    std::vector<ItemType> inputItemIds;
-    splitItems(inputItemStr, back_insert_iterator< vector<ItemType> >(inputItemIds));
-    ItemType inputItem = 0;
-    if (! inputItemIds.empty())
-    {
-        inputItem = inputItemIds.front();
-    }
-
-    // sort gold items
-    vector<ItemType> goldResult;
-    splitItems(goldItemStr, back_insert_iterator< vector<ItemType> >(goldResult));
-    sort(goldResult.begin(), goldResult.end());
-
-    // get covisit items
-    vector<ItemType> result;
-    coVisitManager.getCoVisitation(goldResult.size(), inputItem, result);
-
-    cout << "\t<= given item " << inputItem << ", recommend covisit items: ";
-    copy(result.begin(), result.end(), COUT_IT);
-    cout << endl;
-
-    // check covisit items
-    sort(result.begin(), result.end());
-    BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(),
-                                  goldResult.begin(), goldResult.end());
 }
 
 struct RandomGenerators
@@ -158,36 +78,29 @@ BOOST_AUTO_TEST_CASE(smokeTest)
     boost::filesystem::remove_all(covisitPath);
     bfs::create_directories(covisitPath);
 
+    ItemCFTest itemCFTest;
     {
-        CoVisitManager coVisitManager(covisitPath.string()+"/visitdb");
+        ItemCFTest::VisitMatrix visitMatrix(covisitPath.string()+"/visitdb");
+        itemCFTest.setVisitMatrix(&visitMatrix);
 
-        uint32_t user1 = 1;
-        checkVisit(coVisitManager, user1, "", "1 2 3");
-        checkCoVisitResult(coVisitManager, "1", "2 3");
-        checkCoVisitResult(coVisitManager, "2", "1 3");
-        checkCoVisitResult(coVisitManager, "3", "1 2");
+        itemCFTest.checkVisit("", "1 2 3");
+        itemCFTest.checkCoVisitResult();
+
+        itemCFTest.checkVisit("1 2 3", "4 5 6");
+        itemCFTest.checkCoVisitResult();
     }
 
     {
-        CoVisitManager coVisitManager(covisitPath.string()+"/visitdb");
+        ItemCFTest::VisitMatrix visitMatrix(covisitPath.string()+"/visitdb");
+        itemCFTest.setVisitMatrix(&visitMatrix);
 
-        checkCoVisitResult(coVisitManager, "1", "2 3");
-        checkCoVisitResult(coVisitManager, "2", "1 3");
-        checkCoVisitResult(coVisitManager, "3", "1 2");
+        itemCFTest.checkCoVisitResult();
 
-        uint32_t user2 = 2;
-        checkVisit(coVisitManager, user2, "", "4 5 6");
-        checkCoVisitResult(coVisitManager, "4", "5 6");
-        checkCoVisitResult(coVisitManager, "5", "4 6");
-        checkCoVisitResult(coVisitManager, "6", "4 5");
+        itemCFTest.checkVisit("", "2 4 6 8");
+        itemCFTest.checkCoVisitResult();
 
-        uint32_t user3 = 3;
-        checkVisit(coVisitManager, user3, "", "2 5 7 8 9");
-        checkCoVisitResult(coVisitManager, "2", "1 3 5 7 8 9");
-        checkCoVisitResult(coVisitManager, "5", "2 4 6 7 8 9");
-        checkCoVisitResult(coVisitManager, "7", "2 5 8 9");
-        checkCoVisitResult(coVisitManager, "8", "2 5 7 9");
-        checkCoVisitResult(coVisitManager, "9", "2 5 7 8");
+        itemCFTest.checkVisit("2 4 6 8", "1 3 5 7");
+        itemCFTest.checkCoVisitResult();
     }
 }
 
@@ -203,9 +116,9 @@ BOOST_AUTO_TEST_CASE(largeTest)
     int MaxNewVisit = 20;
     RandomGenerators generators(MaxITEM, MaxUSER, MaxOldVisit, MaxNewVisit);
 
-    int ORDERS = 200000;
+    int ORDERS = 2000;
 
-    CoVisitManager coVisitManager(covisitPath.string()+"/visitdb",10*1024*1024);
+    ItemCFTest::VisitMatrix visitMatrix(covisitPath.string()+"/visitdb",10*1024*1024);
 
     ClockTimer t;
 
@@ -214,12 +127,12 @@ BOOST_AUTO_TEST_CASE(largeTest)
         if(i%500 == 0)
         {
             std::cout<<i<<" orders have been processed "<<t.elapsed()<<std::endl;
-            coVisitManager.status(std::cout);
+            visitMatrix.status(std::cout);
         }
         std::list<uint32_t> oldItems;
         std::list<uint32_t> newItems;
         generators.genItems(oldItems,newItems);
-        coVisitManager.visit(oldItems, newItems);
+        visitMatrix.visit(oldItems, newItems);
     }
 }
 

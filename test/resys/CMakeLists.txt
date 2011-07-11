@@ -34,6 +34,7 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
   ADD_EXECUTABLE(t_ItemCoVisitation
     Runner.cpp
     t_ItemCoVisitation.cpp
+    ItemCFTest.cpp
     )
   TARGET_LINK_LIBRARIES(t_ItemCoVisitation ${libs})
   SET_TARGET_PROPERTIES(t_ItemCoVisitation PROPERTIES
@@ -44,6 +45,7 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
   ADD_EXECUTABLE(t_IncrementalItemCF
     Runner.cpp
     t_IncrementalItemCF.cpp
+    ItemCFTest.cpp
     )
   TARGET_LINK_LIBRARIES(t_IncrementalItemCF ${libs})
   SET_TARGET_PROPERTIES(t_IncrementalItemCF PROPERTIES
