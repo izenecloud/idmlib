@@ -153,7 +153,7 @@ class TDTScorer : public boost::noncopyable
         if(termCount == 1)
         {
             //check if single korean noun
-            if( idmlib::util::IDMIdConverter::IsKP(first_termid) )
+            if( idmlib::util::IDMIdConverter::IsCompoundNoun(first_termid) )
             {
                 return KPStatus::KP;
             }

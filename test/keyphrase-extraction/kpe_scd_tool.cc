@@ -63,7 +63,6 @@ int main(int ac, char** av)
     ("scd-path,S", po::value<std::string>(), "scd directory to be processed")
     ("property,P", po::value<std::string>(), "properties to be processed, seperate with comma(Title,Content), case insensitive")
     ("output-file,O", po::value<std::string>(), "output key-phrases file, include the string representation and df")
-    ("kma-path,K", po::value<std::string>(), "if we want to process Korean collection, specify this kma path")
     ("working-path,W", po::value<std::string>(), "temp working path used for kpe, default: ./kpe_scd_working")
     ("max-doc,M", po::value<uint32_t>(), "max doc count which will be processed.")
     ("exclude-file,X", po::value<std::string>(), "exclude scd file name list")
@@ -197,15 +196,8 @@ int main(int ac, char** av)
   
   
   
-  idmlib::util::IDMAnalyzer* analyzer = NULL;
-  if (vm.count("kma-path")) {
-    std::string kma_path = vm["kma-path"].as<std::string>();
-    std::cout << "kma-path: " << kma_path <<std::endl;
-    analyzer = new idmlib::util::IDMAnalyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(kma_path,"",""));
-  } else {
-    std::cout << "kma-path not set"<<std::endl;
-    analyzer = new idmlib::util::IDMAnalyzer();
-  }
+  idmlib::util::IDMAnalyzer* analyzer = new idmlib::util::IDMAnalyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
+
   
   std::string working_path;
   if (vm.count("working-path")) {
@@ -289,14 +281,16 @@ int main(int ac, char** av)
         {
           docid++;
           if( max_doc>0 && docid > max_doc ) break;
-          if( docid % 1000 == 0 )
+          if( docid % 1 == 0 )
           {
             std::cout<<"Processing "<<docid<<std::endl;
           }
         }
         else if( properties.find( property_name) != NULL)
         {
-          kpe->insert( p->second, docid);
+//             la::TermList term_list;
+//             analyzer->GetTermList( p->second, term_list, false);
+            kpe->insert( p->second, docid);
         }
       }
       ++it;

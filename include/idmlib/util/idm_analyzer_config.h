@@ -49,7 +49,7 @@ class JMAConfig
 {
     public:
         std::string path;
-        bool combine_nouns;
+        bool noun_only;
 };
 
 class IDMAnalyzerConfig
@@ -70,7 +70,7 @@ class IDMAnalyzerConfig
   static IDMAnalyzerConfig GetCommonConfig(const std::string& kma_path, const std::string& cma_path, const std::string& jma_path)
   {
       IDMAnalyzerConfig config;
-      config.ema_config.enable = false;
+      config.ema_config.enable = true;
       config.ema_config.case_sensitive = true;
       config.kma_config.path = kma_path;
       config.cma_config.path = cma_path;
@@ -82,7 +82,7 @@ class IDMAnalyzerConfig
           config.cma_config.use_char = true;
       }
       config.jma_config.path = jma_path;
-      config.jma_config.combine_nouns = true;
+      config.jma_config.noun_only = true;
       if( config.kma_config.path!="" )
       {
           config.default_language = KOREAN;

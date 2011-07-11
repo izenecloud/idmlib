@@ -26,7 +26,9 @@ class IDMTermTag
     static const char KOR = '?';
     static const char NOUN = 'N';
     static const char KOR_LOAN = 'Z';
-    static const char KOR_COMP_NOUN = 'P';
+    static const char COMP_NOUN = 'P';
+    static const char JP = 'J';
+    static const char LINK = 'L';
     static const char NUM = 'S';
     static const char SYMBOL = '.';
     static const char OTHER = '@';

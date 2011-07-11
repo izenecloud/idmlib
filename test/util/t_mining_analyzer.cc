@@ -191,16 +191,44 @@ BOOST_AUTO_TEST_CASE(ja_test)
 //   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
   izenelib::util::UString text("イラク共和国（イラクきょうわこく）、通称イラクは、中東・西アジアの連邦共和制国家である。首都はバグダード（バグダッド）で、サウジアラビア、クウェート、シリア、トルコ、イラン、ヨルダンと隣接する。古代メソポタミア文明を受け継ぐ土地にあり、世界で3番目の原油埋蔵国である。", izenelib::util::UString::UTF_8);
   
-  la::TermList term_list;
+  std::vector<idmlib::util::IDMTerm> term_list;
+//   la::TermList term_list;
   
   analyzer.GetTermList(text, term_list);
   
   for( uint32_t i=0;i<term_list.size();++i )
   {
-    std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
+    std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
   }
   
+  term_list.clear();
+  
+  std::cout<<"[After Compound]"<<std::endl;
+  analyzer.GetTgTermList(text, term_list);
+  
+  for( uint32_t i=0;i<term_list.size();++i )
+  {
+    std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
+  }
 
+}
+
+BOOST_AUTO_TEST_CASE(tg_test)
+{
+  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
+  izenelib::util::UString text("L4", izenelib::util::UString::UTF_8);
+  
+  std::vector<idmlib::util::IDMTerm> term_list;
+//   la::TermList term_list;
+  
+  analyzer.GetTgTermList(text, term_list);
+  std::cout<<"[TG-Test]"<<std::endl;
+  for( uint32_t i=0;i<term_list.size();++i )
+  {
+    std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
+  }
+  
+  
 }
 
 

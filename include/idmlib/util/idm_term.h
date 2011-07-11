@@ -34,6 +34,13 @@ struct IDMTerm
   uint32_t id;
   char tag;
   uint32_t position;
+  
+  std::string TextString() const
+  {
+      std::string str;
+      text.convertString(str, izenelib::util::UString::UTF_8);
+      return str;
+  }
 };
 
 

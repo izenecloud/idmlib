@@ -73,8 +73,14 @@ class IDMAnalyzer
      
   void InitWithConfig_(const IDMAnalyzerConfig& config);
   void simple_(izenelib::util::UString& content);
+  void JKCompound_(const std::vector<idmlib::util::IDMTerm>& raw_term_list, std::vector<idmlib::util::IDMTerm>& term_list);
+  void CompoundInSamePosition_(const std::vector<idmlib::util::IDMTerm>& terms_in_same_position, idmlib::util::IDMTerm& compound_kor);
+  void CompoundInContinous_(std::vector<idmlib::util::IDMTerm>& terms_in_continous);
+  bool TermIgnore_(la::Term& term);
+  bool TermIgnoreInTg_(const idmlib::util::IDMTerm& term);
    
  private:
+  IDMAnalyzerConfig config_;
   la::LA* la_;
   la::stem::Stemmer* stemmer_;
   bool simpler_set_;

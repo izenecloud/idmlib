@@ -30,7 +30,7 @@ class IDMIdConverter
   {
     static uint32_t max = ((uint32_t)(-1))>>1;
     bool canBeSingleLabel = false;
-    if( idm_term_tag == idmlib::util::IDMTermTag::KOR_COMP_NOUN )
+    if( idm_term_tag == idmlib::util::IDMTermTag::COMP_NOUN )
     {
         canBeSingleLabel = true;
     }
@@ -47,7 +47,7 @@ class IDMIdConverter
     return 0;
   }
         
-  static bool IsKP(uint32_t id)
+  static bool IsCompoundNoun(uint32_t id)
   {
     return ((id & (((uint32_t)(1))<<(sizeof(uint32_t)*8-1)))>0);
   }

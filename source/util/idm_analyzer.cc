@@ -16,6 +16,7 @@ IDMAnalyzer::IDMAnalyzer(const IDMAnalyzerConfig& config)
 
 void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
 {
+    config_ = config;
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
     ml_analyzer->setExtractSpecialChar(false, false);
     
@@ -71,6 +72,48 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
     if(config.jma_config.path!="")
     {
         jma_analyzer.reset( new la::JapaneseAnalyzer(config.jma_config.path) );
+//         if( !config.jma_config.noun_only )
+//         {
+//             jma_analyzer.reset( new la::JapaneseAnalyzer(config.jma_config.path) );
+//         }
+//         else
+//         {
+//             std::vector<std::string> keywords;
+//             keywords.push_back("PL-N");
+//             keywords.push_back("N-VS");
+//             keywords.push_back("N-NE");
+//             keywords.push_back("NC-G");
+//             keywords.push_back("N-R");
+//             keywords.push_back("N-AJV");
+//             keywords.push_back("NP-G");
+//             keywords.push_back("NP-H");
+//             keywords.push_back("NP-S");
+//             keywords.push_back("NP-GN");
+//             keywords.push_back("NP-O");
+//             keywords.push_back("NP-P");
+//             keywords.push_back("NP-C");
+//             keywords.push_back("NN");
+//             keywords.push_back("NJ");
+//             keywords.push_back("NS-SN");
+//             keywords.push_back("NS-G");
+//             keywords.push_back("NS-AJV");
+//             keywords.push_back("NU");
+//             keywords.push_back("NS-AUV");
+//             keywords.push_back("NS-H");
+//             keywords.push_back("NS-P");
+//             keywords.push_back("NS-S");
+//             keywords.push_back("NS-D");
+//             keywords.push_back("NR-G");
+//             keywords.push_back("NR-A");
+//             keywords.push_back("N-VD");
+//             keywords.push_back("N-AUV");
+//             keywords.push_back("ND-G");
+//             keywords.push_back("ND-AUV");
+//             keywords.push_back("ND-D");
+//             keywords.push_back("N-D");
+//             keywords.push_back("N-USER");
+//             jma_analyzer.reset( new la::JapaneseAnalyzer(config.jma_config.path, keywords) );
+//         }
         la::JapaneseAnalyzer* pja = dynamic_cast<la::JapaneseAnalyzer*>(jma_analyzer.get());
         pja->setExtractSpecialChar(false, false);
         pja->setLabelMode();
@@ -176,26 +219,38 @@ void IDMAnalyzer::GetTermList(const izenelib::util::UString& utext, la::TermList
         la::TermList::iterator it = term_list.begin();
         while( it!= term_list.end() )
         {
-        simple_( it->text_ );
-        ++it;
+            simple_( it->text_ );
+            ++it;
         }
     }
+    
+    la::TermList::iterator it = term_list.begin();
+    while( it!= term_list.end() )
+    {
+        std::cout<<"("<<it->textString()<<","<<it->wordOffset_<<","<<it->pos_<<"),";
+    }
+    std::cout<<std::endl;
+    
 }
 
 void IDMAnalyzer::GetTermList(const izenelib::util::UString& text, std::vector<idmlib::util::IDMTerm>& term_list)
 {
     la::TermList la_term_list;
     GetTermList(text, la_term_list);
-    term_list.resize( la_term_list.size() );
+    term_list.reserve( la_term_list.size() );
     la::TermList::iterator it = la_term_list.begin();
-    uint32_t i=0;
+//     uint32_t i=0;
     while( it!= la_term_list.end() )
     {
-        term_list[i].text = it->text_;
-        term_list[i].tag = IDMTermTag::GetTermTag( it->pos_ );
-        term_list[i].id = IDMIdConverter::GetId( it->text_, term_list[i].tag );
-        term_list[i].position = it->wordOffset_;
-        i++;
+        if(!TermIgnore_(*it))
+        {
+            idmlib::util::IDMTerm term;
+            term.text = it->text_;
+            term.tag = IDMTermTag::GetTermTag( it->pos_ );
+            term.id = IDMIdConverter::GetId( it->text_, term.tag);
+            term.position = it->wordOffset_;
+            term_list.push_back(term);
+        }
         it++;
     }
 }
@@ -212,18 +267,18 @@ void IDMAnalyzer::GetStemTermList(const izenelib::util::UString& text, std::vect
         term_list[i].tag = IDMTermTag::GetTermTag( it->pos_ );
         if( term_list[i].tag == IDMTermTag::ENG )
         {
-        //do stemming
-        it->text_.toLowerString();
-        std::string str;
-        std::string str_stem;
-        it->text_.convertString(str, izenelib::util::UString::UTF_8);
-        stemmer_->stem( str, str_stem );
-        term_list[i].text = izenelib::util::UString(str_stem, izenelib::util::UString::UTF_8);
+            //do stemming
+            it->text_.toLowerString();
+            std::string str;
+            std::string str_stem;
+            it->text_.convertString(str, izenelib::util::UString::UTF_8);
+            stemmer_->stem( str, str_stem );
+            term_list[i].text = izenelib::util::UString(str_stem, izenelib::util::UString::UTF_8);
         
         }
         else
         {
-        term_list[i].text = it->text_;
+            term_list[i].text = it->text_;
         }
         term_list[i].id = IDMIdConverter::GetId( term_list[i].text, term_list[i].tag );
         term_list[i].position = it->wordOffset_;
@@ -323,137 +378,234 @@ void IDMAnalyzer::GetIdListForMatch(const izenelib::util::UString& text, std::ve
         
         if( tag != IDMTermTag::CHN )//is not chinese
         {
-        uint32_t term_id = IDMIdConverter::GetId(it->text_, tag );
-        id_list.push_back(term_id);
-        bLastChinese = false;
+            uint32_t term_id = IDMIdConverter::GetId(it->text_, tag );
+            id_list.push_back(term_id);
+            bLastChinese = false;
         }
         else
         {
-        if(bLastChinese)
-        {
-            izenelib::util::UString chnBigram(lastText);
-            chnBigram.append(it->text_);
-            uint32_t bigram_id = IDMIdConverter::GetId(chnBigram, IDMTermTag::CHN );
-            id_list.push_back(bigram_id);
-        }
-        bLastChinese = true;
-        lastText = it->text_;
+            if(bLastChinese)
+            {
+                izenelib::util::UString chnBigram(lastText);
+                chnBigram.append(it->text_);
+                uint32_t bigram_id = IDMIdConverter::GetId(chnBigram, IDMTermTag::CHN );
+                id_list.push_back(bigram_id);
+            }
+            bLastChinese = true;
+            lastText = it->text_;
         }
         it++;
     }
 
 }
 
-void IDMAnalyzer::GetTgTermList(const izenelib::util::UString& text, std::vector<idmlib::util::IDMTerm>& term_list)
+void IDMAnalyzer::CompoundInSamePosition_(const std::vector<idmlib::util::IDMTerm>& terms_in_same_position, idmlib::util::IDMTerm& compound_kor)
 {
-    typedef idmlib::util::IDMTerm TgTerm;
-    std::vector<idmlib::util::IDMTerm> raw_term_list;
-    GetTermList(text, raw_term_list);
-    uint32_t size = raw_term_list.size();
-    uint32_t p=0;
-    std::vector<idmlib::util::IDMTerm> tmp_term_list;
-    uint32_t last_position = 0;
-
-    while (true)
+    if(terms_in_same_position.size()==1)//
     {
-        bool bCheckTmpTermList = false;
-
-        uint32_t position = 0;
-        if(p == size) bCheckTmpTermList = true;
-        else
+        compound_kor = terms_in_same_position[0];
+        
+        if(compound_kor.text.isKoreanChar(0) ) //is korean
         {
-            position = raw_term_list[p].position;
-            if(last_position != position) bCheckTmpTermList = true;
-        }
-        if( bCheckTmpTermList )
-        {
-            if( tmp_term_list.size() > 0 )
+            if( compound_kor.tag== idmlib::util::IDMTermTag::NOUN && compound_kor.text.length()>=4)
             {
-                //TODO
-                if(tmp_term_list.size()==1)//
+                compound_kor.tag = idmlib::util::IDMTermTag::COMP_NOUN;
+            }
+            else if( compound_kor.tag!=idmlib::util::IDMTermTag::NOUN
+                && compound_kor.tag!=idmlib::util::IDMTermTag::KOR)
+            {
+                compound_kor.tag = idmlib::util::IDMTermTag::KOR;
+            }
+        }
+        compound_kor.id = IDMIdConverter::GetId( compound_kor.text, compound_kor.tag );
+    }
+    else
+    {
+        if(terms_in_same_position[0].tag == idmlib::util::IDMTermTag::KOR)
+        {
+            for(uint32_t p=1;p<terms_in_same_position.size();p++)
+            {
+                if( terms_in_same_position[p].text.isKoreanChar(0) && terms_in_same_position[p].tag == idmlib::util::IDMTermTag::NOUN )
                 {
-                    uint32_t termId = 0;
-                    if(tmp_term_list[0].text.isKoreanChar(0) && tmp_term_list[0].tag== idmlib::util::IDMTermTag::NOUN && tmp_term_list[0].text.length()>=4)
-                    {
-                        tmp_term_list[0].tag = idmlib::util::IDMTermTag::KOR_COMP_NOUN;
-                    }
-                    else
-                    {
-                        if( tmp_term_list[0].text.isKoreanChar(0) && tmp_term_list[0].tag!=idmlib::util::IDMTermTag::NOUN
-                            && tmp_term_list[0].tag!=idmlib::util::IDMTermTag::KOR)
-                        {
-                            tmp_term_list[0].tag = idmlib::util::IDMTermTag::KOR;
-                        }
-                    }
-                    
-                    termId = IDMIdConverter::GetId( tmp_term_list[0].text, tmp_term_list[0].tag );
-                    TgTerm term(tmp_term_list[0].text, termId, tmp_term_list[0].tag, tmp_term_list[0].position);
-                    term_list.push_back(term);
-
+                    compound_kor.text.append(terms_in_same_position[p].text);
                 }
                 else
                 {
-                    if(tmp_term_list[0].tag == idmlib::util::IDMTermTag::KOR)
-                    {
-                        izenelib::util::UString combination;
-                        for(uint32_t p=1;p<tmp_term_list.size();p++)
-                        {
-                            if( tmp_term_list[p].text.isKoreanChar(0) && tmp_term_list[p].tag == idmlib::util::IDMTermTag::NOUN )
-                            {
-                                combination.append(tmp_term_list[p].text);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                        if( combination.isKoreanChar(0) && combination.length() >= tmp_term_list[0].text.length()-1 && combination.length() >= 3 )
-                        {
-                            char tag = idmlib::util::IDMTermTag::NOUN;
-                            if(combination.length()>=4)
-                            {
-                                tag = idmlib::util::IDMTermTag::KOR_COMP_NOUN;
-                            }
-                            
-                            uint32_t termId = IDMIdConverter::GetId( combination, tag );
-                            TgTerm term(combination, termId, tag, tmp_term_list[0].position);
-                            term_list.push_back(term);
-                        }
-                        else
-                        {
-                            uint32_t termId = IDMIdConverter::GetId( tmp_term_list[0].text, tmp_term_list[0].tag );
-                            TgTerm term(tmp_term_list[0].text, termId, tmp_term_list[0].tag, tmp_term_list[0].position);
-                            term_list.push_back(term);
-
-                        }
-                    }
+                    break;
                 }
-                tmp_term_list.clear();
+            }
+            if( compound_kor.text.isKoreanChar(0) && compound_kor.text.length() >= terms_in_same_position[0].text.length()-1 && compound_kor.text.length() >= 3 )
+            {
+                compound_kor.tag = idmlib::util::IDMTermTag::NOUN;
+                if(compound_kor.text.length()>=4)
+                {
+                    compound_kor.tag = idmlib::util::IDMTermTag::COMP_NOUN;
+                }
+                
+                compound_kor.id = IDMIdConverter::GetId( compound_kor.text, compound_kor.tag );
+                compound_kor.position = terms_in_same_position[0].position;
+            }
+            else
+            {
+                compound_kor = terms_in_same_position[0];
+                compound_kor.id = IDMIdConverter::GetId( compound_kor.text, compound_kor.tag );
             }
         }
-        if(p == size) break;
+    }
+}
 
-        if (raw_term_list[p].text.length() == 0)
+bool IDMAnalyzer::TermIgnore_(la::Term& term)
+{
+    //TODO need refine. by add interface in multi-analyzer?
+    if( config_.jma_config.path== "" || !config_.jma_config.noun_only ) return false;
+    if( term.pos_=="PL-N" )
+    {
+        term.pos_ = "L";
+        return false;
+    }
+    if( term.text_.isJapaneseChar(0) && term.pos_[0]!='N' ) return true;
+    else if( term.text_.isChineseChar(0) && term.pos_[0]!='C' ) return true;
+    else if( term.text_.isNumericChar(0) && term.pos_[0]!='S' ) return true;
+    else if( term.text_.isAlphaChar(0) && term.pos_[0]!='F' ) return true;
+    return false;
+}
+
+bool IDMAnalyzer::TermIgnoreInTg_(const idmlib::util::IDMTerm& term)
+{
+    bool ignore = false;
+    char tag = term.tag;
+    if(term.text.isJapaneseChar(0) && tag!=idmlib::util::IDMTermTag::COMP_NOUN) ignore = true;
+    if(term.text.isChineseChar(0) && tag!=idmlib::util::IDMTermTag::COMP_NOUN && tag!=idmlib::util::IDMTermTag::CHN ) ignore = true;
+    
+    return ignore;
+}
+
+void IDMAnalyzer::CompoundInContinous_(std::vector<idmlib::util::IDMTerm>& terms_in_continous)
+{
+    if(config_.jma_config.path=="") return;
+//     if(terms_in_continous.size()<=1) return;
+//     std::cout<<"[in-continous] : ";
+//     for(uint32_t i=0;i<terms_in_continous.size();i++)
+//     {
+//         std::cout<<terms_in_continous[i].TextString()<<",";
+//     }
+//     std::cout<<std::endl;
+    std::vector<idmlib::util::IDMTerm> result;
+    idmlib::util::IDMTerm compound;
+    for(uint32_t i=0;i<terms_in_continous.size();i++)
+    {
+        if( !terms_in_continous[i].text.isKoreanChar(0) && (terms_in_continous[i].tag== idmlib::util::IDMTermTag::NOUN || terms_in_continous[i].tag== idmlib::util::IDMTermTag::LINK) )
         {
-            p++;
-            last_position = position;
-            continue;
-        }
-        char tag = raw_term_list[p].tag;
-        if (tag == idmlib::util::IDMTermTag::ENG || tag == idmlib::util::IDMTermTag::CHN)//english or chinese
-        {
-            uint32_t termId = IDMIdConverter::GetId( raw_term_list[p].text, tag );
-            TgTerm term(raw_term_list[p].text, termId, tag, position);
-            term_list.push_back(term);
+            if(compound.text.length()==0)
+            {
+                compound = terms_in_continous[i];
+            }
+            else
+            {
+                compound.text.append(terms_in_continous[i].text);
+                compound.tag = idmlib::util::IDMTermTag::COMP_NOUN;
+            }
         }
         else
         {
-            TgTerm term(raw_term_list[p].text, 0, tag, position);
-            tmp_term_list.push_back(term);
+            if(compound.text.length()>0)
+            {
+                if(!TermIgnoreInTg_(compound))
+                {
+                    result.push_back(compound);
+                }
+                compound.text.clear();
+            }
+            //ignore non compound japanese word
+            if(!TermIgnoreInTg_(terms_in_continous[i]))
+            {
+                result.push_back(terms_in_continous[i]);
+            }
         }
-        last_position = position;
-        ++p;
     }
+    if(compound.text.length()>0)
+    {
+        if(!TermIgnoreInTg_(compound))
+        {
+            result.push_back(compound);
+        }
+    }
+    terms_in_continous.resize(0);
+//     std::cout<<"[result] : "<<result.size()<<std::endl;
+    terms_in_continous.assign(result.begin(), result.end());
+}
+
+void IDMAnalyzer::JKCompound_(const std::vector<idmlib::util::IDMTerm>& raw_term_list, std::vector<idmlib::util::IDMTerm>& term_list)
+{
+    if(raw_term_list.empty()) return;
+    std::vector<idmlib::util::IDMTerm> terms_in_same_position(1, raw_term_list[0]);
+    std::vector<idmlib::util::IDMTerm> terms_in_continous;
+    uint32_t last_position = raw_term_list[0].position;
+    for(uint32_t i=1; i<raw_term_list.size(); i++)
+    {
+        
+        if( raw_term_list[i].position > last_position )
+        {
+            if(!terms_in_same_position.empty())
+            {
+                idmlib::util::IDMTerm compound_kor;//from terms_in_same_position
+                
+                CompoundInSamePosition_( terms_in_same_position, compound_kor);
+                terms_in_continous.push_back(compound_kor);
+                terms_in_same_position.resize(0);
+            }
+            
+            if(raw_term_list[i].position> last_position+1 )
+            {
+                if(!terms_in_continous.empty())
+                {
+                    CompoundInContinous_( terms_in_continous);
+                    term_list.insert(term_list.end(), terms_in_continous.begin(), terms_in_continous.end());
+                    terms_in_continous.resize(0);
+                }
+            }
+        }
+        terms_in_same_position.push_back(raw_term_list[i]);
+        last_position = raw_term_list[i].position;
+    }
+    if(!terms_in_same_position.empty())
+    {
+        idmlib::util::IDMTerm compound_kor;//from terms_in_same_position
+        
+        CompoundInSamePosition_( terms_in_same_position, compound_kor);
+        terms_in_continous.push_back(compound_kor);
+        terms_in_same_position.resize(0);
+    }
+    if(!terms_in_continous.empty())
+    {
+        CompoundInContinous_( terms_in_continous);
+        term_list.insert(term_list.end(), terms_in_continous.begin(), terms_in_continous.end());
+        terms_in_continous.resize(0);
+    }
+}
+
+void IDMAnalyzer::GetTgTermList(const izenelib::util::UString& text, std::vector<idmlib::util::IDMTerm>& term_list)
+{
+    
+    std::vector<idmlib::util::IDMTerm> raw_term_list;
+    GetTermList(text, raw_term_list);
+    
+    std::string str;
+    text.convertString( str, izenelib::util::UString::UTF_8);
+    std::cout<<"#"<<str<<"#"<<std::endl;
+    for(uint32_t i=0;i<raw_term_list.size();i++)
+    {
+        std::cout<<"{"<<raw_term_list[i].TextString()<<","<<raw_term_list[i].position<<","<<raw_term_list[i].tag<<"},";
+    }
+    std::cout<<std::endl;
+    
+    JKCompound_(raw_term_list, term_list);
+    
+    for(uint32_t i=0;i<term_list.size();i++)
+    {
+        std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].id<<","<<term_list[i].position<<","<<term_list[i].tag<<"],";
+    }
+    std::cout<<std::endl;
 }
 
 void IDMAnalyzer::simple_(izenelib::util::UString& content)
@@ -463,7 +615,7 @@ void IDMAnalyzer::simple_(izenelib::util::UString& content)
         izenelib::util::UCS2Char* p_char = simpler_map_.find(content[i]);
         if( p_char != NULL )
         {
-        content[i] = *p_char;
+            content[i] = *p_char;
         }
     }
 }

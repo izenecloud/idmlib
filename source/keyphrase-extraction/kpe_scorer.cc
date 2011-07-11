@@ -103,8 +103,9 @@ int KPEScorer::prefixTest(const std::vector<uint32_t>& termIdList)
     if(termCount == 1)
     {
         //check if single korean noun
-        if( idmlib::util::IDMIdConverter::IsKP(first_termid) )
+        if( idmlib::util::IDMIdConverter::IsCompoundNoun(first_termid) )
         {
+            std::cout<<"[Compound] "<<first_termid<<std::endl;
             return KPStatus::KP;
         }
         else
