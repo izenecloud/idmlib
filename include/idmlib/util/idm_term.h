@@ -22,18 +22,33 @@ NS_IDMLIB_UTIL_BEGIN
 
 struct IDMTerm
 {
-  IDMTerm():text(), id(0), tag(0), position(0)
+  IDMTerm():text(), id(0), position(0), tag(0)
   {
   }
   
-  IDMTerm(const izenelib::util::UString& ptext, uint32_t pid, char ptag, uint32_t pposition)
-  : text(ptext), id(pid), tag(ptag), position(pposition)
+  IDMTerm(const std::string& ptext, uint32_t pposition, char ptag)
+  : text(ptext, izenelib::util::UString::UTF_8), id(0), position(pposition), tag(ptag)
   {
   }
+  
+  IDMTerm(const izenelib::util::UString& ptext, uint32_t pposition, char ptag)
+  : text(ptext), id(0), position(pposition), tag(ptag)
+  {
+  }
+  
+  bool EqualsWithoutId(const IDMTerm& term) const
+  {
+      if(term.text!=text) return false;
+      if(term.position!=position) return false;
+      if(term.tag!=tag) return false;
+      return true;
+  }
+  
   izenelib::util::UString text;
   uint32_t id;
-  char tag;
   uint32_t position;
+  char tag;
+  
   
   std::string TextString() const
   {

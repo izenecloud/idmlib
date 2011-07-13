@@ -36,9 +36,9 @@ class IDMAnalyzer
    
   ~IDMAnalyzer();
   
-  void ExtractSpecialChar(bool extractSpecialChar, bool convertToPlaceHolder);
+//   void ExtractSpecialChar(bool extractSpecialChar, bool convertToPlaceHolder);
   
-  void ExtractSymbols();
+//   void ExtractSymbols();
   
   bool LoadSimplerFile(const std::string& file);
   
@@ -69,6 +69,16 @@ class IDMAnalyzer
   
   void GetTgTermList(const izenelib::util::UString& text, std::vector<idmlib::util::IDMTerm>& term_list);
   
+  const IDMAnalyzerConfig& GetConfig() const
+  {
+      return config_;
+  }
+  
+  IDMAnalyzerConfig& GetConfig()
+  {
+      return config_;
+  }
+  
  private:
      
   void InitWithConfig_(const IDMAnalyzerConfig& config);
@@ -85,6 +95,7 @@ class IDMAnalyzer
   la::stem::Stemmer* stemmer_;
   bool simpler_set_;
   izenelib::am::rde_hash<izenelib::util::UCS2Char, izenelib::util::UCS2Char> simpler_map_;
+  izenelib::am::rde_hash<std::string, bool> symbol_map_;
   boost::mutex la_mtx_;
         
         

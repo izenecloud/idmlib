@@ -17,6 +17,13 @@ IDMAnalyzer::IDMAnalyzer(const IDMAnalyzerConfig& config)
 void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
 {
     config_ = config;
+    symbol_map_.insert("SC", 1);
+    symbol_map_.insert("PUNCT-L", 1);
+    symbol_map_.insert("PUNCT-R", 1);
+    symbol_map_.insert("EOS", 1);
+    symbol_map_.insert("S-S", 1);
+    symbol_map_.insert("S-G", 1);
+    symbol_map_.insert("PUNCT-C", 1);
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
     ml_analyzer->setExtractSpecialChar(false, false);
     
@@ -60,12 +67,11 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
             cma_analyzer.reset( new la::ChineseAnalyzer(config.cma_config.path, load_model) );
 
             la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(cma_analyzer.get());
-            if ( pch != NULL ) {
-                pch->setExtractSpecialChar(false, false);
-                pch->setAnalysisType( config.cma_config.type);
-                pch->setLabelMode();
-                pch->setRemoveStopwords(config.cma_config.remove_stopwords);
-            }
+            pch->setCaseSensitive(config.ema_config.case_sensitive, false);
+            pch->setExtractSpecialChar(false, false);
+            pch->setAnalysisType( config.cma_config.type);
+            pch->setLabelMode();
+            pch->setRemoveStopwords(config.cma_config.remove_stopwords);
         }
     }
     
@@ -115,6 +121,7 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
 //             jma_analyzer.reset( new la::JapaneseAnalyzer(config.jma_config.path, keywords) );
 //         }
         la::JapaneseAnalyzer* pja = dynamic_cast<la::JapaneseAnalyzer*>(jma_analyzer.get());
+        pja->setCaseSensitive(config.ema_config.case_sensitive, false);
         pja->setExtractSpecialChar(false, false);
         pja->setLabelMode();
     }
@@ -153,6 +160,11 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
         ml_analyzer->setDefaultAnalyzer( jma_analyzer );
     }
     
+    if(config.symbol)
+    {
+        ml_analyzer->setExtractSpecialChar(true, false);
+    }
+    
     la_->setAnalyzer( ml_analyzer );
     
     stemmer_ = new la::stem::Stemmer();
@@ -167,15 +179,16 @@ IDMAnalyzer::~IDMAnalyzer()
     delete stemmer_;
 }
 
-void IDMAnalyzer::ExtractSpecialChar(bool extractSpecialChar, bool convertToPlaceHolder)
-{
-    la_->getAnalyzer()->setExtractSpecialChar(extractSpecialChar, convertToPlaceHolder);
-}
-
-void IDMAnalyzer::ExtractSymbols()
-{
-    ExtractSpecialChar(true, false);
-}
+// void IDMAnalyzer::ExtractSpecialChar(bool extractSpecialChar, bool convertToPlaceHolder)
+// {
+//     la_->getAnalyzer()->setExtractSpecialChar(extractSpecialChar, convertToPlaceHolder);
+// }
+// 
+// void IDMAnalyzer::ExtractSymbols()
+// {
+//     ExtractSpecialChar(true, false);
+//     symbol_ = true;
+// }
 
 bool IDMAnalyzer::LoadSimplerFile(const std::string& file)
 {
@@ -224,12 +237,13 @@ void IDMAnalyzer::GetTermList(const izenelib::util::UString& utext, la::TermList
         }
     }
     
-    la::TermList::iterator it = term_list.begin();
-    while( it!= term_list.end() )
-    {
-        std::cout<<"("<<it->textString()<<","<<it->wordOffset_<<","<<it->pos_<<"),";
-    }
-    std::cout<<std::endl;
+//     la::TermList::iterator it = term_list.begin();
+//     while( it!= term_list.end() )
+//     {
+//         std::cout<<"("<<it->textString()<<","<<it->wordOffset_<<","<<it->pos_<<"),";
+//         ++it;
+//     }
+//     std::cout<<std::endl;
     
 }
 
@@ -417,6 +431,10 @@ void IDMAnalyzer::CompoundInSamePosition_(const std::vector<idmlib::util::IDMTer
                 compound_kor.tag = idmlib::util::IDMTermTag::KOR;
             }
         }
+//         else if(compound_kor.tag== idmlib::util::IDMTermTag::NOUN && compound_kor.text.length()>=6)
+//         {
+//             compound_kor.tag = idmlib::util::IDMTermTag::COMP_NOUN;
+//         }
         compound_kor.id = IDMIdConverter::GetId( compound_kor.text, compound_kor.tag );
     }
     else
@@ -456,17 +474,42 @@ void IDMAnalyzer::CompoundInSamePosition_(const std::vector<idmlib::util::IDMTer
 
 bool IDMAnalyzer::TermIgnore_(la::Term& term)
 {
-    //TODO need refine. by add interface in multi-analyzer?
-    if( config_.jma_config.path== "" || !config_.jma_config.noun_only ) return false;
+    if( symbol_map_.find(term.pos_) != NULL) 
+    {
+        if( !config_.symbol ) return true;
+        else
+        {
+            term.pos_ = "SC";
+            return false;
+        }
+    }
     if( term.pos_=="PL-N" )
     {
         term.pos_ = "L";
         return false;
     }
+    else if( term.pos_=="S-A" )
+    {
+        term.pos_ = "F";
+        return false;
+    }
+//     else if (term.pos_ == "NN" ) //numberic in JA
+//     {
+//         term.pos_ = "S";
+//         return false;
+//     }
+    if( config_.jma_config.path== "" || !config_.jma_config.noun_only ) return false;
     if( term.text_.isJapaneseChar(0) && term.pos_[0]!='N' ) return true;
-    else if( term.text_.isChineseChar(0) && term.pos_[0]!='C' ) return true;
-    else if( term.text_.isNumericChar(0) && term.pos_[0]!='S' ) return true;
-    else if( term.text_.isAlphaChar(0) && term.pos_[0]!='F' ) return true;
+    else if( term.text_.isChineseChar(0) )
+    {
+        if( term.pos_[0]=='C' ) return false;
+        else 
+        {
+            if(config_.jma_config.noun_only && term.pos_[0]!='N' ) return true;
+            return false;
+        }
+    }
+
     return false;
 }
 
@@ -474,6 +517,7 @@ bool IDMAnalyzer::TermIgnoreInTg_(const idmlib::util::IDMTerm& term)
 {
     bool ignore = false;
     char tag = term.tag;
+    if(tag == idmlib::util::IDMTermTag::SYMBOL ) return false;
     if(term.text.isJapaneseChar(0) && tag!=idmlib::util::IDMTermTag::COMP_NOUN) ignore = true;
     if(term.text.isChineseChar(0) && tag!=idmlib::util::IDMTermTag::COMP_NOUN && tag!=idmlib::util::IDMTermTag::CHN ) ignore = true;
     
@@ -483,7 +527,6 @@ bool IDMAnalyzer::TermIgnoreInTg_(const idmlib::util::IDMTerm& term)
 void IDMAnalyzer::CompoundInContinous_(std::vector<idmlib::util::IDMTerm>& terms_in_continous)
 {
     if(config_.jma_config.path=="") return;
-//     if(terms_in_continous.size()<=1) return;
 //     std::cout<<"[in-continous] : ";
 //     for(uint32_t i=0;i<terms_in_continous.size();i++)
 //     {
@@ -492,6 +535,7 @@ void IDMAnalyzer::CompoundInContinous_(std::vector<idmlib::util::IDMTerm>& terms
 //     std::cout<<std::endl;
     std::vector<idmlib::util::IDMTerm> result;
     idmlib::util::IDMTerm compound;
+    char first_tag, last_tag;
     for(uint32_t i=0;i<terms_in_continous.size();i++)
     {
         if( !terms_in_continous[i].text.isKoreanChar(0) && (terms_in_continous[i].tag== idmlib::util::IDMTermTag::NOUN || terms_in_continous[i].tag== idmlib::util::IDMTermTag::LINK) )
@@ -499,10 +543,16 @@ void IDMAnalyzer::CompoundInContinous_(std::vector<idmlib::util::IDMTerm>& terms
             if(compound.text.length()==0)
             {
                 compound = terms_in_continous[i];
+                if( terms_in_continous[i].tag == idmlib::util::IDMTermTag::NOUN && terms_in_continous[i].text.length()>=6)
+                {
+                    compound.tag = idmlib::util::IDMTermTag::COMP_NOUN;
+                }
+                first_tag = compound.tag;
             }
             else
             {
                 compound.text.append(terms_in_continous[i].text);
+                last_tag = terms_in_continous[i].tag;
                 compound.tag = idmlib::util::IDMTermTag::COMP_NOUN;
             }
         }
@@ -510,7 +560,7 @@ void IDMAnalyzer::CompoundInContinous_(std::vector<idmlib::util::IDMTerm>& terms
         {
             if(compound.text.length()>0)
             {
-                if(!TermIgnoreInTg_(compound))
+                if(!TermIgnoreInTg_(compound) && first_tag!=idmlib::util::IDMTermTag::LINK && last_tag!=idmlib::util::IDMTermTag::LINK)
                 {
                     result.push_back(compound);
                 }
@@ -525,7 +575,7 @@ void IDMAnalyzer::CompoundInContinous_(std::vector<idmlib::util::IDMTerm>& terms
     }
     if(compound.text.length()>0)
     {
-        if(!TermIgnoreInTg_(compound))
+        if(!TermIgnoreInTg_(compound) && first_tag!=idmlib::util::IDMTermTag::LINK && last_tag!=idmlib::util::IDMTermTag::LINK)
         {
             result.push_back(compound);
         }
@@ -582,30 +632,35 @@ void IDMAnalyzer::JKCompound_(const std::vector<idmlib::util::IDMTerm>& raw_term
         term_list.insert(term_list.end(), terms_in_continous.begin(), terms_in_continous.end());
         terms_in_continous.resize(0);
     }
+    for(uint32_t i=0;i<term_list.size();i++)
+    {
+        idmlib::util::IDMIdConverter::GenId(term_list[i]);
+    }
 }
 
 void IDMAnalyzer::GetTgTermList(const izenelib::util::UString& text, std::vector<idmlib::util::IDMTerm>& term_list)
 {
     
+//     std::string str;
+//     text.convertString( str, izenelib::util::UString::UTF_8);
+//     std::cout<<"#"<<str<<"#"<<std::endl;
+    
     std::vector<idmlib::util::IDMTerm> raw_term_list;
     GetTermList(text, raw_term_list);
     
-    std::string str;
-    text.convertString( str, izenelib::util::UString::UTF_8);
-    std::cout<<"#"<<str<<"#"<<std::endl;
-    for(uint32_t i=0;i<raw_term_list.size();i++)
-    {
-        std::cout<<"{"<<raw_term_list[i].TextString()<<","<<raw_term_list[i].position<<","<<raw_term_list[i].tag<<"},";
-    }
-    std::cout<<std::endl;
+//     for(uint32_t i=0;i<raw_term_list.size();i++)
+//     {
+//         std::cout<<"{"<<raw_term_list[i].TextString()<<","<<raw_term_list[i].position<<","<<raw_term_list[i].tag<<"},";
+//     }
+//     std::cout<<std::endl;
     
     JKCompound_(raw_term_list, term_list);
     
-    for(uint32_t i=0;i<term_list.size();i++)
-    {
-        std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].id<<","<<term_list[i].position<<","<<term_list[i].tag<<"],";
-    }
-    std::cout<<std::endl;
+//     for(uint32_t i=0;i<term_list.size();i++)
+//     {
+//         std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].id<<","<<term_list[i].position<<","<<term_list[i].tag<<"],";
+//     }
+//     std::cout<<std::endl;
 }
 
 void IDMAnalyzer::simple_(izenelib::util::UString& content)

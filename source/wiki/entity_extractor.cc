@@ -15,7 +15,7 @@ using namespace idmlib::wiki;
 bool EntityExtractor::extract(const std::string& input_xml, const std::string& output_file)
 {
   idmlib::util::IDMAnalyzer analyzer;
-  analyzer.ExtractSpecialChar(true, false);
+  analyzer.GetConfig().symbol = true;
   std::ofstream ofs(output_file.c_str());
   std::ifstream ifs(input_xml.c_str());
   std::string line;

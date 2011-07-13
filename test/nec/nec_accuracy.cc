@@ -14,6 +14,7 @@
 #include <boost/algorithm/string.hpp>
 #include <am/3rdparty/rde_hash.h>
 #include <boost/lexical_cast.hpp>
+#include "../TestResources.h"
 using namespace idmlib;
 using namespace idmlib::nec;
 using namespace idmlib::kpe;
@@ -384,15 +385,7 @@ int main(int ac, char** av)
   }
   
   
-  idmlib::util::IDMAnalyzer* analyzer = NULL;
-  if (vm.count("kma-path")) {
-    std::string kma_path = vm["kma-path"].as<std::string>();
-    std::cout << "kma-path: " << kma_path <<std::endl;
-    analyzer = new idmlib::util::IDMAnalyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(kma_path,"",""));
-  } else {
-    std::cout << "kma-path not set"<<std::endl;
-    analyzer = new idmlib::util::IDMAnalyzer();
-  }
+  idmlib::util::IDMAnalyzer* analyzer = new idmlib::util::IDMAnalyzer(idmlib::util::IDMAnalyzerConfig::GetCommonTgConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
   
   std::string working_path;
   if (vm.count("working-path")) {
@@ -423,7 +416,6 @@ int main(int ac, char** av)
   {
     return -1;
   }
-  analyzer->ExtractSymbols();
   
   NERAccuracier ner_accuracy(ner_resource_path, id_manager_, num4test, accuracier);
   function_type callback_func = boost::bind( &NERAccuracier::Callback, &ner_accuracy, _1, _2, _3, _4, _5);

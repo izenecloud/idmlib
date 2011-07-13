@@ -196,7 +196,7 @@ int main(int ac, char** av)
   
   
   
-  idmlib::util::IDMAnalyzer* analyzer = new idmlib::util::IDMAnalyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
+  idmlib::util::IDMAnalyzer* analyzer = new idmlib::util::IDMAnalyzer(idmlib::util::IDMAnalyzerConfig::GetCommonTgConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
 
   
   std::string working_path;
@@ -238,7 +238,7 @@ int main(int ac, char** av)
   {
     return -1;
   }
-  analyzer->ExtractSymbols();
+  
   FileKPEWriter file_writer(output_file, encoding);
   function_type callback_func = boost::bind( &FileKPEWriter::Callback, &file_writer, _1, _2, _3, _4);
   KPEAlgorithm<OutputType>* kpe = new KPEAlgorithm<OutputType>(working_path, analyzer, callback_func);

@@ -13,6 +13,7 @@
 #include <la/LA.h>
 #include <idmlib/idm_types.h>
 #include "idm_term_tag.h"
+#include "idm_term.h"
 NS_IDMLIB_UTIL_BEGIN
 
 
@@ -40,6 +41,11 @@ class IDMIdConverter
     |flag;
     if( termId == 0 ) ++termId;
     return termId;
+  }
+  
+  static void GenId(idmlib::util::IDMTerm& term)
+  {
+      term.id = GetId(term.text, term.tag);
   }
   
   static uint32_t GetSpaceId()

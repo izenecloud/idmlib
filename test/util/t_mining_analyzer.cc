@@ -21,165 +21,231 @@
 using namespace idmlib::util;
 
 
+void common_check(IDMAnalyzer* analyzer, const izenelib::util::UString& text, const std::vector<IDMTerm>& term_vec)
+{
+    std::vector<idmlib::util::IDMTerm> term_list;
+    analyzer->GetTermList(text, term_list);
+    
+    for( uint32_t i=0;i<term_list.size();++i )
+    {
+        std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
+    }
+    
+    BOOST_CHECK( term_list.size() == term_vec.size() );
+    
+    for(uint32_t i=0;i<term_list.size();i++)
+    {
+        BOOST_CHECK( term_list[i].EqualsWithoutId(term_vec[i]) );
+    }
+}
 
+void tg_check(IDMAnalyzer* analyzer, const izenelib::util::UString& text, const std::vector<IDMTerm>& term_vec)
+{
+    std::vector<idmlib::util::IDMTerm> term_list;
+    analyzer->GetTgTermList(text, term_list);
+    BOOST_CHECK( term_list.size() == term_vec.size() );
+    
+    for(uint32_t i=0;i<term_list.size();i++)
+    {
+        BOOST_CHECK( term_list[i].EqualsWithoutId(term_vec[i]) );
+    }
+}
+
+// void common_check(IDMAnalyzer* analyzer, const izenelib::util::UString& text, const std::vector<izenelib::util::UString>& str_vec, const std::vector<uint32_t>& position_vec, const std::vector<char>& tag_vec)
+// {
+//     std::vector<idmlib::util::IDMTerm> term_list;
+//     analyzer->GetTermList(text, term_list);
+//     if(str_vec.size()>0)
+//     {
+//         BOOST_CHECK( term_list.size() == str_vec.size() );
+//     }
+//     if(position_vec.size()>0)
+//     {
+//         BOOST_CHECK( term_list.size() == position_vec.size() );
+//     }
+//     if(tag_vec.size()>0)
+//     {
+//         BOOST_CHECK( term_list.size() == tag_vec.size() );
+//     }
+//     for(uint32_t i=0;i<term_list.size();i++)
+//     {
+//         if( !str_vec.empty() )
+//         {
+//             BOOST_CHECK( term_list[i].text == str_vec[i] );
+//         }
+//         if( !position_vec.empty() )
+//         {
+//             BOOST_CHECK( term_list[i].position == position_vec[i] );
+//         }
+//         if( !tag_vec.empty() )
+//         {
+//             BOOST_CHECK( term_list[i].tag == tag_vec[i] );
+//         }
+//     }
+// }
+// 
+// void tg_check(IDMAnalyzer* analyzer, const izenelib::util::UString& text, const std::vector<izenelib::util::UString>& str_vec, const std::vector<uint32_t>& position_vec, const std::vector<char>& tag_vec)
+// {
+//     std::vector<idmlib::util::IDMTerm> term_list;
+//     analyzer->GetTgTermList(text, term_list);
+//     if(str_vec.size()>0)
+//     {
+//         BOOST_CHECK( term_list.size() == str_vec.size() );
+//     }
+//     if(position_vec.size()>0)
+//     {
+//         BOOST_CHECK( term_list.size() == position_vec.size() );
+//     }
+//     if(tag_vec.size()>0)
+//     {
+//         BOOST_CHECK( term_list.size() == tag_vec.size() );
+//     }
+//     for(uint32_t i=0;i<term_list.size();i++)
+//     {
+//         if( !str_vec.empty() )
+//         {
+//             BOOST_CHECK( term_list[i].text == str_vec[i] );
+//         }
+//         if( !position_vec.empty() )
+//         {
+//             BOOST_CHECK( term_list[i].position == position_vec[i] );
+//         }
+//         if( !tag_vec.empty() )
+//         {
+//             BOOST_CHECK( term_list[i].tag == tag_vec[i] );
+//         }
+//     }
+// }
 
 
 BOOST_AUTO_TEST_SUITE(analyzer_test)
 
-BOOST_AUTO_TEST_CASE(display_test)
-{
-  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",""));
-//   analyzer.ExtractSpecialChar(true, false);
-//   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
-  izenelib::util::UString text(" Ｙｏｕ ａｒＥ　ａ　ｐｉｇ,， ａｒｅ　ｙｏｕ?２００１年| [[数理逻辑|數學邏輯]] || [[集合论|集合論]] || [[範疇論, 你呢, 呵呵,", izenelib::util::UString::UTF_8);
-    
-  la::TermList term_list;
-  analyzer.GetTermList(text, term_list);
-  
-  for( uint32_t i=0;i<term_list.size();++i )
-  {
-    std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
-  }
-  
-}
+// BOOST_AUTO_TEST_CASE(display_test)
+// {
+//     {
+//         IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",""));
+//         izenelib::util::UString text(" Ｙｏｕ ａｒＥ　ａ　ｐｉｇ,， ａｒｅ　ｙｏｕ?２００１年| [[数理逻辑|數學邏輯]] || [[集合论|集合論]] || [[範疇論, 你呢, 呵呵,", izenelib::util::UString::UTF_8);
+//             
+//         la::TermList term_list;
+//         analyzer.GetTermList(text, term_list);
+//         
+//         for( uint32_t i=0;i<term_list.size();++i )
+//         {
+//             std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
+//         }
+//     }
+//     {
+//         IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig("",IZENECMA_KNOWLEDGE,"")) ;
+//         //   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
+//         izenelib::util::UString text("国家经 济 Sites year, 呵呵! United configuration", izenelib::util::UString::UTF_8);
+//         
+//         
+//             
+//         la::TermList term_list;
+//         analyzer.GetTermList(text, term_list);
+//         std::cout<<"CHINESE-TEST"<<std::endl;
+//         for( uint32_t i=0;i<term_list.size();++i )
+//         {
+//             std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
+//         }
+//     }
+//   
+// }
 
 BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 {
-  IDMAnalyzer analyzer;
-//   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
-  izenelib::util::UString text("国家经 济 Sites year, 呵呵! United configuration", izenelib::util::UString::UTF_8);
-  uint32_t term_count = 10;
+  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
+  izenelib::util::UString text("国家经 济 Sites year, 呵呵! United configuration. Ｙｏｕ ａｒＥ L4", izenelib::util::UString::UTF_8);
   
-  std::vector<izenelib::util::UString> str_vec(term_count);
-  str_vec[0] = izenelib::util::UString("国", izenelib::util::UString::UTF_8);
-  str_vec[1] = izenelib::util::UString("家", izenelib::util::UString::UTF_8);
-  str_vec[2] = izenelib::util::UString("经", izenelib::util::UString::UTF_8);
-  str_vec[3] = izenelib::util::UString("济", izenelib::util::UString::UTF_8);
-  str_vec[4] = izenelib::util::UString("Sites", izenelib::util::UString::UTF_8);
-  str_vec[5] = izenelib::util::UString("year", izenelib::util::UString::UTF_8);
-  str_vec[6] = izenelib::util::UString("呵", izenelib::util::UString::UTF_8);
-  str_vec[7] = izenelib::util::UString("呵", izenelib::util::UString::UTF_8);
-  str_vec[8] = izenelib::util::UString("United", izenelib::util::UString::UTF_8);
-  str_vec[9] = izenelib::util::UString("configuration", izenelib::util::UString::UTF_8);
-  
-  std::vector<uint32_t> position_vec(term_count);
-  position_vec[0] = 0;
-  position_vec[1] = 1;
-  position_vec[2] = 2;
-  position_vec[3] = 3;
-  position_vec[4] = 4;
-  position_vec[5] = 5;
-  position_vec[6] = 7;
-  position_vec[7] = 8;
-  position_vec[8] = 10;
-  position_vec[9] = 11;
-  
-  std::vector<std::string> tag_vec(term_count);
-  tag_vec[0] = "C";
-  tag_vec[1] = "C";
-  tag_vec[2] = "C";
-  tag_vec[3] = "C";
-  tag_vec[4] = "F";
-  tag_vec[5] = "F";
-  tag_vec[6] = "C";
-  tag_vec[7] = "C";
-  tag_vec[8] = "F";
-  tag_vec[9] = "F";
-  
-  la::TermList term_list;
-  analyzer.GetTermList(text, term_list);
-  
-  for( uint32_t i=0;i<term_list.size();++i )
-  {
-    std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
-  }
-  
-  BOOST_CHECK( term_list.size() == term_count );
-  
-  for( uint32_t i=0;i<term_list.size();++i )
-  {
-    BOOST_CHECK( term_list[i].text_ == str_vec[i] );
-    BOOST_CHECK( term_list[i].wordOffset_ == position_vec[i] );
-    BOOST_CHECK( term_list[i].pos_ == tag_vec[i] );
-  }
-
-}
-
-BOOST_AUTO_TEST_CASE(chinese_test)
-{
-  std::cout<<"[]"<<IZENECMA_KNOWLEDGE<<std::endl;
-  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig("",IZENECMA_KNOWLEDGE,"")) ;
-//   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
-  izenelib::util::UString text("国家经 济 Sites year, 呵呵! United configuration", izenelib::util::UString::UTF_8);
+  std::vector<IDMTerm> term_vec;
+  term_vec.push_back( IDMTerm("国",0, 'C' ));
+  term_vec.push_back( IDMTerm("家",1, 'C' ));
+  term_vec.push_back( IDMTerm("经",2, 'C' ));
+  term_vec.push_back( IDMTerm("济",3, 'C' ));
+  term_vec.push_back( IDMTerm("Sites",4, 'F' ));
+  term_vec.push_back( IDMTerm("year",5, 'F' ));
+  term_vec.push_back( IDMTerm("呵",7, 'C' ));
+  term_vec.push_back( IDMTerm("呵",8, 'C' ));
+  term_vec.push_back( IDMTerm("United",10, 'F' ));
+  term_vec.push_back( IDMTerm("configuration",11, 'F' ));
+  term_vec.push_back( IDMTerm("You",13, 'F' ));
+  term_vec.push_back( IDMTerm("arE",14, 'F' ));
+  term_vec.push_back( IDMTerm("L",15, 'F' ));
+  term_vec.push_back( IDMTerm("4",16, 'S' ));
   
   
     
-  la::TermList term_list;
-  analyzer.GetTermList(text, term_list);
-  std::cout<<"CHINESE-TEST"<<std::endl;
-  for( uint32_t i=0;i<term_list.size();++i )
-  {
-    std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
-  }
+  common_check(&analyzer, text, term_vec);
+  
+  IDMAnalyzer analyzer2(idmlib::util::IDMAnalyzerConfig::GetCommonTgConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
+  
+  term_vec.clear();
+  term_vec.push_back( IDMTerm("国",0, 'C' ));
+  term_vec.push_back( IDMTerm("家",1, 'C' ));
+  term_vec.push_back( IDMTerm("经",2, 'C' ));
+  term_vec.push_back( IDMTerm("济",3, 'C' ));
+  term_vec.push_back( IDMTerm("Sites",4, 'F' ));
+  term_vec.push_back( IDMTerm("year",5, 'F' ));
+  term_vec.push_back( IDMTerm(",",6, '.' ));
+  term_vec.push_back( IDMTerm("呵",7, 'C' ));
+  term_vec.push_back( IDMTerm("呵",8, 'C' ));
+  term_vec.push_back( IDMTerm("!",9, '.' ));
+  term_vec.push_back( IDMTerm("United",10, 'F' ));
+  term_vec.push_back( IDMTerm("configuration",11, 'F' ));
+  term_vec.push_back( IDMTerm(".",12, '.' ));
+  term_vec.push_back( IDMTerm("You",13, 'F' ));
+  term_vec.push_back( IDMTerm("arE",14, 'F' ));
+  term_vec.push_back( IDMTerm("L",15, 'F' ));
+  term_vec.push_back( IDMTerm("4",16, 'S' ));
+  
+  tg_check(&analyzer2, text, term_vec);
+
+}
+
+
+BOOST_AUTO_TEST_CASE(cma_test)
+{
+  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,IZENECMA_KNOWLEDGE,IZENEJMA_KNOWLEDGE));
+  izenelib::util::UString text("新闻集团（英语：News corporation）是目前全球第三大的媒体集团。", izenelib::util::UString::UTF_8);
+  
+  std::vector<IDMTerm> term_vec;
+  term_vec.push_back( IDMTerm("新闻",0, 'N' ));
+  term_vec.push_back( IDMTerm("集团",1, 'N' ));
+  term_vec.push_back( IDMTerm("英语",3, 'N' ));
+  term_vec.push_back( IDMTerm("News",5, 'F' ));
+  term_vec.push_back( IDMTerm("corporation",6, 'F' ));
+  term_vec.push_back( IDMTerm("全球",10, 'N' ));
+  term_vec.push_back( IDMTerm("媒体",14, 'N' ));
+  term_vec.push_back( IDMTerm("集团",15, 'N' ));
+  
+    
+  common_check(&analyzer, text, term_vec);
   
   
 }
 
+
 BOOST_AUTO_TEST_CASE(korean_test)
 {
-  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",""));
-//   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
-  izenelib::util::UString text("정형석기자", izenelib::util::UString::UTF_8);
-  uint32_t term_count = 3;
-  
-  std::vector<izenelib::util::UString> str_vec(term_count);
-  str_vec[0] = izenelib::util::UString("정형석기자", izenelib::util::UString::UTF_8);
-  str_vec[1] = izenelib::util::UString("정형석", izenelib::util::UString::UTF_8);
-  str_vec[2] = izenelib::util::UString("기자", izenelib::util::UString::UTF_8);
-//   str_vec[3] = izenelib::util::UString("济", izenelib::util::UString::UTF_8);
-//   str_vec[4] = izenelib::util::UString("Sites", izenelib::util::UString::UTF_8);
-//   str_vec[5] = izenelib::util::UString("year", izenelib::util::UString::UTF_8);
-//   str_vec[6] = izenelib::util::UString("呵", izenelib::util::UString::UTF_8);
-//   str_vec[7] = izenelib::util::UString("呵", izenelib::util::UString::UTF_8);
-//   str_vec[8] = izenelib::util::UString("United", izenelib::util::UString::UTF_8);
-  
-  std::vector<uint32_t> position_vec(term_count);
-  position_vec[0] = 0;
-  position_vec[1] = 0;
-  position_vec[2] = 0;
-//   position_vec[3] = 3;
-//   position_vec[4] = 4;
-//   position_vec[5] = 5;
-//   position_vec[6] = 7;
-//   position_vec[7] = 8;
-//   position_vec[8] = 10;
-  
-  std::vector<std::string> tag_vec(term_count);
-  tag_vec[0] = "?";
-  tag_vec[1] = "NNI";
-  tag_vec[2] = "NNG";
-//   tag_vec[3] = "C";
-//   tag_vec[4] = "F";
-//   tag_vec[5] = "F";
-//   tag_vec[6] = "C";
-//   tag_vec[7] = "C";
-//   tag_vec[8] = "F";
-  
-  la::TermList term_list;
-  analyzer.GetTermList(text, term_list);
-  
-  for( uint32_t i=0;i<term_list.size();++i )
+  izenelib::util::UString text("정형석기자 Korean", izenelib::util::UString::UTF_8);
   {
-    std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
+    IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
+   
+    std::vector<IDMTerm> term_vec;
+    term_vec.push_back( IDMTerm("정형석기자",0, '?' ));
+    term_vec.push_back( IDMTerm("정형석",0, 'N' ));
+    term_vec.push_back( IDMTerm("기자",0, 'N' ));
+    term_vec.push_back( IDMTerm("Korean",1, 'F' ));
+    
+    common_check(&analyzer, text, term_vec);
   }
-  
-  BOOST_CHECK( term_list.size() == term_count );
-  
-  for( uint32_t i=0;i<term_list.size();++i )
   {
-    BOOST_CHECK( term_list[i].text_ == str_vec[i] );
-    BOOST_CHECK( term_list[i].wordOffset_ == position_vec[i] );
-    BOOST_CHECK( term_list[i].pos_ == tag_vec[i] );
+    IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonTgConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
+    
+    std::vector<IDMTerm> term_vec;
+    term_vec.push_back( IDMTerm("정형석기자",0, 'P' ));
+    term_vec.push_back( IDMTerm("Korean",1, 'F' ));
+    tg_check(&analyzer, text, term_vec);
   }
 
 }
@@ -187,51 +253,72 @@ BOOST_AUTO_TEST_CASE(korean_test)
 
 BOOST_AUTO_TEST_CASE(ja_test)
 {
-  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig("","",IZENEJMA_KNOWLEDGE));
-//   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
-  izenelib::util::UString text("イラク共和国（イラクきょうわこく）、通称イラクは、中東・西アジアの連邦共和制国家である。首都はバグダード（バグダッド）で、サウジアラビア、クウェート、シリア、トルコ、イラン、ヨルダンと隣接する。古代メソポタミア文明を受け継ぐ土地にあり、世界で3番目の原油埋蔵国である。", izenelib::util::UString::UTF_8);
+  izenelib::util::UString text("イラク共和国（イラクきょうわこく）、通称イラクは、中東・西アジアの連邦共和制国家である。English char L4, 世界で3番目の原油埋蔵国である。", izenelib::util::UString::UTF_8);
   
-  std::vector<idmlib::util::IDMTerm> term_list;
-//   la::TermList term_list;
-  
-  analyzer.GetTermList(text, term_list);
-  
-  for( uint32_t i=0;i<term_list.size();++i )
-  {
-    std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
-  }
-  
-  term_list.clear();
-  
-  std::cout<<"[After Compound]"<<std::endl;
-  analyzer.GetTgTermList(text, term_list);
-  
-  for( uint32_t i=0;i<term_list.size();++i )
-  {
-    std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
-  }
-
-}
-
-BOOST_AUTO_TEST_CASE(tg_test)
-{
   IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
-  izenelib::util::UString text("L4", izenelib::util::UString::UTF_8);
+//   izenelib::util::UString text("国家经济 Sites year, 呵呵! United 사회부조리 애프터 전교조도", izenelib::util::UString::UTF_8);
+  std::vector<IDMTerm> term_vec;
+  term_vec.push_back( IDMTerm("イラク", 0, 'N') );
+  term_vec.push_back( IDMTerm("共和国",  1, 'N') );
+  term_vec.push_back( IDMTerm("イラク",  3, 'N') );
+  term_vec.push_back( IDMTerm("きょう",  4, 'N') );
+  term_vec.push_back( IDMTerm("通称",  9, 'N') );
+  term_vec.push_back( IDMTerm("イラク",  10, 'N') );
+  term_vec.push_back( IDMTerm("中東",  13, 'N') );
+  term_vec.push_back( IDMTerm("西",  15, 'N') );
+  term_vec.push_back( IDMTerm("アジア",  16, 'N') );
+  term_vec.push_back( IDMTerm("の",  17, 'L') );
+  term_vec.push_back( IDMTerm("連邦",  18, 'N') );
+  term_vec.push_back( IDMTerm("共和制",  19, 'N') );
+  term_vec.push_back( IDMTerm("国家",  20, 'N') );
+  term_vec.push_back( IDMTerm("English",  24, 'F') );
+  term_vec.push_back( IDMTerm("char",  25, 'F') );
+  term_vec.push_back( IDMTerm("L",  26, 'F') );
+  term_vec.push_back( IDMTerm("4",  27, 'N') );
+  term_vec.push_back( IDMTerm("世界",  29, 'N') );
+  term_vec.push_back( IDMTerm("3",  31, 'N') );
+  term_vec.push_back( IDMTerm("番目",  32, 'N') );
+  term_vec.push_back( IDMTerm("の",  33, 'L') );
+  term_vec.push_back( IDMTerm("原油",  34, 'N') );
+  term_vec.push_back( IDMTerm("埋蔵国",  35, 'N') );
   
-  std::vector<idmlib::util::IDMTerm> term_list;
-//   la::TermList term_list;
+  common_check(&analyzer, text, term_vec);
   
-  analyzer.GetTgTermList(text, term_list);
-  std::cout<<"[TG-Test]"<<std::endl;
-  for( uint32_t i=0;i<term_list.size();++i )
-  {
-    std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
-  }
+  IDMAnalyzer analyzer2(idmlib::util::IDMAnalyzerConfig::GetCommonTgConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
   
+  term_vec.clear();
   
+  term_vec.push_back( IDMTerm("イラク共和国", 0, 'P') );
+  term_vec.push_back( IDMTerm("（", 2, '.') );
+  term_vec.push_back( IDMTerm("イラクきょう",  3, 'P') );
+  term_vec.push_back( IDMTerm("）",  7, '.') );
+  term_vec.push_back( IDMTerm("、",  8, '.') );
+  term_vec.push_back( IDMTerm("通称イラク",  9, 'P') );
+  term_vec.push_back( IDMTerm("、",  12, '.') );
+  term_vec.push_back( IDMTerm("・",  14, '.') );
+  
+  term_vec.push_back( IDMTerm("西アジアの連邦共和制国家",  15, 'P') );
+  term_vec.push_back( IDMTerm("。",  23, '.') );
+  term_vec.push_back( IDMTerm("English",  24, 'F') );
+  term_vec.push_back( IDMTerm("char",  25, 'F') );
+  term_vec.push_back( IDMTerm("L",  26, 'F') );
+  term_vec.push_back( IDMTerm("4",  27, 'N') );
+  term_vec.push_back( IDMTerm(",",  28, '.') );
+  term_vec.push_back( IDMTerm("3番目の原油埋蔵国",  31, 'P') );
+  term_vec.push_back( IDMTerm("。",  38, '.') );
+  
+  tg_check(&analyzer2, text, term_vec);
+  
+//   std::vector<idmlib::util::IDMTerm> term_list;
+//   
+//   std::cout<<"[After Compound]"<<std::endl;
+//   analyzer2.GetTgTermList(text, term_list);
+//   
+//   for( uint32_t i=0;i<term_list.size();++i )
+//   {
+//     std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
+//   }
+
 }
-
-
-
 
 BOOST_AUTO_TEST_SUITE_END() 

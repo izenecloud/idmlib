@@ -70,6 +70,7 @@ class IDMAnalyzerConfig
   static IDMAnalyzerConfig GetCommonConfig(const std::string& kma_path, const std::string& cma_path, const std::string& jma_path)
   {
       IDMAnalyzerConfig config;
+      config.symbol = false;
       config.ema_config.enable = true;
       config.ema_config.case_sensitive = true;
       config.kma_config.path = kma_path;
@@ -89,7 +90,46 @@ class IDMAnalyzerConfig
       }
       else 
       {
-          config.ema_config.enable = true;
+          if(config.cma_config.path!="" )
+          {
+              config.default_language = CHINESE;
+          }
+          else if(config.jma_config.path!="" )
+          {
+              config.default_language = JAPANESE;
+          }
+          else
+          {
+              //char analyzer
+              config.default_language = CHINESE;
+          }
+      }
+      return config;
+  }
+  
+  static IDMAnalyzerConfig GetCommonTgConfig(const std::string& kma_path, const std::string& cma_path, const std::string& jma_path)
+  {
+      IDMAnalyzerConfig config;
+      config.symbol = true;
+      config.ema_config.enable = true;
+      config.ema_config.case_sensitive = true;
+      config.kma_config.path = kma_path;
+      config.cma_config.path = cma_path;
+      config.cma_config.use_char = false;
+      config.cma_config.type = la::ChineseAnalyzer::maximum_match;
+      config.cma_config.remove_stopwords = false;
+      if( config.cma_config.path=="" )
+      {
+          config.cma_config.use_char = true;
+      }
+      config.jma_config.path = jma_path;
+      config.jma_config.noun_only = true;
+      if( config.kma_config.path!="" )
+      {
+          config.default_language = KOREAN;
+      }
+      else 
+      {
           if(config.cma_config.path!="" )
           {
               config.default_language = CHINESE;
@@ -112,7 +152,7 @@ class IDMAnalyzerConfig
   CMAConfig cma_config;
   JMAConfig jma_config;
   LANGUAGE default_language;
-   
+  bool symbol;
  
         
         
