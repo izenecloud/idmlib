@@ -195,6 +195,16 @@ public:
         return db_.coeff(row,col).freq;
     }
 
+    /**
+     * return the items in @p row.
+     * @param row the row number
+     * @return the row items
+     */
+    boost::shared_ptr<const RowType> rowItems(ItemType row)
+    {
+        return db_.row(row);
+    }
+
     void dump()
     {
         db_.dump();

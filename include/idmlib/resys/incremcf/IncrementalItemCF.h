@@ -118,22 +118,32 @@ public:
     void flush();
 
 private:
+    typedef ItemCoVisitation<CoVisitFreq>::RowType CoVisitRow;
+    typedef SimilarityMatrix<uint32_t,float>::RowType SimRow;
+
+    /**
+     * Update @p row in similarity matrix,
+     * the similarity value is calculated based on covisit value @p coVisitRow.
+     * @param row the row id to update
+     * @param coVisitRow the covisit values of the row
+     * @param isUpdateCol if true, for each column in @p coVisitRow, if the column does not exist in @p rowSet,
+     *                    also update (col, row) in similarity matrix, and insert this column into @p colSet.
+     * @param rowSet only used when @p isUpdateCol is true, to check whether the column exist in this set
+     * @param colSet only used when @p isUpdateCol is true, store the columns not exit in @p rowSet
+     */
+    void updateSimRow_(
+        uint32_t row,
+        const CoVisitRow& coVisitRow,
+        bool isUpdateCol,
+        const std::set<uint32_t>& rowSet,
+        std::set<uint32_t>& colSet
+    );
+
     /**
      * Update similarity matrix.
      * @param rows the row numbers to update
      */
     void updateSimMatrix_(const std::list<uint32_t>& rows);
-
-    /**
-     * Calculate the value of similarity matrix[row][col].
-     * @param row the row number of similarity matrix
-     * @param col the column number of similarity matrix
-     * @return the value for similarity matrix[row][col]
-     */
-    float calcSimValue_(
-        uint32_t row,
-        uint32_t col
-    );
 
     /**
      * Given @p visitItems, recommend @p recItems.
