@@ -45,12 +45,6 @@ protected:
     }
 };
 
-template<typename ItemType,typename MeasureType>
-bool similarityCompare (const std::pair<ItemType,MeasureType>& p1, const std::pair<ItemType,MeasureType>& p2)
-{
-    return (p1.second > p2.second);
-}
-
 template<typename ItemType = uint32_t, typename MeasureType = float>
 class SimilarityMatrix
 {
