@@ -54,18 +54,18 @@ IncrementalItemCF::~IncrementalItemCF()
 }
 
 void IncrementalItemCF::buildMatrix(
-    std::list<uint32_t>& oldItems,
-    std::list<uint32_t>& newItems
+    const std::list<uint32_t>& oldItems,
+    const std::list<uint32_t>& newItems
 )
 {
     updateVisitMatrix(oldItems, newItems);
 
-    updateSimMatrix_(oldItems);
+    updateSimMatrix_(newItems);
 }
 
 void IncrementalItemCF::updateVisitMatrix(
-    std::list<uint32_t>& oldItems,
-    std::list<uint32_t>& newItems
+    const std::list<uint32_t>& oldItems,
+    const std::list<uint32_t>& newItems
 )
 {
     covisitation_.visit(oldItems, newItems);

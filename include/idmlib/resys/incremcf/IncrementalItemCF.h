@@ -43,28 +43,20 @@ public:
      * @pre each items in @p oldItems should be unique
      * @pre each items in @p newItems should be unique
      * @pre there should be no items contained in both @p oldItems and @p newItems
-     *
-     * for performance reason, it has below post-condition:
-     * @post when this function returns, the items in @p newItems would be moved to the end of @p oldItems,
-     *       and @p newItems would be empty.
      */
     void buildMatrix(
-        std::list<uint32_t>& oldItems,
-        std::list<uint32_t>& newItems
+        const std::list<uint32_t>& oldItems,
+        const std::list<uint32_t>& newItems
     );
 
     /**
      * Update covisist matrix.
      * @param oldItems the items visited before
      * @param newItems the new visited items
-     *
-     * for performance reason, it has below post-condition:
-     * @post when this function returns, the items in @p newItems would be moved to the end of @p oldItems,
-     *       and @p newItems would be empty.
      */
     void updateVisitMatrix(
-        std::list<uint32_t>& oldItems,
-        std::list<uint32_t>& newItems
+        const std::list<uint32_t>& oldItems,
+        const std::list<uint32_t>& newItems
     );
 
     /**

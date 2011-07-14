@@ -58,12 +58,7 @@ void ItemCFTest::checkVisit(
 
     updateGoldVisitMatrix_(oldItems, newItems);
 
-    // update visitMatrix_
-    const std::size_t totalNum = oldItems.size() + newItems.size();
     visitMatrix_->visit(oldItems, newItems);
-    // now newItems is moved into oldItems 
-    BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
-    BOOST_CHECK_EQUAL(newItems.size(), 0U);
 
     checkVisitMatrix();
 }
@@ -166,7 +161,6 @@ void ItemCFTest::checkPurchase(
 
     updateGoldVisitMatrix_(oldItems, newItems);
 
-    const std::size_t totalNum = oldItems.size() + newItems.size();
     if (rebuildSimMatrx)
     {
         cfManager_->updateVisitMatrix(oldItems, newItems);
@@ -176,10 +170,6 @@ void ItemCFTest::checkPurchase(
     {
         cfManager_->buildMatrix(oldItems, newItems);
     }
-
-    // now newItems is moved into oldItems 
-    BOOST_CHECK_EQUAL(oldItems.size(), totalNum);
-    BOOST_CHECK_EQUAL(newItems.size(), 0U);
 
     checkVisitMatrix();
     updateGoldSimMatrix_();
