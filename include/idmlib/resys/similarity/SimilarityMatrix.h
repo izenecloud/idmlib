@@ -201,7 +201,7 @@ public:
      */
     void updateRowItems(ItemType row, const RowType& cols)
     {
-        return store_.update_row_without_cache(row, cols);
+        return store_.update_row(row, cols);
     }
 
     void dump()

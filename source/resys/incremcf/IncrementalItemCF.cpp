@@ -10,20 +10,6 @@
 namespace
 {
 
-/**
- * Calculate similarity value from covisit values.
- */
-inline float similarity(
-    uint32_t visit_i_j,
-    uint32_t visit_i_i,
-    uint32_t visit_j_j
-)
-{
-    assert(visit_i_i && visit_j_j);
-
-    return (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
-}
-
 class TopItemsQueue
     :public izenelib::util::PriorityQueue<idmlib::recommender::RecommendItem>
 {
@@ -68,18 +54,18 @@ IncrementalItemCF::~IncrementalItemCF()
 }
 
 void IncrementalItemCF::buildMatrix(
-    std::list<uint32_t>& oldItems,
-    std::list<uint32_t>& newItems
+    const std::list<uint32_t>& oldItems,
+    const std::list<uint32_t>& newItems
 )
 {
     updateVisitMatrix(oldItems, newItems);
 
-    updateSimMatrix_(oldItems);
+    updateSimMatrix_(newItems);
 }
 
 void IncrementalItemCF::updateVisitMatrix(
-    std::list<uint32_t>& oldItems,
-    std::list<uint32_t>& newItems
+    const std::list<uint32_t>& oldItems,
+    const std::list<uint32_t>& newItems
 )
 {
     covisitation_.visit(oldItems, newItems);
@@ -87,10 +73,11 @@ void IncrementalItemCF::updateVisitMatrix(
 
 void IncrementalItemCF::buildSimMatrix()
 {
-    typedef ItemCoVisitation<CoVisitFreq>::RowType CoVisitRow;
-    typedef SimilarityMatrix<uint32_t,float>::RowType SimRow;
-
     LOG(INFO) << "start building similarity matrix...";
+
+    // empty set used to call updateSimRow_()
+    std::set<uint32_t> rowSet;
+    std::set<uint32_t> colSet;
 
     int rowNum = 0;
     for (ItemCoVisitation<CoVisitFreq>::iterator it_i = covisitation_.begin();
@@ -104,83 +91,69 @@ void IncrementalItemCF::buildSimMatrix()
         const uint32_t row = it_i->first;
         const CoVisitRow& cols = it_i->second;
 
-        SimRow simRow;
-        for (CoVisitRow::const_iterator it_j = cols.begin();
-            it_j != cols.end(); ++it_j)
-        {
-            const uint32_t col = it_j->first;
-
-            // no similarity value on diagonal line
-            if (row == col)
-                continue;
-
-            const uint32_t visit_i_j = it_j->second.freq;
-            assert(visit_i_j && "the freq value in visit matrix should be positive.");
-
-            uint32_t visit_i_i = 0;
-            CoVisitRow::const_iterator findIt = cols.find(row);
-            if (findIt != cols.end())
-            {
-                visit_i_i = findIt->second.freq;
-            }
-            const uint32_t visit_j_j = covisitation_.coeff(col, col);
-
-            simRow[col] = similarity(visit_i_j, visit_i_i, visit_j_j);
-        }
-
-        similarity_.updateRowItems(row, simRow);
-        similarity_.loadNeighbor(row);
+        updateSimRow_(row, cols, false, rowSet, colSet);
     }
     std::cout << "\rbuilding row num: " << rowNum << std::endl;
 
     LOG(INFO) << "finish building similarity matrix";
 }
 
+void IncrementalItemCF::updateSimRow_(
+    uint32_t row,
+    const CoVisitRow& coVisitRow,
+    bool isUpdateCol,
+    const std::set<uint32_t>& rowSet,
+    std::set<uint32_t>& colSet
+)
+{
+    uint32_t visit_i_i = 0;
+    CoVisitRow::const_iterator findIt = coVisitRow.find(row);
+    if (findIt != coVisitRow.end())
+    {
+        visit_i_i = findIt->second.freq;
+    }
+
+    SimRow simRow;
+    for (CoVisitRow::const_iterator it_j = coVisitRow.begin();
+        it_j != coVisitRow.end(); ++it_j)
+    {
+        const uint32_t col = it_j->first;
+
+        // no similarity value on diagonal line
+        if (row == col)
+            continue;
+
+        const uint32_t visit_i_j = it_j->second.freq;
+        const uint32_t visit_j_j = covisitation_.coeff(col, col);
+        assert(visit_i_j && visit_i_i && visit_j_j && "the freq value in visit matrix should be positive.");
+
+        float sim = (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
+        simRow[col] = sim;
+
+        // also update (col, row) if col does not exist in rowSet
+        if (isUpdateCol && rowSet.find(col) == rowSet.end())
+        {
+            similarity_.coeff(col, row, sim);
+            colSet.insert(col);
+        }
+    }
+
+    similarity_.updateRowItems(row, simRow);
+    similarity_.loadNeighbor(row);
+}
+
 void IncrementalItemCF::updateSimMatrix_(const std::list<uint32_t>& rows)
 {
-    typedef SimilarityMatrix<uint32_t,float>::RowType RowType;
-    std::set<uint32_t> inputSet(rows.begin(), rows.end());
+    std::set<uint32_t> rowSet(rows.begin(), rows.end());
     std::set<uint32_t> colSet;
 
     for (std::list<uint32_t>::const_iterator it_i = rows.begin();
         it_i != rows.end(); ++it_i)
     {
         uint32_t row = *it_i;
+        boost::shared_ptr<const CoVisitRow> cols = covisitation_.rowItems(row);
 
-        // phase 1: update columns in each row
-        boost::shared_ptr<const RowType> rowItems = similarity_.rowItems(row);
-        for (RowType::const_iterator it_j = rowItems->begin();
-            it_j != rowItems->end(); ++it_j)
-        {
-            uint32_t col = it_j->first;
-            assert(col != row && "there should be no similarity value on diagonal line!");
-
-            // except those in inputSet as they would be updated in phase 2
-            if (inputSet.find(col) == inputSet.end())
-            {
-                float sim = calcSimValue_(row, col);
-                similarity_.coeff(row, col, sim);
-                similarity_.coeff(col, row, sim);
-
-                colSet.insert(col);
-            }
-        }
-
-        // phase 2: update all pairs in rows
-        for (std::list<uint32_t>::const_iterator it_j = rows.begin();
-            it_j != rows.end(); ++it_j)
-        {
-            uint32_t col = *it_j;
-
-            if (row == col)
-                continue;
-
-            float sim = calcSimValue_(row, col);
-            similarity_.coeff(row, col, sim);
-        }
-
-        // update neighbor for this row
-        similarity_.loadNeighbor(row);
+        updateSimRow_(row, *cols, true, rowSet, colSet);
     }
 
     // update neighbor for col items
@@ -189,24 +162,6 @@ void IncrementalItemCF::updateSimMatrix_(const std::list<uint32_t>& rows)
     {
         similarity_.loadNeighbor(*it);
     }
-}
-
-float IncrementalItemCF::calcSimValue_(
-    uint32_t row,
-    uint32_t col
-)
-{
-    float sim = 0;
-    const uint32_t visit_i_j = covisitation_.coeff(row, col);
-
-    if (visit_i_j)
-    {
-        const uint32_t visit_i_i = covisitation_.coeff(row, row);
-        const uint32_t visit_j_j = covisitation_.coeff(col, col);
-        sim = similarity(visit_i_j, visit_i_i, visit_j_j);
-    }
-
-    return sim;
 }
 
 void IncrementalItemCF::buildUserRecItems(

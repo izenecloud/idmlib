@@ -108,41 +108,21 @@ public:
      * @pre each items in @p oldItems should be unique
      * @pre each items in @p newItems should be unique
      * @pre there should be no items contained in both @p oldItems and @p newItems
-     *
-     * for performance reason, it has below post-condition:
-     * @post when @c visit function returns, the items in @p newItems would be moved to the end of @p oldItems,
-     *       and @p newItems would be empty.
      */
-    void visit(std::list<ItemType>& oldItems, std::list<ItemType>& newItems)
+    void visit(const std::list<ItemType>& oldItems, const std::list<ItemType>& newItems)
     {
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(lock_);
 
         std::list<ItemType>::const_iterator iter;
-        if (oldItems.empty())
-        {
-            // update new*new pairs
-            for(iter = newItems.begin(); iter != newItems.end(); ++iter)
-                updateCoVisation(*iter, newItems);
 
-            // for post condition
-            oldItems.swap(newItems);
-        }
-        else
-        {
-            // update old*new pairs
-            for(iter = oldItems.begin(); iter != oldItems.end(); ++iter)
-                updateCoVisation(*iter, newItems);
+        // update old*new pairs
+        std::list<ItemType> emptyList;
+        for(iter = oldItems.begin(); iter != oldItems.end(); ++iter)
+            updateCoVisation_(*iter, newItems, emptyList);
 
-            // move new items into oldItems
-            std::list<ItemType>::const_iterator newItemIt = oldItems.end();
-            --newItemIt;
-            oldItems.splice(oldItems.end(), newItems);
-            ++newItemIt;
-
-            // update new*total pairs
-            for(iter = newItemIt; iter != oldItems.end(); ++iter)
-                updateCoVisation(*iter, oldItems);
-        }
+        // update new*total pairs
+        for(iter = newItems.begin(); iter != newItems.end(); ++iter)
+            updateCoVisation_(*iter, oldItems, newItems);
     }
 
     void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results, ItemRescorer* rescorer = NULL)
@@ -195,6 +175,16 @@ public:
         return db_.coeff(row,col).freq;
     }
 
+    /**
+     * return the items in @p row.
+     * @param row the row number
+     * @return the row items
+     */
+    boost::shared_ptr<const RowType> rowItems(ItemType row)
+    {
+        return db_.row(row);
+    }
+
     void dump()
     {
         db_.dump();
@@ -216,10 +206,22 @@ public:
     }
 
 private:
-    void updateCoVisation(ItemType item, const std::list<ItemType>& coItems)
+    /**
+     * For the row @p item, update its columns @p cols1 and @p cols2.
+     * @param item the row number
+     * @param cols1 column list 1
+     * @param cols2 column list 2
+     */
+    void updateCoVisation_(
+        ItemType item,
+        const std::list<ItemType>& cols1,
+        const std::list<ItemType>& cols2
+    )
     {
-        if(coItems.empty()) return;
-        db_.row_incre(item, coItems);
+        if(cols1.empty() && cols2.empty())
+            return;
+
+        db_.row_incre(item, cols1, cols2);
     }
 
 private:
