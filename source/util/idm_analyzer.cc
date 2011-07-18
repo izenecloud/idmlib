@@ -452,7 +452,16 @@ void IDMAnalyzer::CompoundInSamePosition_(const std::vector<idmlib::util::IDMTer
                     break;
                 }
             }
-            if( compound_kor.text.isKoreanChar(0) && compound_kor.text.length() >= terms_in_same_position[0].text.length()-1 && compound_kor.text.length() >= 3 )
+            
+            bool b_noun = false;
+            if( compound_kor.text.length()>0 )
+            {
+                if( compound_kor.text.isKoreanChar(0) && compound_kor.text.length() >= terms_in_same_position[0].text.length()-1 && compound_kor.text.length() >= 3 )
+                {
+                    b_noun = true;
+                }
+            }
+            if( b_noun)
             {
                 compound_kor.tag = idmlib::util::IDMTermTag::NOUN;
                 if(compound_kor.text.length()>=4)
