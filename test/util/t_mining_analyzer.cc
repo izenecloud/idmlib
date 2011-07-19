@@ -120,8 +120,8 @@ void tg_check(IDMAnalyzer* analyzer, const izenelib::util::UString& text, const 
 
 BOOST_AUTO_TEST_SUITE(analyzer_test)
 
-// BOOST_AUTO_TEST_CASE(display_test)
-// {
+BOOST_AUTO_TEST_CASE(display_test)
+{
 //     {
 //         IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",""));
 //         izenelib::util::UString text(" Ｙｏｕ ａｒＥ　ａ　ｐｉｇ,， ａｒｅ　ｙｏｕ?２００１年| [[数理逻辑|數學邏輯]] || [[集合论|集合論]] || [[範疇論, 你呢, 呵呵,", izenelib::util::UString::UTF_8);
@@ -149,8 +149,19 @@ BOOST_AUTO_TEST_SUITE(analyzer_test)
 //             std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
 //         }
 //     }
-//   
-// }
+    
+    {
+        IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonTgConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE)) ;
+        izenelib::util::UString text("W ork T ime F un (亦称为 Hell's Part-Time Jobs 2000 、バイトヘル2000、打工地狱2000)是一款由 D3与 SCEI 为 PSP 平台开发的电子游戏。WTF于 2006年 12月22日 在日本发售；美国发售时间为 2006年 10月16日 。 [1] 该游戏包含超过40款小游戏，讲述你接受来自\"工作恶魔\"的兼职，你需要于根据等级而定的时间内完成指定数额的工作。工作包括如计算鸡隻(将初生的鸡隻分类为男性、女性或死亡)、劈木(同时避免劈到一些经常会放到劈木台上的可爱动物)、在工厂内替原子笔盖上盖子与空手道打斗。完成小游戏后你会得到金钱，可用在游戏的 转蛋 机内以随机的方式得到新的小游戏、你画廊内的奖品或一些甚至可用在现实生活的小活意，如一个时钟。该游戏英文名字的首字WTF，亦可解作常用语\"What the fuck?\"的首字母略缩字，一般用作表示惊讶或迷惑，因此与游戏的主题一致。这是巧合或是故意仍为未知数。游戏的美版于2006年9月17日泄漏到互联网上。&lt;ArticleID&gt;", izenelib::util::UString::UTF_8);
+        std::vector<idmlib::util::IDMTerm> term_list;
+        analyzer.GetTgTermList(text, term_list);
+        for( uint32_t i=0;i<term_list.size();++i )
+        {
+            std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
+        }
+    }
+  
+}
 
 BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 {

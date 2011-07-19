@@ -10,6 +10,7 @@ CONFIGURE_FILE(
 ADD_SUBDIRECTORY(tdt)
 ADD_SUBDIRECTORY(keyphrase-extraction)
 ADD_SUBDIRECTORY(nec)
+ADD_SUBDIRECTORY(query-correction)
 #ADD_SUBDIRECTORY(query-suggestion)
 ADD_SUBDIRECTORY(duplicate-detection)
 ADD_SUBDIRECTORY(wiki)

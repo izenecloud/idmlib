@@ -191,6 +191,22 @@ public:
         return trie_.getData(nid, userData);
     }
     
+    std::pair<bool, bool> get(const CharType& ch, const NodeIDType& parentNID, NodeIDType& childNID)
+    {
+        std::pair<bool, bool> result(false, false);
+        if(getEdge(ch, parentNID, childNID))
+        {
+            result.first = true;
+            UserDataType data;
+            if(getData(childNID, data))
+            {
+                result.second = true;
+            }
+        }
+        std::cout<<"MF: "<<ch<<","<<parentNID<<","<<childNID<<","<<result.first<<","<<result.second<<std::endl;
+        return true;
+    }
+    
 private:
     
         
@@ -242,7 +258,7 @@ class MemoryTrie
             }
             if( REVERSE )
             {
-                std::vector<uint32_t> reverseVec(label);
+                std::vector<CharType> reverseVec(label);
                 std::reverse(reverseVec.begin(), reverseVec.end());
                 reverse_.insert(reverseVec, labelId);
             }

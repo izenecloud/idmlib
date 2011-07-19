@@ -18,6 +18,10 @@ FILE(GLOB keyphrase_extraction_SRC
   "keyphrase-extraction/*.cc"
 )
 
+FILE(GLOB query-correction_SRC
+  "query-correction/*.cc"
+)
+
 FILE(GLOB query-suggestion_SRC
   "query-suggestion/*.cpp"
   "query-suggestion/*.cc"
@@ -54,6 +58,7 @@ ADD_LIBRARY(idmlib
 ${keyphrase_extraction_SRC}
 ${duplicate-detection_SRC}
 ${nec_SRC}
+${query-correction_SRC}
 ${query-suggestion_SRC}
 ${dc_SRC}
 ${itemset_SRC}
