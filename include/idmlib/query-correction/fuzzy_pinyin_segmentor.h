@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <boost/unordered_map.hpp>
 #include <util/ustring/UString.h>
 #include <am/3rdparty/rde_hash.h>
 
@@ -34,8 +35,12 @@ class FuzzyPinyinSegmentor
 {
     typedef idmlib::util::MTrie<std::string, uint32_t> PinyinDictType;
     typedef idmlib::util::MTrie<std::string, uint32_t, std::string> FuzzyDictType;
+    typedef boost::unordered_map<izenelib::util::UCS2Char, std::vector<std::string> > Cn2PinyinType;
+    typedef boost::unordered_map<std::string, std::vector<izenelib::util::UCS2Char> > Pinyin2CnType;
     public:
         FuzzyPinyinSegmentor();
+        
+        void AddPinyinMap(const std::string& pinyin, const izenelib::util::UCS2Char& cn_char);
         void AddPinyin(const std::string& pinyin);
         void LoadPinyinFile(const std::string& file);
         
@@ -43,7 +48,16 @@ class FuzzyPinyinSegmentor
         void Segment(const std::string& pinyin_str, std::vector<PinyinSegmentResult>& result_list);
         void SegmentRaw(const std::string& pinyin_str, std::vector<std::string>& result_list);
         void FuzzySegmentRaw(const std::string& pinyin_str, std::vector<std::string>& result_list);
+        void FuzzySegmentRaw(const std::string& pinyin_str, std::vector<std::pair<double, std::string> >& result_list);
         
+        void GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::pair<double, std::string> >& result_list);
+        void GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list);
+        bool GetPinyinTerm(const izenelib::util::UCS2Char& cn_char, std::vector<std::string>& result_list);
+        
+        bool GetChar(const std::string& pinyin_term, std::vector<izenelib::util::UCS2Char>& result_list);
+        
+        
+        uint32_t CountPinyinTerm(const std::string& pinyin);
         bool GetFirstPinyinTerm(const std::string& pinyin, std::string& first, std::string& remain);
         bool GetFirstPinyinTerm(std::string& pinyin, std::string& first);
     private:
@@ -61,17 +75,22 @@ class FuzzyPinyinSegmentor
         bool FuzzyFilter_(const std::string& pinyin_term, std::string& fuzzy_term);
         
         
-        void FuzzySegmentRaw_(const std::string& pinyin_str, const std::string& mid_result, std::vector<std::string>& result_list);
+        void FuzzySegmentRaw_(const std::string& pinyin_str, const std::string& mid_result, double score, std::vector<std::pair<double, std::string> >& result_list);
+        
+        void GetPinyin_(const izenelib::util::UString& cn_chars, const std::string& mid_result, std::vector<std::string>& result_list);
         
         
         
     private:
         PinyinDictType pinyin_dict_;
+        Cn2PinyinType cn2pinyin_;
+        Pinyin2CnType pinyin2cn_;
 //         izenelib::am::rde_hash<std::string, bool> pinyin_term_;
 
-        izenelib::am::stl_map<std::string, bool> filter_pinyin_;
+        boost::unordered_map<std::string, bool> filter_pinyin_;
         FuzzyDictType suffix_fuzzy_;
         FuzzyDictType prefix_fuzzy_;
+        double fuzzy_weight_;
     
 };
 
