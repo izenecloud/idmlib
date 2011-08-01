@@ -41,29 +41,52 @@ BOOST_AUTO_TEST_CASE(cqc_test )
     display(&cqc, "zhonghuarenmingongheguo");
     display(&cqc, "shanghai");
     display(&cqc, "yiyao");
+    display(&cqc, "chenshan");
+    display(&cqc, "yifu");
+    display(&cqc, "shouji");
+    display(&cqc, "lianyiqun");
+    display(&cqc, "niuzaiku");
+    display(&cqc, "pingbandianshi");
+    display(&cqc, "dianshi");
+    display(&cqc, "paoxie");
+    display(&cqc, "huawei");
+    display(&cqc, "nikang");
+    display(&cqc, "xiangji");
+    display(&cqc, "wuxian");
+    display(&cqc, "shangwang");
+    display(&cqc, "wuxianshangwang");
+    display(&cqc, "maozi");
+    display(&cqc, "lifu");
+    display(&cqc, "weiyi");
+    display(&cqc, "duanxiu");
+    display(&cqc, "changxiu");
+    display(&cqc, "wenxiong");
+    display(&cqc, "wazi");
+    display(&cqc, "tuoxie");
+    display(&cqc, "nanzhuang");
     
-    display(&cqc, "chinese");
-    display(&cqc, "chinesa");
-    display(&cqc, "be");
-    display(&cqc, "a");
-    display(&cqc, "z");
-    display(&cqc, "quality");
-    display(&cqc, "you");
-    display(&cqc, "youtube");
-    
-    display(&cqc, "中过");
-    display(&cqc, "周结论");
-    display(&cqc, "蔡依琳");
-    display(&cqc, "阵子单");
-    
-    display(&cqc, "项链");
-    display(&cqc, "响亮");
-    display(&cqc, "哈哈");
-    display(&cqc, "我们的爱");
-    display(&cqc, "耐克");
-    display(&cqc, "鞋子");
-    display(&cqc, "蝎子");
-    display(&cqc, "写字");
+//     display(&cqc, "chinese");
+//     display(&cqc, "chinesa");
+//     display(&cqc, "be");
+//     display(&cqc, "a");
+//     display(&cqc, "z");
+//     display(&cqc, "quality");
+//     display(&cqc, "you");
+//     display(&cqc, "youtube");
+//     
+//     display(&cqc, "中过");
+//     display(&cqc, "周结论");
+//     display(&cqc, "蔡依琳");
+//     display(&cqc, "阵子单");
+//     
+//     display(&cqc, "项链");
+//     display(&cqc, "响亮");
+//     display(&cqc, "哈哈");
+//     display(&cqc, "我们的爱");
+//     display(&cqc, "耐克");
+//     display(&cqc, "鞋子");
+//     display(&cqc, "蝎子");
+//     display(&cqc, "写字");
     
     
     

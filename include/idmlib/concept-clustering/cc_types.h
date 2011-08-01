@@ -6,31 +6,15 @@
 /// @date Updated 2010-05-05
 ///
 
-#ifndef IDMCCTYPES_H_
-#define IDMCCTYPES_H_
+#ifndef IDMLIB_CCTYPES_H_
+#define IDMLIB_CCTYPES_H_
 
 #include "../idm_types.h"
 #include <boost/shared_ptr.hpp>
 #include <string>
 #include <vector>
-#include <set>
-#include <map>
-#include <ext/hash_map>
-#include <cmath>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/serialization.hpp>
+
 #include <util/ustring/UString.h>
-
-#include <am/cccr_hash/cccr_hash.h>
-
-
-#include <boost/dynamic_bitset.hpp>
-#include <functional>
-
-#include <boost/foreach.hpp>
-#include <iostream>
-
-#include <util/izene_serialization.h>
 
 NS_IDMLIB_CC_BEGIN
     
