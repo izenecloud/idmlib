@@ -15,20 +15,18 @@ struct RecommendItem
         ,weight_(weight)
     {}
 
-    RecommendItem(const RecommendItem& other)
-        :itemId_(other.itemId_)
-        ,weight_(other.weight_)
-    {}
-
-
     uint32_t itemId_;
     float weight_;
+
+    /** the items having major influence on recommending @c itemId_ */
+    std::vector<uint32_t> reasonItemIds_;
 
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & itemId_;
         ar & weight_;
+        ar & reasonItemIds_;
     }
 };
 

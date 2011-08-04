@@ -107,11 +107,13 @@ public:
      * calculate the similarity weight for the item @p candidate.
      * @param candidate calculate weight for this item
      * @param historySet the user's purchased items
+     * @param reasonItems the items contained in both @p historySet and @p candidate's neighbors
      * @return the similarity weight
      */
     float weight(
         ItemType candidate, 
-        const std::set<ItemType>& historySet
+        const std::set<ItemType>& historySet,
+        std::vector<ItemType>& reasonItems
     )
     {
         if(candidate >= neighbors_.size())
@@ -127,7 +129,10 @@ public:
            it != neighbor.end(); ++it)
         {
             if (historySet.find(it->first) != historySet.end())
+            {
                 sim += it->second;
+                reasonItems.push_back(it->first);
+            }
 
             total += it->second;
         }

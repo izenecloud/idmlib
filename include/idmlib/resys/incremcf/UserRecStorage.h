@@ -18,7 +18,7 @@
 #include <list>
 #include <algorithm>
 
-#include <sys/time.h>
+#include <glog/logging.h>
 
 using namespace std;
 
@@ -37,7 +37,11 @@ public:
           )
         : store_(homePath)
     {
-        store_.open();
+        bool result = store_.open();
+        if (!result)
+        {
+            LOG(ERROR) << "failed open db: " << homePath;
+        }
     }
 
     ~UserRecStorage()

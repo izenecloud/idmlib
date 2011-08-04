@@ -2,26 +2,39 @@
 
 #include <util/PriorityQueue.h>
 
-#include <math.h> // for sqrt
+#include <map>
 #include <algorithm>
+#include <cmath> // for sqrt
 
 #include <glog/logging.h>
 
 namespace
 {
 
+struct QueueItem
+{
+    QueueItem(uint32_t itemId = 0, float weight = 0)
+        :itemId_(itemId)
+        ,weight_(weight)
+    {}
+
+    uint32_t itemId_;
+    float weight_;
+};
+
 class TopItemsQueue
-    :public izenelib::util::PriorityQueue<idmlib::recommender::RecommendItem>
+    :public izenelib::util::PriorityQueue<QueueItem>
 {
 public:
     TopItemsQueue(size_t size)
     {
         this->initialize(size);
     }
+
 protected:
     bool lessThan(
-        idmlib::recommender::RecommendItem o1,
-        idmlib::recommender::RecommendItem o2
+        QueueItem o1,
+        QueueItem o2
     )
     {
         return (o1.weight_ < o2.weight_);
@@ -242,6 +255,8 @@ void IncrementalItemCF::recommend_(
         }
     }
 
+    // map from candidate item to reason items
+    std::map<uint32_t, std::vector<uint32_t> > reasonMap;
     TopItemsQueue queue(howMany);
     for (std::set<uint32_t>::const_iterator it = candidateSet.begin();
         it != candidateSet.end(); ++it)
@@ -250,10 +265,10 @@ void IncrementalItemCF::recommend_(
         if(visitItems.find(itemId) == visitItems.end()
            && (!rescorer || !rescorer->isFiltered(itemId)))
         {
-            float weight = similarity_.weight(itemId, visitItems);
+            float weight = similarity_.weight(itemId, visitItems, reasonMap[itemId]);
             if(weight > 0)
             {
-                queue.insert(RecommendItem(itemId,weight));
+                queue.insert(QueueItem(itemId, weight));
             }
         }
     }
@@ -261,7 +276,10 @@ void IncrementalItemCF::recommend_(
     recItems.resize(queue.size());
     for(RecommendItemVec::reverse_iterator rit = recItems.rbegin(); rit != recItems.rend(); ++rit)
     {
-        *rit = queue.pop();
+        QueueItem queueItem = queue.pop();
+        rit->itemId_ = queueItem.itemId_;
+        rit->weight_ = queueItem.weight_;
+        rit->reasonItemIds_.swap(reasonMap[queueItem.itemId_]);
     }
 }
 

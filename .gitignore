@@ -5,6 +5,7 @@
 *.so
 *.swp
 *.swo
+*.vim
 tags
 dump
 dump.*
