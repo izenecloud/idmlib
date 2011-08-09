@@ -56,5 +56,8 @@ typedef unsigned __int64  uint64_t;
 #define NS_IDMLIB_QC_BEGIN namespace idmlib{ namespace qc{
 #define NS_IDMLIB_QC_END }}
 
+#define NS_IDMLIB_DD_BEGIN namespace idmlib{ namespace dd{
+#define NS_IDMLIB_DD_END }}
+
 #endif
 

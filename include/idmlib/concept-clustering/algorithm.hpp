@@ -39,7 +39,8 @@ typedef uint32_t id_type;
 typedef izenelib::util::UString string_type;
 typedef std::pair<uint32_t, uint32_t> id_pair;
 typedef std::vector<id_pair> input_type;
-typedef std::vector<boost::shared_ptr<ClusterRep> > OutputType;
+typedef ConceptNode<uint32_t> ConceptNodeType;
+typedef std::vector<boost::shared_ptr<ClusterRep<uint32_t> > > OutputType;
 typedef idmlib::util::StringDistance<ConceptInfo, std::list<ConceptInfo> > distance_type;
 public:
 
@@ -213,7 +214,7 @@ private:
                 conceptList[index].index_ = conceptResultList.size();
                 conceptResultList.push_back(conceptList[index]);
                 
-        }
+            }
 
         }
         if( showtime )
@@ -339,10 +340,10 @@ private:
         OutputType& output)
     {
 
-        std::vector<ConceptNode* > allConceptNode;
+        std::vector<ConceptNodeType* > allConceptNode;
         ConceptNodeValue topNodeValue(docIdList.size(), queryTermIdList);
         topNodeValue.conceptId_ = 0;// defined as 0 firstly
-        ConceptNode* top = new ConceptNode ( topNodeValue ) ;
+        ConceptNodeType* top = new ConceptNodeType ( topNodeValue ) ;
         allConceptNode.push_back ( top );
 
         std::vector<std::vector<double> > dValue ( 1,std::vector<double> ( concepts.size(),0.0 ) );
@@ -389,7 +390,7 @@ private:
                 break;
             }
         }
-        BOOST_FOREACH(ConceptNode* lNode, allConceptNode)
+        BOOST_FOREACH(ConceptNodeType* lNode, allConceptNode)
         {
             delete lNode;
         }
@@ -397,7 +398,7 @@ private:
     }
     
     double computeScore_(
-        const ConceptNode& node,
+        const ConceptNodeType& node,
         const ConceptInfo& conceptInfo,
         izenelib::am::rde_hash<uint64_t,double>& containess )
     {
@@ -517,7 +518,7 @@ private:
             izenelib::am::rde_hash<uint64_t,double>& containess,
             uint32_t index,
             uint32_t parent_index,
-            std::vector<ConceptNode* >& allConceptNode,
+            std::vector<ConceptNodeType* >& allConceptNode,
             boost::dynamic_bitset<>& row_selected,
             boost::dynamic_bitset<>& column_selected,
             std::list<ConceptInfo >& acquiredConcepts,
@@ -532,8 +533,8 @@ private:
     //     labels[label_id].name_.convertString(_str, izenelib::util::UString::UTF_8);
     //     std::cout<<"inserting "<<label_id<<" "<<_str<<std::endl;
         acquiredConcepts.push_back(concepts[index]);
-        ConceptNode* parent = allConceptNode[parent_index];
-        boost::shared_ptr<ClusterRep> cluster ( new ClusterRep() );
+        ConceptNodeType* parent = allConceptNode[parent_index];
+        boost::shared_ptr<ClusterRep<uint32_t> > cluster ( new ClusterRep<uint32_t>() );
     //             cluster->termIdList_ = labels[label_id].termIdList_;
         cluster->name_ = concepts[index].name_;
         cluster->conceptId_ = concepts[index].conceptId_;
@@ -545,7 +546,7 @@ private:
         }
         else
         {
-            boost::shared_ptr<ClusterRep>& bindCluster = parent->clusterRep_;
+            boost::shared_ptr<ClusterRep<uint32_t> >& bindCluster = parent->clusterRep_;
             tmpDocInvert &= bindCluster->docInvert_;
             cluster->set_doc_contain ( docIdList,tmpDocInvert );
             bindCluster->children_.push_back ( cluster );
@@ -553,7 +554,7 @@ private:
     //             cluster->setIDManager(idManager_);
         ConceptNodeValue nodeValue(index, tmpDocInvert, concepts[index].termIdList_);
         nodeValue.conceptId_ = concepts[index].conceptId_;
-        ConceptNode* node = new ConceptNode ( nodeValue,parent ) ;
+        ConceptNodeType* node = new ConceptNodeType ( nodeValue,parent ) ;
         parent->addChild ( node );
         if ( parent->children_.size() >=params.perLevelNum_)
         {
