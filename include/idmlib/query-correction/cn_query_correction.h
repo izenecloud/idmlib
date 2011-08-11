@@ -34,6 +34,8 @@ class CnQueryCorrection
         
     private:
         
+        bool ReloadLM_();
+        
         bool LoadRawTextTransProb_(const std::string& file);
         
         bool LoadRawText_(const std::string& file);

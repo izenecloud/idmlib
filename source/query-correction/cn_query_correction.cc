@@ -7,7 +7,7 @@ using namespace idmlib::qc;
 
 #define CN_QC_UNIGRAM
 
-// #define CN_QC_DEBUG
+#define CN_QC_DEBUG
 
 // #define CN_QC_DEBUG_DETAIL
 
@@ -24,27 +24,36 @@ CnQueryCorrection::CnQueryCorrection(const std::string& res_dir, const std::stri
 
 bool CnQueryCorrection::Load()
 {
-    //clear first
-    u_trans_prob_.clear();
-    b_trans_prob_.clear();
-    t_trans_prob_.clear();
     std::cout<<"[CnQueryCorrection] starting load resources."<<std::endl;
     std::string pinyin_file = res_dir_+"/pinyin.txt";
     if( !boost::filesystem::exists( pinyin_file) ) return false;
     pinyin_.LoadPinyinFile(pinyin_file);
     
+    if(!ReloadLM_()) return false;
+    std::cout<<"[CnQueryCorrection] loaded resources."<<std::endl;
+    return true;
+}
+
+bool CnQueryCorrection::ReloadLM_()
+{
+    u_trans_prob_.clear();
+    b_trans_prob_.clear();
+    t_trans_prob_.clear();
     if(!LoadRawTextTransProb_(res_dir_+"/trans_prob.txt")) return false;
     std::string update_file = log_dir_+"/query_log.txt";
     if(boost::filesystem::exists( update_file) )
     {
         if(!LoadRawText_(update_file)) return false;
     }
-    std::cout<<"[CnQueryCorrection] loaded resources."<<std::endl;
     return true;
 }
 
 bool CnQueryCorrection::Update(const std::list<std::pair<izenelib::util::UString, uint32_t> >& query_logs)
 {
+    if( !boost::filesystem::exists(log_dir_) )
+    {
+        boost::filesystem::create_directories(log_dir_);
+    }
     std::string update_file = log_dir_+"/query_log.txt";
     if(boost::filesystem::exists( update_file) )
     {
@@ -71,7 +80,8 @@ bool CnQueryCorrection::Update(const std::list<std::pair<izenelib::util::UString
         ofs<<str<<"\t"<<value.second<<std::endl;
     }
     ofs.close();
-    return Load();
+    //reload language model
+    return ReloadLM_();
 }
 
 bool CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
@@ -131,10 +141,10 @@ bool CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
 bool CnQueryCorrection::LoadRawText_(const std::string& file)
 {
 #ifdef CN_QC_UNIGRAM
-    double u_weight = 0.00000001;
+    double u_weight = 0.000001;
 #endif
-    double b_weight = 0.0001;
-    double t_weight = 0.0001;
+    double b_weight = 0.004;
+    double t_weight = 0.004;
     std::ifstream ifs(file.c_str());
     std::string line;
     while( getline(ifs, line) )
