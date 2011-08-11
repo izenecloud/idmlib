@@ -51,14 +51,10 @@ IncrementalItemCF::IncrementalItemCF(
     const std::string& item_item_similarity_path,
     size_t similarity_row_cache_size, 
     const std::string& item_neighbor_path,
-    size_t topK,
-    const std::string& user_recommendItem_path,
-    size_t max_items_stored_for_each_user
+    size_t topK
 )
     : covisitation_(covisit_path, covisit_row_cache_size)
     , similarity_(item_item_similarity_path,similarity_row_cache_size,item_neighbor_path,topK)
-    , userRecStorage_(user_recommendItem_path)
-    , max_items_stored_for_each_user_(max_items_stored_for_each_user)
 {
 }
 
@@ -66,7 +62,7 @@ IncrementalItemCF::~IncrementalItemCF()
 {
 }
 
-void IncrementalItemCF::buildMatrix(
+void IncrementalItemCF::updateMatrix(
     const std::list<uint32_t>& oldItems,
     const std::list<uint32_t>& newItems
 )
@@ -177,73 +173,21 @@ void IncrementalItemCF::updateSimMatrix_(const std::list<uint32_t>& rows)
     }
 }
 
-void IncrementalItemCF::buildUserRecItems(
-    uint32_t userId,
-    const std::set<uint32_t>& visitItems,
-    ItemRescorer* rescorer
-)
-{
-    RecommendItemVec recItems;
-    recommend_(max_items_stored_for_each_user_, visitItems, recItems, rescorer);
-
-    userRecStorage_.update(userId, recItems);
-}
-
-void IncrementalItemCF::getRecByUser(
-    int howMany, 
-    uint32_t userId,
-    RecommendItemVec& recItems, 
-    ItemRescorer* rescorer
-)
-{
-    RecommendItemVec totalItemVec;
-    if(userRecStorage_.get(userId, totalItemVec))
-    {
-        int count = 0;
-        for (RecommendItemVec::const_iterator it = totalItemVec.begin();
-            it != totalItemVec.end() && count < howMany; ++it)
-        {
-            if(!rescorer || !rescorer->isFiltered(it->itemId_))
-            {
-                recItems.push_back(*it);
-                ++count;
-            }
-        }
-    }
-}
-
-void IncrementalItemCF::getRecByItem(
+void IncrementalItemCF::recommend(
     int howMany,
     const std::vector<uint32_t>& visitItems,
     RecommendItemVec& recItems,
     ItemRescorer* rescorer
 )
 {
-    std::set<uint32_t> itemSet(visitItems.begin(), visitItems.end());
-
-    recommend_(howMany, itemSet, recItems, rescorer);
-}
-
-void IncrementalItemCF::flush()
-{
-    covisitation_.dump();
-    similarity_.dump();
-    userRecStorage_.flush();
-}
-
-void IncrementalItemCF::recommend_(
-    int howMany, 
-    const std::set<uint32_t>& visitItems,
-    RecommendItemVec& recItems, 
-    ItemRescorer* rescorer
-)
-{
     typedef SimilarityMatrix<uint32_t,float>::RowType RowType;
+
+    std::set<uint32_t> visitSet(visitItems.begin(), visitItems.end());
 
     // get candidate items which has similarity value with items
     std::set<uint32_t> candidateSet;
-    for (std::set<uint32_t>::const_iterator it_i = visitItems.begin();
-        it_i != visitItems.end(); ++it_i)
+    for (std::set<uint32_t>::const_iterator it_i = visitSet.begin();
+        it_i != visitSet.end(); ++it_i)
     {
         boost::shared_ptr<const RowType> cols = similarity_.rowItems(*it_i);
         for (RowType::const_iterator it_j = cols->begin();
@@ -262,10 +206,10 @@ void IncrementalItemCF::recommend_(
         it != candidateSet.end(); ++it)
     {
         uint32_t itemId = *it;
-        if(visitItems.find(itemId) == visitItems.end()
+        if(visitSet.find(itemId) == visitSet.end()
            && (!rescorer || !rescorer->isFiltered(itemId)))
         {
-            float weight = similarity_.weight(itemId, visitItems, reasonMap[itemId]);
+            float weight = similarity_.weight(itemId, visitSet, reasonMap[itemId]);
             if(weight > 0)
             {
                 queue.insert(QueueItem(itemId, weight));
@@ -281,6 +225,12 @@ void IncrementalItemCF::recommend_(
         rit->weight_ = queueItem.weight_;
         rit->reasonItemIds_.swap(reasonMap[queueItem.itemId_]);
     }
+}
+
+void IncrementalItemCF::flush()
+{
+    covisitation_.dump();
+    similarity_.dump();
 }
 
 NS_IDMLIB_RESYS_END

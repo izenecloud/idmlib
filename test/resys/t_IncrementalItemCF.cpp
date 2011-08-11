@@ -39,16 +39,12 @@ struct RandomGenerators
     boost::mt19937 engine ;
     boost::uniform_int<> itemDistribution ;
     boost::variate_generator<mt19937, uniform_int<> > itemRandom;
-    boost::uniform_int<> userDistribution;
-    boost::variate_generator<mt19937, uniform_int<> > userRandom;
     boost::uniform_int<> newVisitDistribution;
     boost::variate_generator<mt19937, uniform_int<> > newVisitRandom;
 
-    RandomGenerators(int ITEMLIMIT, int USERLIMIT, int NEWVISITLIMIT)
+    RandomGenerators(int ITEMLIMIT, int NEWVISITLIMIT)
         :itemDistribution(1, ITEMLIMIT)
         ,itemRandom (engine, itemDistribution)
-        ,userDistribution(1, USERLIMIT)
-        ,userRandom (engine, userDistribution)
         ,newVisitDistribution(1, NEWVISITLIMIT)
         ,newVisitRandom (engine, newVisitDistribution)
     {
@@ -64,11 +60,6 @@ struct RandomGenerators
         {
             newItems.push_back(itemRandom());
         }
-    }
-
-    uint32_t genUser()
-    {
-        return userRandom();
     }
 
 };
@@ -87,8 +78,7 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         IncrementalItemCF cfManager(
             cfPathStr + "/covisit", 1024*1024,
             cfPathStr + "/sim.sdb", 1024*1024,
-            cfPathStr + "/nb.sdb", 30,
-            cfPathStr + "/rec", 1000
+            cfPathStr + "/nb.sdb", 30
         );
         itemCFTest.setCFManager(&cfManager);
 
@@ -98,21 +88,20 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         uint32_t user2 = 2;
         itemCFTest.checkPurchase(user2, "", "3 4 5", true);
 
-        itemCFTest.checkItemRecommend("1");
-        itemCFTest.checkItemRecommend("2");
-        itemCFTest.checkItemRecommend("3");
-        itemCFTest.checkItemRecommend("4");
-        itemCFTest.checkItemRecommend("1 2");
-        itemCFTest.checkItemRecommend("1 2 3");
-        itemCFTest.checkItemRecommend("1 2 3 4");
+        itemCFTest.checkRecommend("1");
+        itemCFTest.checkRecommend("2");
+        itemCFTest.checkRecommend("3");
+        itemCFTest.checkRecommend("4");
+        itemCFTest.checkRecommend("1 2");
+        itemCFTest.checkRecommend("1 2 3");
+        itemCFTest.checkRecommend("1 2 3 4");
     }
 
     {
         IncrementalItemCF cfManager(
             cfPathStr + "/covisit", 1024*1024,
             cfPathStr + "/sim.sdb", 1024*1024,
-            cfPathStr + "/nb.sdb", 30,
-            cfPathStr + "/rec", 1000
+            cfPathStr + "/nb.sdb", 30
         );
         itemCFTest.setCFManager(&cfManager);
         itemCFTest.checkVisitMatrix();
@@ -135,14 +124,14 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         uint32_t user5 = 5;
         itemCFTest.checkPurchase(user5, "", "1");
 
-        itemCFTest.checkItemRecommend("1");
-        itemCFTest.checkItemRecommend("2");
-        itemCFTest.checkItemRecommend("3");
-        itemCFTest.checkItemRecommend("4");
-        itemCFTest.checkItemRecommend("1 2");
-        itemCFTest.checkItemRecommend("1 2 3");
-        itemCFTest.checkItemRecommend("1 2 3 4");
-        itemCFTest.checkItemRecommend("1 3 5 7 9");
+        itemCFTest.checkRecommend("1");
+        itemCFTest.checkRecommend("2");
+        itemCFTest.checkRecommend("3");
+        itemCFTest.checkRecommend("4");
+        itemCFTest.checkRecommend("1 2");
+        itemCFTest.checkRecommend("1 2 3");
+        itemCFTest.checkRecommend("1 2 3 4");
+        itemCFTest.checkRecommend("1 3 5 7 9");
     }
 }
 
@@ -153,23 +142,19 @@ BOOST_AUTO_TEST_CASE(largeTest)
     bfs::create_directories(cfPath);
     std::string cfPathStr = cfPath.string();
 
-    int MaxITEM = 100000;
-
     IncrementalItemCF cfManager(
         cfPathStr + "/covisit", 1024*1024,
         cfPathStr + "/sim.sdb", 1024*1024,
-        cfPathStr + "/nb.sdb", 30,
-        cfPathStr + "/rec", 1000
+        cfPathStr + "/nb.sdb", 30
     );
 
-    int MaxUSER = 500000;
+    int MaxITEM = 100000;
     int MaxNewVisit = 10;
-    RandomGenerators generators(MaxITEM, MaxUSER, MaxNewVisit);
-
-    int ORDERS = 1000;
+    RandomGenerators generators(MaxITEM, MaxNewVisit);
 
     ClockTimer t;
 
+    int ORDERS = 1000;
     for(int i = 0; i < ORDERS; ++i)
     {
         if(i%100 == 0)
@@ -178,10 +163,13 @@ BOOST_AUTO_TEST_CASE(largeTest)
         std::list<uint32_t> newItems;
         generators.genItems(newItems);
 
-        uint32_t userId = generators.genUser();
-        cfManager.buildMatrix(oldItems, newItems);
-        std::set<uint32_t> visitItems(oldItems.begin(), oldItems.end());
-        cfManager.buildUserRecItems(userId, visitItems);
+        cfManager.updateMatrix(oldItems, newItems);
+
+        // get recommend items
+        std::vector<uint32_t> totalItems(oldItems.begin(), oldItems.end());
+        totalItems.insert(totalItems.end(), newItems.begin(), newItems.end());
+        RecommendItemVec recItems;
+        cfManager.recommend(20, totalItems, recItems);
     }
 
 }

@@ -3,7 +3,6 @@
 
 #include <idmlib/idm_types.h>
 
-#include "UserRecStorage.h"
 #include <idmlib/resys/ItemCF.h>
 #include <idmlib/resys/ItemRescorer.h>
 #include <idmlib/resys/RecommendItem.h>
@@ -25,9 +24,7 @@ public:
         const std::string& item_item_similarity_path,
         size_t similarity_row_cache_size, 
         const std::string& item_neighbor_path,
-        size_t topK,
-        const std::string& user_recommendItem_path,
-        size_t max_items_stored_for_each_user = 1000
+        size_t topK
         );
 
     ~IncrementalItemCF();
@@ -44,7 +41,7 @@ public:
      * @pre each items in @p newItems should be unique
      * @pre there should be no items contained in both @p oldItems and @p newItems
      */
-    void buildMatrix(
+    void updateMatrix(
         const std::list<uint32_t>& oldItems,
         const std::list<uint32_t>& newItems
     );
@@ -68,39 +65,13 @@ public:
     void buildSimMatrix();
 
     /**
-     * Build recommend items for user.
-     * @param userId the user id
-     * @param visitItems the items already visited by the user
-     * @param rescorer filter items
-     */
-    void buildUserRecItems(
-        uint32_t userId,
-        const std::set<uint32_t>& visitItems,
-        ItemRescorer* rescorer = NULL
-    );
-
-    /**
-     * Given @p userId, recommend @p recItems, which is built by @c buildUserRecItems() previously.
-     * @param howMany the max number of items to recommend
-     * @param userId the user id
-     * @param recItems the recommend result
-     * @param rescorer filter items
-     */
-    void getRecByUser(
-        int howMany, 
-        uint32_t userId,
-        RecommendItemVec& recItems, 
-        ItemRescorer* rescorer = NULL
-    );
-
-    /**
      * Given @p visitItems, recommend @p recItems.
      * @param howMany the max number of items to recommend
      * @param visitItems the items already visited by user
      * @param recItems the recommend result
      * @param rescorer filter items
      */
-    void getRecByItem(
+    void recommend(
         int howMany,
         const std::vector<uint32_t>& visitItems,
         RecommendItemVec& recItems, 
@@ -137,25 +108,9 @@ private:
      */
     void updateSimMatrix_(const std::list<uint32_t>& rows);
 
-    /**
-     * Given @p visitItems, recommend @p recItems.
-     * @param howMany the max number of items to recommend
-     * @param visitItems the items already visited by user
-     * @param recItems the recommend result
-     * @param rescorer filter items
-     */
-    void recommend_(
-        int howMany, 
-        const std::set<uint32_t>& visitItems,
-        RecommendItemVec& recItems, 
-        ItemRescorer* rescorer = NULL
-    );
-
 private:
     ItemCoVisitation<CoVisitFreq> covisitation_;
     SimilarityMatrix<uint32_t,float> similarity_;
-    UserRecStorage userRecStorage_;
-    size_t max_items_stored_for_each_user_;
 
     friend class ItemCFTest;
 };

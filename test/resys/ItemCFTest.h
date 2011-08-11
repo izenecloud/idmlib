@@ -65,9 +65,8 @@ public:
     void checkCoVisitResult();
 
     /**
-     * it calls @c IncrementalItemCF::buildMatrix(), and checks each value in visit matrix and similarity matrix,
-     * it also calls @c IncrementalItemCF::buildUserRecommendItems() and @c getTopItems(),
-     * and checks each recommended item.
+     * it calls @c IncrementalItemCF::updateMatrix(), and checks each value in visit matrix and similarity matrix,
+     * it also checks each recommended item.
      * @param rebuildSimMatrix if true, IncrementalItemCF::buildSimMatrix() is called,
      *                         if false, IncrementalItemCF::updateVisitMatrix() is called instead.
      */
@@ -89,9 +88,9 @@ public:
     void checkSimMatrix();
 
     /**
-     * it calls @c ItemCoVisitation::getTopItems(), and checks each result with covisit items of @p inputItemStr.
+     * it checks recommendation results for @p inputItemStr.
      */
-    void checkItemRecommend(const char* inputItemStr);
+    void checkRecommend(const char* inputItemStr) const;
 
 private:
     /**
@@ -118,22 +117,10 @@ private:
     void checkCoVisitResult_(uint32_t inputItem);
 
     /**
-     * Check bought also bought results, given @p inputItems,
-     * get covisit items from @c goldVisitMatrix_, and compare them with @p recItems.
+     * Check recommend results, given @p inputItems,
+     * calculate weight for each item, and compare them with results.
      */
-    void checkBABResult_(
-        const std::list<uint32_t>& inputItems,
-        const std::list<uint32_t>& recItems
-    ) const;
-
-    /**
-     * Check user recommend results, given @p inputItems,
-     * calculate weight for each item, and compare them with @p recItems.
-     */
-    void checkUserRecommend_(
-        const std::list<uint32_t>& inputItems,
-        const RecommendItemVec& recItems
-    ) const;
+    void checkRecommendItem_(const std::vector<uint32_t>& inputItems) const;
 
 private:
     IncrementalItemCF* cfManager_;

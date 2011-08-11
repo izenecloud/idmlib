@@ -168,19 +168,32 @@ void ItemCFTest::checkPurchase(
     }
     else
     {
-        cfManager_->buildMatrix(oldItems, newItems);
+        cfManager_->updateMatrix(oldItems, newItems);
     }
 
     checkVisitMatrix();
     updateGoldSimMatrix_();
     checkSimMatrix();
 
-    std::set<uint32_t> visitItems(oldItems.begin(), oldItems.end());
-    cfManager_->buildUserRecItems(userId, visitItems);
+    std::vector<uint32_t> totalItems(oldItems.begin(), oldItems.end());
+    totalItems.insert(totalItems.end(), newItems.begin(), newItems.end());
 
+    checkRecommendItem_(totalItems);
+}
+
+void ItemCFTest::checkRecommend(const char* inputItemStr) const
+{
+    std::vector<uint32_t> inputItems;
+    splitItems(inputItemStr, back_insert_iterator< vector<uint32_t> >(inputItems));
+
+    checkRecommendItem_(inputItems);
+}
+
+void ItemCFTest::checkRecommendItem_(const std::vector<uint32_t>& inputItems) const
+{
     // get recommend items
     RecommendItemVec recItems;
-    cfManager_->getRecByUser(ITEM_NUM, userId, recItems);
+    cfManager_->recommend(ITEM_NUM, inputItems, recItems);
 
     /*std::list<uint32_t> recItemIDs;
     for (RecommendItemVec::const_iterator it = recItems.begin();
@@ -188,108 +201,12 @@ void ItemCFTest::checkPurchase(
     {
         recItemIDs.push_back(it->itemId_);
     }
-    cout << "\t<= recommend to user " << userId << " with items: ";
+    cout << "\t<= given items ";
+    copy(inputItems.begin(), inputItems.end(), COUT_IT);
+    cout << "recommend other items: ";
     copy(recItemIDs.begin(), recItemIDs.end(), COUT_IT);
     cout << endl;*/
 
-    checkUserRecommend_(oldItems, recItems);
-}
-
-void ItemCFTest::checkItemRecommend(const char* inputItemStr)
-{
-    std::list<uint32_t> inputItems;
-    splitItems(inputItemStr, back_insert_iterator< list<uint32_t> >(inputItems));
-
-    // get recommend items
-    RecommendItemVec recItems;
-    std::vector<uint32_t> inputVec(inputItems.begin(), inputItems.end());
-    cfManager_->getRecByItem(ITEM_NUM, inputVec, recItems);
-
-    std::list<uint32_t> recItemIDs;
-    for (RecommendItemVec::const_iterator it = recItems.begin();
-        it != recItems.end(); ++it)
-    {
-        recItemIDs.push_back(it->itemId_);
-    }
-
-    /*cout << "\t<= given items ";
-    copy(inputItems.begin(), inputItems.end(), COUT_IT);
-    cout << "recommend other items: ";
-    copy(recItems.begin(), recItems.end(), COUT_IT);
-    cout << endl;*/
-
-    checkBABResult_(inputItems, recItemIDs);
-}
-
-void ItemCFTest::updateGoldSimMatrix_()
-{
-    for (int i=0; i<ITEM_NUM; ++i)
-    {
-        for (int j=0; j<ITEM_NUM; ++j)
-        {
-            float gold = 0;
-            if (i != j && goldVisitMatrix_[i][j] != 0)
-            {
-                gold = goldVisitMatrix_[i][j] / (sqrt(goldVisitMatrix_[i][i]) * sqrt(goldVisitMatrix_[j][j]));
-            }
-            goldSimMatrix_[i][j] = gold;
-        }
-    }
-}
-
-void ItemCFTest::checkSimMatrix()
-{
-    for (int i=0; i<ITEM_NUM; ++i)
-    {
-        for (int j=0; j<ITEM_NUM; ++j)
-        {
-            BOOST_TEST_MESSAGE("check similarity coeff [" << i << "][" << j << "]: " << goldSimMatrix_[i][j]);
-            BOOST_CHECK_CLOSE(simMatrix_->coeff(i, j), goldSimMatrix_[i][j], 0.000001);
-        }
-    }
-}
-
-void ItemCFTest::checkBABResult_(
-    const std::list<uint32_t>& inputItems,
-    const std::list<uint32_t>& recItems
-) const
-{
-    // get covisit items
-    vector<bool> goldRecItems(ITEM_NUM);
-    for (std::list<uint32_t>::const_iterator it = inputItems.begin();
-        it != inputItems.end(); ++it)
-    {
-        for (unsigned int j=0; j<ITEM_NUM; ++j)
-        {
-            if (goldVisitMatrix_[*it][j] != 0)
-            {
-                goldRecItems[j] = true;
-            }
-        }
-    }
-    // filter out input items
-    for (std::list<uint32_t>::const_iterator it = inputItems.begin();
-        it != inputItems.end(); ++it)
-    {
-        goldRecItems[*it] = false;
-    }
-
-    vector<bool> isRecItems(ITEM_NUM);
-    for (std::list<uint32_t>::const_iterator it = recItems.begin();
-        it != recItems.end(); ++it)
-    {
-        isRecItems[*it] = true;
-    }
-
-    BOOST_CHECK_EQUAL_COLLECTIONS(isRecItems.begin(), isRecItems.end(),
-                                  goldRecItems.begin(), goldRecItems.end());
-}
-
-void ItemCFTest::checkUserRecommend_(
-    const std::list<uint32_t>& inputItems,
-    const RecommendItemVec& recItems
-) const
-{
     // calculate weight
     std::vector<float> goldWeightVec(ITEM_NUM);
     std::set<uint32_t> inputSet(inputItems.begin(), inputItems.end());
@@ -339,6 +256,34 @@ void ItemCFTest::checkUserRecommend_(
     std::vector<float> zeroWeightVec(ITEM_NUM);
     BOOST_CHECK_EQUAL_COLLECTIONS(goldWeightVec.begin(), goldWeightVec.end(),
                                   zeroWeightVec.begin(), zeroWeightVec.end());
+}
+
+void ItemCFTest::updateGoldSimMatrix_()
+{
+    for (int i=0; i<ITEM_NUM; ++i)
+    {
+        for (int j=0; j<ITEM_NUM; ++j)
+        {
+            float gold = 0;
+            if (i != j && goldVisitMatrix_[i][j] != 0)
+            {
+                gold = goldVisitMatrix_[i][j] / (sqrt(goldVisitMatrix_[i][i]) * sqrt(goldVisitMatrix_[j][j]));
+            }
+            goldSimMatrix_[i][j] = gold;
+        }
+    }
+}
+
+void ItemCFTest::checkSimMatrix()
+{
+    for (int i=0; i<ITEM_NUM; ++i)
+    {
+        for (int j=0; j<ITEM_NUM; ++j)
+        {
+            BOOST_TEST_MESSAGE("check similarity coeff [" << i << "][" << j << "]: " << goldSimMatrix_[i][j]);
+            BOOST_CHECK_CLOSE(simMatrix_->coeff(i, j), goldSimMatrix_[i][j], 0.000001);
+        }
+    }
 }
 
 NS_IDMLIB_RESYS_END
