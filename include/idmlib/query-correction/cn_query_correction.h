@@ -22,9 +22,11 @@ class CnQueryCorrection
     typedef idmlib::util::MTrie<Ngram , uint32_t, double> TrieType;
     
     public:
-        CnQueryCorrection();
+        CnQueryCorrection(const std::string& res_dir, const std::string& log_dir);
         
-        bool Load(const std::string& dir);
+        bool Load();
+        
+        bool Update(const std::list<std::pair<izenelib::util::UString, uint32_t> >& query_logs);
         
         bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
         
@@ -32,9 +34,12 @@ class CnQueryCorrection
         
     private:
         
-        bool LoadRawTextTransProb_(const std::string& file);
-        bool LoadTcTransProb_(const std::string& file);
+        bool ReloadLM_();
         
+        bool LoadRawTextTransProb_(const std::string& file);
+        
+        bool LoadRawText_(const std::string& file);
+                
         double TransProb_(const izenelib::util::UCS2Char& from, const izenelib::util::UCS2Char& to);
         
         //trigram version only
@@ -61,16 +66,12 @@ class CnQueryCorrection
         
         bool IsCandidateResult_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score);
     private:
-
+        std::string res_dir_;
+        std::string log_dir_;
         FuzzyPinyinSegmentor pinyin_;
         boost::unordered_map<Unigram, double> u_trans_prob_;
         boost::unordered_map<Bigram, double> b_trans_prob_;
         boost::unordered_map<Trigram, double> t_trans_prob_;
-        
-        izenelib::am::tc_hash<Ngram, double>* tc_trans_prob_;
-        
-        
-//         TrieType trans_prob_;
         
         
         double threshold_;

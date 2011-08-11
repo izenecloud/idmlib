@@ -33,8 +33,8 @@ void display( CnQueryCorrection* cqc, const std::string& input)
 
 BOOST_AUTO_TEST_CASE(cqc_test )
 {
-    CnQueryCorrection cqc;
-    cqc.Load("./cn_qc_res");
+    CnQueryCorrection cqc("./cn_qc_res","");
+    cqc.Load();
     display(&cqc, "woyaochitang");
     display(&cqc, "nuojiya");
     display(&cqc, "hetangyuese");
@@ -87,6 +87,27 @@ BOOST_AUTO_TEST_CASE(cqc_test )
 //     display(&cqc, "鞋子");
 //     display(&cqc, "蝎子");
 //     display(&cqc, "写字");
+    
+    
+    
+    
+    
+}
+
+BOOST_AUTO_TEST_CASE(update_test )
+{
+    std::string update_dir = "./cn_qc_update_dir";
+    boost::filesystem::remove_all(update_dir);
+    CnQueryCorrection cqc("./cn_qc_res",update_dir);
+    cqc.Load();
+    std::cout<<"before update"<<std::endl;
+    display(&cqc, "shanghai");
+    
+    std::list<std::pair<izenelib::util::UString, uint32_t> > items;
+    items.push_back( std::make_pair( izenelib::util::UString("伤害", izenelib::util::UString::UTF_8), 100) );
+    cqc.Update(items);
+    std::cout<<"after update"<<std::endl;
+    display(&cqc, "shanghai");
     
     
     
