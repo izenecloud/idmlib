@@ -33,8 +33,8 @@ void display( CnQueryCorrection* cqc, const std::string& input)
 
 BOOST_AUTO_TEST_CASE(cqc_test )
 {
-    CnQueryCorrection cqc;
-    cqc.Load("./cn_qc_res");
+    CnQueryCorrection cqc("./cn_qc_res","");
+    cqc.Load();
     display(&cqc, "woyaochitang");
     display(&cqc, "nuojiya");
     display(&cqc, "hetangyuese");

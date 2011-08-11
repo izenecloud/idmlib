@@ -13,8 +13,8 @@ using namespace idmlib::qc;
 
 // #define VITERBI_DEBUG
 
-CnQueryCorrection::CnQueryCorrection()
-:tc_trans_prob_(NULL)
+CnQueryCorrection::CnQueryCorrection(const std::string& res_dir, const std::string& log_dir)
+:res_dir_(res_dir), log_dir_(log_dir)
 ,threshold_(0.0005)
 // :threshold_(0.0)
 , mid_threshold_(0.0001)
@@ -22,17 +22,56 @@ CnQueryCorrection::CnQueryCorrection()
 {
 }
 
-bool CnQueryCorrection::Load(const std::string& dir)
+bool CnQueryCorrection::Load()
 {
+    //clear first
+    u_trans_prob_.clear();
+    b_trans_prob_.clear();
+    t_trans_prob_.clear();
     std::cout<<"[CnQueryCorrection] starting load resources."<<std::endl;
-    std::string pinyin_file = dir+"/pinyin.txt";
+    std::string pinyin_file = res_dir_+"/pinyin.txt";
+    if( !boost::filesystem::exists( pinyin_file) ) return false;
     pinyin_.LoadPinyinFile(pinyin_file);
     
-    if(!LoadRawTextTransProb_(dir+"/trans_prob.txt")) return false;
-//     if(!LoadTcTransProb_(dir+"/ngram_tc")) return false;
-    
+    if(!LoadRawTextTransProb_(res_dir_+"/trans_prob.txt")) return false;
+    std::string update_file = log_dir_+"/query_log.txt";
+    if(boost::filesystem::exists( update_file) )
+    {
+        if(!LoadRawText_(update_file)) return false;
+    }
     std::cout<<"[CnQueryCorrection] loaded resources."<<std::endl;
     return true;
+}
+
+bool CnQueryCorrection::Update(const std::list<std::pair<izenelib::util::UString, uint32_t> >& query_logs)
+{
+    std::string update_file = log_dir_+"/query_log.txt";
+    if(boost::filesystem::exists( update_file) )
+    {
+        boost::filesystem::remove_all( update_file);
+    }
+    std::ofstream ofs(update_file.c_str());
+    std::list<std::pair<izenelib::util::UString, uint32_t> >::const_iterator it = query_logs.begin();
+    while( it!= query_logs.end())
+    {
+        const std::pair<izenelib::util::UString, uint32_t>& value = *it;
+        ++it;
+        bool all_cn = true;
+        for(uint32_t i=0;i<value.first.length();i++)
+        {
+            if( !value.first.isChineseChar(i) )
+            {
+                all_cn = false;
+                break;
+            }
+        }
+        if(!all_cn) continue;
+        std::string str;
+        value.first.convertString(str, izenelib::util::UString::UTF_8);
+        ofs<<str<<"\t"<<value.second<<std::endl;
+    }
+    ofs.close();
+    return Load();
 }
 
 bool CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
@@ -89,11 +128,79 @@ bool CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
     return true;
 }
 
-bool CnQueryCorrection::LoadTcTransProb_(const std::string& file)
+bool CnQueryCorrection::LoadRawText_(const std::string& file)
 {
-    tc_trans_prob_ = new izenelib::am::tc_hash<Ngram, double>(file);
-    tc_trans_prob_->open();
-    tc_trans_prob_->setCacheSize(1000000);
+#ifdef CN_QC_UNIGRAM
+    double u_weight = 0.00000001;
+#endif
+    double b_weight = 0.0001;
+    double t_weight = 0.0001;
+    std::ifstream ifs(file.c_str());
+    std::string line;
+    while( getline(ifs, line) )
+    {
+        std::vector<std::string> vec;
+        boost::algorithm::split( vec, line, boost::algorithm::is_any_of("\t") );
+        if(vec.size()!=2) continue;
+        izenelib::util::UString text(vec[0], izenelib::util::UString::UTF_8);
+        uint32_t log_count = 0;
+        try
+        {
+            log_count = boost::lexical_cast<uint32_t>(vec[1]);
+        }
+        catch(std::exception& ex)
+        {
+            continue;
+        }
+        
+        //TODO maybe need refine
+        if(text.length()>=1)
+        {
+#ifdef CN_QC_UNIGRAM
+            double score = u_weight*log_count;
+            Unigram u(text[0]);
+            boost::unordered_map<Unigram, double>::iterator it = u_trans_prob_.find(u);
+            if( it==u_trans_prob_.end() )
+            {
+                u_trans_prob_.insert(std::make_pair(u, score));
+            }
+            else
+            {
+                it->second += score;
+            }
+#endif            
+        }
+        if(text.length()>=2)
+        {
+            double score = b_weight*log_count;
+            Bigram b(text[0], text[1]);
+            boost::unordered_map<Bigram, double>::iterator it = b_trans_prob_.find(b);
+            if( it==b_trans_prob_.end() )
+            {
+                b_trans_prob_.insert(std::make_pair(b, score));
+            }
+            else
+            {
+                it->second += score;
+            }
+        }
+        if(text.length()>=3)
+        {
+            double score = t_weight*log_count;
+            Bigram b(text[0], text[1]);
+            Trigram t(b, text[2]);
+            boost::unordered_map<Trigram, double>::iterator it = t_trans_prob_.find(t);
+            if( it==t_trans_prob_.end() )
+            {
+                t_trans_prob_.insert(std::make_pair(t, score));
+            }
+            else
+            {
+                it->second += score;
+            }
+        }
+    }
+    ifs.close();
     return true;
 }
 
