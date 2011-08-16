@@ -69,7 +69,7 @@ class ConceptInfo
         std::vector<izenelib::util::UString> termList_;
         std::vector<uint32_t> termIdList_;
         izenelib::util::UString name_;
-        boost::dynamic_bitset<> docInvert_;
+        boost::dynamic_bitset<uint32_t> docInvert_;
         double score_;
         uint32_t min_query_distance_;
         
@@ -87,7 +87,7 @@ class ClusterRep
         /// 
         /// @param doc_ids The doc id list.
         /// @param doc_invert The bitset which indicates whether this node has corresponding doc id to doc_ids.
-        void set_doc_contain(const std::vector<DocIdType>& doc_ids, const boost::dynamic_bitset<>& doc_invert)
+        void set_doc_contain(const std::vector<DocIdType>& doc_ids, const boost::dynamic_bitset<uint32_t>& doc_invert)
         {
             docContain_.clear();
             for(std::size_t i=0;i<doc_ids.size();i++)
@@ -125,7 +125,7 @@ class ClusterRep
         std::vector<uint32_t> termIdList_;
         uint32_t conceptId_;
         izenelib::util::UString name_;
-        boost::dynamic_bitset<> docInvert_;
+        boost::dynamic_bitset<uint32_t> docInvert_;
         std::vector<DocIdType> docContain_;
         std::vector<boost::shared_ptr<ClusterRep> > children_;
 };
@@ -152,7 +152,7 @@ class ConceptNodeValue
         /// @brief Not top node.
         ConceptNodeValue(
         uint32_t index,
-        const boost::dynamic_bitset<>& doc_supp,
+        const boost::dynamic_bitset<uint32_t>& doc_supp,
         const std::vector<uint32_t>& termIdList)
         : index_(index), isTop_(false), docSupp_(doc_supp), termIdList_(termIdList)
         {
@@ -161,7 +161,7 @@ class ConceptNodeValue
     public:
         uint32_t index_;
         bool isTop_;
-        boost::dynamic_bitset<> docSupp_;
+        boost::dynamic_bitset<uint32_t> docSupp_;
         std::vector<uint32_t> termIdList_;
         uint32_t conceptId_;
 };
@@ -244,7 +244,7 @@ class ConceptItem
         std::vector<izenelib::util::UString> term_list;
         std::vector<uint32_t> termid_list;
         
-        boost::dynamic_bitset<> doc_invert;
+        boost::dynamic_bitset<uint32_t> doc_invert;
         double score;
         uint32_t min_query_distance;
         uint8_t type;
@@ -257,8 +257,10 @@ class ConceptItem
             pk.pack(text);
             pk.pack(term_list);
             pk.pack(termid_list);
-            std::vector<uint32_t> bitset_c;
-            pk.pack(bitset_c);
+            std::vector<uint32_t> bitset_c(doc_invert.num_blocks(), 0);
+            boost::to_block_range(doc_invert, bitset_c.begin());
+            std::pair<std::vector<uint32_t>, uint32_t> bitset_v(bitset_c, doc_invert.size());
+            pk.pack(bitset_v);
             pk.pack(score);
             pk.pack(min_query_distance);
             pk.pack(type);
@@ -271,8 +273,10 @@ class ConceptItem
             if(size <= 0) { return; } o.via.array.ptr[0].convert(&text);
             if(size <= 1) { return; } o.via.array.ptr[1].convert(&term_list);
             if(size <= 2) { return; } o.via.array.ptr[2].convert(&termid_list);
-            std::vector<uint32_t> bitset_c;
-            if(size <= 3) { return; } o.via.array.ptr[3].convert(&bitset_c);
+            std::pair<std::vector<uint32_t>, uint32_t> bitset_v;
+            if(size <= 3) { return; } o.via.array.ptr[3].convert(&bitset_v);
+            doc_invert.append( bitset_v.first.begin(), bitset_v.first.end());
+            doc_invert.resize( bitset_v.second);
             if(size <= 4) { return; } o.via.array.ptr[4].convert(&score);
             if(size <= 5) { return; } o.via.array.ptr[5].convert(&min_query_distance);
             if(size <= 6) { return; } o.via.array.ptr[6].convert(&type);

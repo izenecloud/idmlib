@@ -232,7 +232,7 @@ private:
     {
         for(unsigned int j=0;j<valid_concepts.size();j++)
         {
-            boost::dynamic_bitset<> common=concepts[pos].docInvert_& valid_concepts[j].docInvert_;
+            boost::dynamic_bitset<uint32_t> common=concepts[pos].docInvert_& valid_concepts[j].docInvert_;
             if((float)common.count()/concepts[pos].docInvert_.count()>0.95
                     && concepts[pos].docInvert_.count()<3)
             {
@@ -263,7 +263,7 @@ private:
 
             for ( unsigned int j=i+1;j<concepts.size();j++ )
             {
-                boost::dynamic_bitset<> common = concepts[i].docInvert_ & concepts[j].docInvert_;
+                boost::dynamic_bitset<uint32_t> common = concepts[i].docInvert_ & concepts[j].docInvert_;
                 double containessValue1 = ( double ) common.count() /concepts[j].docInvert_.count();
                 double containessValue2 = ( double ) common.count() /concepts[i].docInvert_.count();
                 if ( containessValue1 >= minContainessValue && containessValue2 <= maxContainessValue )
@@ -322,7 +322,7 @@ private:
     
     void getSupportSibScore_(const ConceptInfo& concept1, const ConceptInfo& concept2, double& supportScore)
     {
-        boost::dynamic_bitset<> common = concept1.docInvert_ & concept2.docInvert_;
+        boost::dynamic_bitset<uint32_t> common = concept1.docInvert_ & concept2.docInvert_;
         if((float)common.count()/concept1.docInvert_.count()>0.9&&concept2.docInvert_.count()>=3)
             supportScore=log(sqrt(concept1.docInvert_.count()+1));
         else
@@ -352,8 +352,8 @@ private:
         {
             dValue[0][i] = computeScore_ ( *top,concepts[i],containess );
         }
-        boost::dynamic_bitset<> column_selected ( concepts.size() );
-        boost::dynamic_bitset<> row_selected ( 1 );
+        boost::dynamic_bitset<uint32_t> column_selected ( concepts.size() );
+        boost::dynamic_bitset<uint32_t> row_selected ( 1 );
         std::list<ConceptInfo > acquiredConcepts;
         while ( true )
         {
@@ -478,8 +478,8 @@ private:
     void findChild_(
             const Parameters& params,
             const std::vector<ConceptInfo >& concepts,
-            const boost::dynamic_bitset<>& row_selected,
-            const boost::dynamic_bitset<>& column_selected,
+            const boost::dynamic_bitset<uint32_t>& row_selected,
+            const boost::dynamic_bitset<uint32_t>& column_selected,
             const std::vector<std::vector<double> >& dValue,
             double& max_value,
             std::pair<uint32_t, uint32_t>& max_pos,
@@ -519,8 +519,8 @@ private:
             uint32_t index,
             uint32_t parent_index,
             std::vector<ConceptNodeType* >& allConceptNode,
-            boost::dynamic_bitset<>& row_selected,
-            boost::dynamic_bitset<>& column_selected,
+            boost::dynamic_bitset<uint32_t>& row_selected,
+            boost::dynamic_bitset<uint32_t>& column_selected,
             std::list<ConceptInfo >& acquiredConcepts,
             std::vector<std::vector<double> >& dValue,
             OutputType& output
@@ -538,7 +538,7 @@ private:
     //             cluster->termIdList_ = labels[label_id].termIdList_;
         cluster->name_ = concepts[index].name_;
         cluster->conceptId_ = concepts[index].conceptId_;
-        boost::dynamic_bitset<> tmpDocInvert = concepts[index].docInvert_;
+        boost::dynamic_bitset<uint32_t> tmpDocInvert = concepts[index].docInvert_;
         if ( parent->level_==0 ) //top level
         {
             cluster->set_doc_contain ( docIdList,tmpDocInvert );
@@ -569,7 +569,7 @@ private:
             row_selected.push_back ( false );
         }
         node->bind ( cluster );
-        boost::dynamic_bitset<> seedInvert ( concepts[index].docInvert_.size() );
+        boost::dynamic_bitset<uint32_t> seedInvert ( concepts[index].docInvert_.size() );
         getSeedInvert_(seedInvert);
         seedInvert &= concepts[index].docInvert_;
         parent->value_.docSupp_ -= seedInvert;
@@ -649,7 +649,7 @@ private:
 // 
 //     }
 
-    void getSeedInvert_ (boost::dynamic_bitset<>&  seedInvert)
+    void getSeedInvert_ (boost::dynamic_bitset<uint32_t>&  seedInvert)
     {
         for(uint32_t i=0;i<seedInvert.size();i++)
         {
