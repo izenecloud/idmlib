@@ -28,7 +28,7 @@ bool CnQueryCorrection::Load()
     std::string pinyin_file = res_dir_+"/pinyin.txt";
     if( !boost::filesystem::exists( pinyin_file) ) return false;
     pinyin_.LoadPinyinFile(pinyin_file);
-    
+    std::cout<<"[CnQueryCorrection] loaded pinyin."<<std::endl;
     if(!ReloadLM_()) return false;
     std::cout<<"[CnQueryCorrection] loaded resources."<<std::endl;
     return true;
@@ -265,6 +265,11 @@ bool CnQueryCorrection::GetResult(const izenelib::util::UString& input, std::vec
        }
    }
    return true;
+}
+
+void CnQueryCorrection::GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list)
+{
+    return pinyin_.GetPinyin(cn_chars, result_list);
 }
 
 double CnQueryCorrection::GetScore_(const izenelib::util::UString& text, double ori_score, double pinyin_score)

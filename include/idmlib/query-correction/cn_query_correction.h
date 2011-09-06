@@ -30,7 +30,7 @@ class CnQueryCorrection
         
         bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
         
-        
+        void GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list);
         
     private:
         
