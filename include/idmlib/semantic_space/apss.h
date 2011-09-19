@@ -7,6 +7,7 @@
 #include <vector>
 #include <boost/function.hpp>
 #include <idmlib/idm_types.h>
+#include <idmlib/similarity/cosine_similarity.h>
 #include <am/matrix/sparse_vector.h>
 #include <am/sequence_file/ssfr.h>
 #include <list>
@@ -119,6 +120,78 @@ class Apss
           {
             callback_(id_list[s], id, score[s]);
           }
+        }
+        id_list.push_back(id);
+        ++x;
+      }
+      normal_matrix_reader.Close();
+    }
+    
+    template <typename IdType, typename KK>
+    void ComputeWithStart(const std::string& file, IdType start_id, izenelib::am::SparseVector<double, KK>& vec)
+    {
+      typedef izenelib::am::SparseVector<double, IdType, std::vector> ColType;
+      std::vector<ColType> inverted_index(dimensions_);
+      std::vector<IdType> id_list;
+      izenelib::am::ssf::Reader<> normal_matrix_reader(file);
+      if(!normal_matrix_reader.Open())
+      {
+        return;
+      }
+      std::cout<<"x count : "<<normal_matrix_reader.Count()<<std::endl;
+      IdType x = 0;
+      IdType id;
+//       izenelib::am::SparseVector<double, KK> vec;
+      while(normal_matrix_reader.Next(id, vec))
+      {
+        if(x%100==0)
+        {
+          std::cout<<"x:"<<x<<std::endl;
+        }
+
+        std::vector<double> score;
+        if(id>=start_id)
+        {
+            score.resize(x, 0.0);
+        }
+        //compute score
+        for(uint32_t m=0;m<vec.value.size();m++)
+        {
+          const KK& col = vec.value[m].first;
+          const double& value = vec.value[m].second;
+          ColType& index_col = inverted_index[col];
+          typename ColType::ValueType::iterator it = index_col.value.begin();
+          typename ColType::ValueType::iterator it_end = index_col.value.end();
+//           std::list<std::pair<K, double> >::iterator it = index_col.value.begin();
+//           std::list<std::pair<K, double> >::iterator it_end = index_col.value.end();
+          if(id>=start_id)
+          {
+            while(it!=it_end)
+            {
+                score[(*it).first] += value * (*it).second;
+                ++it;
+            }
+          }
+          
+          //index it at inverted_index
+          index_col.value.push_back(std::make_pair(x, value));
+        }
+        //index it at inverted_index
+//         for(uint32_t m=0;m<vec.value.size();m++)
+//         {
+//           const KK& col = vec.value[m].first;
+//           const double& value = vec.value[m].second;
+//           inverted_index[col].value.push_back(std::make_pair(x, value));
+//         }
+        if(id>=start_id)
+        {
+            for(uint32_t s=0;s<score.size();s++)
+            {
+                if(score[s]>=t_)
+                {
+                    callback_(id_list[s], id, score[s]);
+                }
+            }
         }
         id_list.push_back(id);
         ++x;
