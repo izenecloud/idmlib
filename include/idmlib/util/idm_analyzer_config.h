@@ -76,7 +76,7 @@ class IDMAnalyzerConfig
       config.kma_config.path = kma_path;
       config.cma_config.path = cma_path;
       config.cma_config.use_char = false;
-      config.cma_config.type = la::ChineseAnalyzer::maximum_match;
+      config.cma_config.type = la::ChineseAnalyzer::maximum_entropy;
       config.cma_config.remove_stopwords = false;
       if( config.cma_config.path=="" )
       {

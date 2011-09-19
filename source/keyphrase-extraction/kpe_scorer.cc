@@ -1,4 +1,5 @@
 #include <idmlib/keyphrase-extraction/kpe_scorer.h>
+#include <idmlib/keyphrase-extraction/kpe_algorithm_def.h>
 #include <idmlib/util/resource_util.h>
 using namespace idmlib::kpe;
 

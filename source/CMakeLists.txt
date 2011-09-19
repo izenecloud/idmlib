@@ -54,6 +54,10 @@ FILE(GLOB sim_SRC
   "similarity/all-pairs-similarity-search/*.cpp"
 )
 
+FILE(GLOB tl_SRC
+  "translation/*.cc"
+)
+
 FILE(GLOB_RECURSE resys_SRC
   "resys/*.cpp"
 )
@@ -71,6 +75,7 @@ ${util_SRC}
 ${wiki_SRC}
 ${ssp_SRC}
 ${sim_SRC}
+${tl_SRC}
 ${resys_SRC}
 )
 

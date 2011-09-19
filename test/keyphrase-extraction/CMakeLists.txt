@@ -66,6 +66,28 @@ SET_TARGET_PROPERTIES(kpe_scd_tool PROPERTIES
 RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
 )
 
+ADD_EXECUTABLE(kpe_task_tool
+kpe_task_tool.cc
+)
+TARGET_LINK_LIBRARIES(kpe_task_tool
+  ${libs}
+)
+
+SET_TARGET_PROPERTIES(kpe_task_tool PROPERTIES
+RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
+)
+
+ADD_EXECUTABLE(kpe_evaluate_tool
+kpe_evaluate_tool.cc
+)
+TARGET_LINK_LIBRARIES(kpe_evaluate_tool
+  ${libs}
+)
+
+SET_TARGET_PROPERTIES(kpe_evaluate_tool PROPERTIES
+RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
+)
+
 ADD_EXECUTABLE(kp_weight
 kp_weight.cc
 )

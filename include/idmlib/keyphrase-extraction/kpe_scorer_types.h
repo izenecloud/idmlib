@@ -158,14 +158,7 @@ class ScorerItem
 };
 typedef ScorerItem SI;
 
-class KPStatus
-{
-    public:
-        static const int RETURN = 1;
-        static const int NON_KP = 2;
-        static const int CANDIDATE = 3;
-        static const int KP = 4;
-};
+
 
 
 
