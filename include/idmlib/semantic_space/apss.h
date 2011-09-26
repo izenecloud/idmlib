@@ -133,7 +133,7 @@ class Apss
       typedef izenelib::am::SparseVector<double, IdType, std::vector> ColType;
       std::vector<ColType> inverted_index(dimensions_);
       std::vector<IdType> id_list;
-      izenelib::am::ssf::Reader<> normal_matrix_reader(file);
+      izenelib::am::ssf::Reader2<> normal_matrix_reader(file);
       if(!normal_matrix_reader.Open())
       {
         return;

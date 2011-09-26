@@ -103,7 +103,7 @@ class KpeKnowledge
     
     void Flush();
     
-    void PostProcess_(const std::vector<std::pair<StringType, double> >& input, std::vector<std::pair<StringType, double> >& output);
+    void PostProcess_(const std::vector<std::pair<DocKpItem, double> >& input, std::vector<std::pair<DocKpItem, double> >& output);
   
   private:    
       

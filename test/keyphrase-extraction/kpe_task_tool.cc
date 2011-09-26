@@ -131,7 +131,7 @@ class Callback2
             
         }
         
-        void FindDoc(uint32_t docid, const std::vector<StringType>& kp_list)
+        void FindDoc(uint32_t docid, const std::vector<DocKpItem>& kp_list)
         {
             std::string str_docid = "UNKNOW";
             boost::unordered_map<uint32_t, std::string>::iterator it = docid_map_.find(docid);
@@ -144,7 +144,7 @@ class Callback2
             {
                 if(i>0) ofs_<<",";
                 std::string str;
-                kp_list[i].convertString(str, StringType::UTF_8);
+                kp_list[i].text.convertString(str, StringType::UTF_8);
                 ofs_<<str;
             }
             ofs_<<std::endl;

@@ -611,7 +611,7 @@ bool KpeTask::ProcessFoundKp2_()
         uint32_t docid = 0;
         std::vector<std::vector<std::pair<uint32_t, uint32_t> > > all_term_id_list;
         std::vector<std::pair<uint32_t, double> > kp_list;
-        typedef izenelib::util::second_greater<std::pair<StringType, double> > greater_than;
+        
         double min_score = 4.0;
         uint32_t max_kp_num = 15;
         while( merger.Next( docid, all_term_id_list, kp_list) )
@@ -626,7 +626,7 @@ bool KpeTask::ProcessFoundKp2_()
                 std::cout<<"output docid "<<docid<<std::endl;
             }
             const std::vector<std::pair<uint32_t, uint32_t> >& term_id_list = all_term_id_list[0];
-            std::vector<std::pair<StringType, double> > kp_result_list;
+            std::vector<std::pair<DocKpItem, double> > kp_result_list;
             for(uint32_t i=0;i<kp_list.size();i++)
             {
                 uint32_t kpid = kp_list[i].first;
@@ -647,15 +647,19 @@ bool KpeTask::ProcessFoundKp2_()
                 uint32_t kp_length = text.length();
                 double len_weight = (double)kp_length*kp_length;
                 score *= len_weight;
-                kp_result_list.push_back(std::make_pair(text, score));
+                DocKpItem kp_item;
+                kp_item.id = kpid;
+                kp_item.text = text;
+                kp_item.score = score;
+                kp_result_list.push_back(std::make_pair(kp_item, kp_item.score));
             }
-            
+            typedef izenelib::util::second_greater<std::pair<DocKpItem, double> > greater_than;
             std::sort(kp_result_list.begin(), kp_result_list.end(), greater_than());
             
-            std::vector<std::pair<StringType, double> > post_result_list;
+            std::vector<std::pair<DocKpItem, double> > post_result_list;
             knowledge_->PostProcess_(kp_result_list, post_result_list);
             uint32_t kp_result_num = std::min((uint32_t)post_result_list.size(), max_kp_num);
-            std::vector<StringType> final_result;
+            std::vector<DocKpItem> final_result;
             for(uint32_t i=0;i<kp_result_num;i++)
             {
                 double score = post_result_list[i].second;

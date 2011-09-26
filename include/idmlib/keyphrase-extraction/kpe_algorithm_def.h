@@ -525,7 +525,13 @@ public:
         idmlib::util::accumulateList(lc_list);
     }
 };
-        
+
+struct DocKpItem
+{
+    uint32_t id;
+    izenelib::util::UString text;
+    double score;
+};
         
 NS_IDMLIB_KPE_END
 

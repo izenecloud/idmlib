@@ -186,7 +186,7 @@ void KpeKnowledge::Flush()
 
 }
 
-void KpeKnowledge::PostProcess_(const std::vector<std::pair<StringType, double> >& input, std::vector<std::pair<StringType, double> >& output)
+void KpeKnowledge::PostProcess_(const std::vector<std::pair<DocKpItem, double> >& input, std::vector<std::pair<DocKpItem, double> >& output)
 {
 //     output.assign(input.begin(), input.end());
 //     return;
@@ -194,19 +194,19 @@ void KpeKnowledge::PostProcess_(const std::vector<std::pair<StringType, double> 
     uint32_t max_diff = 1;
     for(uint32_t i=0;i<input.size();i++)
     {
-        const StringType& input_text = input[i].first;
+        const StringType& input_text = input[i].first.text;
         std::string input_str;
         input_text.convertString(input_str, StringType::UTF_8);
-        std::vector<std::pair<StringType, double> >::iterator out_it = output.begin();
+        std::vector<std::pair<DocKpItem, double> >::iterator out_it = output.begin();
         ///type<0 means del input_text, type>0 means del out_del_it in output;
         int type = 0;
-        std::vector<std::pair<StringType, double> >::iterator out_del_it;
+        std::vector<std::pair<DocKpItem, double> >::iterator out_del_it;
 //         std::cout<<"[input-str] "<<input_str<<std::endl;
         while(out_it!=output.end())
         {
             int input_longer = 0;
             StringType addition;
-            StringType& output_text = out_it->first;
+            StringType& output_text = out_it->first.text;
             std::string output_str;
             output_text.convertString(output_str, StringType::UTF_8);
 //             std::cout<<"[output-str] "<<output_str<<std::endl;
@@ -292,7 +292,7 @@ void KpeKnowledge::PostProcess_(const std::vector<std::pair<StringType, double> 
 //             std::string output_str;
 //             output_text.convertString(output_str, StringType::UTF_8);
 //             std::cout<<"[output-deleted] "<<output_str<<std::endl;
-            out_del_it->first = input_text;
+            out_del_it->first = input[i].first;
 //             output.erase(out_del_it);
 //             output.push_back(input[i]);
         }

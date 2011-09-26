@@ -23,6 +23,8 @@ NS_IDMLIB_KPE_BEGIN
 
 
 
+
+
 class KpeTask
 {
 
@@ -33,7 +35,7 @@ public:
     typedef izenelib::util::UString StringType;
     typedef boost::function<void (uint32_t, const StringType&, uint32_t) > KpTextCallback;
 //     typedef boost::function<void (uint32_t, const std::vector<uint32_t>&) > DocKpCallback;
-    typedef boost::function<void (uint32_t, const std::vector<StringType>&) > DocKpCallback;
+    typedef boost::function<void (uint32_t, const std::vector<DocKpItem>&) > DocKpCallback;
   
     KpeTask(const std::string& dir, idmlib::util::IDMAnalyzer* analyzer, idmlib::util::IDMAnalyzer* cma_analyzer, idmlib::util::IDMIdManager* id_manager, KpeKnowledge* knowledge);
     
