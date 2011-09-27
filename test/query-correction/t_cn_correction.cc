@@ -102,9 +102,9 @@ BOOST_AUTO_TEST_CASE(update_test )
     cqc.Load();
     std::cout<<"before update"<<std::endl;
     display(&cqc, "shanghai");
-    
-    std::list<std::pair<izenelib::util::UString, uint32_t> > items;
-    items.push_back( std::make_pair( izenelib::util::UString("伤害", izenelib::util::UString::UTF_8), 100) );
+    typedef boost::tuple<uint32_t, uint32_t, izenelib::util::UString> QueryLogType;
+    std::list<QueryLogType> items;
+    items.push_back( boost::make_tuple( 100,100,izenelib::util::UString("伤害", izenelib::util::UString::UTF_8)) );
     cqc.Update(items);
     std::cout<<"after update"<<std::endl;
     display(&cqc, "shanghai");

@@ -48,7 +48,7 @@ bool CnQueryCorrection::ReloadLM_()
     return true;
 }
 
-bool CnQueryCorrection::Update(const std::list<std::pair<izenelib::util::UString, uint32_t> >& query_logs)
+bool CnQueryCorrection::Update(const std::list<QueryLogType>& query_logs)
 {
     if( !boost::filesystem::exists(log_dir_) )
     {
@@ -60,15 +60,17 @@ bool CnQueryCorrection::Update(const std::list<std::pair<izenelib::util::UString
         boost::filesystem::remove_all( update_file);
     }
     std::ofstream ofs(update_file.c_str());
-    std::list<std::pair<izenelib::util::UString, uint32_t> >::const_iterator it = query_logs.begin();
+    std::list<QueryLogType>::const_iterator it = query_logs.begin();
     while( it!= query_logs.end())
     {
-        const std::pair<izenelib::util::UString, uint32_t>& value = *it;
+        const QueryLogType& value = *it;
         ++it;
+        const izenelib::util::UString& text = value.get<2>();
+        uint32_t freq = value.get<0>();
         bool all_cn = true;
-        for(uint32_t i=0;i<value.first.length();i++)
+        for(uint32_t i=0;i<text.length();i++)
         {
-            if( !value.first.isChineseChar(i) )
+            if( !text.isChineseChar(i) )
             {
                 all_cn = false;
                 break;
@@ -76,8 +78,8 @@ bool CnQueryCorrection::Update(const std::list<std::pair<izenelib::util::UString
         }
         if(!all_cn) continue;
         std::string str;
-        value.first.convertString(str, izenelib::util::UString::UTF_8);
-        ofs<<str<<"\t"<<value.second<<std::endl;
+        text.convertString(str, izenelib::util::UString::UTF_8);
+        ofs<<str<<"\t"<<freq<<std::endl;
     }
     ofs.close();
     //reload language model

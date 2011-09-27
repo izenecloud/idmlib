@@ -10,7 +10,7 @@
 #include <idmlib/util/mtrie.h>
 #include <idmlib/util/MemoryTrie.hpp>
 #include <boost/unordered_map.hpp>
-
+#include <boost/tuple/tuple.hpp>
 #include "qc_types.h"
 #include "fuzzy_pinyin_segmentor.h"
 
@@ -20,13 +20,14 @@ class CnQueryCorrection
 {
     
     typedef idmlib::util::MTrie<Ngram , uint32_t, double> TrieType;
+    typedef boost::tuple<uint32_t, uint32_t, izenelib::util::UString> QueryLogType;
     
     public:
         CnQueryCorrection(const std::string& res_dir, const std::string& log_dir);
         
         bool Load();
         
-        bool Update(const std::list<std::pair<izenelib::util::UString, uint32_t> >& query_logs);
+        bool Update(const std::list<QueryLogType>& query_logs);
         
         bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
         
