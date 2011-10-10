@@ -69,6 +69,7 @@ public:
     bool load()
     {
         // todo add cache for izenelib indexer
+        return true;
     }
 
 public:

@@ -22,7 +22,9 @@ NameEntityManager& NameEntityManager::getInstance(const std::string& path)
 }
 
 
-NameEntityManager::NameEntityManager(const std::string& path): path_(path), classifier_(0)
+NameEntityManager::NameEntityManager(const std::string& path)
+    : classifier_(0)
+    , path_(path)
 {
 	if (!classifier_)
 	{
