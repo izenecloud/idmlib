@@ -81,7 +81,7 @@ public:
 
     ~SimilarityMatrix()
     {
-        dump();
+        flush();
 
         neighbor_store_.flush();
         neighbor_store_.close();
@@ -209,9 +209,9 @@ public:
         return store_.update_row(row, cols);
     }
 
-    void dump()
+    void flush()
     {
-        store_.dump();
+        store_.flush();
 
         {
             izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
@@ -260,8 +260,8 @@ private:
     ItemType max_item_;
     izenelib::util::ReadWriteLock neighbor_lock_;	
     /**
-     * dirty flags to dump from @c neighbors_ to @c neighbor_store_,
-     * true for dirty and need to dump.
+     * dirty flags to flush from @c neighbors_ to @c neighbor_store_,
+     * true for dirty and need to flush.
      */
     std::vector<bool> dirtyNeighbors_; 
 };

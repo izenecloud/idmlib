@@ -95,7 +95,7 @@ public:
 
     ~ItemCoVisitation()
     {
-        dump();
+        flush();
     }
 
     /**
@@ -185,9 +185,9 @@ public:
         return db_.row(row);
     }
 
-    void dump()
+    void flush()
     {
-        db_.dump();
+        db_.flush();
     }
 
     void status(std::ostream& ostream)

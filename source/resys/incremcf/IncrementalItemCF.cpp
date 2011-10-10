@@ -229,8 +229,8 @@ void IncrementalItemCF::recommend(
 
 void IncrementalItemCF::flush()
 {
-    covisitation_.dump();
-    similarity_.dump();
+    covisitation_.flush();
+    similarity_.flush();
 }
 
 NS_IDMLIB_RESYS_END
