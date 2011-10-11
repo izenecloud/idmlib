@@ -6,6 +6,8 @@
 
 #include <string>
 
+namespace idmlib{ namespace topicmodels{
+
 class LabeledLDA
 {
 public:
@@ -64,5 +66,6 @@ private:
     void clean_model();
 };
 
+}}
 #endif
 

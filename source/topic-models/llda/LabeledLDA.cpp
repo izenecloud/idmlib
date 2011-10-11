@@ -41,6 +41,8 @@ Generated using the command:
 #include <time.h>
 #include <idmlib/topic-models/llda/LabeledLDA.h>
 
+namespace idmlib{ namespace topicmodels{
+
 int sample_Mult_labeled(int w, double **post_beta, double* post_theta, int V, int K, double alpha, double eta, int *labels)
 {
     int* labelIdx = (int*) malloc (K * sizeof(int));
@@ -696,3 +698,4 @@ void LabeledLDA::clean_model()
     free(M);
 }
 
+}}

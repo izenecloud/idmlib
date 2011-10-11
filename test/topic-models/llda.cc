@@ -2,6 +2,8 @@
 
 /****************************** MAIN ******************************/
 
+using namespace idmlib::topicmodels;
+
 int main(int ARGC, char *ARGV[])
 {
     int nIter;
