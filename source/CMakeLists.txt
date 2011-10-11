@@ -62,6 +62,11 @@ FILE(GLOB_RECURSE resys_SRC
   "resys/*.cpp"
 )
 
+FILE(GLOB_RECURSE topicmodels_SRC
+  "topic-models/*.cpp"
+  "topic-models/*.c"  
+)
+
 ADD_LIBRARY(idmlib 
 ${keyphrase_extraction_SRC}
 ${duplicate-detection_SRC}
@@ -77,6 +82,7 @@ ${ssp_SRC}
 ${sim_SRC}
 ${tl_SRC}
 ${resys_SRC}
+${topicmodels_SRC}
 )
 
 INSTALL(TARGETS idmlib
