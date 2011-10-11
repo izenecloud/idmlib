@@ -62,7 +62,8 @@ struct CoVisitationQueueItem
 };
 
 template<typename CoVisitation>
-class CoVisitationQueue : public izenelib::util::PriorityQueue<CoVisitationQueueItem<CoVisitation> >
+class CoVisitationQueue 
+    : public izenelib::util::PriorityQueue<CoVisitationQueueItem<CoVisitation> >
 {
 public:
     CoVisitationQueue(size_t size)
@@ -70,7 +71,10 @@ public:
         this->initialize(size);
     }
 protected:
-    bool lessThan(CoVisitationQueueItem<CoVisitation> o1, CoVisitationQueueItem<CoVisitation> o2)
+    bool lessThan(
+        CoVisitationQueueItem<CoVisitation> o1, 
+        CoVisitationQueueItem<CoVisitation> o2
+    )
     {
         return (o1.covisitation.freq < o2.covisitation.freq);
     }
@@ -86,9 +90,9 @@ public:
     typedef typename MatrixDBType::iterator iterator; // first is ItemType, second is RowType
 
     ItemCoVisitation(
-          const std::string& homePath, 
-          size_t cache_size = 1024*1024
-          )
+        const std::string& homePath, 
+        size_t cache_size = 1024*1024
+    )
         : db_(cache_size, homePath)
     {
     }
@@ -109,7 +113,10 @@ public:
      * @pre each items in @p newItems should be unique
      * @pre there should be no items contained in both @p oldItems and @p newItems
      */
-    void visit(const std::list<ItemType>& oldItems, const std::list<ItemType>& newItems)
+    void visit(
+        const std::list<ItemType>& oldItems, 
+        const std::list<ItemType>& newItems
+    )
     {
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(lock_);
 
@@ -125,7 +132,12 @@ public:
             updateCoVisation_(*iter, oldItems, newItems);
     }
 
-    void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results, ItemRescorer* rescorer = NULL)
+    void getCoVisitation(
+        size_t howmany, 
+        ItemType item, 
+        std::vector<ItemType>& results, 
+        ItemRescorer* rescorer = NULL
+    )
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
@@ -146,7 +158,13 @@ public:
             *rit = queue.pop().itemId;
     }
 
-    void getCoVisitation(size_t howmany, ItemType item, std::vector<ItemType>& results, int64_t timestamp, ItemRescorer* rescorer = NULL)
+    void getCoVisitation(
+        size_t howmany, 
+        ItemType item, 
+        std::vector<ItemType>& results, 
+        int64_t timestamp, 
+        ItemRescorer* rescorer = NULL
+    )
     {
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
 
