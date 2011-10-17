@@ -97,9 +97,9 @@ void FuzzyPinyinSegmentor::InitRule_()
     AddPrefixFuzzy_("s", "sh");
     AddPrefixFuzzy_("z", "zh");
     
-    AddPrefixFuzzy_("ch", "ch");
-    AddPrefixFuzzy_("sh", "sh");
-    AddPrefixFuzzy_("zh", "zh");
+    AddPrefixFuzzy_("ch", "c");
+    AddPrefixFuzzy_("sh", "s");
+    AddPrefixFuzzy_("zh", "z");
 }
 
 void FuzzyPinyinSegmentor::AddSuffixFuzzy_(const std::string& suffix, const std::string& replace)
