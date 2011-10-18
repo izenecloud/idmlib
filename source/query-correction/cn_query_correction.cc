@@ -82,7 +82,7 @@ bool CnQueryCorrection::Update(const std::list<QueryLogType>& query_logs)
         ofs<<str<<"\t"<<freq<<std::endl;
     }
     ofs.close();
-    //reload language model
+
     return ReloadLM_();
 }
 
@@ -98,7 +98,7 @@ bool CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
         if(vec.size()!=2) continue;
         izenelib::util::UString text(vec[0], izenelib::util::UString::UTF_8);
         double score = boost::lexical_cast<double>(vec[1]);
-        
+
         if(text.length()==1)
         {
 #ifdef CN_QC_UNIGRAM
@@ -108,30 +108,14 @@ bool CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
         }
         else if(text.length()==2)
         {
-//             if(score<mid_threshold_) continue;
-            
             Bigram b(text[0], text[1]);
             b_trans_prob_.insert(std::make_pair(b, score));
-            
-//             Ngram ngram(2);
-//             ngram[0] = text[0];
-//             ngram[1] = text[1];
-//             trans_prob_.insert(std::make_pair(ngram, score));
         }
         else if(text.length()==3)
         {
-            //TODO use GetCandidate
-//             if(score<0.008) continue;
-            
             Bigram b(text[0], text[1]);
             Trigram t(b, text[2]);
             t_trans_prob_.insert(std::make_pair(t, score));
-
-//             Ngram ngram(3);
-//             ngram[0] = text[0];
-//             ngram[1] = text[1];
-//             ngram[2] = text[2];
-//             trans_prob_.insert(std::make_pair(ngram, score));
         }
         ++count;
     }
@@ -164,7 +148,7 @@ bool CnQueryCorrection::LoadRawText_(const std::string& file)
         {
             continue;
         }
-        
+
         //TODO maybe need refine
         if(text.length()>=1)
         {
@@ -180,7 +164,7 @@ bool CnQueryCorrection::LoadRawText_(const std::string& file)
             {
                 it->second += score;
             }
-#endif            
+#endif
         }
         if(text.length()>=2)
         {
@@ -221,7 +205,7 @@ bool CnQueryCorrection::GetResult(const izenelib::util::UString& input, std::vec
    int type = GetInputType_(input);
    std::vector<CandidateResult> candidate_output;
    if(!GetResultWithScore_(input, type, candidate_output)) return false;
-   if(candidate_output.empty()) 
+   if(candidate_output.empty())
    {
        if(type<0)// cn char
        {
@@ -240,7 +224,7 @@ bool CnQueryCorrection::GetResult(const izenelib::util::UString& input, std::vec
        std::cout<<"[CR] "<<str<<"\t"<<candidate_output[i].score<<std::endl;
    }
 #endif
-   
+
    std::sort(candidate_output.begin(), candidate_output.end());
    //check if in the result list
    for(uint32_t i=0;i<candidate_output.size();i++)
@@ -279,7 +263,7 @@ double CnQueryCorrection::GetScore_(const izenelib::util::UString& text, double 
     double score = std::pow( ori_score, 1.0/(text.length()) );
     score *= pinyin_score;
     return score;
-    
+
 }
 
 bool CnQueryCorrection::IsCandidate_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score)
@@ -344,7 +328,7 @@ double CnQueryCorrection::TransProbT_(const izenelib::util::UString& from, const
             r = it->second;
         }
     }
-        
+
 #ifdef CN_QC_DEBUG_DETAIL
     std::string from_str;
     from.convertString(from_str, izenelib::util::UString::UTF_8);
@@ -354,30 +338,13 @@ double CnQueryCorrection::TransProbT_(const izenelib::util::UString& from, const
     tmp.convertString(to_str, izenelib::util::UString::UTF_8);
     std::cout<<"[TP] "<<from_str<<","<<to_str<<" : "<<r<<std::endl;
 #endif
-        
-        
-        
-//     {
-//         Ngram ngram(from.size()+1);
-//         for(uint32_t i=0;i<from.size();i++)
-//         {
-//             ngram[i] = from[i];
-//         }
-//         ngram[ngram.size()-1] = to;
-//         
-//         boost::unordered_map<Ngram, double>::iterator it = trans_prob_.find(ngram);
-//         if(it!=trans_prob_.end())
-//         {
-//             r = it->second;
-//         }
-//     }
 
     return r;
 }
 
 bool CnQueryCorrection::GetResultWithScore_(const izenelib::util::UString& input, int type, std::vector<CandidateResult>& output)
 {
-    if(type==0) 
+    if(type==0)
     {
 #ifdef CN_QC_DEBUG
         std::cout<<"type equals 0"<<std::endl;
@@ -413,7 +380,6 @@ bool CnQueryCorrection::GetResultWithScore_(const izenelib::util::UString& input
     }
     for(uint32_t i=0;i<pinyin_list.size();i++)
     {
-//         GetResultByPinyin_( pinyin_list[i].second, pinyin_list[i].first, output);
         GetResultByPinyinT_( pinyin_list[i].second, pinyin_list[i].first, output);
     }
     return true;
@@ -467,7 +433,6 @@ void CnQueryCorrection::GetResultByPinyin_(const std::string& pinyin, double pin
         }
     }
 
-    
     std::vector<std::vector<ViterbiItem> >::reverse_iterator rit = matrix.rbegin();
     std::vector<ViterbiItem>& last_col = *rit;
     ++rit;
@@ -500,7 +465,7 @@ void CnQueryCorrection::GetResultByPinyin_(const std::string& pinyin, double pin
         result.score = normalized_score;
         output.push_back(result);
     }
-    
+
 }
 
 void CnQueryCorrection::GetResultByPinyinT_(const std::string& pinyin, double pinyin_score, std::vector<CandidateResult>& output)
@@ -511,7 +476,7 @@ void CnQueryCorrection::GetResultByPinyinT_(const std::string& pinyin, double pi
     if(pinyin_term_count<=1 || pinyin_term_count>max_pinyin_term_ ) return;//ignore single pinyin term
     std::pair<double, izenelib::util::UString> start_mid_result(1.0, izenelib::util::UString("", izenelib::util::UString::UTF_8));
     GetResultByPinyinTRecur_(pinyin, pinyin_score, start_mid_result, output);
-    
+
 }
 
 void CnQueryCorrection::GetResultByPinyinTRecur_(const std::string& pinyin, double pinyin_score, const std::pair<double, izenelib::util::UString>& mid_result, std::vector<CandidateResult>& output)
@@ -531,15 +496,13 @@ void CnQueryCorrection::GetResultByPinyinTRecur_(const std::string& pinyin, doub
 //             if(mid_text.length()==0)
 //             {
 //                 new_mid_result.first = 1.0;
-//                 
+//
 //             }
-//             else 
+//             else
 //             {
-//                 
+//
 //             }
             new_mid_result.second += char_list[i];
-
-            
         }
         //TODO cut some results here to speed up
         typedef izenelib::util::first_greater<std::pair<double, izenelib::util::UString> > greater_than;
@@ -575,7 +538,7 @@ void CnQueryCorrection::GetResultByPinyinTRecur_(const std::string& pinyin, doub
 #endif
             GetResultByPinyinTRecur_(remain, pinyin_score, new_mid_result, output);
         }
-        
+
     }
     else
     {
@@ -628,5 +591,3 @@ int CnQueryCorrection::GetInputType_(const izenelib::util::UString& input)
     }
     return type;
 }
-
-
