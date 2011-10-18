@@ -30,6 +30,24 @@ void FuzzyPinyinSegmentor::LoadPinyinFile(const std::string& file)
         AddPinyinMap(pinyin, cn_char);
     }
     ifs.close();
+
+    pinyin_dict_.Add("chon");
+    pinyin_dict_.Add("con");
+    pinyin_dict_.Add("don");
+    pinyin_dict_.Add("gon");
+    pinyin_dict_.Add("hon");
+    pinyin_dict_.Add("jion");
+    pinyin_dict_.Add("kon");
+    pinyin_dict_.Add("lon");
+    pinyin_dict_.Add("non");
+    pinyin_dict_.Add("qion");
+    pinyin_dict_.Add("ron");
+    pinyin_dict_.Add("son");
+    pinyin_dict_.Add("ton");
+    pinyin_dict_.Add("xion");
+    pinyin_dict_.Add("yon");
+    pinyin_dict_.Add("zhon");
+    pinyin_dict_.Add("zon");
 }
 
 void FuzzyPinyinSegmentor::AddPinyin(const std::string& pinyin)
@@ -88,7 +106,8 @@ void FuzzyPinyinSegmentor::InitRule_()
     AddSuffixFuzzy_("an", "ang");
     AddSuffixFuzzy_("en", "eng");
     AddSuffixFuzzy_("in", "ing");
-    AddSuffixFuzzy_("on", "ong");
+    AddSuffixFuzzy_("ve", "ue");
+    AddSuffixFuzzy_("ue", "ve");
 
     AddPrefixFuzzy_("c", "ch");
     AddPrefixFuzzy_("s", "sh");
@@ -187,17 +206,6 @@ void FuzzyPinyinSegmentor::Segment(const std::string& pinyin_str, std::vector<Pi
 
 void FuzzyPinyinSegmentor::SegmentRaw(const std::string& pinyin_str, std::vector<std::string>& result_list)
 {
-//     uint32_t c_id = 0;
-//     pinyin_dict_.Find('n', 0, c_id);
-//     c_id = 0;
-//     pinyin_dict_.Find('a', 1, c_id);
-//     c_id = 0;
-//     pinyin_dict_.Find('n', 0, c_id);
-//     c_id = 0;
-//     pinyin_dict_.Find('n', 0, c_id);
-//     c_id = 0;
-//     pinyin_dict_.Find(pinyin_str[0], 0, c_id);
-//     std::vector<std::string> pre_result_list(1, "");
     SegmentRaw_(pinyin_str, "", result_list);
 }
 
@@ -236,6 +244,7 @@ void FuzzyPinyinSegmentor::SegmentRaw_(const std::string& pinyin_str, const std:
                 }
                 else
                 {
+                    n_mid_result.push_back(',');
                     result_list.push_back( n_mid_result);
                 }
             }
@@ -257,12 +266,22 @@ void FuzzyPinyinSegmentor::FuzzySegmentRaw(const std::string& pinyin_str, std::v
 void FuzzyPinyinSegmentor::FuzzySegmentRaw(const std::string& pinyin_str, std::vector<std::pair<double, std::string> >& result_list)
 {
     std::vector<std::string> r_result_list;
+    CorrectPinyin_((std::string &) pinyin_str);
     SegmentRaw(pinyin_str, r_result_list);
     for(uint32_t i=0;i<r_result_list.size();i++)
     {
         //TODO
         FuzzySegmentRaw_(r_result_list[i], "", 1.0, result_list);
     }
+}
+
+void FuzzyPinyinSegmentor::CorrectPinyin_(std::string& pinyin_str)
+{
+    boost::replace_all(pinyin_str, "gn", "ng");
+    boost::replace_all(pinyin_str, "mg", "ng");
+    boost::replace_all(pinyin_str, "iou", "iu");
+    boost::replace_all(pinyin_str, "uei", "ui");
+    boost::replace_all(pinyin_str, "uen", "un");
 }
 
 uint32_t FuzzyPinyinSegmentor::CountPinyinTerm(const std::string& pinyin)
@@ -396,6 +415,7 @@ void FuzzyPinyinSegmentor::FuzzySegmentRaw_(const std::string& pinyin_str, const
 {
     std::string first;
     std::string remain;
+    boost::replace_all((string &) pinyin_str, "on,", "ong,");
     if( GetFirstPinyinTerm(pinyin_str, first, remain) )
     {
         std::string new_mid(mid_result);
