@@ -99,7 +99,7 @@ void FuzzyPinyinSegmentor::InitRule_()
     fuzzy_weight_ = 0.5;
     filter_pinyin_.insert( std::make_pair("n", 1) );
     filter_pinyin_.insert( std::make_pair("ng", 1) );
-    filter_pinyin_.insert( std::make_pair("ang", 1) );
+//  filter_pinyin_.insert( std::make_pair("ang", 1) );
     filter_pinyin_.insert( std::make_pair("m", 1) );
     filter_pinyin_.insert( std::make_pair("o", 1) );
 
@@ -116,6 +116,12 @@ void FuzzyPinyinSegmentor::InitRule_()
     AddPrefixFuzzy_("ch", "c");
     AddPrefixFuzzy_("sh", "s");
     AddPrefixFuzzy_("zh", "z");
+
+    pinyin_correction_dict_.push_back( std::make_pair("gn", "ng") );
+    pinyin_correction_dict_.push_back( std::make_pair("mg", "ng") );
+//  pinyin_correction_dict_.push_back( std::make_pair("iou", "iu") );
+//  pinyin_correction_dict_.push_back( std::make_pair("uei", "ui") );
+//  pinyin_correction_dict_.push_back( std::make_pair("uen", "un") );
 }
 
 void FuzzyPinyinSegmentor::AddSuffixFuzzy_(const std::string& suffix, const std::string& replace)
@@ -277,11 +283,9 @@ void FuzzyPinyinSegmentor::FuzzySegmentRaw(const std::string& pinyin_str, std::v
 
 void FuzzyPinyinSegmentor::CorrectPinyin_(std::string& pinyin_str)
 {
-    boost::replace_all(pinyin_str, "gn", "ng");
-    boost::replace_all(pinyin_str, "mg", "ng");
-    boost::replace_all(pinyin_str, "iou", "iu");
-    boost::replace_all(pinyin_str, "uei", "ui");
-    boost::replace_all(pinyin_str, "uen", "un");
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = pinyin_correction_dict_.begin();
+            it != pinyin_correction_dict_.end(); ++it)
+        boost::replace_all(pinyin_str, it->first, it->second);
 }
 
 uint32_t FuzzyPinyinSegmentor::CountPinyinTerm(const std::string& pinyin)

@@ -71,6 +71,7 @@ class FuzzyPinyinSegmentor
 
     private:
         PinyinDictType pinyin_dict_;
+        std::vector<std::pair<std::string, std::string> > pinyin_correction_dict_;
         Cn2PinyinType cn2pinyin_;
         Pinyin2CnType pinyin2cn_;
 //         izenelib::am::rde_hash<std::string, bool> pinyin_term_;
