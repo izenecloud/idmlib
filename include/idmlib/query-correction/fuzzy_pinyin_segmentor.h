@@ -67,6 +67,8 @@ class FuzzyPinyinSegmentor
 
         void GetPinyin_(const izenelib::util::UString& cn_chars, const std::string& mid_result, double score, std::vector<std::pair<double, std::string> >& result_list);
 
+        void CorrectPinyin_(std::string& pinyin_str);
+
     private:
         PinyinDictType pinyin_dict_;
         Cn2PinyinType cn2pinyin_;
