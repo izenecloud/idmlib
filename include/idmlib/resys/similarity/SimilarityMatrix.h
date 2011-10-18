@@ -125,16 +125,20 @@ public:
         izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
 
         const ItemNeighborType& neighbor = neighbors_[candidate];
+        typename std::set<ItemType>::const_iterator historySetEnd = historySet.end();
         for(typename ItemNeighborType::const_iterator it = neighbor.begin();
            it != neighbor.end(); ++it)
         {
-            if (historySet.find(it->first) != historySet.end())
+            ItemType item = it->first;
+            MeasureType measure = it->second;
+
+            if (historySet.find(item) != historySetEnd)
             {
-                sim += it->second;
-                reasonItems.push_back(it->first);
+                sim += measure;
+                reasonItems.push_back(item);
             }
 
-            total += it->second;
+            total += measure;
         }
 
         if (sim != 0)
@@ -142,6 +146,57 @@ public:
 
         return 0;
     }
+
+    /**
+     * given the @p historyItemWeights as user's preference weight for some items,
+     * calculate the similarity weight for the item @p candidate.
+     * @param candidate calculate weight for this item
+     * @param historyItemWeights the user's preference weights
+     * @param reasonItems the items contained in both @p historyItemWeights and @p candidate's neighbors
+     * @return the similarity weight
+     */
+    typedef std::map<ItemType, float> ItemWeightMap;
+    float weight(
+        ItemType candidate, 
+        const ItemWeightMap& historyItemWeights,
+        std::vector<ItemType>& reasonItems
+    )
+    {
+        if(candidate >= neighbors_.size())
+            return 0;
+
+        float sim = 0;
+        float total = 0;
+
+        izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(neighbor_lock_);
+
+        const ItemNeighborType& neighbor = neighbors_[candidate];
+        typename ItemWeightMap::const_iterator historyWeightsEnd = historyItemWeights.end();
+        for(typename ItemNeighborType::const_iterator it = neighbor.begin();
+           it != neighbor.end(); ++it)
+        {
+            ItemType item = it->first;
+            MeasureType measure = it->second;
+
+            typename ItemWeightMap::const_iterator findIt = historyItemWeights.find(item);
+            if (findIt != historyWeightsEnd)
+            {
+                float findWeight = findIt->second;
+                sim += measure * findWeight;
+
+                if (findWeight > 0)
+                    reasonItems.push_back(item);
+            }
+
+            total += measure;
+        }
+
+        if (sim != 0)
+            return sim / total;
+
+        return 0;
+    }
+
 
     void loadNeighbor(ItemType itemId)
     {

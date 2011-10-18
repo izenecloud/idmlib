@@ -95,6 +95,11 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         itemCFTest.checkRecommend("1 2");
         itemCFTest.checkRecommend("1 2 3");
         itemCFTest.checkRecommend("1 2 3 4");
+
+        itemCFTest.checkWeightRecommend("2 1.5 4 -1.0");
+        itemCFTest.checkWeightRecommend("5 1.0 1 0.5");
+        itemCFTest.checkWeightRecommend("1 1.5 3 0.5 4 1.0");
+        itemCFTest.checkWeightRecommend("1 1.5 3 0.5 4 -1.0");
     }
 
     {
@@ -132,6 +137,9 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         itemCFTest.checkRecommend("1 2 3");
         itemCFTest.checkRecommend("1 2 3 4");
         itemCFTest.checkRecommend("1 3 5 7 9");
+
+        itemCFTest.checkWeightRecommend("3 1.0 6 -1.0");
+        itemCFTest.checkWeightRecommend("9 1.5 2 0.5 5 -1.5");
     }
 }
 

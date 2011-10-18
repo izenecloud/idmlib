@@ -19,10 +19,10 @@ class IncrementalItemCF : public ItemCF
 {
 public:
     IncrementalItemCF(
-        const std::string& covisit_path, 
+        const std::string& covisit_path,
         size_t covisit_row_cache_size,
         const std::string& item_item_similarity_path,
-        size_t similarity_row_cache_size, 
+        size_t similarity_row_cache_size,
         const std::string& item_neighbor_path,
         size_t topK
         );
@@ -74,7 +74,24 @@ public:
     void recommend(
         int howMany,
         const std::vector<uint32_t>& visitItems,
-        RecommendItemVec& recItems, 
+        RecommendItemVec& recItems,
+        ItemRescorer* rescorer = NULL
+    );
+
+    /**
+     * Given @p visitItemWeights, recommend @p recItems.
+     * @param howMany the max number of items to recommend
+     * @param visitItemWeights the items already visited by user,
+     * each with a weight value as the extent user likes the item,
+     * e.g. weight "-1" means dislike, "1" means like, "1.5" means love, etc
+     * @param recItems the recommend result
+     * @param rescorer filter items
+     */
+    typedef std::map<uint32_t, float> ItemWeightMap;
+    void recommend(
+        int howMany,
+        const ItemWeightMap& visitItemWeights,
+        RecommendItemVec& recItems,
         ItemRescorer* rescorer = NULL
     );
 
@@ -107,6 +124,16 @@ private:
      * @param rows the row numbers to update
      */
     void updateSimMatrix_(const std::list<uint32_t>& rows);
+
+    /**
+     * Get the @p items on @p row.
+     * @param row the row id
+     * @param items store the items
+     */
+    void getRowItems_(
+        uint32_t row,
+        std::set<uint32_t>& items
+    );
 
 private:
     ItemCoVisitation<CoVisitFreq> covisitation_;

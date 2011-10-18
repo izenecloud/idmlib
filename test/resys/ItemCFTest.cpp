@@ -28,13 +28,12 @@ void splitItems(
 )
 {
     idmlib::recommender::ItemType itemId;
-    stringstream ss(inputStr);
+    std::stringstream ss(inputStr);
     while (ss >> itemId)
     {
         *result++ = itemId;
     }
 }
-
 }
 
 NS_IDMLIB_RESYS_BEGIN
@@ -207,8 +206,19 @@ void ItemCFTest::checkRecommendItem_(const std::vector<uint32_t>& inputItems) co
     copy(recItemIDs.begin(), recItemIDs.end(), COUT_IT);
     cout << endl;*/
 
-    // calculate weight
-    std::vector<float> goldWeightVec(ITEM_NUM);
+    std::vector<float> goldWeights;
+    calcWeights_(inputItems, goldWeights);
+
+    checkWeights_(recItems, goldWeights);
+}
+
+void ItemCFTest::calcWeights_(
+    const std::vector<uint32_t>& inputItems,
+    std::vector<float>& weights
+) const
+{
+    weights.assign(ITEM_NUM, 0);
+
     std::set<uint32_t> inputSet(inputItems.begin(), inputItems.end());
     for (unsigned int i=0; i<ITEM_NUM; ++i)
     {
@@ -231,10 +241,16 @@ void ItemCFTest::checkRecommendItem_(const std::vector<uint32_t>& inputItems) co
         if (sim != 0)
         {
             assert(total != 0);
-            goldWeightVec[i] = sim / total;
+            weights[i] = sim / total;
         }
     }
+}
 
+void ItemCFTest::checkWeights_(
+    const RecommendItemVec& recItems,
+    std::vector<float>& goldWeights
+) const
+{
     // check weight in descreasing order
     float prevWeight = FLT_MAX;
     for (RecommendItemVec::const_iterator it = recItems.begin();
@@ -244,18 +260,77 @@ void ItemCFTest::checkRecommendItem_(const std::vector<uint32_t>& inputItems) co
         float weight = it->weight_;
 
         //cout << "item: " << itemId << ", weight: " << weight << endl;
-        BOOST_CHECK_CLOSE(weight, goldWeightVec[itemId], 0.0001);
+        BOOST_CHECK_CLOSE(weight, goldWeights[itemId], 0.0001);
         BOOST_CHECK(weight <= prevWeight);
 
         // reset weight value to compare with zeroWeightVec
-        goldWeightVec[itemId] = 0;
+        goldWeights[itemId] = 0;
         prevWeight = weight;
     }
 
     // to check all results are returned
     std::vector<float> zeroWeightVec(ITEM_NUM);
-    BOOST_CHECK_EQUAL_COLLECTIONS(goldWeightVec.begin(), goldWeightVec.end(),
+    BOOST_CHECK_EQUAL_COLLECTIONS(goldWeights.begin(), goldWeights.end(),
                                   zeroWeightVec.begin(), zeroWeightVec.end());
+}
+
+void ItemCFTest::checkWeightRecommend(const char* itemWeightPairs) const
+{
+    IncrementalItemCF::ItemWeightMap itemWeightMap;
+
+    idmlib::recommender::ItemType itemId;
+    float weight;
+    std::stringstream ss(itemWeightPairs);
+    while (ss >> itemId >> weight)
+    {
+        itemWeightMap[itemId] = weight;
+        //std::cout << itemId << ", " << weight << std::endl;
+    }
+
+    // get recommend items
+    RecommendItemVec recItems;
+    cfManager_->recommend(ITEM_NUM, itemWeightMap, recItems);
+
+    std::vector<float> goldWeights;
+    calcWeights_(itemWeightMap, goldWeights);
+
+    checkWeights_(recItems, goldWeights);
+}
+
+void ItemCFTest::calcWeights_(
+    const IncrementalItemCF::ItemWeightMap& inputItemWeights,
+    std::vector<float>& weights
+) const
+{
+    weights.assign(ITEM_NUM, 0);
+
+    for (unsigned int i=0; i<ITEM_NUM; ++i)
+    {
+        if (inputItemWeights.find(i) != inputItemWeights.end())
+            continue;
+
+        float sim = 0;
+        float total = 0;
+        for (unsigned int j=0; j<ITEM_NUM; ++j)
+        {
+            if (i == j)
+                continue;
+
+            IncrementalItemCF::ItemWeightMap::const_iterator findIt = inputItemWeights.find(j);
+            if (findIt != inputItemWeights.end())
+                sim += goldSimMatrix_[i][j] * findIt->second;
+
+            total += goldSimMatrix_[i][j];
+        }
+
+        if (sim != 0)
+        {
+            assert(total != 0);
+            float w = sim / total;
+            if (w > 0)
+                weights[i] = w;
+        }
+    }
 }
 
 void ItemCFTest::updateGoldSimMatrix_()

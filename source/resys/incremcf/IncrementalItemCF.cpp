@@ -41,15 +41,36 @@ protected:
     }
 };
 
+// map from candidate item to reason items
+typedef std::map<uint32_t, std::vector<uint32_t> > ItemReasonMap;
+
+void getRecommendItemFromQueue(
+    TopItemsQueue& queue,
+    ItemReasonMap& reasonMap,
+    idmlib::recommender::RecommendItemVec& recItems
+)
+{
+    recItems.resize(queue.size());
+
+    for(idmlib::recommender::RecommendItemVec::reverse_iterator rit = recItems.rbegin();
+        rit != recItems.rend(); ++rit)
+    {
+        QueueItem queueItem = queue.pop();
+        rit->itemId_ = queueItem.itemId_;
+        rit->weight_ = queueItem.weight_;
+        rit->reasonItemIds_.swap(reasonMap[queueItem.itemId_]);
+    }
+}
+
 }
 
 NS_IDMLIB_RESYS_BEGIN
 
 IncrementalItemCF::IncrementalItemCF(
-    const std::string& covisit_path, 
+    const std::string& covisit_path,
     size_t covisit_row_cache_size,
     const std::string& item_item_similarity_path,
-    size_t similarity_row_cache_size, 
+    size_t similarity_row_cache_size,
     const std::string& item_neighbor_path,
     size_t topK
 )
@@ -96,7 +117,7 @@ void IncrementalItemCF::buildSimMatrix()
         {
             std::cout << "\rbuilding row num: " << rowNum << std::flush;
         }
-                                            
+
         const uint32_t row = it_i->first;
         const CoVisitRow& cols = it_i->second;
 
@@ -180,33 +201,24 @@ void IncrementalItemCF::recommend(
     ItemRescorer* rescorer
 )
 {
-    typedef SimilarityMatrix<uint32_t,float>::RowType RowType;
-
     std::set<uint32_t> visitSet(visitItems.begin(), visitItems.end());
+    std::set<uint32_t>::const_iterator visitSetEnd = visitSet.end();
 
     // get candidate items which has similarity value with items
     std::set<uint32_t> candidateSet;
     for (std::set<uint32_t>::const_iterator it_i = visitSet.begin();
-        it_i != visitSet.end(); ++it_i)
+        it_i != visitSetEnd; ++it_i)
     {
-        boost::shared_ptr<const RowType> cols = similarity_.rowItems(*it_i);
-        for (RowType::const_iterator it_j = cols->begin();
-            it_j != cols->end(); ++it_j)
-        {
-            uint32_t col = it_j->first;
-            assert(col != *it_i && "there should be no similarity value on diagonal line!");
-            candidateSet.insert(col);
-        }
+        getRowItems_(*it_i, candidateSet);
     }
 
-    // map from candidate item to reason items
-    std::map<uint32_t, std::vector<uint32_t> > reasonMap;
+    ItemReasonMap reasonMap;
     TopItemsQueue queue(howMany);
     for (std::set<uint32_t>::const_iterator it = candidateSet.begin();
         it != candidateSet.end(); ++it)
     {
         uint32_t itemId = *it;
-        if(visitSet.find(itemId) == visitSet.end()
+        if(visitSet.find(itemId) == visitSetEnd
            && (!rescorer || !rescorer->isFiltered(itemId)))
         {
             float weight = similarity_.weight(itemId, visitSet, reasonMap[itemId]);
@@ -217,13 +229,58 @@ void IncrementalItemCF::recommend(
         }
     }
 
-    recItems.resize(queue.size());
-    for(RecommendItemVec::reverse_iterator rit = recItems.rbegin(); rit != recItems.rend(); ++rit)
+    getRecommendItemFromQueue(queue, reasonMap, recItems);
+}
+
+void IncrementalItemCF::recommend(
+    int howMany,
+    const ItemWeightMap& visitItemWeights,
+    RecommendItemVec& recItems,
+    ItemRescorer* rescorer
+)
+{
+    // get candidate items which has positive weight and similarity value
+    std::set<uint32_t> candidateSet;
+    ItemWeightMap::const_iterator visitWeightsEnd = visitItemWeights.end();
+    for (ItemWeightMap::const_iterator it_i = visitItemWeights.begin();
+        it_i != visitWeightsEnd; ++it_i)
     {
-        QueueItem queueItem = queue.pop();
-        rit->itemId_ = queueItem.itemId_;
-        rit->weight_ = queueItem.weight_;
-        rit->reasonItemIds_.swap(reasonMap[queueItem.itemId_]);
+        if (it_i->second > 0)
+            getRowItems_(it_i->first, candidateSet);
+    }
+
+    ItemReasonMap reasonMap;
+    TopItemsQueue queue(howMany);
+    for (std::set<uint32_t>::const_iterator it = candidateSet.begin();
+        it != candidateSet.end(); ++it)
+    {
+        uint32_t itemId = *it;
+        if(visitItemWeights.find(itemId) == visitWeightsEnd
+           && (!rescorer || !rescorer->isFiltered(itemId)))
+        {
+            float weight = similarity_.weight(itemId, visitItemWeights, reasonMap[itemId]);
+            if(weight > 0)
+            {
+                queue.insert(QueueItem(itemId, weight));
+            }
+        }
+    }
+
+    getRecommendItemFromQueue(queue, reasonMap, recItems);
+}
+
+void IncrementalItemCF::getRowItems_(
+    uint32_t row,
+    std::set<uint32_t>& items
+)
+{
+    boost::shared_ptr<const SimRow> cols = similarity_.rowItems(row);
+    for (SimRow::const_iterator it_j = cols->begin();
+        it_j != cols->end(); ++it_j)
+    {
+        uint32_t col = it_j->first;
+        assert(col != row && "there should be no similarity value on diagonal line!");
+        items.insert(col);
     }
 }
 

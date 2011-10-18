@@ -92,6 +92,11 @@ public:
      */
     void checkRecommend(const char* inputItemStr) const;
 
+    /**
+     * it checks recommendation results for @p itemWeightPairs.
+     */
+    void checkWeightRecommend(const char* itemWeightPairs) const;
+
 private:
     /**
      * For each pairs in @p oldItems and @p newItems,
@@ -121,6 +126,21 @@ private:
      * calculate weight for each item, and compare them with results.
      */
     void checkRecommendItem_(const std::vector<uint32_t>& inputItems) const;
+
+    void calcWeights_(
+        const std::vector<uint32_t>& inputItems,
+        std::vector<float>& weights
+    ) const;
+
+    void calcWeights_(
+        const IncrementalItemCF::ItemWeightMap& inputItemWeights,
+        std::vector<float>& weights
+    ) const;
+
+    void checkWeights_(
+        const RecommendItemVec& recItems,
+        std::vector<float>& goldWeights
+    ) const;
 
 private:
     IncrementalItemCF* cfManager_;
