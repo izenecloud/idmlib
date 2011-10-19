@@ -99,7 +99,6 @@ void FuzzyPinyinSegmentor::InitRule_()
     fuzzy_weight_ = 0.5;
     filter_pinyin_.insert( std::make_pair("n", 1) );
     filter_pinyin_.insert( std::make_pair("ng", 1) );
-//  filter_pinyin_.insert( std::make_pair("ang", 1) );
     filter_pinyin_.insert( std::make_pair("m", 1) );
     filter_pinyin_.insert( std::make_pair("o", 1) );
 
@@ -119,9 +118,6 @@ void FuzzyPinyinSegmentor::InitRule_()
 
     pinyin_correction_dict_.push_back( std::make_pair("gn", "ng") );
     pinyin_correction_dict_.push_back( std::make_pair("mg", "ng") );
-//  pinyin_correction_dict_.push_back( std::make_pair("iou", "iu") );
-//  pinyin_correction_dict_.push_back( std::make_pair("uei", "ui") );
-//  pinyin_correction_dict_.push_back( std::make_pair("uen", "un") );
 }
 
 void FuzzyPinyinSegmentor::AddSuffixFuzzy_(const std::string& suffix, const std::string& replace)
@@ -135,65 +131,61 @@ void FuzzyPinyinSegmentor::AddPrefixFuzzy_(const std::string& prefix, const std:
     prefix_fuzzy_.Add(prefix, replace);
 }
 
-bool FuzzyPinyinSegmentor::FuzzyFilter_(const std::string& pinyin_term, std::string& fuzzy_term)
+bool FuzzyPinyinSegmentor::FuzzyFilter_(const std::string& pinyin_term, std::vector<std::pair<double, std::string> >& fuzzy_term_list)
 {
     {
         std::string::const_reverse_iterator rit = pinyin_term.rbegin();
         uint32_t id = suffix_fuzzy_.GetRootID();
         uint32_t pos = 0;
-        while(rit != pinyin_term.rend())
+        while (rit != pinyin_term.rend())
         {
             pos++;
             uint32_t c_id = 0;
             std::pair<bool, bool> r = suffix_fuzzy_.Find(*rit, id, c_id);
             id = c_id;
-            if(!r.first) break;
-            if(r.second)
+            if (!r.first) break;
+            if (r.second)
             {
                 std::string f_term;
                 suffix_fuzzy_.GetData(c_id, f_term);
-                std::string a = pinyin_term.substr(0, pinyin_term.length()-pos);
-                fuzzy_term = a+f_term;
+                std::string a = pinyin_term.substr(0, pinyin_term.length() - pos);
+                fuzzy_term_list.push_back(std::make_pair(fuzzy_weight_, a + f_term));
                 break;
             }
             ++rit;
         }
-    }
-    if(fuzzy_term.length()>0) //detected suffix fuzzy, return
-    {
-        return true;
     }
     {
         std::string::const_iterator it = pinyin_term.begin();
         uint32_t id = suffix_fuzzy_.GetRootID();
         uint32_t pos = 0;
         std::string f_term;
-        while(it != pinyin_term.end())
+        while (it != pinyin_term.end())
         {
             uint32_t c_id = 0;
             std::pair<bool, bool> r = prefix_fuzzy_.Find(*it, id, c_id);
             id = c_id;
-            if(!r.first) break;
-            if(r.second)
+            if (!r.first) break;
+            if (r.second)
             {
                 prefix_fuzzy_.GetData(c_id, f_term);
             }
             pos++;
             ++it;
         }
-        if(f_term.length()>0)
+        if (f_term.length() > 0)
         {
-            std::string a = pinyin_term.substr(0, pos);
-            if( a!= f_term)
+            std::string b = pinyin_term.substr(pos);
+            fuzzy_term_list.push_back(std::make_pair(fuzzy_weight_, f_term + b));
+            if (fuzzy_term_list.size() == 2)
             {
-                std::string b = pinyin_term.substr(pos);
-                fuzzy_term = f_term + b;
-                return true;
+                b = fuzzy_term_list[0].second.substr(pos);
+                fuzzy_term_list.push_back(std::make_pair(fuzzy_weight_ * fuzzy_weight_, f_term + b));
             }
-
         }
     }
-    return false;
+
+    return !fuzzy_term_list.empty();
 }
 
 void FuzzyPinyinSegmentor::Segment(const std::string& pinyin_str, std::vector<PinyinSegmentResult>& result_list)
@@ -226,10 +218,8 @@ void FuzzyPinyinSegmentor::SegmentRaw_(const std::string& pinyin_str, const std:
         uint32_t c_id = 0;
         char c = pinyin_str[i];
 
-//         pinyin_dict_.Find('n', 0, c_id);
-
         std::pair<bool, bool> r = pinyin_dict_.Find(c, id, c_id);
-//         std::cout<<pinyin_str[i]<<","<<(int)r.first<<","<<(int)r.second<<","<<id<<","<<c_id<<std::endl;
+//        std::cout<<pinyin_str[i]<<","<<(int)r.first<<","<<(int)r.second<<","<<id<<","<<c_id<<std::endl;
         id = c_id;
 
         //make maximum match.
@@ -240,9 +230,9 @@ void FuzzyPinyinSegmentor::SegmentRaw_(const std::string& pinyin_str, const std:
             {
                 std::string a = pinyin_str.substr(0, i+1);
                 std::string b = pinyin_str.substr(i+1);
-//                     std::cout<<"[]"<<a<<","<<b<<std::endl;
+//                std::cout<<"[]"<<a<<","<<b<<std::endl;
                 std::string n_mid_result = mid_result;
-                if( n_mid_result.length()>0) n_mid_result+=",";
+                if( n_mid_result.length()>0) n_mid_result.push_back(',');
                 n_mid_result += a;
                 if(b.length()>0)
                 {
@@ -354,7 +344,7 @@ void FuzzyPinyinSegmentor::GetPinyin_(const izenelib::util::UString& cn_chars, c
 
     const izenelib::util::UCS2Char& cn_char = cn_chars[0];
     std::vector<std::string> pinyin_term_list;
-    if(GetPinyinTerm(cn_char, pinyin_term_list) )
+    if (GetPinyinTerm(cn_char, pinyin_term_list))
     {
         izenelib::util::UString remain = cn_chars.substr(1);
         std::string new_mid(mid_result);
@@ -367,10 +357,11 @@ void FuzzyPinyinSegmentor::GetPinyin_(const izenelib::util::UString& cn_chars, c
             if (remain.length() > 0)
             {
                 GetPinyin_(remain, mid, score, result_list);
-                std::string f_term;
-                if( FuzzyFilter_(pinyin_term_list[i], f_term) )
+                std::vector<std::pair<double, string> > f_term_list;
+                if ( FuzzyFilter_(pinyin_term_list[i], f_term_list) )
                 {
-                    GetPinyin_(remain, new_mid + f_term, score * fuzzy_weight_, result_list);
+                    for (int i = 0; i < f_term_list.size(); i++)
+                        GetPinyin_(remain, new_mid + f_term_list[i].second, score * f_term_list[i].first, result_list);
                 }
             }
             else
@@ -420,20 +411,22 @@ void FuzzyPinyinSegmentor::FuzzySegmentRaw_(const std::string& pinyin_str, const
     std::string first;
     std::string remain;
     boost::replace_all((string &) pinyin_str, "on,", "ong,");
-    if( GetFirstPinyinTerm(pinyin_str, first, remain) )
+    if (GetFirstPinyinTerm(pinyin_str, first, remain))
     {
         std::string new_mid(mid_result);
-        if(!new_mid.empty()) new_mid += ",";
+        if(!new_mid.empty())
+            new_mid.push_back(',');
 
         FuzzySegmentRaw_(remain, new_mid+first, score, result_list);
-        std::string f_term;
-        if( FuzzyFilter_(first, f_term) )
+        std::vector<std::pair<double, std::string> > f_term_list;
+        if (FuzzyFilter_(first, f_term_list))
         {
-            FuzzySegmentRaw_(remain, new_mid+f_term, score*fuzzy_weight_, result_list);
+            for (int i = 0; i < f_term_list.size(); i++)
+                FuzzySegmentRaw_(remain, new_mid + f_term_list[i].second, score * f_term_list[i].first, result_list);
         }
     }
     else
     {
-        result_list.push_back(std::make_pair(score, mid_result) );
+        result_list.push_back(std::make_pair(score, mid_result));
     }
 }

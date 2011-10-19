@@ -61,7 +61,7 @@ class FuzzyPinyinSegmentor
 
         void AddPrefixFuzzy_(const std::string& prefix, const std::string& replace);
 
-        bool FuzzyFilter_(const std::string& pinyin_term, std::string& fuzzy_term);
+        bool FuzzyFilter_(const std::string& pinyin_term, std::vector<std::pair<double, std::string> >& fuzzy_term_list);
 
         void FuzzySegmentRaw_(const std::string& pinyin_str, const std::string& mid_result, double score, std::vector<std::pair<double, std::string> >& result_list);
 
