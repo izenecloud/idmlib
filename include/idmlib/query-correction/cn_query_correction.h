@@ -21,6 +21,18 @@ class CnQueryCorrection
 
     typedef idmlib::util::MTrie<Ngram , uint32_t, double> TrieType;
     typedef boost::tuple<uint32_t, uint32_t, izenelib::util::UString> QueryLogType;
+    struct TransProbType
+    {
+        boost::unordered_map<Unigram, double> u_trans_prob_;
+        boost::unordered_map<Bigram, double> b_trans_prob_;
+        boost::unordered_map<Trigram, double> t_trans_prob_;
+        void clear()
+        {
+            u_trans_prob_.clear();
+            b_trans_prob_.clear();
+            t_trans_prob_.clear();
+        }
+    };
 
     public:
         CnQueryCorrection(const std::string& res_dir, const std::string& log_dir);
@@ -35,11 +47,7 @@ class CnQueryCorrection
 
     private:
 
-        bool ReloadLM_();
-
         bool LoadRawTextTransProb_(const std::string& file);
-
-        bool LoadRawText_(const std::string& file);
 
         double TransProb_(const izenelib::util::UCS2Char& from, const izenelib::util::UCS2Char& to);
 
@@ -70,9 +78,9 @@ class CnQueryCorrection
         std::string res_dir_;
         std::string log_dir_;
         FuzzyPinyinSegmentor pinyin_;
-        boost::unordered_map<Unigram, double> u_trans_prob_;
-        boost::unordered_map<Bigram, double> b_trans_prob_;
-        boost::unordered_map<Trigram, double> t_trans_prob_;
+
+        static TransProbType global_trans_prob_;
+        TransProbType collection_trans_prob_;
 
         double threshold_;
         double mid_threshold_;
