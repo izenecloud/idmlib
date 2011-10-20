@@ -20,7 +20,8 @@ class CnQueryCorrection
 {
 
     typedef idmlib::util::MTrie<Ngram , uint32_t, double> TrieType;
-    typedef boost::tuple<uint32_t, uint32_t, izenelib::util::UString> QueryLogType;
+    typedef boost::tuple<uint32_t, uint32_t, izenelib::util::UString> QueryLogItemType;
+    typedef std::list<QueryLogItemType> QueryLogListType;
     struct TransProbType
     {
         boost::unordered_map<Unigram, double> u_trans_prob_;
@@ -32,14 +33,18 @@ class CnQueryCorrection
             b_trans_prob_.clear();
             t_trans_prob_.clear();
         }
+        bool empty() const
+        {
+            return u_trans_prob_.empty() && b_trans_prob_.empty() && t_trans_prob_.empty();
+        }
     };
 
     public:
-        CnQueryCorrection(const std::string& res_dir, const std::string& log_dir);
+        CnQueryCorrection(const std::string& res_dir);
 
         bool Load();
 
-        bool Update(const std::list<QueryLogType>& query_logs);
+        bool Update(const QueryLogListType& query_logs);
 
         bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
 
@@ -54,14 +59,10 @@ class CnQueryCorrection
         //trigram version only
         double TransProbT_(const izenelib::util::UString& from, const izenelib::util::UCS2Char& to);
 
-        inline double EmitProb_(const izenelib::util::UCS2Char& from, const std::string& to)
-        {
-            return 1.0;
-        }
-
         int GetInputType_(const izenelib::util::UString& input);
 
         bool GetResultWithScore_(const izenelib::util::UString& input, int type, std::vector<CandidateResult>& output);
+
         void GetResultByPinyin_(const std::string& pinyin, double pinyin_score, std::vector<CandidateResult>& output);
 
         //trigram LM
@@ -74,6 +75,7 @@ class CnQueryCorrection
         bool IsCandidate_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score);
 
         bool IsCandidateResult_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score);
+
     private:
         std::string res_dir_;
         std::string log_dir_;

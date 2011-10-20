@@ -15,8 +15,8 @@ using namespace idmlib::qc;
 
 CnQueryCorrection::TransProbType CnQueryCorrection::global_trans_prob_;
 
-CnQueryCorrection::CnQueryCorrection(const std::string& res_dir, const std::string& log_dir)
-:res_dir_(res_dir), log_dir_(log_dir)
+CnQueryCorrection::CnQueryCorrection(const std::string& res_dir)
+:res_dir_(res_dir)
 ,threshold_(0.0005)
 // :threshold_(0.0)
 , mid_threshold_(0.0001)
@@ -28,74 +28,71 @@ bool CnQueryCorrection::Load()
 {
     std::cout<<"[CnQueryCorrection] starting load resources."<<std::endl;
     std::string pinyin_file = res_dir_+"/pinyin.txt";
-    if(!boost::filesystem::exists(pinyin_file)) return false;
+    if (!boost::filesystem::exists(pinyin_file)) return false;
     pinyin_.LoadPinyinFile(pinyin_file);
     std::cout<<"[CnQueryCorrection] loaded pinyin."<<std::endl;
-    global_trans_prob_.clear();
-    if (!LoadRawTextTransProb_(res_dir_+"/trans_prob.txt")) return false;
+    if (!global_trans_prob_.empty() || !LoadRawTextTransProb_(res_dir_+"/trans_prob.txt")) return false;
     std::cout<<"[CnQueryCorrection] loaded resources."<<std::endl;
     return true;
 }
 
-bool CnQueryCorrection::Update(const std::list<QueryLogType>& query_logs)
+bool CnQueryCorrection::Update(const QueryLogListType& query_logs)
 {
+    collection_trans_prob_.clear();
+
 #ifdef CN_QC_UNIGRAM
     double u_weight = 0.000001;
 #endif
     double b_weight = 0.004;
     double t_weight = 0.004;
-    for (std::list<QueryLogType>::const_iterator qit = query_logs.begin();
+    for (QueryLogListType::const_iterator qit = query_logs.begin();
             qit != query_logs.end(); ++qit)
     {
-        izenelib::util::UString text(qit->get<2>(), izenelib::util::UString::UTF_8);
-        const uint32_t &log_count = qit->get<0>();
+        const izenelib::util::UString &text = qit->get<2>();
+        if (GetInputType_(text) != -1)
+            continue;
 
-        //TODO maybe need refine
-        if(text.length()>=1)
+        const uint32_t &log_count = qit->get<0>();
+        double score, len = text.length();
+
+        for (size_t i = 0; i < len - 2; i++)
         {
 #ifdef CN_QC_UNIGRAM
-            double score = u_weight*log_count;
-            Unigram u(text[0]);
-            boost::unordered_map<Unigram, double>::iterator it = collection_trans_prob_.u_trans_prob_.find(u);
-            if( it==collection_trans_prob_.u_trans_prob_.end() )
-            {
-                collection_trans_prob_.u_trans_prob_.insert(std::make_pair(u, score));
-            }
-            else
-            {
-                it->second += score;
-            }
+            Unigram u(text[i]);
+            score = u_weight * log_count;
+            collection_trans_prob_.u_trans_prob_[u] += score;
 #endif
+
+            Bigram b(text[i], text[i + 1]);
+            score = b_weight * log_count;
+            collection_trans_prob_.b_trans_prob_[b] += score;
+
+            Trigram t(b, text[i + 2]);
+            score = t_weight * log_count;
+            collection_trans_prob_.t_trans_prob_[t] += score;
         }
-        if(text.length()>=2)
+
+        if (len >= 2)
         {
-            double score = b_weight*log_count;
-            Bigram b(text[0], text[1]);
-            boost::unordered_map<Bigram, double>::iterator it = collection_trans_prob_.b_trans_prob_.find(b);
-            if( it==collection_trans_prob_.b_trans_prob_.end() )
-            {
-                collection_trans_prob_.b_trans_prob_.insert(std::make_pair(b, score));
-            }
-            else
-            {
-                it->second += score;
-            }
+#ifdef CN_QC_UNIGRAM
+            Unigram u(text[len - 2]);
+            score = u_weight * log_count;
+            collection_trans_prob_.u_trans_prob_[u] += score;
+#endif
+
+            Bigram b(text[len - 2], text[len - 1]);
+            score = b_weight * log_count;
+            collection_trans_prob_.b_trans_prob_[b] += score;
         }
-        if(text.length()>=3)
+
+#ifdef CN_QC_UNIGRAM
+        if (len >= 1)
         {
-            double score = t_weight*log_count;
-            Bigram b(text[0], text[1]);
-            Trigram t(b, text[2]);
-            boost::unordered_map<Trigram, double>::iterator it = collection_trans_prob_.t_trans_prob_.find(t);
-            if( it==collection_trans_prob_.t_trans_prob_.end() )
-            {
-                collection_trans_prob_.t_trans_prob_.insert(std::make_pair(t, score));
-            }
-            else
-            {
-                it->second += score;
-            }
+            Unigram u(text[len - 1]);
+            score = u_weight * log_count;
+            collection_trans_prob_.u_trans_prob_[u] += score;
         }
+#endif
     }
 
     return true;
@@ -106,31 +103,39 @@ bool CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
     std::ifstream ifs(file.c_str());
     std::string line;
     uint64_t count = 0;
-    while( getline(ifs, line) )
+    while ( getline(ifs, line) )
     {
         std::vector<std::string> vec;
-        boost::algorithm::split( vec, line, boost::algorithm::is_any_of("\t") );
-        if(vec.size()!=2) continue;
+        boost::algorithm::split(vec, line, boost::algorithm::is_any_of("\t"));
+        if (vec.size() != 2) continue;
         izenelib::util::UString text(vec[0], izenelib::util::UString::UTF_8);
         double score = boost::lexical_cast<double>(vec[1]);
 
-        if(text.length()==1)
+        switch (text.length())
         {
 #ifdef CN_QC_UNIGRAM
-            Unigram u(text[0]);
-            global_trans_prob_.u_trans_prob_.insert(std::make_pair(u, score));
+            case 1:
+            {
+                Unigram u(text[0]);
+                global_trans_prob_.u_trans_prob_.insert(std::make_pair(u, score));
+                break;
+                }
 #endif
-        }
-        else if(text.length()==2)
-        {
-            Bigram b(text[0], text[1]);
-            global_trans_prob_.b_trans_prob_.insert(std::make_pair(b, score));
-        }
-        else if(text.length()==3)
-        {
-            Bigram b(text[0], text[1]);
-            Trigram t(b, text[2]);
-            global_trans_prob_.t_trans_prob_.insert(std::make_pair(t, score));
+            case 2:
+            {
+                Bigram b(text[0], text[1]);
+                global_trans_prob_.b_trans_prob_.insert(std::make_pair(b, score));
+                break;
+            }
+            case 3:
+            {
+                Bigram b(text[0], text[1]);
+                Trigram t(b, text[2]);
+                global_trans_prob_.t_trans_prob_.insert(std::make_pair(t, score));
+                break;
+            }
+            default:
+                break;
         }
         ++count;
     }
@@ -143,10 +148,10 @@ bool CnQueryCorrection::GetResult(const izenelib::util::UString& input, std::vec
 {
    int type = GetInputType_(input);
    std::vector<CandidateResult> candidate_output;
-   if(!GetResultWithScore_(input, type, candidate_output)) return false;
-   if(candidate_output.empty())
+   if (!GetResultWithScore_(input, type, candidate_output)) return false;
+   if (candidate_output.empty())
    {
-       if(type<0)// cn char
+       if (type < 0) // cn char
        {
            return true;
        }
@@ -156,32 +161,34 @@ bool CnQueryCorrection::GetResult(const izenelib::util::UString& input, std::vec
        }
    }
 #ifdef CN_QC_DEBUG
-   for(uint32_t i=0;i<candidate_output.size();i++)
+   for (uint32_t i = 0; i < candidate_output.size(); i++)
    {
        std::string str;
        candidate_output[i].value.convertString(str, izenelib::util::UString::UTF_8);
-       std::cout<<"[CR] "<<str<<"\t"<<candidate_output[i].score<<std::endl;
+       std::cout << "[CR] " << str << "\t" << candidate_output[i].score << std::endl;
    }
 #endif
 
    std::sort(candidate_output.begin(), candidate_output.end());
    //check if in the result list
-   for(uint32_t i=0;i<candidate_output.size();i++)
+   for (std::vector<CandidateResult>::iterator it = candidate_output.begin();
+           it != candidate_output.end(); ++it)
    {
-       if(candidate_output[i].value == input)
+       if (it->value == input)
        {
-           return true;
+           candidate_output.erase(it);
+           break;
        }
    }
-   output.push_back( candidate_output[0].value);
+   output.push_back(candidate_output[0].value);
    double pre_score = candidate_output[0].score;
    double step = 0.7;
-   for(uint32_t i=1;i<candidate_output.size();i++)
+   for (uint32_t i = 1; i < candidate_output.size(); i++)
    {
-       double inner_threshold = pre_score*step;
-       if( candidate_output[i].score >= inner_threshold)
+       double inner_threshold = pre_score * step;
+       if ( candidate_output[i].score >= inner_threshold)
        {
-           output.push_back( candidate_output[i].value);
+           output.push_back(candidate_output[i].value);
            pre_score = candidate_output[i].score;
        }
        else
@@ -208,63 +215,70 @@ double CnQueryCorrection::GetScore_(const izenelib::util::UString& text, double 
 bool CnQueryCorrection::IsCandidate_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score)
 {
     score = GetScore_(text, ori_score, pinyin_score);
-    if(text.length()==1) return true;
-    if(score < mid_threshold_) return false;
-    else return true;
+    if (text.length() == 1)
+        return true;
+
+    if (score < mid_threshold_)
+        return false;
+
+    return true;
 }
 
 bool CnQueryCorrection::IsCandidateResult_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score)
 {
     score = GetScore_(text, ori_score, pinyin_score);
-    if(score < threshold_) return false;
+    if (score < threshold_) return false;
     else return true;
-}
-
-double CnQueryCorrection::TransProb_(const izenelib::util::UCS2Char& from, const izenelib::util::UCS2Char& to)
-{
-//     double r = 0.0;
-//     boost::unordered_map<Bigram, double>::iterator it = trans_prob_.find(std::make_pair(from, to) );
-//     if(it!=b_trans_prob_.end())
-//     {
-//         r = it->second;
-//     }
-//     return r;
-    return 0.0;
 }
 
 double CnQueryCorrection::TransProbT_(const izenelib::util::UString& from, const izenelib::util::UCS2Char& to)
 {
     double r = 0.0;
-    if(from.length()==0)
+    if (from.length() == 0)
     {
 #ifdef CN_QC_UNIGRAM
         Unigram u(to);
         boost::unordered_map<Unigram, double>::iterator it = global_trans_prob_.u_trans_prob_.find(u);
-        if(it!=global_trans_prob_.u_trans_prob_.end())
+        if (it != global_trans_prob_.u_trans_prob_.end())
         {
             r = it->second;
+        }
+        it = collection_trans_prob_.u_trans_prob_.find(u);
+        if (it != collection_trans_prob_.u_trans_prob_.end())
+        {
+            r += it->second;
         }
 #else
         r = 1.0;
 #endif
     }
-    else if(from.length()==1)
+    else if (from.length() == 1)
     {
         Bigram b(from[0], to);
         boost::unordered_map<Bigram, double>::iterator it = global_trans_prob_.b_trans_prob_.find(b);
-        if(it!=global_trans_prob_.b_trans_prob_.end())
+        if (it != global_trans_prob_.b_trans_prob_.end())
         {
             r = it->second;
+        }
+        it = collection_trans_prob_.b_trans_prob_.find(b);
+        if (it != collection_trans_prob_.b_trans_prob_.end())
+        {
+            r += it->second;
         }
     }
     else
     {
-        Bigram b(from[from.length()-2], from[from.length()-1]);
+        Bigram b(from[from.length() - 2], from[from.length() - 1]);
         Trigram t(b, to);
         boost::unordered_map<Trigram, double>::iterator it = global_trans_prob_.t_trans_prob_.find(t);
-        if(it!=global_trans_prob_.t_trans_prob_.end())
+        if (it != global_trans_prob_.t_trans_prob_.end())
         {
             r = it->second;
+        }
+        it = collection_trans_prob_.t_trans_prob_.find(t);
+        if (it != collection_trans_prob_.t_trans_prob_.end())
+        {
+            r += it->second;
         }
     }
 
@@ -273,9 +287,9 @@ double CnQueryCorrection::TransProbT_(const izenelib::util::UString& from, const
     from.convertString(from_str, izenelib::util::UString::UTF_8);
     std::string to_str;
     izenelib::util::UString tmp;
-    tmp+= to;
+    tmp += to;
     tmp.convertString(to_str, izenelib::util::UString::UTF_8);
-    std::cout<<"[TP] "<<from_str<<","<<to_str<<" : "<<r<<std::endl;
+    std::cout << "[TP] " << from_str << "," << to_str << " : " << r << std::endl;
 #endif
 
     return r;
@@ -283,7 +297,7 @@ double CnQueryCorrection::TransProbT_(const izenelib::util::UString& from, const
 
 bool CnQueryCorrection::GetResultWithScore_(const izenelib::util::UString& input, int type, std::vector<CandidateResult>& output)
 {
-    if(type==0)
+    if (type == 0)
     {
 #ifdef CN_QC_DEBUG
         std::cout<<"type equals 0"<<std::endl;
@@ -291,17 +305,17 @@ bool CnQueryCorrection::GetResultWithScore_(const izenelib::util::UString& input
         return false;
     }
     std::vector<std::pair<double, std::string> > pinyin_list;
-    if(type<0) // cn chars
+    if (type<0) // cn chars
     {
         pinyin_.GetPinyin(input, pinyin_list);
 #ifdef CN_QC_DEBUG
         std::cout<<"Chinese chars"<<std::endl;
-        for(uint32_t i=0;i<pinyin_list.size();i++)
+        for (uint32_t i = 0; i < pinyin_list.size(); i++)
         {
-            std::cout<<"[pinyin] "<<pinyin_list[i].second<<","<<pinyin_list[i].first<<std::endl;
+            std::cout << "[pinyin] " << pinyin_list[i].second << "," << pinyin_list[i].first << std::endl;
         }
 #endif
-        if(pinyin_list.empty()) return true;
+        if (pinyin_list.empty()) return true;
     }
     else // input pinyin
     {
@@ -310,109 +324,24 @@ bool CnQueryCorrection::GetResultWithScore_(const izenelib::util::UString& input
         pinyin_.FuzzySegmentRaw(pinyin_str, pinyin_list);
 #ifdef CN_QC_DEBUG
         std::cout<<"Input Pinyin"<<std::endl;
-        for(uint32_t i=0;i<pinyin_list.size();i++)
+        for (uint32_t i = 0; i < pinyin_list.size(); i++)
         {
-            std::cout<<"[pinyin] "<<pinyin_list[i].second<<","<<pinyin_list[i].first<<std::endl;
+            std::cout << "[pinyin] " << pinyin_list[i].second << "," << pinyin_list[i].first << std::endl;
         }
 #endif
-        if(pinyin_list.empty()) return false;
+        if (pinyin_list.empty()) return false;
     }
-    for(uint32_t i=0;i<pinyin_list.size();i++)
+    for (uint32_t i = 0; i < pinyin_list.size(); i++)
     {
         GetResultByPinyinT_( pinyin_list[i].second, pinyin_list[i].first, output);
     }
     return true;
 }
 
-void CnQueryCorrection::GetResultByPinyin_(const std::string& pinyin, double pinyin_score, std::vector<CandidateResult>& output)
-{
-    uint32_t pinyin_term_count = pinyin_.CountPinyinTerm(pinyin);
-    if(pinyin_term_count<=1 ) return;//ignore single pinyin term
-    std::string p_str(pinyin);
-    //start viterbi
-    std::vector<std::vector<ViterbiItem> > matrix;
-    std::string first_pinyin;
-    while( pinyin_.GetFirstPinyinTerm(p_str, first_pinyin) )
-    {
-        std::vector<izenelib::util::UCS2Char> char_list;
-        if(!pinyin_.GetChar( first_pinyin, char_list) ) return;
-        if( matrix.empty() )
-        {
-            std::vector<ViterbiItem> column(char_list.size());
-            for(uint32_t i=0;i<column.size();i++)
-            {
-                column[i].text = char_list[i];
-                column[i].score = 1.0;
-                column[i].pre_index = 0;
-            }
-            matrix.push_back(column);
-        }
-        else
-        {
-            std::vector<ViterbiItem> column(char_list.size());
-            const std::vector<ViterbiItem>& last_col = matrix.back();
-            for(uint32_t i=0;i<column.size();i++)
-            {
-                double max_score = 0.0;
-                uint32_t max_pre_index = 0;
-                for(uint32_t j=0;j<last_col.size();j++)
-                {
-                    double score = TransProb_(last_col[j].text, char_list[i]) * last_col[j].score;
-                    if(score>max_score)
-                    {
-                        max_score = score;
-                        max_pre_index = j;
-                    }
-                }
-                column[i].text = char_list[i];
-                column[i].score = max_score;
-                column[i].pre_index = max_pre_index;
-            }
-            matrix.push_back(column);
-        }
-    }
-
-    std::vector<std::vector<ViterbiItem> >::reverse_iterator rit = matrix.rbegin();
-    std::vector<ViterbiItem>& last_col = *rit;
-    ++rit;
-    for(uint32_t i=0;i<last_col.size();i++)
-    {
-        std::vector<std::vector<ViterbiItem> >::reverse_iterator cp_rit = rit;
-        std::vector<izenelib::util::UCS2Char> reverse_char_list;
-        double score = last_col[i].score;
-        double normalized_score = std::pow( score, 1.0/(pinyin_term_count-1) ) * pinyin_score;
-        if(normalized_score<threshold_) continue;
-        uint32_t index = last_col[i].pre_index;
-        reverse_char_list.push_back(last_col[i].text);
-        while( cp_rit!= matrix.rend() )
-        {
-            std::vector<ViterbiItem>& col = *cp_rit;
-            reverse_char_list.push_back( col[index].text );
-            index = col[index].pre_index;
-            ++cp_rit;
-        }
-        //make the string
-        izenelib::util::UString result_str;
-        std::vector<izenelib::util::UCS2Char>::reverse_iterator rit2 = reverse_char_list.rbegin();
-        while( rit2!= reverse_char_list.rend())
-        {
-            result_str+= (*rit2);
-            ++rit2;
-        }
-        CandidateResult result;
-        result.value = result_str;
-        result.score = normalized_score;
-        output.push_back(result);
-    }
-
-}
-
 void CnQueryCorrection::GetResultByPinyinT_(const std::string& pinyin, double pinyin_score, std::vector<CandidateResult>& output)
 {
-//     std::cout<<"GetResultByPinyinT_ "<<pinyin<<std::endl;
     uint32_t pinyin_term_count = pinyin_.CountPinyinTerm(pinyin);
-//     std::cout<<"GetResultByPinyinT_ "<<pinyin_term_count<<std::endl;
-    if(pinyin_term_count<=1 || pinyin_term_count>max_pinyin_term_ ) return;//ignore single pinyin term
+    if (pinyin_term_count <= 1 || pinyin_term_count > max_pinyin_term_ ) return;//ignore single pinyin term
     std::pair<double, izenelib::util::UString> start_mid_result(1.0, izenelib::util::UString("", izenelib::util::UString::UTF_8));
     GetResultByPinyinTRecur_(pinyin, pinyin_score, start_mid_result, output);
 
@@ -422,67 +351,59 @@ void CnQueryCorrection::GetResultByPinyinTRecur_(const std::string& pinyin, doub
 {
     std::string first_pinyin;
     std::string remain;
-    if(pinyin_.GetFirstPinyinTerm(pinyin, first_pinyin, remain))
+    if (pinyin_.GetFirstPinyinTerm(pinyin, first_pinyin, remain))
     {
         std::vector<izenelib::util::UCS2Char> char_list;
-        if(!pinyin_.GetChar( first_pinyin, char_list) ) return;
+        if (!pinyin_.GetChar(first_pinyin, char_list))
+            return;
+
         const izenelib::util::UString& mid_text = mid_result.second;
         std::vector<std::pair<double, izenelib::util::UString> > new_mid_list(char_list.size(), std::make_pair(1.0, mid_text));
-        for(uint32_t i=0;i<char_list.size();i++)
+        for (uint32_t i = 0; i < char_list.size(); i++)
         {
-            std::pair<double, izenelib::util::UString>& new_mid_result = new_mid_list[i];
-            new_mid_result.first = TransProbT_(mid_text, char_list[i]) * mid_result.first;
-//             if(mid_text.length()==0)
-//             {
-//                 new_mid_result.first = 1.0;
-//
-//             }
-//             else
-//             {
-//
-//             }
-            new_mid_result.second += char_list[i];
+            new_mid_list[i].first = TransProbT_(mid_text, char_list[i]) * mid_result.first;
+            new_mid_list[i].second += char_list[i];
         }
-        //TODO cut some results here to speed up
+
         typedef izenelib::util::first_greater<std::pair<double, izenelib::util::UString> > greater_than;
-        std::sort( new_mid_list.begin(), new_mid_list.end(), greater_than());
+        std::sort(new_mid_list.begin(), new_mid_list.end(), greater_than());
         double max_score = 0.0;
-        for(uint32_t i=0;i<new_mid_list.size();i++)
+        for (uint32_t i = 0; i < new_mid_list.size(); i++)
         {
             std::pair<double, izenelib::util::UString>& new_mid_result = new_mid_list[i];
             double score = 1.0;
             uint32_t text_length = new_mid_result.second.length();
-            if(!IsCandidate_( new_mid_result.second, new_mid_result.first, pinyin_score, score))
+            if (!IsCandidate_(new_mid_result.second, new_mid_result.first, pinyin_score, score))
             {
 #ifdef CN_QC_DEBUG_DETAIL
                 std::string str;
                 new_mid_result.second.convertString(str, izenelib::util::UString::UTF_8);
-                std::cout<<"[BR] "<<str<<" , "<<score<<std::endl;
+                std::cout << "[BR] " << str << " , " << score << std::endl;
 #endif
                 break;
             }
-            if(i==0)
+            if (i == 0)
             {
                 max_score = score;
             }
             else
             {
-                double rate = score/max_score;
-                if(rate<0.2 && text_length>=2) break;
+                double rate = score / max_score;
+                if (rate < 0.2 && text_length >= 2)
+                    break;
             }
 #ifdef CN_QC_DEBUG_DETAIL
             std::string str;
             new_mid_result.second.convertString(str, izenelib::util::UString::UTF_8);
-            std::cout<<"[NBR] "<<str<<" , "<<score<<std::endl;
+            std::cout << "[NBR] " << str << " , " << score << std::endl;
 #endif
             GetResultByPinyinTRecur_(remain, pinyin_score, new_mid_result, output);
         }
-
     }
     else
     {
         double score = 1.0;
-        if(IsCandidateResult_( mid_result.second, mid_result.first, pinyin_score, score))
+        if (IsCandidateResult_(mid_result.second, mid_result.first, pinyin_score, score))
         {
             CandidateResult r;
             r.value = mid_result.second;
@@ -495,11 +416,11 @@ void CnQueryCorrection::GetResultByPinyinTRecur_(const std::string& pinyin, doub
 int CnQueryCorrection::GetInputType_(const izenelib::util::UString& input)
 {
     int type = 0;//1:pinyin, -1: cn char
-    for(uint32_t i=0;i<input.length();i++)
+    for (uint32_t i = 0; i < input.length(); i++)
     {
-        if(input.isAlphaChar(i))
+        if (input.isAlphaChar(i))
         {
-            if(type<0)
+            if (type < 0)
             {
                 type = 0;
                 break;
@@ -509,9 +430,9 @@ int CnQueryCorrection::GetInputType_(const izenelib::util::UString& input)
                 type = 1;
             }
         }
-        else if(input.isChineseChar(i))
+        else if (input.isChineseChar(i))
         {
-            if(type>0)
+            if (type > 0)
             {
                 type = 0;
                 break;
@@ -526,7 +447,6 @@ int CnQueryCorrection::GetInputType_(const izenelib::util::UString& input)
             type = 0;
             break;
         }
-//         std::cout<<"[type] "<<i<<" "<<type<<std::endl;
     }
     return type;
 }
