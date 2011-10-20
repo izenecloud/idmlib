@@ -53,7 +53,8 @@ bool CnQueryCorrection::Update(const QueryLogListType& query_logs)
             continue;
 
         const uint32_t &log_count = qit->get<0>();
-        double score, len = text.length();
+        double score;
+        size_t len = text.length();
 
         for (size_t i = 0; i < len - 2; i++)
         {
