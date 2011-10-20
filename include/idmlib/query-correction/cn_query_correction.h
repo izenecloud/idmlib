@@ -44,6 +44,8 @@ class CnQueryCorrection
 
         bool Load();
 
+        bool ForceReload();
+
         bool Update(const QueryLogListType& query_logs);
 
         bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
