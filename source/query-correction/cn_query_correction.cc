@@ -32,16 +32,24 @@ bool CnQueryCorrection::ForceReload()
 
 bool CnQueryCorrection::Load()
 {
-    std::cout<<"[CnQueryCorrection] starting load resources."<<std::endl;
-    std::string pinyin_file = res_dir_+"/pinyin.txt";
-    if (!boost::filesystem::exists(pinyin_file)) return false;
-    pinyin_.LoadPinyinFile(pinyin_file);
-    std::cout<<"[CnQueryCorrection] loaded pinyin."<<std::endl;
     if (!global_trans_prob_.empty())
         return true;
 
-    if (!LoadRawTextTransProb_(res_dir_+"/trans_prob.txt")) return false;
-    std::cout<<"[CnQueryCorrection] loaded resources."<<std::endl;
+    std::cout<<"[CnQueryCorrection] starting load resources."<<std::endl;
+    std::string pinyin_file = res_dir_+"/pinyin.txt";
+    if (!boost::filesystem::exists(pinyin_file))
+    {
+        std::cout << "[CnQueryCorrection] failed loading pinyin." << std::endl;
+        return false;
+    }
+    pinyin_.LoadPinyinFile(pinyin_file);
+    std::cout << "[CnQueryCorrection] loaded pinyin." << std::endl;
+    if (!LoadRawTextTransProb_(res_dir_+"/trans_prob.txt"))
+    {
+        std::cout << "[CnQueryCorrection] failed loading resources." << std::endl;
+        return false;
+    }
+    std::cout << "[CnQueryCorrection] loaded resources." << std::endl;
     return true;
 }
 
