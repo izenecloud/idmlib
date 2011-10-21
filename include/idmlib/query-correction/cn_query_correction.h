@@ -81,7 +81,7 @@ class CnQueryCorrection
     private:
         std::string res_dir_;
         std::string log_dir_;
-        FuzzyPinyinSegmentor pinyin_;
+        static FuzzyPinyinSegmentor pinyin_;
 
         static TransProbType global_trans_prob_;
         TransProbType collection_trans_prob_;

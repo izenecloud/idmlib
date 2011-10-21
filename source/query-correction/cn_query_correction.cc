@@ -14,6 +14,7 @@ using namespace idmlib::qc;
 // #define VITERBI_DEBUG
 
 CnQueryCorrection::TransProbType CnQueryCorrection::global_trans_prob_;
+FuzzyPinyinSegmentor CnQueryCorrection::pinyin_;
 
 CnQueryCorrection::CnQueryCorrection(const std::string& res_dir)
 :res_dir_(res_dir)
