@@ -40,13 +40,13 @@ class CnQueryCorrection
     };
 
     public:
-        CnQueryCorrection(const std::string& res_dir);
+        CnQueryCorrection();
 
         bool Load();
 
         bool ForceReload();
 
-        bool Update(const QueryLogListType& query_logs);
+        bool Update(const QueryLogListType& query_logs, bool forceMode = false);
 
         bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
 
@@ -54,7 +54,7 @@ class CnQueryCorrection
 
     private:
 
-        bool LoadRawTextTransProb_(const std::string& file);
+        void LoadRawTextTransProb_(const std::string& file);
 
         double TransProb_(const izenelib::util::UCS2Char& from, const izenelib::util::UCS2Char& to);
 
@@ -78,9 +78,10 @@ class CnQueryCorrection
 
         bool IsCandidateResult_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score);
 
+    public:
+        static std::string res_dir_;
+
     private:
-        std::string res_dir_;
-        std::string log_dir_;
         static FuzzyPinyinSegmentor pinyin_;
 
         static TransProbType global_trans_prob_;

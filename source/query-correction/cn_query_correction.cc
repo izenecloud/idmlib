@@ -13,15 +13,14 @@ using namespace idmlib::qc;
 
 // #define VITERBI_DEBUG
 
+std::string CnQueryCorrection::res_dir_;
 CnQueryCorrection::TransProbType CnQueryCorrection::global_trans_prob_;
 FuzzyPinyinSegmentor CnQueryCorrection::pinyin_;
 
-CnQueryCorrection::CnQueryCorrection(const std::string& res_dir)
-:res_dir_(res_dir)
-,threshold_(0.0005)
-// :threshold_(0.0)
-, mid_threshold_(0.0001)
-, max_pinyin_term_(7)
+CnQueryCorrection::CnQueryCorrection()
+    : threshold_(0.0005)
+    , mid_threshold_(0.0001)
+    , max_pinyin_term_(7)
 {
 }
 
@@ -36,8 +35,9 @@ bool CnQueryCorrection::Load()
     if (!global_trans_prob_.empty())
         return true;
 
-    std::cout<<"[CnQueryCorrection] starting load resources."<<std::endl;
-    std::string pinyin_file = res_dir_+"/pinyin.txt";
+    std::cout << "[CnQueryCorrection] starting load resources." << std::endl;
+
+    std::string pinyin_file = res_dir_ + "/pinyin.txt";
     if (!boost::filesystem::exists(pinyin_file))
     {
         std::cout << "[CnQueryCorrection] failed loading pinyin." << std::endl;
@@ -45,17 +45,24 @@ bool CnQueryCorrection::Load()
     }
     pinyin_.LoadPinyinFile(pinyin_file);
     std::cout << "[CnQueryCorrection] loaded pinyin." << std::endl;
-    if (!LoadRawTextTransProb_(res_dir_+"/trans_prob.txt"))
+
+    std::string trans_prob_file = res_dir_ + "/trans_prob.txt";
+    if (!boost::filesystem::exists(trans_prob_file))
     {
-        std::cout << "[CnQueryCorrection] failed loading resources." << std::endl;
+        std::cout << "[CnQueryCorrection] failed loading trans_prob." << std::endl;
         return false;
     }
-    std::cout << "[CnQueryCorrection] loaded resources." << std::endl;
+    LoadRawTextTransProb_(trans_prob_file);
+    std::cout << "[CnQueryCorrection] loaded trans_prob." << std::endl;
+
     return true;
 }
 
-bool CnQueryCorrection::Update(const QueryLogListType& query_logs)
+bool CnQueryCorrection::Update(const QueryLogListType& query_logs, bool forceMode)
 {
+    if (forceMode && !ForceReload())
+        return false;
+
     collection_trans_prob_.clear();
 
 #ifdef CN_QC_UNIGRAM
@@ -117,7 +124,7 @@ bool CnQueryCorrection::Update(const QueryLogListType& query_logs)
     return true;
 }
 
-bool CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
+void CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
 {
     std::ifstream ifs(file.c_str());
     std::string line;
@@ -160,7 +167,6 @@ bool CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
     }
     ifs.close();
     std::cout<<"trans_prob count: "<<count<<std::endl;
-    return true;
 }
 
 bool CnQueryCorrection::GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output)

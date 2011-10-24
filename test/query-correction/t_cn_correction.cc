@@ -31,7 +31,8 @@ void display( CnQueryCorrection* cqc, const std::string& input)
 
 BOOST_AUTO_TEST_CASE(cqc_test )
 {
-    CnQueryCorrection cqc("./cn_qc_res");
+    CnQueryCorrection::res_dir_ = "./cn_qc_res";
+    CnQueryCorrection cqc;
     cqc.Load();
     display(&cqc, "woyaochitang");
     display(&cqc, "nuojiya");
@@ -89,7 +90,8 @@ BOOST_AUTO_TEST_CASE(cqc_test )
 
 BOOST_AUTO_TEST_CASE(update_test )
 {
-    CnQueryCorrection cqc("./cn_qc_res");
+    CnQueryCorrection::res_dir_ = "./cn_qc_res";
+    CnQueryCorrection cqc;
     cqc.Load();
     std::cout << "before update" << std::endl;
     display(&cqc, "shanghai");
