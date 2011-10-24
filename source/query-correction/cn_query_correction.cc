@@ -63,6 +63,7 @@ bool CnQueryCorrection::Update(const QueryLogListType& query_logs, bool forceMod
     if (forceMode && !ForceReload())
         return false;
 
+    std::cout << "[CnQueryCorrection] start loading query logs." << std::endl;
     collection_trans_prob_.clear();
 
 #ifdef CN_QC_UNIGRAM
@@ -121,6 +122,7 @@ bool CnQueryCorrection::Update(const QueryLogListType& query_logs, bool forceMod
 #endif
     }
 
+    std::cout << "[CnQueryCorrection] loaded query logs." << std::endl;
     return true;
 }
 
