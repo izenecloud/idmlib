@@ -35,7 +35,7 @@ bool CnQueryCorrection::Load()
     if (!global_trans_prob_.empty())
         return true;
 
-    std::cout << "[CnQueryCorrection] starting load resources." << std::endl;
+    std::cout << "[CnQueryCorrection] start loading resources." << std::endl;
 
     std::string pinyin_file = res_dir_ + "/pinyin.txt";
     if (!boost::filesystem::exists(pinyin_file))
