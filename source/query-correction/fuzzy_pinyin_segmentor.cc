@@ -105,8 +105,12 @@ void FuzzyPinyinSegmentor::InitRule_()
     AddSuffixFuzzy_("an", "ang");
     AddSuffixFuzzy_("en", "eng");
     AddSuffixFuzzy_("in", "ing");
-    AddSuffixFuzzy_("ve", "ue");
     AddSuffixFuzzy_("ue", "ve");
+
+    AddSuffixFuzzy_("ang", "an");
+    AddSuffixFuzzy_("eng", "en");
+    AddSuffixFuzzy_("ing", "in");
+    AddSuffixFuzzy_("ve", "ue");
 
     AddPrefixFuzzy_("c", "ch");
     AddPrefixFuzzy_("s", "sh");
