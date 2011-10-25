@@ -32,6 +32,8 @@ bool CnQueryCorrection::ForceReload()
 
 bool CnQueryCorrection::Load()
 {
+    boost::mutex::scoped_lock scopedLock(mutex_);
+
     if (!global_trans_prob_.empty())
         return true;
 

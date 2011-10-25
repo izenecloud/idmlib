@@ -91,6 +91,8 @@ class CnQueryCorrection
         double mid_threshold_;
         uint16_t max_pinyin_term_;
 
+        boost::mutex mutex_;
+
 };
 
 NS_IDMLIB_QC_END
