@@ -96,9 +96,11 @@ BOOST_AUTO_TEST_CASE(update_test )
     std::cout << "before update" << std::endl;
     display(&cqc, "shanghai");
     typedef boost::tuple<uint32_t, uint32_t, izenelib::util::UString> QueryLogType;
-    std::list<QueryLogType> items;
-    items.push_back(boost::make_tuple(100,100,izenelib::util::UString("伤害", izenelib::util::UString::UTF_8)));
-    cqc.Update(items);
+    typedef std::pair<uint32_t, izenelib::util::UString> PropertyLabelType;
+    std::list<QueryLogType> queryList;
+    std::list<PropertyLabelType> labelList;
+    queryList.push_back(boost::make_tuple(100, 100, izenelib::util::UString("伤害", izenelib::util::UString::UTF_8)));
+    cqc.Update(queryList, labelList);
     std::cout << "after update" << std::endl;
     display(&cqc, "shanghai");
 }

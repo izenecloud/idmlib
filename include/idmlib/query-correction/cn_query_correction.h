@@ -20,8 +20,8 @@ class CnQueryCorrection
 {
 
     typedef idmlib::util::MTrie<Ngram , uint32_t, double> TrieType;
-    typedef boost::tuple<uint32_t, uint32_t, izenelib::util::UString> QueryLogItemType;
-    typedef std::list<QueryLogItemType> QueryLogListType;
+    typedef boost::tuple<uint32_t, uint32_t, izenelib::util::UString> QueryLogType;
+    typedef std::pair<uint32_t, izenelib::util::UString> PropertyLabelType;
     struct TransProbType
     {
         boost::unordered_map<Unigram, double> u_trans_prob_;
@@ -46,7 +46,7 @@ class CnQueryCorrection
 
         bool ForceReload();
 
-        bool Update(const QueryLogListType& query_logs, bool forceMode = false);
+        bool Update(const std::list<QueryLogType>& queryList, const std::list<PropertyLabelType>& labelList, bool forceMode = false);
 
         bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
 

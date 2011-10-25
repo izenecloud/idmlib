@@ -58,7 +58,7 @@ bool CnQueryCorrection::Load()
     return true;
 }
 
-bool CnQueryCorrection::Update(const QueryLogListType& query_logs, bool forceMode)
+bool CnQueryCorrection::Update(const std::list<QueryLogType>& queryList, const std::list<PropertyLabelType>& labelList, bool forceMode)
 {
     if (forceMode && !ForceReload())
         return false;
@@ -71,14 +71,66 @@ bool CnQueryCorrection::Update(const QueryLogListType& query_logs, bool forceMod
 #endif
     double b_weight = 0.004;
     double t_weight = 0.004;
-    for (QueryLogListType::const_iterator qit = query_logs.begin();
-            qit != query_logs.end(); ++qit)
+
+    for (std::list<QueryLogType>::const_iterator qit = queryList.begin();
+            qit != queryList.end(); ++qit)
     {
         const izenelib::util::UString &text = qit->get<2>();
         if (GetInputType_(text) != -1)
             continue;
 
         const uint32_t &log_count = qit->get<0>();
+        double score;
+        size_t len = text.length();
+
+        for (size_t i = 0; i < len - 2; i++)
+        {
+#ifdef CN_QC_UNIGRAM
+            Unigram u(text[i]);
+            score = u_weight * log_count;
+            collection_trans_prob_.u_trans_prob_[u] += score;
+#endif
+
+            Bigram b(text[i], text[i + 1]);
+            score = b_weight * log_count;
+            collection_trans_prob_.b_trans_prob_[b] += score;
+
+            Trigram t(b, text[i + 2]);
+            score = t_weight * log_count;
+            collection_trans_prob_.t_trans_prob_[t] += score;
+        }
+
+        if (len >= 2)
+        {
+#ifdef CN_QC_UNIGRAM
+            Unigram u(text[len - 2]);
+            score = u_weight * log_count;
+            collection_trans_prob_.u_trans_prob_[u] += score;
+#endif
+
+            Bigram b(text[len - 2], text[len - 1]);
+            score = b_weight * log_count;
+            collection_trans_prob_.b_trans_prob_[b] += score;
+        }
+
+#ifdef CN_QC_UNIGRAM
+        if (len >= 1)
+        {
+            Unigram u(text[len - 1]);
+            score = u_weight * log_count;
+            collection_trans_prob_.u_trans_prob_[u] += score;
+        }
+#endif
+    }
+
+    for (std::list<PropertyLabelType>::const_iterator qit = labelList.begin();
+            qit != labelList.end(); ++qit)
+    {
+        const izenelib::util::UString &text = qit->second;
+        if (GetInputType_(text) != -1)
+            continue;
+
+        const uint32_t &log_count = qit->first;
         double score;
         size_t len = text.length();
 
