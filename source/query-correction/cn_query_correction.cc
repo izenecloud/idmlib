@@ -154,7 +154,7 @@ void CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
     std::ifstream ifs(file.c_str());
     std::string line;
     uint64_t count = 0;
-    while ( getline(ifs, line) )
+    while (getline(ifs, line))
     {
         std::vector<std::string> vec;
         boost::algorithm::split(vec, line, boost::algorithm::is_any_of("\t"));
@@ -191,7 +191,7 @@ void CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
         ++count;
     }
     ifs.close();
-    std::cout<<"trans_prob count: "<<count<<std::endl;
+    std::cout << "trans_prob count: " << count << std::endl;
 }
 
 bool CnQueryCorrection::GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output)
@@ -236,7 +236,7 @@ bool CnQueryCorrection::GetResult(const izenelib::util::UString& input, std::vec
    for (uint32_t i = 1; i < candidate_output.size(); i++)
    {
        double inner_threshold = pre_score * step;
-       if ( candidate_output[i].score >= inner_threshold)
+       if (candidate_output[i].score >= inner_threshold)
        {
            output.push_back(candidate_output[i].value);
            pre_score = candidate_output[i].score;
@@ -256,7 +256,7 @@ void CnQueryCorrection::GetPinyin(const izenelib::util::UString& cn_chars, std::
 
 double CnQueryCorrection::GetScore_(const izenelib::util::UString& text, double ori_score, double pinyin_score)
 {
-    double score = std::pow( ori_score, 1.0/(text.length()) );
+    double score = std::pow(ori_score, 1.0 / text.length());
     score *= pinyin_score;
     return score;
 
@@ -284,7 +284,7 @@ bool CnQueryCorrection::IsCandidateResult_(const izenelib::util::UString& text, 
 double CnQueryCorrection::TransProbT_(const izenelib::util::UString& from, const izenelib::util::UCS2Char& to)
 {
     double r = 0.0;
-    if (from.length() == 0)
+    if (from.empty())
     {
 #ifdef CN_QC_UNIGRAM
         Unigram u(to);
@@ -350,16 +350,16 @@ bool CnQueryCorrection::GetResultWithScore_(const izenelib::util::UString& input
     if (type == 0)
     {
 #ifdef CN_QC_DEBUG
-        std::cout<<"type equals 0"<<std::endl;
+        std::cout << "type equals 0" << std::endl;
 #endif
         return false;
     }
     std::vector<std::pair<double, std::string> > pinyin_list;
-    if (type<0) // cn chars
+    if (type < 0) // cn chars
     {
         pinyin_.GetPinyin(input, pinyin_list);
 #ifdef CN_QC_DEBUG
-        std::cout<<"Chinese chars"<<std::endl;
+        std::cout << "Input Hanzi" << std::endl;
         for (uint32_t i = 0; i < pinyin_list.size(); i++)
         {
             std::cout << "[pinyin] " << pinyin_list[i].second << "," << pinyin_list[i].first << std::endl;
@@ -373,7 +373,7 @@ bool CnQueryCorrection::GetResultWithScore_(const izenelib::util::UString& input
         input.convertString(pinyin_str, izenelib::util::UString::UTF_8);
         pinyin_.FuzzySegmentRaw(pinyin_str, pinyin_list);
 #ifdef CN_QC_DEBUG
-        std::cout<<"Input Pinyin"<<std::endl;
+        std::cout << "Input Pinyin" << std::endl;
         for (uint32_t i = 0; i < pinyin_list.size(); i++)
         {
             std::cout << "[pinyin] " << pinyin_list[i].second << "," << pinyin_list[i].first << std::endl;
@@ -383,7 +383,7 @@ bool CnQueryCorrection::GetResultWithScore_(const izenelib::util::UString& input
     }
     for (uint32_t i = 0; i < pinyin_list.size(); i++)
     {
-        GetResultByPinyinT_( pinyin_list[i].second, pinyin_list[i].first, output);
+        GetResultByPinyinT_(pinyin_list[i].second, pinyin_list[i].first, output);
     }
     return true;
 }
@@ -391,10 +391,9 @@ bool CnQueryCorrection::GetResultWithScore_(const izenelib::util::UString& input
 void CnQueryCorrection::GetResultByPinyinT_(const std::string& pinyin, double pinyin_score, std::vector<CandidateResult>& output)
 {
     uint32_t pinyin_term_count = pinyin_.CountPinyinTerm(pinyin);
-    if (pinyin_term_count <= 1 || pinyin_term_count > max_pinyin_term_ ) return;//ignore single pinyin term
+    if (pinyin_term_count <= 1 || pinyin_term_count > max_pinyin_term_) return;//ignore single pinyin term
     std::pair<double, izenelib::util::UString> start_mid_result(1.0, izenelib::util::UString("", izenelib::util::UString::UTF_8));
     GetResultByPinyinTRecur_(pinyin, pinyin_score, start_mid_result, output);
-
 }
 
 void CnQueryCorrection::GetResultByPinyinTRecur_(const std::string& pinyin, double pinyin_score, const std::pair<double, izenelib::util::UString>& mid_result, std::vector<CandidateResult>& output)
