@@ -13,6 +13,16 @@ using namespace idmlib::qc;
 
 // #define VITERBI_DEBUG
 
+namespace {
+
+#ifdef CN_QC_UNIGRAM
+    const double u_weight = 0.000001;
+#endif
+    const double b_weight = 0.004;
+    const double t_weight = 0.004;
+
+}
+
 std::string CnQueryCorrection::res_dir_;
 CnQueryCorrection::TransProbType CnQueryCorrection::global_trans_prob_;
 FuzzyPinyinSegmentor CnQueryCorrection::pinyin_;
@@ -68,116 +78,75 @@ bool CnQueryCorrection::Update(const std::list<QueryLogType>& queryList, const s
     std::cout << "[CnQueryCorrection] start loading query logs." << std::endl;
     collection_trans_prob_.clear();
 
-#ifdef CN_QC_UNIGRAM
-    double u_weight = 0.000001;
-#endif
-    double b_weight = 0.004;
-    double t_weight = 0.004;
-
-    for (std::list<QueryLogType>::const_iterator qit = queryList.begin();
-            qit != queryList.end(); ++qit)
+    for (std::list<QueryLogType>::const_iterator it = queryList.begin();
+            it != queryList.end(); ++it)
     {
-        const izenelib::util::UString &text = qit->get<2>();
+        const izenelib::util::UString &text = it->get<2>();
         if (GetInputType_(text) != -1)
             continue;
 
-        const uint32_t &log_count = qit->get<0>();
-        double score;
-        size_t len = text.length();
-
-        for (size_t i = 0; i < len - 2; i++)
-        {
-#ifdef CN_QC_UNIGRAM
-            Unigram u(text[i]);
-            score = u_weight * log_count;
-            collection_trans_prob_.u_trans_prob_[u] += score;
-#endif
-
-            Bigram b(text[i], text[i + 1]);
-            score = b_weight * log_count;
-            collection_trans_prob_.b_trans_prob_[b] += score;
-
-            Trigram t(b, text[i + 2]);
-            score = t_weight * log_count;
-            collection_trans_prob_.t_trans_prob_[t] += score;
-        }
-
-        if (len >= 2)
-        {
-#ifdef CN_QC_UNIGRAM
-            Unigram u(text[len - 2]);
-            score = u_weight * log_count;
-            collection_trans_prob_.u_trans_prob_[u] += score;
-#endif
-
-            Bigram b(text[len - 2], text[len - 1]);
-            score = b_weight * log_count;
-            collection_trans_prob_.b_trans_prob_[b] += score;
-        }
-
-#ifdef CN_QC_UNIGRAM
-        if (len >= 1)
-        {
-            Unigram u(text[len - 1]);
-            score = u_weight * log_count;
-            collection_trans_prob_.u_trans_prob_[u] += score;
-        }
-#endif
+        const uint32_t &df = it->get<0>();
+        UpdateItem_(df, text);
     }
 
-    for (std::list<PropertyLabelType>::const_iterator qit = labelList.begin();
-            qit != labelList.end(); ++qit)
+    for (std::list<PropertyLabelType>::const_iterator it = labelList.begin();
+            it != labelList.end(); ++it)
     {
-        const izenelib::util::UString &text = qit->second;
+        const izenelib::util::UString &text = it->second;
         if (GetInputType_(text) != -1)
             continue;
 
-        const uint32_t &log_count = qit->first;
-        double score;
-        size_t len = text.length();
-
-        for (size_t i = 0; i < len - 2; i++)
-        {
-#ifdef CN_QC_UNIGRAM
-            Unigram u(text[i]);
-            score = u_weight * log_count;
-            collection_trans_prob_.u_trans_prob_[u] += score;
-#endif
-
-            Bigram b(text[i], text[i + 1]);
-            score = b_weight * log_count;
-            collection_trans_prob_.b_trans_prob_[b] += score;
-
-            Trigram t(b, text[i + 2]);
-            score = t_weight * log_count;
-            collection_trans_prob_.t_trans_prob_[t] += score;
-        }
-
-        if (len >= 2)
-        {
-#ifdef CN_QC_UNIGRAM
-            Unigram u(text[len - 2]);
-            score = u_weight * log_count;
-            collection_trans_prob_.u_trans_prob_[u] += score;
-#endif
-
-            Bigram b(text[len - 2], text[len - 1]);
-            score = b_weight * log_count;
-            collection_trans_prob_.b_trans_prob_[b] += score;
-        }
-
-#ifdef CN_QC_UNIGRAM
-        if (len >= 1)
-        {
-            Unigram u(text[len - 1]);
-            score = u_weight * log_count;
-            collection_trans_prob_.u_trans_prob_[u] += score;
-        }
-#endif
+        const uint32_t &df = it->first;
+        UpdateItem_(df, text);
     }
 
     std::cout << "[CnQueryCorrection] loaded query logs." << std::endl;
     return true;
+}
+
+void CnQueryCorrection::UpdateItem_(const uint32_t df, const izenelib::util::UString& text)
+{
+    double score;
+    size_t len = text.length();
+
+    for (size_t i = 0; i < len - 2; i++)
+    {
+#ifdef CN_QC_UNIGRAM
+        Unigram u(text[i]);
+        score = u_weight * df;
+        collection_trans_prob_.u_trans_prob_[u] += score;
+#endif
+
+        Bigram b(text[i], text[i + 1]);
+        score = b_weight * df;
+        collection_trans_prob_.b_trans_prob_[b] += score;
+
+        Trigram t(b, text[i + 2]);
+        score = t_weight * df;
+        collection_trans_prob_.t_trans_prob_[t] += score;
+    }
+
+    if (len >= 2)
+    {
+#ifdef CN_QC_UNIGRAM
+        Unigram u(text[len - 2]);
+        score = u_weight * df;
+        collection_trans_prob_.u_trans_prob_[u] += score;
+#endif
+
+        Bigram b(text[len - 2], text[len - 1]);
+        score = b_weight * df;
+        collection_trans_prob_.b_trans_prob_[b] += score;
+    }
+
+#ifdef CN_QC_UNIGRAM
+    if (len >= 1)
+    {
+        Unigram u(text[len - 1]);
+        score = u_weight * df;
+        collection_trans_prob_.u_trans_prob_[u] += score;
+    }
+#endif
 }
 
 void CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)

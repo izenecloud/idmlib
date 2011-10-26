@@ -58,6 +58,8 @@ class CnQueryCorrection
 
         double TransProb_(const izenelib::util::UCS2Char& from, const izenelib::util::UCS2Char& to);
 
+        void UpdateItem_(const uint32_t df, const izenelib::util::UString& text);
+
         //trigram version only
         double TransProbT_(const izenelib::util::UString& from, const izenelib::util::UCS2Char& to);
 
