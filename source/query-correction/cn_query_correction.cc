@@ -196,57 +196,63 @@ void CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
 
 bool CnQueryCorrection::GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output)
 {
-   int type = GetInputType_(input);
-   std::vector<CandidateResult> candidate_output;
-   if (!GetResultWithScore_(input, type, candidate_output)) return false;
-   if (candidate_output.empty())
-   {
-       if (type < 0) // cn char
-       {
-           return true;
-       }
-       else //maybe english
-       {
-           return false;
-       }
-   }
+    int type = GetInputType_(input);
+    std::vector<CandidateResult> candidate_output;
+    if (!GetResultWithScore_(input, type, candidate_output)) return false;
+    if (candidate_output.empty())
+    {
+        if (type < 0) // cn char
+        {
+            return true;
+        }
+        else //maybe english
+        {
+            return false;
+        }
+    }
 #ifdef CN_QC_DEBUG
-   for (uint32_t i = 0; i < candidate_output.size(); i++)
-   {
-       std::string str;
-       candidate_output[i].value.convertString(str, izenelib::util::UString::UTF_8);
-       std::cout << "[CR] " << str << "\t" << candidate_output[i].score << std::endl;
-   }
+    for (uint32_t i = 0; i < candidate_output.size(); i++)
+    {
+        std::string str;
+        candidate_output[i].value.convertString(str, izenelib::util::UString::UTF_8);
+        std::cout << "[CR] " << str << "\t" << candidate_output[i].score << std::endl;
+    }
 #endif
 
-   std::sort(candidate_output.begin(), candidate_output.end());
-   //check if in the result list
-   for (std::vector<CandidateResult>::iterator it = candidate_output.begin();
-           it != candidate_output.end(); ++it)
-   {
-       if (it->value == input)
-       {
-           candidate_output.erase(it);
-           break;
-       }
-   }
-   output.push_back(candidate_output[0].value);
-   double pre_score = candidate_output[0].score;
-   double step = 0.7;
-   for (uint32_t i = 1; i < candidate_output.size(); i++)
-   {
-       double inner_threshold = pre_score * step;
-       if (candidate_output[i].score >= inner_threshold)
-       {
-           output.push_back(candidate_output[i].value);
-           pre_score = candidate_output[i].score;
-       }
-       else
-       {
-           break;
-       }
-   }
-   return true;
+    std::sort(candidate_output.begin(), candidate_output.end());
+    //check if in the result list
+    for (uint32_t i = 0; i != candidate_output.size(); i++)
+    {
+        if (candidate_output[i].value == input)
+        {
+            if (i != 0 && candidate_output[i].score < candidate_output[0].score * 0.5)
+            {
+                candidate_output.resize(i);
+                break;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+    output.push_back(candidate_output[0].value);
+    double pre_score = candidate_output[0].score;
+    double step = 0.7;
+    for (uint32_t i = 1; i < candidate_output.size(); i++)
+    {
+        double inner_threshold = pre_score * step;
+        if (candidate_output[i].score >= inner_threshold)
+        {
+            output.push_back(candidate_output[i].value);
+            pre_score = candidate_output[i].score;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return true;
 }
 
 void CnQueryCorrection::GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list)
