@@ -109,19 +109,19 @@ void CnQueryCorrection::UpdateItem_(const uint32_t df, const izenelib::util::USt
     double score;
     size_t len = text.length();
 
-    for (size_t i = 0; i < len - 2; i++)
+    for (size_t i = 2; i < len; i++)
     {
 #ifdef CN_QC_UNIGRAM
-        Unigram u(text[i]);
+        Unigram u(text[i - 2]);
         score = u_weight * df;
         collection_trans_prob_.u_trans_prob_[u] += score;
 #endif
 
-        Bigram b(text[i], text[i + 1]);
+        Bigram b(text[i - 2], text[i - 1]);
         score = b_weight * df;
         collection_trans_prob_.b_trans_prob_[b] += score;
 
-        Trigram t(b, text[i + 2]);
+        Trigram t(b, text[i]);
         score = t_weight * df;
         collection_trans_prob_.t_trans_prob_[t] += score;
     }
@@ -470,6 +470,8 @@ void CnQueryCorrection::GetResultByPinyinTRecur_(const std::string& pinyin, doub
 
 int CnQueryCorrection::GetInputType_(const izenelib::util::UString& input)
 {
+    std::string output;
+    input.convertString(output, izenelib::util::UString::UTF_8);
     int type = 0;//1:pinyin, -1: cn char
     for (uint32_t i = 0; i < input.length(); i++)
     {
