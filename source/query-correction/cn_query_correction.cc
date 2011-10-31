@@ -470,8 +470,6 @@ void CnQueryCorrection::GetResultByPinyinTRecur_(const std::string& pinyin, doub
 
 int CnQueryCorrection::GetInputType_(const izenelib::util::UString& input)
 {
-    std::string output;
-    input.convertString(output, izenelib::util::UString::UTF_8);
     int type = 0;//1:pinyin, -1: cn char
     for (uint32_t i = 0; i < input.length(); i++)
     {
