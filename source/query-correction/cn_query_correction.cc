@@ -3,7 +3,9 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <cmath>
-using namespace idmlib::qc;
+
+namespace idmlib {
+namespace qc {
 
 #define CN_QC_UNIGRAM
 
@@ -504,4 +506,7 @@ int CnQueryCorrection::GetInputType_(const izenelib::util::UString& input)
         }
     }
     return type;
+}
+
+}
 }
