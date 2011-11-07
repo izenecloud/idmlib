@@ -14,8 +14,31 @@ IDMAnalyzer::IDMAnalyzer(const IDMAnalyzerConfig& config)
     InitWithConfig_(config);
 }
 
+void IDMAnalyzer::SetLIDPath(const std::string& path)
+{
+    std::cout<<"IDMAnalyzer::SetLIDPath "<<path<<std::endl;
+    ilplib::langid::Factory* langIdFactory = ilplib::langid::Factory::instance();
+    ilplib::langid::Analyzer* langIdAnalyzer = langIdFactory->createAnalyzer();
+    ilplib::langid::Knowledge* langIdKnowledge = langIdFactory->createKnowledge();
+    string encodingPath = path + "/model/encoding.bin";
+    if(!langIdKnowledge->loadEncodingModel(encodingPath.c_str()))
+    {
+        std::cout<<"langIdKnowledge->loadEncodingModel failed"<<std::endl;
+    }
+    // load language model for language identification or sentence tokenization
+    string langPath = path + "/model/language.bin";
+    if(!langIdKnowledge->loadLanguageModel(langPath.c_str()))
+    {
+        std::cout<<"langIdKnowledge->loadLanguageModel failed"<<std::endl;
+    }
+    // set knowledge
+    langIdAnalyzer->setKnowledge(langIdKnowledge);
+    la::MultiLanguageAnalyzer::langIdAnalyzer_ = langIdAnalyzer;
+}
+
 void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
 {
+    gran_ = la::FIELD_LEVEL;
     config_ = config;
     symbol_map_.insert("SC", 1);
     symbol_map_.insert("PUNCT-L", 1);
@@ -224,7 +247,7 @@ void IDMAnalyzer::GetTermList(const izenelib::util::UString& utext, la::TermList
     }
     {
         boost::mutex::scoped_lock lock(la_mtx_);
-        la_->process( text, term_list );
+        la_->process( text, term_list, gran_);
     }
     //do t_s translation
     if(simpler_set_)

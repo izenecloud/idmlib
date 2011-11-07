@@ -13,4 +13,8 @@
 # define IZENEJMA_KNOWLEDGE "@izenejma_KNOWLEDGE@"
 #endif
 
+#ifndef LID_DB
+# define LID_DB "@ilplib_LANGUAGEIDENTIFIER_DB@"
+#endif
+
 #endif // INCLUDED_TEST_RESOURCES_H

@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(display_test)
 //             std::cout<<"["<<term_list[i].textString()<<","<<term_list[i].wordOffset_<<","<<term_list[i].pos_<<"]"<<std::endl;
 //         }
 //     }
-    
+    IDMAnalyzer::SetLIDPath(LID_DB);
     {
         IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonTgConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE)) ;
         izenelib::util::UString text("称为Windows（有人说这是 比尔盖兹 被苹果的Lisa电脑上市所刺激", izenelib::util::UString::UTF_8);
@@ -165,6 +165,7 @@ BOOST_AUTO_TEST_CASE(display_test)
 
 BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 {
+  IDMAnalyzer::SetLIDPath(LID_DB);
   IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
   izenelib::util::UString text("国家经 济 Sites year, 呵呵! United configuration. Ｙｏｕ ａｒＥ L4", izenelib::util::UString::UTF_8);
   
@@ -216,18 +217,18 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 
 BOOST_AUTO_TEST_CASE(cma_test)
 {
+  IDMAnalyzer::SetLIDPath(LID_DB);
   IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,IZENECMA_KNOWLEDGE,IZENEJMA_KNOWLEDGE));
   izenelib::util::UString text("新闻集团（英语：News corporation）是目前全球第三大的媒体集团。", izenelib::util::UString::UTF_8);
   
   std::vector<IDMTerm> term_vec;
-  term_vec.push_back( IDMTerm("新闻",0, 'N' ));
-  term_vec.push_back( IDMTerm("集团",1, 'N' ));
-  term_vec.push_back( IDMTerm("英语",3, 'N' ));
-  term_vec.push_back( IDMTerm("News",5, 'F' ));
-  term_vec.push_back( IDMTerm("corporation",6, 'F' ));
-  term_vec.push_back( IDMTerm("全球",10, 'N' ));
-  term_vec.push_back( IDMTerm("媒体",14, 'N' ));
-  term_vec.push_back( IDMTerm("集团",15, 'N' ));
+  term_vec.push_back( IDMTerm("新闻集团",0, 'N' ));
+  term_vec.push_back( IDMTerm("英语",2, 'N' ));
+  term_vec.push_back( IDMTerm("News corporation",4, 'F' ));
+  term_vec.push_back( IDMTerm("是",6, 'C' ));
+  term_vec.push_back( IDMTerm("全球",8, 'N' ));
+  term_vec.push_back( IDMTerm("媒体",12, 'N' ));
+  term_vec.push_back( IDMTerm("集团",13, 'N' ));
   
     
   common_check(&analyzer, text, term_vec);
@@ -238,6 +239,7 @@ BOOST_AUTO_TEST_CASE(cma_test)
 
 BOOST_AUTO_TEST_CASE(korean_test)
 {
+  IDMAnalyzer::SetLIDPath(LID_DB);
   izenelib::util::UString text("정형석기자 Korean", izenelib::util::UString::UTF_8);
   {
     IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));
@@ -264,6 +266,7 @@ BOOST_AUTO_TEST_CASE(korean_test)
 
 BOOST_AUTO_TEST_CASE(ja_test)
 {
+  IDMAnalyzer::SetLIDPath(LID_DB);
   izenelib::util::UString text("イラク共和国（イラクきょうわこく）、通称イラクは、中東・西アジアの連邦共和制国家である。English char L4, 世界で3番目の原油埋蔵国である。", izenelib::util::UString::UTF_8);
   
   IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE));

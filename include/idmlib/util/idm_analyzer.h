@@ -32,6 +32,8 @@ class IDMAnalyzer
   IDMAnalyzer();   
   
   IDMAnalyzer(const IDMAnalyzerConfig& config);
+  
+  static void SetLIDPath(const std::string& path);
    
    
   ~IDMAnalyzer();
@@ -92,6 +94,7 @@ class IDMAnalyzer
  private:
   IDMAnalyzerConfig config_;
   la::LA* la_;
+  la::MultilangGranularity gran_;
   la::stem::Stemmer* stemmer_;
   bool simpler_set_;
   izenelib::am::rde_hash<izenelib::util::UCS2Char, izenelib::util::UCS2Char> simpler_map_;
