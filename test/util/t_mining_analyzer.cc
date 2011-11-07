@@ -43,6 +43,12 @@ void tg_check(IDMAnalyzer* analyzer, const izenelib::util::UString& text, const 
 {
     std::vector<idmlib::util::IDMTerm> term_list;
     analyzer->GetTgTermList(text, term_list);
+    
+    for( uint32_t i=0;i<term_list.size();++i )
+    {
+        std::cout<<"tg["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
+    }
+    
     BOOST_CHECK( term_list.size() == term_vec.size() );
     
     for(uint32_t i=0;i<term_list.size();i++)
@@ -182,8 +188,8 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
   term_vec.push_back( IDMTerm("configuration",11, 'F' ));
   term_vec.push_back( IDMTerm("You",13, 'F' ));
   term_vec.push_back( IDMTerm("arE",14, 'F' ));
-  term_vec.push_back( IDMTerm("L",15, 'F' ));
-  term_vec.push_back( IDMTerm("4",16, 'S' ));
+  term_vec.push_back( IDMTerm("L4",15, 'F' ));
+  
   
   
     
@@ -207,8 +213,7 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
   term_vec.push_back( IDMTerm(".",12, '.' ));
   term_vec.push_back( IDMTerm("You",13, 'F' ));
   term_vec.push_back( IDMTerm("arE",14, 'F' ));
-  term_vec.push_back( IDMTerm("L",15, 'F' ));
-  term_vec.push_back( IDMTerm("4",16, 'S' ));
+  term_vec.push_back( IDMTerm("L4",15, 'F' ));
   
   tg_check(&analyzer2, text, term_vec);
 
