@@ -3,7 +3,7 @@
 /// @brief Config for idm_analyzer
 /// @author Jia Guo <guojia@gmail.com>
 /// @date Created 2011-07-01
-/// @date 
+/// @date
 ///
 
 #ifndef IDM_UTIL_IDMANALYZER_CONFIG_H_
@@ -61,12 +61,12 @@ class IDMAnalyzerConfig
       CHINESE = 3,
       JAPANESE = 4
   } ;
-  
+
   IDMAnalyzerConfig():
   default_language(CHINESE)
   {
   }
-  
+
   static IDMAnalyzerConfig GetCommonConfig(const std::string& kma_path, const std::string& cma_path, const std::string& jma_path)
   {
       IDMAnalyzerConfig config;
@@ -88,7 +88,7 @@ class IDMAnalyzerConfig
       {
           config.default_language = KOREAN;
       }
-      else 
+      else
       {
           if(config.cma_config.path!="" )
           {
@@ -106,7 +106,7 @@ class IDMAnalyzerConfig
       }
       return config;
   }
-  
+
   static IDMAnalyzerConfig GetCommonTgConfig(const std::string& kma_path, const std::string& cma_path, const std::string& jma_path)
   {
       IDMAnalyzerConfig config;
@@ -128,7 +128,7 @@ class IDMAnalyzerConfig
       {
           config.default_language = KOREAN;
       }
-      else 
+      else
       {
           if(config.cma_config.path!="" )
           {
@@ -146,16 +146,13 @@ class IDMAnalyzerConfig
       }
       return config;
   }
-  
+
   EMAConfig ema_config;
   KMAConfig kma_config;
   CMAConfig cma_config;
   JMAConfig jma_config;
   LANGUAGE default_language;
   bool symbol;
- 
-        
-        
 };
 
 NS_IDMLIB_UTIL_END
