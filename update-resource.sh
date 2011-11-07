@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-username='jia.guo'
-password='izene123'
+username='dev'
+password=''
 
 usage() {
-  echo "usage: update-resource.sh <branchname> [--all|--kpe|--nec|--speller-support|--ise]"
-  echo "      <branchname> will include 'owl-1', 'owl-2', etc.."
+  echo "usage: update-resource.sh <branchname> [--all|--kpe|--nec|--speller-support|--ise|--sim]"
+  echo "      <branchname> will include 'kite-1', 'kite-2', etc.."
   echo "      no module specific means all(--all)"
 }
 
@@ -45,6 +45,9 @@ then
   elif [ "$2" = '--ise' ]
   then
     dir_name='ise'
+  elif [ "$2" = '--sim' ]
+  then
+    dir_name='sim'
   elif [ "$2" = '--all' ]
   then
     dir_name='all'
@@ -52,18 +55,18 @@ then
   
   if [ "$dir_name" != "" ] && [ "$dir_name" != "all" ]
   then
-    echo "rsyncing $dir_name only, type the password: $password"
+#    echo "rsyncing $dir_name only, type the password: $password"
     rsync -azvP --delete "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/$dir_name/" "$home/package/resource/$dir_name/"
   elif [ "$dir_name" = "all" ]
   then
-    echo "rsyncing all, type the password: $password"
+#    echo "rsyncing all, type the password: $password"
     rsync -azvP --delete "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/" "$home/package/resource/"
   else
     echo "unknow module: $2"
     usage
   fi
 else
-  echo "rsyncing all, type the password: $password"
+#  echo "rsyncing all, type the password: $password"
   rsync -azvP --delete "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/" "$home/package/resource/"
 fi
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-username='jia.guo'
+username='dev'
 password='izene123'
 
 usage() {
-  echo "usage: push-resource.sh <branchname> [--all|--kpe|--nec|--speller-support|--ise]"
-  echo "      <branchname> will include 'owl-1', 'owl-2', etc.."
+  echo "usage: update-resource-push.sh <branchname> [--all|--kpe|--nec|--speller-support|--ise|--sim]"
+  echo "      <branchname> will include 'kite-1', 'kite-2', etc.."
   echo "      no module specific means all(--all)"
 }
 
@@ -45,6 +45,9 @@ then
   elif [ "$2" = '--ise' ]
   then
     dir_name='ise'
+  elif [ "$2" = '--sim' ]
+  then
+    dir_name='sim'
   elif [ "$2" = '--all' ]
   then
     dir_name='all'
@@ -53,24 +56,17 @@ then
   if [ "$dir_name" != "" ] && [ "$dir_name" != "all" ]
   then
     echo "rsyncing $dir_name only, type the password: $password"
-    resource="$home/package/resource/$dir_name/"
-    chmod -R 777 "$resource"
-    rsync -azvP --delete "$resource" "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/$dir_name/"
+    rsync -azvP --delete "$home/package/resource/$dir_name/" "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/$dir_name/" 
   elif [ "$dir_name" = "all" ]
   then
     echo "rsyncing all, type the password: $password"
-    resource="$home/package/resource/"
-    chmod -R 777 "$resource"
-    rsync -azvP --delete "$resource" "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/"
+    rsync -azvP --delete "$home/package/resource/" "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/"
   else
     echo "unknow module: $2"
     usage
   fi
 else
   echo "rsyncing all, type the password: $password"
-  resource="$home/package/resource/"
-  chmod -R 777 "$resource"
-  rsync -azvP --delete "$resource" "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/"
+  rsync -azvP --delete "$home/package/resource/" "$username@izenesoft.cn:/data/sf1r-resource/$1/resource/" 
 fi
-
 

@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(normal_test)
 BOOST_AUTO_TEST_CASE(newnec_test)
 {
     std::string res_path;
-    BOOST_CHECK( ResourceHelper::getNecPath(res_path) == true );
+    BOOST_CHECK( ResourceHelper::getNewNecPath(res_path) == true );
     idmlib::nec::NEC nec;
     nec.Load(res_path);
     typedef std::pair<uint32_t, uint32_t> id2count_t;
@@ -164,6 +164,7 @@ BOOST_AUTO_TEST_CASE(newnec_test)
     }
     
     double rate = correct/total;
+    std::cout<<"new nec rate : "<<rate<<std::endl;
     BOOST_CHECK( rate >= 0.5 );
 }
 

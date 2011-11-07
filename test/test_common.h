@@ -8,15 +8,20 @@ public:
     
     static bool getKpePath(std::string& path)
     {
-        path = "../resource/kpe";
+        path = "../package/resource/kpe";
         return boost::filesystem::exists(path);
     }
     
     static bool getNecPath(std::string& path)
     {
-        path = "../resource/nec";
+        path = "../package/resource/nec";
         return boost::filesystem::exists(path);
     }
 
+    static bool getNewNecPath(std::string& path)
+    {
+        path = "../package/resource/nec/chinese_svm";
+        return boost::filesystem::exists(path);
+    }
 
 };
