@@ -48,7 +48,7 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
     symbol_map_.insert("S-G", 1);
     symbol_map_.insert("PUNCT-C", 1);
     boost::shared_ptr<la::MultiLanguageAnalyzer> ml_analyzer(new la::MultiLanguageAnalyzer() );
-    ml_analyzer->setExtractSpecialChar(true, false);
+    ml_analyzer->setExtractSpecialChar(false, false);
 
     boost::shared_ptr<la::Analyzer> ema_analyzer;
     boost::shared_ptr<la::Analyzer> kma_analyzer;
@@ -91,6 +91,7 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
 
             la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(cma_analyzer.get());
             pch->setCaseSensitive(config.ema_config.case_sensitive, false);
+            pch->setExtractSpecialChar(false, false);
             pch->setAnalysisType( config.cma_config.type);
             pch->setLabelMode();
             pch->setRemoveStopwords(config.cma_config.remove_stopwords);
@@ -144,6 +145,7 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
 //         }
         la::JapaneseAnalyzer* pja = dynamic_cast<la::JapaneseAnalyzer*>(jma_analyzer.get());
         pja->setCaseSensitive(config.ema_config.case_sensitive, false);
+        pja->setExtractSpecialChar(false, false);
         pja->setLabelMode();
     }
 
@@ -179,6 +181,11 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
     else if(config.default_language == IDMAnalyzerConfig::JAPANESE)
     {
         ml_analyzer->setDefaultAnalyzer( jma_analyzer );
+    }
+
+    if(config.symbol)
+    {
+        ml_analyzer->setExtractSpecialChar(true, false);
     }
 
     la_->setAnalyzer( ml_analyzer );
