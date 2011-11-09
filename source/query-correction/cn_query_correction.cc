@@ -13,11 +13,15 @@ using namespace idmlib::qc;
 
 // #define VITERBI_DEBUG
 
+namespace {
+
 #ifdef CN_QC_UNIGRAM
-static const double u_weight = 0.000001;
+    const double u_weight = 0.000001;
 #endif
-static const double b_weight = 0.004;
-static const double t_weight = 0.004;
+    const double b_weight = 0.004;
+    const double t_weight = 0.004;
+
+}
 
 std::string CnQueryCorrection::res_dir_;
 CnQueryCorrection::TransProbType CnQueryCorrection::global_trans_prob_;
