@@ -32,12 +32,12 @@ void CnCorpusTrainer::Train(const std::string& raw_text_input, const std::string
         izenelib::util::UString ustr(line, izenelib::util::UString::UTF_8);
         std::vector<idmlib::util::IDMTerm> term_list;
         analyzer_->GetTermList(ustr, term_list);
-        
+
         Bigram pre_bigram;
         bool pre_bigram_set = false;
         izenelib::util::UString pre_text;
         uint32_t pre_position = 0;
-        char pre_tag ;
+        char pre_tag;
         for(uint32_t i=0;i<term_list.size();i++)
         {
             bool pb_set = false;
@@ -70,7 +70,7 @@ void CnCorpusTrainer::Train(const std::string& raw_text_input, const std::string
     boost::filesystem::create_directories(output_dir);
     std::string output_file = output_dir+"/trans_prob.txt";
     std::ofstream ofs(output_file.c_str());
-    
+
     double bigram_threshold = 0.0015;
     double trigram_threshold = 0.00015;
     boost::unordered_map<Bigram, double> bigram_prob;
@@ -110,7 +110,7 @@ void CnCorpusTrainer::Train(const std::string& raw_text_input, const std::string
             {
                 ofs<<str<<"\t"<<trans_prob<<std::endl;
             }
-            
+
 //             Ngram ngram(2);
 //             ngram[0] = it->first.first;
 //             ngram[1] = it->first.second;
@@ -133,20 +133,20 @@ void CnCorpusTrainer::Train(const std::string& raw_text_input, const std::string
             double trans_prob = (double) it->second / bit->second;
             std::string str;
             text.convertString(str, izenelib::util::UString::UTF_8);
-            
+
             boost::unordered_map<Bigram, double>::iterator bpit = bigram_prob.find(trigram.first);
             double bt_prob = bpit->second * trans_prob;
             if(bt_prob >= trigram_threshold)
             {
                 ofs<<str<<"\t"<<trans_prob<<std::endl;
             }
-            
+
 //             Ngram ngram(3);
 //             ngram[0] = trigram.first.first;
 //             ngram[1] = trigram.first.second;
 //             ngram[2] = trigram.second;
 //             ngram_tc.insert(ngram, trans_prob);
-            
+
             ++it;
         }
     }
@@ -193,4 +193,3 @@ void CnCorpusTrainer::FindTrigram_(const Trigram& t)
         it->second += 1;
     }
 }
-

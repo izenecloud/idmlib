@@ -39,61 +39,64 @@ class CnQueryCorrection
         }
     };
 
-    public:
-        CnQueryCorrection();
+public:
+    explicit CnQueryCorrection(const std::string& collection_dir = "");
 
-        bool Load();
+    bool Load();
 
-        bool ForceReload();
+    bool ForceReload();
 
-        bool Update(const std::list<QueryLogType>& queryList, const std::list<PropertyLabelType>& labelList, bool forceMode = false);
+    bool Update(const std::list<QueryLogType>& queryList, const std::list<PropertyLabelType>& labelList, bool forceMode = false);
 
-        bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
+    bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
 
-        void GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list);
+    void GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list);
 
-    private:
+private:
 
-        void LoadRawTextTransProb_(const std::string& file);
+    void LoadRawTextTransProb_(TransProbType& trans_prob, const std::string& file);
 
-        double TransProb_(const izenelib::util::UCS2Char& from, const izenelib::util::UCS2Char& to);
+    void FlushRawTextTransProb_(const std::string& file, const TransProbType& trans_prob);
 
-        void UpdateItem_(const uint32_t df, const izenelib::util::UString& text);
+    double TransProb_(const izenelib::util::UCS2Char& from, const izenelib::util::UCS2Char& to);
 
-        //trigram version only
-        double TransProbT_(const izenelib::util::UString& from, const izenelib::util::UCS2Char& to);
+    void UpdateItem_(const uint32_t df, const izenelib::util::UString& text);
 
-        int GetInputType_(const izenelib::util::UString& input);
+    //trigram version only
+    double TransProbT_(const izenelib::util::UString& from, const izenelib::util::UCS2Char& to);
 
-        bool GetResultWithScore_(const izenelib::util::UString& input, int type, std::vector<CandidateResult>& output);
+    int GetInputType_(const izenelib::util::UString& input);
 
-        void GetResultByPinyin_(const std::string& pinyin, double pinyin_score, std::vector<CandidateResult>& output);
+    bool GetResultWithScore_(const izenelib::util::UString& input, int type, std::vector<CandidateResult>& output);
 
-        //trigram LM
-        void GetResultByPinyinT_(const std::string& pinyin, double pinyin_score, std::vector<CandidateResult>& output);
+    void GetResultByPinyin_(const std::string& pinyin, double pinyin_score, std::vector<CandidateResult>& output);
 
-        void GetResultByPinyinTRecur_(const std::string& pinyin, double base_score, const std::pair<double, izenelib::util::UString>& mid_result, std::vector<CandidateResult>& output);
+    //trigram LM
+    void GetResultByPinyinT_(const std::string& pinyin, double pinyin_score, std::vector<CandidateResult>& output);
 
-        double GetScore_(const izenelib::util::UString& text, double ori_score, double pinyin_score);
+    void GetResultByPinyinTRecur_(const std::string& pinyin, double base_score, const std::pair<double, izenelib::util::UString>& mid_result, std::vector<CandidateResult>& output);
 
-        bool IsCandidate_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score);
+    double GetScore_(const izenelib::util::UString& text, double ori_score, double pinyin_score);
 
-        bool IsCandidateResult_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score);
+    bool IsCandidate_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score);
 
-    public:
-        static std::string res_dir_;
+    bool IsCandidateResult_(const izenelib::util::UString& text, double ori_score, double pinyin_score, double& score);
 
-    private:
-        static FuzzyPinyinSegmentor pinyin_;
+public:
+    static std::string res_dir_;
 
-        static TransProbType global_trans_prob_;
-        TransProbType collection_trans_prob_;
+private:
+    static FuzzyPinyinSegmentor pinyin_;
 
-        double threshold_;
-        double mid_threshold_;
-        uint16_t max_pinyin_term_;
+    static TransProbType global_trans_prob_;
+    TransProbType collection_trans_prob_;
 
-        boost::mutex mutex_;
+    std::string collection_dir_;
+    double threshold_;
+    double mid_threshold_;
+    uint16_t max_pinyin_term_;
+
+    boost::mutex mutex_;
 
 };
 

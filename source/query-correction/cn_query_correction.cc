@@ -27,8 +27,9 @@ std::string CnQueryCorrection::res_dir_;
 CnQueryCorrection::TransProbType CnQueryCorrection::global_trans_prob_;
 FuzzyPinyinSegmentor CnQueryCorrection::pinyin_;
 
-CnQueryCorrection::CnQueryCorrection()
-    : threshold_(0.0005)
+CnQueryCorrection::CnQueryCorrection(const std::string& collection_dir)
+    : collection_dir_(collection_dir)
+    , threshold_(0.0005)
     , mid_threshold_(0.0001)
     , max_pinyin_term_(7)
 {
@@ -44,28 +45,42 @@ bool CnQueryCorrection::Load()
 {
     boost::mutex::scoped_lock scopedLock(mutex_);
 
-    if (!global_trans_prob_.empty())
-        return true;
-
     std::cout << "[CnQueryCorrection] start loading Chinese resources." << std::endl;
-
-    std::string pinyin_file = res_dir_ + "/pinyin.txt";
-    if (!boost::filesystem::exists(pinyin_file))
+    if (global_trans_prob_.empty())
     {
-        std::cout << "[CnQueryCorrection] failed loading pinyin." << std::endl;
-        return false;
-    }
-    pinyin_.LoadPinyinFile(pinyin_file);
-    std::cout << "[CnQueryCorrection] loaded pinyin." << std::endl;
+        std::cout << "[CnQueryCorrection] loading pinyin." << std::endl;
+        std::string pinyin_file = res_dir_ + "/pinyin.txt";
+        if (!boost::filesystem::exists(pinyin_file))
+        {
+            std::cout << "[CnQueryCorrection] failed loading pinyin." << std::endl;
+            return false;
+        }
+        pinyin_.LoadPinyinFile(pinyin_file);
+        std::cout << "[CnQueryCorrection] loaded pinyin." << std::endl;
 
-    std::string trans_prob_file = res_dir_ + "/trans_prob.txt";
-    if (!boost::filesystem::exists(trans_prob_file))
-    {
-        std::cout << "[CnQueryCorrection] failed loading trans_prob." << std::endl;
-        return false;
+        std::cout << "[CnQueryCorrection] loading global_trans_prob." << std::endl;
+        std::string trans_prob_file = res_dir_ + "/trans_prob.txt";
+        if (!boost::filesystem::exists(trans_prob_file))
+        {
+            std::cout << "[CnQueryCorrection] failed loading global_trans_prob." << std::endl;
+            return false;
+        }
+        LoadRawTextTransProb_(global_trans_prob_, trans_prob_file);
+        std::cout << "[CnQueryCorrection] loaded global_trans_prob." << std::endl;
     }
-    LoadRawTextTransProb_(trans_prob_file);
-    std::cout << "[CnQueryCorrection] loaded trans_prob." << std::endl;
+    if (!collection_dir_.empty())
+    {
+        std::string trans_prob_file = collection_dir_ + "/trans_prob.txt";
+        if (boost::filesystem::exists(trans_prob_file))
+        {
+            std::cout << "[CnQueryCorrection] loading collection_trans_prob." << std::endl;
+            LoadRawTextTransProb_(collection_trans_prob_, trans_prob_file);
+            std::cout << "[CnQueryCorrection] loaded collection_trans_prob." << std::endl;
+        }
+        else
+            boost::filesystem::create_directories(collection_dir_);
+    }
+    std::cout << "[CnQueryCorrection] loaded Chinese resources." << std::endl;
 
     return true;
 }
@@ -99,8 +114,13 @@ bool CnQueryCorrection::Update(const std::list<QueryLogType>& queryList, const s
         const uint32_t &df = it->first;
         UpdateItem_(df, text);
     }
-
     std::cout << "[CnQueryCorrection] loaded query logs." << std::endl;
+
+    std::cout << "[CnQueryCorrection] start flushing collection_trans_prob." << std::endl;
+    std::string trans_prob_file = collection_dir_ + "/trans_prob.txt";
+    FlushRawTextTransProb_(trans_prob_file, collection_trans_prob_);
+    std::cout << "[CnQueryCorrection] flushed collection_trans_prob." << std::endl;
+
     return true;
 }
 
@@ -149,7 +169,7 @@ void CnQueryCorrection::UpdateItem_(const uint32_t df, const izenelib::util::USt
 #endif
 }
 
-void CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
+void CnQueryCorrection::LoadRawTextTransProb_(TransProbType& trans_prob, const std::string& file)
 {
     std::ifstream ifs(file.c_str());
     std::string line;
@@ -165,32 +185,83 @@ void CnQueryCorrection::LoadRawTextTransProb_(const std::string& file)
         switch (text.length())
         {
 #ifdef CN_QC_UNIGRAM
-            case 1:
-            {
-                Unigram u(text[0]);
-                global_trans_prob_.u_trans_prob_.insert(std::make_pair(u, score));
-                break;
-                }
+        case 1:
+        {
+            Unigram u(text[0]);
+            trans_prob.u_trans_prob_.insert(std::make_pair(u, score));
+            break;
+        }
 #endif
-            case 2:
-            {
-                Bigram b(text[0], text[1]);
-                global_trans_prob_.b_trans_prob_.insert(std::make_pair(b, score));
-                break;
-            }
-            case 3:
-            {
-                Bigram b(text[0], text[1]);
-                Trigram t(b, text[2]);
-                global_trans_prob_.t_trans_prob_.insert(std::make_pair(t, score));
-                break;
-            }
-            default:
-                break;
+        case 2:
+        {
+            Bigram b(text[0], text[1]);
+            trans_prob.b_trans_prob_.insert(std::make_pair(b, score));
+            break;
+        }
+        case 3:
+        {
+            Bigram b(text[0], text[1]);
+            Trigram t(b, text[2]);
+            trans_prob.t_trans_prob_.insert(std::make_pair(t, score));
+            break;
+        }
+        default:
+            break;
         }
         ++count;
     }
     ifs.close();
+    std::cout << "trans_prob count: " << count << std::endl;
+}
+
+void CnQueryCorrection::FlushRawTextTransProb_(const std::string& file, const TransProbType& trans_prob)
+{
+    uint64_t count = 0;
+
+    std::ofstream ofs(file.c_str());
+
+    // flush unigram
+#ifdef CN_QC_UNIGRAM
+    for (boost::unordered_map<Unigram, double>::const_iterator it = trans_prob.u_trans_prob_.begin();
+            it != trans_prob.u_trans_prob_.end(); ++it)
+    {
+        izenelib::util::UString text;
+        text += it->first;
+        std::string str;
+        text.convertString(str, izenelib::util::UString::UTF_8);
+        ofs << str << "\t" << it->second << std::endl;
+        ++count;
+    }
+#endif
+
+    // flush bigram
+    for (boost::unordered_map<Bigram, double>::const_iterator it = trans_prob.b_trans_prob_.begin();
+            it != trans_prob.b_trans_prob_.end(); ++it)
+    {
+        izenelib::util::UString text;
+        text += it->first.first;
+        text += it->first.second;
+        std::string str;
+        text.convertString(str, izenelib::util::UString::UTF_8);
+        ofs << str << "\t" << it->second << std::endl;
+        ++count;
+    }
+
+    // flush trigram
+    for (boost::unordered_map<Trigram, double>::const_iterator it = trans_prob.t_trans_prob_.begin();
+            it != trans_prob.t_trans_prob_.end(); ++it)
+    {
+        izenelib::util::UString text;
+        text += it->first.first.first;
+        text += it->first.first.second;
+        text += it->first.second;
+        std::string str;
+        text.convertString(str, izenelib::util::UString::UTF_8);
+        ofs << str << "\t" << it->second << std::endl;
+        ++count;
+    }
+
+    ofs.close();
     std::cout << "trans_prob count: " << count << std::endl;
 }
 
