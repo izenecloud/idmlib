@@ -259,7 +259,7 @@ public:
      * @param row the row number
      * @param cols the column items
      */
-    void updateRowItems(ItemType row, const RowType& cols)
+    void updateRowItems(ItemType row, RowType& cols)
     {
         return store_.update_row(row, cols);
     }

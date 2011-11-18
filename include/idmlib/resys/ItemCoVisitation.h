@@ -6,7 +6,6 @@
 
 #include <am/matrix/matrix_db.h>
 
-#include <util/ThreadModel.h>
 #include <util/PriorityQueue.h>
 
 #include <boost/shared_ptr.hpp>
@@ -118,8 +117,6 @@ public:
         const std::list<ItemType>& newItems
     )
     {
-        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(lock_);
-
         std::list<ItemType>::const_iterator iter;
 
         // update old*new pairs
@@ -139,8 +136,6 @@ public:
         ItemRescorer* rescorer = NULL
     )
     {
-        izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
-
         boost::shared_ptr<const RowType> rowdata = db_.row(item);
         CoVisitationQueue<CoVisitation> queue(howmany);
         typename RowType::const_iterator iter = rowdata->begin();
@@ -153,9 +148,12 @@ public:
                 queue.insert(CoVisitationQueueItem<CoVisitation>(iter->first,iter->second));
             }
         }
+
         results.resize(queue.size());
         for(std::vector<ItemType>::reverse_iterator rit = results.rbegin(); rit != results.rend(); ++rit)
+        {
             *rit = queue.pop().itemId;
+        }
     }
 
     void getCoVisitation(
@@ -166,8 +164,6 @@ public:
         ItemRescorer* rescorer = NULL
     )
     {
-        izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
-
         boost::shared_ptr<const RowType> rowdata = db_.row(item);
 
         CoVisitationQueue<CoVisitation> queue(howmany);
@@ -188,8 +184,6 @@ public:
 
     uint32_t coeff(ItemType row, ItemType col)
     {
-        //we do not use read lock here because coeff is called only after writing operation is finished
-        //izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(lock_);
         return db_.coeff(row,col).freq;
     }
 
@@ -236,15 +230,42 @@ private:
         const std::list<ItemType>& cols2
     )
     {
-        if(cols1.empty() && cols2.empty())
-            return;
+        boost::shared_ptr<const RowType> oldRow = db_.row(item);
+        RowType newRow(*oldRow);
 
-        db_.row_incre(item, cols1, cols2);
+        updateColumns_(newRow, cols1);
+        updateColumns_(newRow, cols2);
+
+        db_.update_row(item, newRow);
+    }
+
+    /**
+     * For the @p row , update its columns @p cols.
+     * @param row the row instance
+     * @param cols column list to update
+     */
+    void updateColumns_(
+        RowType& row,
+        const std::list<ItemType>& cols
+    ) const
+    {
+        typename std::list<ItemType>::const_iterator cit;
+        for(cit = cols.begin(); cit != cols.end(); ++cit)
+        {
+            typename RowType::iterator it = row.find(*cit);
+            if(it == row.end())
+            {
+                row[*cit].update();
+            }
+            else
+            {
+                it->second.update();
+            }
+        }
     }
 
 private:
     MatrixDBType db_;
-    izenelib::util::ReadWriteLock lock_;
 };
 
 
