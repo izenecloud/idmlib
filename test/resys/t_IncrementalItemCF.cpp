@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(largeTest)
 
     ClockTimer t;
 
-    int ORDERS = 1000;
+    int ORDERS = 20000;
     for(int i = 0; i < ORDERS; ++i)
     {
         if(i%100 == 0)
@@ -182,4 +182,4 @@ BOOST_AUTO_TEST_CASE(largeTest)
 
 }
 
-BOOST_AUTO_TEST_SUITE_END() 
+BOOST_AUTO_TEST_SUITE_END()
