@@ -110,6 +110,7 @@ void IncrementalItemCF::buildSimMatrix()
     std::set<uint32_t> colSet;
 
     int rowNum = 0;
+    uint64_t elemNum = 0;
     for (ItemCoVisitation<CoVisitFreq>::iterator it_i = covisitation_.begin();
         it_i != covisitation_.end(); ++it_i)
     {
@@ -120,11 +121,19 @@ void IncrementalItemCF::buildSimMatrix()
 
         const uint32_t row = it_i->first;
         const CoVisitRow& cols = it_i->second;
+        elemNum += cols.size();
 
         updateSimRow_(row, cols, false, rowSet, colSet);
     }
     std::cout << "\rbuilding row num: " << rowNum << std::endl;
 
+    float density = 0;
+    if (rowNum)
+    {
+        density = (float)elemNum / (rowNum*rowNum) * 100;
+    }
+    LOG(INFO) << "covisit matrix element num: " << elemNum;
+    LOG(INFO) << "covisit matrix density: " << density << "%";
     LOG(INFO) << "finish building similarity matrix";
 }
 
