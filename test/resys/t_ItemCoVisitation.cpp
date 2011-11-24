@@ -126,8 +126,8 @@ BOOST_AUTO_TEST_CASE(largeTest)
     {
         if(i%500 == 0)
         {
-            std::cout<<i<<" orders have been processed "<<t.elapsed()<<std::endl;
-            visitMatrix.status(std::cout);
+            std::cout << "orders: " << i << " , elapsed time: " << t.elapsed() << std::endl;
+            std::cout << visitMatrix << std::endl;
         }
         std::list<uint32_t> oldItems;
         std::list<uint32_t> newItems;

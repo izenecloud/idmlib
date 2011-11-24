@@ -7,14 +7,15 @@
 #include <am/matrix/matrix_db.h>
 
 #include <util/PriorityQueue.h>
+#include <util/timestamp.h>
 
 #include <boost/shared_ptr.hpp>
-
 #include <string>
 #include <vector>
 #include <list>
 #include <map>
 #include <algorithm>
+#include <iostream>
 
 #include <sys/time.h>
 
@@ -184,7 +185,7 @@ public:
 
     uint32_t coeff(ItemType row, ItemType col)
     {
-        return db_.coeff(row,col).freq;
+        return db_.elem(row,col).freq;
     }
 
     /**
@@ -202,9 +203,9 @@ public:
         db_.flush();
     }
 
-    void status(std::ostream& ostream)
+    void print(std::ostream& ostream) const
     {
-        db_.status(ostream);
+        db_.print(ostream);
     }
 
     iterator begin()
@@ -268,6 +269,15 @@ private:
     MatrixDBType db_;
 };
 
+template<typename CoVisitation>
+std::ostream& operator<<(
+    std::ostream& out,
+    const ItemCoVisitation<CoVisitation>& covisit
+)
+{
+    covisit.print(out);
+    return out;
+}
 
 NS_IDMLIB_RESYS_END
 

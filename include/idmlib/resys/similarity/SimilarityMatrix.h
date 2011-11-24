@@ -236,12 +236,12 @@ public:
 
     MeasureType coeff(ItemType row, ItemType col)
     {
-        return store_.coeff(row,col);
+        return store_.elem(row, col);
     }
 
     void coeff(ItemType row, ItemType col, MeasureType measure)
     {
-        store_.coeff(row,col,measure);
+        store_.update_elem(row, col, measure);
     }
 
     /**
