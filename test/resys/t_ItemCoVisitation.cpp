@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(largeTest)
     int MaxNewVisit = 20;
     RandomGenerators generators(MaxITEM, MaxUSER, MaxOldVisit, MaxNewVisit);
 
-    int ORDERS = 2000;
+    int ORDERS = 5000;
 
     ItemCFTest::VisitMatrix visitMatrix(covisitPath.string()+"/visitdb",10*1024*1024);
 
@@ -136,4 +136,4 @@ BOOST_AUTO_TEST_CASE(largeTest)
     }
 }
 
-BOOST_AUTO_TEST_SUITE_END() 
+BOOST_AUTO_TEST_SUITE_END()

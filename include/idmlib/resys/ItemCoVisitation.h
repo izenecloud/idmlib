@@ -62,7 +62,7 @@ struct CoVisitationQueueItem
 };
 
 template<typename CoVisitation>
-class CoVisitationQueue 
+class CoVisitationQueue
     : public izenelib::util::PriorityQueue<CoVisitationQueueItem<CoVisitation> >
 {
 public:
@@ -72,9 +72,9 @@ public:
     }
 protected:
     bool lessThan(
-        CoVisitationQueueItem<CoVisitation> o1, 
-        CoVisitationQueueItem<CoVisitation> o2
-    )
+        const CoVisitationQueueItem<CoVisitation>& o1,
+        const CoVisitationQueueItem<CoVisitation>& o2
+    ) const
     {
         return (o1.covisitation.freq < o2.covisitation.freq);
     }
@@ -90,7 +90,7 @@ public:
     typedef typename MatrixDBType::iterator iterator; // first is ItemType, second is RowType
 
     ItemCoVisitation(
-        const std::string& homePath, 
+        const std::string& homePath,
         size_t cache_size = 1024*1024
     )
         : db_(cache_size, homePath)
@@ -114,7 +114,7 @@ public:
      * @pre there should be no items contained in both @p oldItems and @p newItems
      */
     void visit(
-        const std::list<ItemType>& oldItems, 
+        const std::list<ItemType>& oldItems,
         const std::list<ItemType>& newItems
     )
     {
@@ -131,9 +131,9 @@ public:
     }
 
     void getCoVisitation(
-        size_t howmany, 
-        ItemType item, 
-        std::vector<ItemType>& results, 
+        size_t howmany,
+        ItemType item,
+        std::vector<ItemType>& results,
         ItemRescorer* rescorer = NULL
     )
     {
@@ -158,10 +158,10 @@ public:
     }
 
     void getCoVisitation(
-        size_t howmany, 
-        ItemType item, 
-        std::vector<ItemType>& results, 
-        int64_t timestamp, 
+        size_t howmany,
+        ItemType item,
+        std::vector<ItemType>& results,
+        int64_t timestamp,
         ItemRescorer* rescorer = NULL
     )
     {
@@ -282,4 +282,3 @@ std::ostream& operator<<(
 NS_IDMLIB_RESYS_END
 
 #endif
-
