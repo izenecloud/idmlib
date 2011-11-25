@@ -232,10 +232,10 @@ private:
     )
     {
         boost::shared_ptr<const RowType> oldRow = db_.row(item);
-        RowType newRow(*oldRow);
+        boost::shared_ptr<RowType> newRow(new RowType(*oldRow));
 
-        updateColumns_(newRow, cols1);
-        updateColumns_(newRow, cols2);
+        updateColumns_(*newRow, cols1);
+        updateColumns_(*newRow, cols2);
 
         db_.update_row(item, newRow);
     }

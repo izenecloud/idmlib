@@ -152,7 +152,7 @@ void IncrementalItemCF::updateSimRow_(
         visit_i_i = findIt->second.freq;
     }
 
-    SimRow simRow;
+    boost::shared_ptr<SimRow> simRow(new SimRow);
     for (CoVisitRow::const_iterator it_j = coVisitRow.begin();
         it_j != coVisitRow.end(); ++it_j)
     {
@@ -167,7 +167,7 @@ void IncrementalItemCF::updateSimRow_(
         assert(visit_i_j && visit_i_i && visit_j_j && "the freq value in visit matrix should be positive.");
 
         float sim = (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
-        simRow[col] = sim;
+        (*simRow)[col] = sim;
 
         // also update (col, row) if col does not exist in rowSet
         if (isUpdateCol && rowSet.find(col) == rowSet.end())

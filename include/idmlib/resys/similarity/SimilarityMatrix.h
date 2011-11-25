@@ -259,7 +259,7 @@ public:
      * @param row the row number
      * @param cols the column items
      */
-    void updateRowItems(ItemType row, RowType& cols)
+    void updateRowItems(ItemType row, boost::shared_ptr<RowType> cols)
     {
         return store_.update_row(row, cols);
     }
