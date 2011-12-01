@@ -64,30 +64,28 @@ FILE(GLOB_RECURSE resys_SRC
 
 FILE(GLOB_RECURSE topicmodels_SRC
   "topic-models/*.cpp"
-  "topic-models/*.c"  
+  "topic-models/*.c"
 )
 
-ADD_LIBRARY(idmlib 
-${keyphrase_extraction_SRC}
-${duplicate-detection_SRC}
-${nec_SRC}
-${query-correction_SRC}
-${concept-clustering_SRC}
-${query-suggestion_SRC}
-${dc_SRC}
-${itemset_SRC}
-${util_SRC}
-${wiki_SRC}
-${ssp_SRC}
-${sim_SRC}
-${tl_SRC}
-${resys_SRC}
-${topicmodels_SRC}
+ADD_LIBRARY(idmlib
+  ${keyphrase_extraction_SRC}
+  ${duplicate-detection_SRC}
+  ${nec_SRC}
+  ${query-correction_SRC}
+  ${concept-clustering_SRC}
+  ${query-suggestion_SRC}
+  ${dc_SRC}
+  ${itemset_SRC}
+  ${util_SRC}
+  ${wiki_SRC}
+  ${ssp_SRC}
+  ${sim_SRC}
+  ${tl_SRC}
+  ${resys_SRC}
+  ${topicmodels_SRC}
 )
 
 INSTALL(TARGETS idmlib
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
-  )
-
-
+)
