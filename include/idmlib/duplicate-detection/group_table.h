@@ -18,6 +18,8 @@ public:
     bool Load();
 
     bool Flush();
+    
+    bool Set(const std::vector<std::vector<DocIdType> >& data);
 
     void AddDoc(const DocIdType& docid1, const DocIdType& docid2);
     
@@ -26,6 +28,8 @@ public:
     bool IsSameGroup(const DocIdType& docid1, const DocIdType& docid2);
     
     bool GetGroupId(const DocIdType& docid, GroupIdType& groupid);
+    
+    bool GetDocIdList(const GroupIdType& groupid, std::vector<DocIdType>& docid_list);
 
     /**
        @return a reference of vector of docids that are in the same group.
@@ -38,6 +42,10 @@ public:
     {
         return group_info_;
     }
+    
+private:
+    
+    void InitMap_();
 
 private:
     std::string file_;

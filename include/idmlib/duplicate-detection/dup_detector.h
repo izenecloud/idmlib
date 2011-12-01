@@ -31,9 +31,15 @@ public:
 
     void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v);
     
+    void InsertDoc(const DocIdType& docid, const std::vector<std::vector<std::string> >& v_list);
+    
     void RemoveDoc(const DocIdType& docid);
 
     bool RunDdAnalysis();
+    
+    void SetFixK(uint8_t k);
+    
+    void SetMaxProcessTable(uint32_t t);
 
 private:
     
@@ -66,6 +72,8 @@ private:
     
     /// parameters.
     uint8_t maxk_;
+    uint8_t fixk_;
+    uint32_t maxt_;
     uint8_t partition_num_;
     double trash_threshold_;
     uint32_t trash_min_;

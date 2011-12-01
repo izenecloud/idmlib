@@ -29,19 +29,28 @@ bool GroupTable::Load()
     {
         return false;
     }
+    
+    InitMap_();
 
-//   std::cout<<"group info size : "<<group_info_.size()<<std::endl;
+}
+
+void GroupTable::InitMap_()
+{
+    docid_group_.clear();
     for (uint32_t group_id=0;group_id<group_info_.size();group_id++)
     {
-//     std::cout<<"group id "<<group_id;
         for (uint32_t i=0;i<group_info_[group_id].size();i++)
         {
-//       std::cout<<group_info_[group_id][i]<<",";
             docid_group_.insert(group_info_[group_id][i], group_id);
         }
-//     std::cout<<std::endl;
     }
-    return true;
+}
+
+bool GroupTable::Set(const std::vector<std::vector<DocIdType> >& data)
+{
+    group_info_ = data;
+    InitMap_();
+    return Flush();
 }
 
 bool GroupTable::Flush()
@@ -165,6 +174,13 @@ bool GroupTable::IsSameGroup(const DocIdType& docid1, const DocIdType& docid2)
 bool GroupTable::GetGroupId(const DocIdType& docid, GroupIdType& groupid)
 {
     return docid_group_.get(docid, groupid);
+}
+
+bool GroupTable::GetDocIdList(const GroupIdType& groupid, std::vector<DocIdType>& docid_list)
+{
+    if(groupid>=group_info_.size()) return false;
+    docid_list = group_info_[groupid];
+    return true;
 }
 
 void GroupTable::Find(const DocIdType& docid, std::vector<DocIdType>& list)

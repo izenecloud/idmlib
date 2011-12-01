@@ -28,10 +28,22 @@ DupDetector::DupDetector(const std::string& container, GroupTable* group_table)
 
 void DupDetector::SetParameters_()
 {
+  fixk_ = 0;
   maxk_ = 6;
+  maxt_ = 0;
   partition_num_ = 9;
   trash_threshold_ = 0.02;
   trash_min_ = 200;
+}
+
+void DupDetector::SetFixK(uint8_t k)
+{
+    fixk_ = k;
+}
+
+void DupDetector::SetMaxProcessTable(uint32_t t)
+{
+    maxt_ = t;
 }
 
 uint8_t DupDetector::GetK_(uint32_t doc_length)
@@ -40,12 +52,12 @@ uint8_t DupDetector::GetK_(uint32_t doc_length)
   // while the document length gets larger, k value decreases.
   // 1 is added to doc_length because ln(0) is not defined (1 is a kind of smothing factor)
 //   return 3;
+  if(fixk_>0) return fixk_;
   double y = -1.619429845 * log((double)(doc_length + 1)) + 17.57504447;
   if(y <= 0) y = 0;
   uint8_t k = (uint8_t)y;
   if(y-(double)k>=0.5) k++;
   if(k > 6) k = 6;
-
   return k;
 }
 
@@ -347,6 +359,35 @@ void DupDetector::InsertDoc(const DocIdType& docid, const std::vector<std::strin
     writer->Append(fpitem);
 }
 
+void DupDetector::InsertDoc(const DocIdType& docid, const std::vector<std::vector<std::string> >& v_list)
+{
+    FpWriterType* writer = GetFpWriter_();
+    if(writer==NULL)
+    {
+        std::cout<<"writer null"<<std::endl;
+        return;
+    }
+    izenelib::util::CBitArray bit_array;
+    uint32_t length = 0;
+    //  CharikarAlgorithm algo;
+    for(uint32_t i=0;i<v_list.size();i++)
+    {
+        izenelib::util::CBitArray p_bit_array;
+        algo_->generate_document_signature(v_list[i], p_bit_array);
+        if (bit_array.IsEmpty())
+        {
+            bit_array = p_bit_array;
+        }
+        else
+        {
+            bit_array^=p_bit_array;
+        }
+        length += v_list[i].size();
+    }
+    FpItem fpitem(docid, bit_array, length);
+    writer->Append(fpitem);
+}
+
 void DupDetector::RemoveDoc(const DocIdType& docid)
 {
     //TODO
@@ -372,7 +413,7 @@ bool DupDetector::RunDdAnalysis()
     {
         vec[i].status = 1; //set status= new
     }
-    uint32_t table_count = table_list_.size();
+    
     
     std::vector<FpItem> vec_all;
     izenelib::am::ssf::Util<>::Load(fp_storage_path_, vec_all);
@@ -393,6 +434,12 @@ bool DupDetector::RunDdAnalysis()
         std::cout<<std::endl;
     }
     #endif
+    
+    uint32_t table_count = table_list_.size();
+    if(maxt_>0 && maxt_<table_count)
+    {
+        table_count = maxt_;
+    }
     std::cout<<"Now all doc count : "<<vec_all.size()<<std::endl;
     std::cout<<"Table count : "<<table_count<<std::endl;
 
