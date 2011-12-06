@@ -1,2 +1,2 @@
-#define BOOST_TEST_MODULE QS
+#define BOOST_TEST_MODULE DD
 #include <TestRunner.inl>

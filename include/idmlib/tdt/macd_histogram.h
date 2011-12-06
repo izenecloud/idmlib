@@ -14,11 +14,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <algorithm>
 #include <cmath>
-#include <am/external_sort/izene_sort.hpp>
-#include <am/sequence_file/SimpleSequenceFile.hpp>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/vector.hpp>
+
 NS_IDMLIB_TDT_BEGIN
 
 template <uint8_t S, uint8_t L, uint8_t M, uint32_t G = L+M-2>

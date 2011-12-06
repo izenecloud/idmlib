@@ -7,8 +7,19 @@
 #include <idmlib/idm_types.h>
 NS_IDMLIB_DD_BEGIN
 
-typedef std::string DocIdType;
-typedef uint32_t GroupIdType;
+struct NullType
+{
+    template<class Archive> 
+    void serialize(Archive& ar, const unsigned int version) 
+    {
+    }
+
+    bool dd(const NullType& other) const
+    {
+        return true;
+    }
+
+};
 
 NS_IDMLIB_DD_END
 

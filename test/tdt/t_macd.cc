@@ -3,9 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <boost/test/unit_test.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
 #include <idmlib/tdt/macd_histogram.h>
 #include <idmlib/tdt/ema.h>
 

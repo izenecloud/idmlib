@@ -11,15 +11,16 @@ SET(libs
   idmlib
   ${ilplib_LIBRARIES}
   ${imllib_LIBRARIES}
-  ${wisekma_LIBRARIES}
-  ${izenecma_LIBRARIES}
-  ${izenejma_LIBRARIES}
-  ${iise_LIBRARIES}
   ${izenelib_LIBRARIES}
-  ${TokyoCabinet_LIBRARIES}
-  ${xml2_LIBRARIES}
+
+  #external
   ${Boost_LIBRARIES}
+  ${TokyoCabinet_LIBRARIES}
   ${Glog_LIBRARIES}
+  ${izenecma_LIBRARIES}
+  ${wisekma_LIBRARIES}
+  ${izenejma_LIBRARIES}
+  ${xml2_LIBRARIES}
   )
 
 SET(Boost_USE_STATIC_LIBS OFF)
@@ -34,7 +35,7 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
     Runner.cpp
     t_macd.cc
     )
-  TARGET_LINK_LIBRARIES(t_macd ${libs})
+  TARGET_LINK_LIBRARIES(t_macd ${Boost_LIBRARIES})
   SET_TARGET_PROPERTIES(t_macd PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/testbin
     )
@@ -50,7 +51,7 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
     Runner.cpp
     t_similb.cc
     )
-  TARGET_LINK_LIBRARIES(t_similb ${libs})
+  TARGET_LINK_LIBRARIES(t_similb ${Boost_LIBRARIES})
   SET_TARGET_PROPERTIES(t_similb PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/testbin
     )

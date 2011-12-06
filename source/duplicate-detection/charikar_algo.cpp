@@ -35,27 +35,11 @@ generate_document_signature(const std::vector<std::string>& docTokens, izenelib:
     RandProj rpSum(nDimensions);
     for (unsigned int j = 0; j < docTokens.size(); j++)
     {
-        //boost::mutex::scoped_lock lock(mutex_);
         const RandProj& rp = rpEngine.get_random_projection(docTokens[j]);
         rpSum += rp;
     }
 
     rpSum.generate_bitarray(bitArray);
 
-//     for (int i = 0; i < rpSum.num_dimensions(); i++) {
-//       if (rpSum[i] >= 0) {
-//         bitArray.SetAt(i);
-//       }
-//     }
 }
-
-// int CharikarAlgo::neardup_score(NearDuplicateSignature& sig1,
-//                                   NearDuplicateSignature& sig2)
-//   {
-//     return sig1.get_bitarray().NumAgreedBits(nDimensions, sig2.get_bitarray());
-//   }
-
-//   int CharikarAlgo::neardup_score(const izenelib::util::CBitArray& sig1, const izenelib::util::CBitArray& sig2) {
-//     return sig1.NumAgreedBits(nDimensions, sig2);
-//   }
 

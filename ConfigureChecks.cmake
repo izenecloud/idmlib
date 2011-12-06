@@ -14,6 +14,7 @@ FIND_PACKAGE(izenelib REQUIRED
   izene_log
   beansdb
   leveldb
+  luxio
   )
   
 FIND_PACKAGE(wisekma REQUIRED)

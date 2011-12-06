@@ -9,6 +9,8 @@
 #include <vector>
 
 NS_IDMLIB_DD_BEGIN
+
+
 class FpTable
 {
 public:
@@ -17,8 +19,9 @@ public:
     FpTable(const PermuteType& permute):permute_(permute)
     {
     }
-
-    bool operator() (const FpItem& left, const FpItem& right)
+    
+    template <class FpItemType>
+    bool operator() (const FpItemType& left, const FpItemType& right)
     {
         uint64_t int_left = GetBitsValue( left.fp);
         uint64_t int_right = GetBitsValue( right.fp);
