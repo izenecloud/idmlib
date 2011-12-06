@@ -102,7 +102,7 @@ void IncrementalItemCF::buildSimMatrix()
     std::set<uint32_t> rowSet;
     std::set<uint32_t> colSet;
 
-    int rowNum = 0;
+    uint64_t rowNum = 0;
     uint64_t elemNum = 0;
     for (ItemCoVisitation<CoVisitFreq>::iterator it_i = covisitation_.begin();
             it_i != covisitation_.end(); ++it_i)
