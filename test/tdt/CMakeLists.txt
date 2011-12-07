@@ -21,6 +21,7 @@ SET(libs
   ${wisekma_LIBRARIES}
   ${izenejma_LIBRARIES}
   ${xml2_LIBRARIES}
+  bz2
   )
 
 SET(Boost_USE_STATIC_LIBS OFF)
