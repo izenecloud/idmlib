@@ -156,14 +156,29 @@ BOOST_AUTO_TEST_CASE(display_test)
 //     }
     IDMAnalyzer::SetLIDPath(LID_DB);
     {
-        IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonTgConfig(WISEKMA_KNOWLEDGE,"",IZENEJMA_KNOWLEDGE)) ;
-        izenelib::util::UString text("称为Windows（有人说这是 比尔盖兹 被苹果的Lisa电脑上市所刺激", izenelib::util::UString::UTF_8);
+        IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,IZENECMA_KNOWLEDGE,IZENEJMA_KNOWLEDGE)) ;
+        izenelib::util::UString text("101 Ways to Improve Your Memory Games - Tricks - Strategies [平装]", izenelib::util::UString::UTF_8);
         std::vector<idmlib::util::IDMTerm> term_list;
-        analyzer.GetTgTermList(text, term_list);
+        analyzer.GetTermList(text, term_list);
         for( uint32_t i=0;i<term_list.size();++i )
         {
             std::cout<<"["<<term_list[i].TextString()<<","<<term_list[i].position<<","<<term_list[i].tag<<"]"<<std::endl;
         }
+    }
+    
+    {
+        std::cout<<"!!!XXX"<<std::endl;
+        izenelib::util::UString text("101 Ways to Improve Your Memory Games - Tricks - Strategies [平装]", izenelib::util::UString::UTF_8);
+        IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,IZENECMA_KNOWLEDGE,IZENEJMA_KNOWLEDGE));
+        std::vector<izenelib::util::UString> termStrList;
+        analyzer.GetFilteredStringList( text, termStrList );
+        for (uint32_t u=0;u<termStrList.size();u++)
+        {
+            std::string display;
+            termStrList[u].convertString(display, izenelib::util::UString::UTF_8);
+            std::cout<<display<<",";
+        }
+        std::cout<<std::endl;
     }
 
 }
