@@ -506,6 +506,7 @@ void IDMAnalyzer::CompoundInSamePosition_(const std::vector<idmlib::util::IDMTer
 
 bool IDMAnalyzer::TermIgnore_(la::Term& term)
 {
+//     return false;
     if( symbol_map_.find(term.pos_) != NULL)
     {
         if( !config_.symbol ) return true;
@@ -537,7 +538,7 @@ bool IDMAnalyzer::TermIgnore_(la::Term& term)
         if( term.pos_[0]=='C' ) return false;
         else
         {
-            if(config_.jma_config.noun_only && term.pos_[0]!='N' ) return true;
+            if(config_.cma_config.noun_only && term.pos_[0]!='N' ) return true;
             return false;
         }
     }
@@ -567,7 +568,7 @@ void IDMAnalyzer::CompoundInContinous_(std::vector<idmlib::util::IDMTerm>& terms
 //     std::cout<<std::endl;
     std::vector<idmlib::util::IDMTerm> result;
     idmlib::util::IDMTerm compound;
-    char first_tag, last_tag;
+    char first_tag = 0, last_tag = 0;
     for(uint32_t i=0;i<terms_in_continous.size();i++)
     {
         if( !terms_in_continous[i].text.isKoreanChar(0) && (terms_in_continous[i].tag== idmlib::util::IDMTermTag::NOUN || terms_in_continous[i].tag== idmlib::util::IDMTermTag::LINK) )

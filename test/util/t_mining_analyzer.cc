@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(display_test)
     IDMAnalyzer::SetLIDPath(LID_DB);
     {
         IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,IZENECMA_KNOWLEDGE,IZENEJMA_KNOWLEDGE)) ;
-        izenelib::util::UString text("101 Ways to Improve Your Memory Games - Tricks - Strategies [平装]", izenelib::util::UString::UTF_8);
+        izenelib::util::UString text("花汐与眠王4", izenelib::util::UString::UTF_8);
         std::vector<idmlib::util::IDMTerm> term_list;
         analyzer.GetTermList(text, term_list);
         for( uint32_t i=0;i<term_list.size();++i )
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(display_test)
     
     {
         std::cout<<"!!!XXX"<<std::endl;
-        izenelib::util::UString text("101 Ways to Improve Your Memory Games - Tricks - Strategies [平装]", izenelib::util::UString::UTF_8);
+        izenelib::util::UString text("花汐与眠王4", izenelib::util::UString::UTF_8);
         IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,IZENECMA_KNOWLEDGE,IZENEJMA_KNOWLEDGE));
         std::vector<izenelib::util::UString> termStrList;
         analyzer.GetFilteredStringList( text, termStrList );
@@ -236,21 +236,45 @@ BOOST_AUTO_TEST_CASE(chineseandenglish_test)
 
 BOOST_AUTO_TEST_CASE(cma_test)
 {
-  IDMAnalyzer::SetLIDPath(LID_DB);
-  IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,IZENECMA_KNOWLEDGE,IZENEJMA_KNOWLEDGE));
-  izenelib::util::UString text("新闻集团（英语：News corporation）是目前全球第三大的媒体集团。", izenelib::util::UString::UTF_8);
+    IDMAnalyzer::SetLIDPath(LID_DB);
+    {
+        IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,IZENECMA_KNOWLEDGE,IZENEJMA_KNOWLEDGE));
+        izenelib::util::UString text("101 Ways to Improve Your Memory Games - Tricks - Strategies [平装]", izenelib::util::UString::UTF_8);
 
-  std::vector<IDMTerm> term_vec;
-  term_vec.push_back( IDMTerm("新闻集团",0, 'N' ));
-  term_vec.push_back( IDMTerm("英语",2, 'N' ));
-  term_vec.push_back( IDMTerm("News corporation",4, 'F' ));
-  term_vec.push_back( IDMTerm("是",6, 'C' ));
-  term_vec.push_back( IDMTerm("全球",8, 'N' ));
-  term_vec.push_back( IDMTerm("媒体",12, 'N' ));
-  term_vec.push_back( IDMTerm("集团",13, 'N' ));
+        std::vector<IDMTerm> term_vec;
+        term_vec.push_back( IDMTerm("101",0, 'M' ));
+        term_vec.push_back( IDMTerm("Ways",1, 'F' ));
+        term_vec.push_back( IDMTerm("to",2, 'F' ));
+        term_vec.push_back( IDMTerm("Improve",3, 'F' ));
+        term_vec.push_back( IDMTerm("Your",4, 'F' ));
+        term_vec.push_back( IDMTerm("Memory",5, 'F' ));
+        term_vec.push_back( IDMTerm("Games",6, 'F' ));
+        term_vec.push_back( IDMTerm("Tricks",8, 'F' ));
+        term_vec.push_back( IDMTerm("Strategies",10, 'F' ));
+        term_vec.push_back( IDMTerm("平装",12, 'B' ));
+        common_check(&analyzer, text, term_vec);
+    }
+    
+    {
+        IDMAnalyzer analyzer(idmlib::util::IDMAnalyzerConfig::GetCommonConfig(WISEKMA_KNOWLEDGE,IZENECMA_KNOWLEDGE,IZENEJMA_KNOWLEDGE));
+        izenelib::util::UString text("新闻集团（英语：News corporation）是目前全球第三大的媒体集团。", izenelib::util::UString::UTF_8);
 
-
-  common_check(&analyzer, text, term_vec);
+        std::vector<IDMTerm> term_vec;
+        term_vec.push_back( IDMTerm("新闻",0, 'N' ));
+        term_vec.push_back( IDMTerm("集团",1, 'N' ));
+        term_vec.push_back( IDMTerm("英语",3, 'N' ));
+        term_vec.push_back( IDMTerm("News",5, 'F' ));
+        term_vec.push_back( IDMTerm("corporation",6, 'F' ));
+        term_vec.push_back( IDMTerm("是",8, 'A' ));
+        term_vec.push_back( IDMTerm("目前",9, 'T' ));
+        term_vec.push_back( IDMTerm("全球",10, 'N' ));
+        term_vec.push_back( IDMTerm("第三",11, 'M' ));
+        term_vec.push_back( IDMTerm("大",12, 'A' ));
+        term_vec.push_back( IDMTerm("的",13, 'A' ));
+        term_vec.push_back( IDMTerm("媒体",14, 'N' ));
+        term_vec.push_back( IDMTerm("集团",15, 'N' ));
+        common_check(&analyzer, text, term_vec);
+    }
 
 
 }

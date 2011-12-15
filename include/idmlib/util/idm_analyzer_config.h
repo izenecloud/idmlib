@@ -43,6 +43,7 @@ class CMAConfig
         bool use_char;
         la::ChineseAnalyzer::ChineseAnalysisType type;
         bool remove_stopwords;
+        bool noun_only;
 };
 
 class JMAConfig
@@ -76,8 +77,9 @@ class IDMAnalyzerConfig
       config.kma_config.path = kma_path;
       config.cma_config.path = cma_path;
       config.cma_config.use_char = false;
-      config.cma_config.type = la::ChineseAnalyzer::maximum_entropy;
+      config.cma_config.type = la::ChineseAnalyzer::maximum_match;
       config.cma_config.remove_stopwords = false;
+      config.cma_config.noun_only = false;
       if( config.cma_config.path=="" )
       {
           config.cma_config.use_char = true;
@@ -118,6 +120,7 @@ class IDMAnalyzerConfig
       config.cma_config.use_char = false;
       config.cma_config.type = la::ChineseAnalyzer::maximum_match;
       config.cma_config.remove_stopwords = false;
+      config.cma_config.noun_only = false;
       if( config.cma_config.path=="" )
       {
           config.cma_config.use_char = true;
