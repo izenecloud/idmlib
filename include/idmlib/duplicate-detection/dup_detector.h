@@ -74,7 +74,7 @@ public:
         return true;
     }
 
-    void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v, const AttachType& attach)
+    void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v, std::vector<double>& weights = std::vector<double>(), const AttachType& attach = AttachType())
     {
         FpWriterType* writer = GetFpWriter_();
         if(writer==NULL)
@@ -82,9 +82,13 @@ public:
             std::cout<<"writer null"<<std::endl;
             return;
         }
+        if(weights.size()!=v.size())
+        {
+            weights.resize(v.size(), 1.0);
+        }
         izenelib::util::CBitArray bit_array;
         //  CharikarAlgorithm algo;
-        algo_->generate_document_signature(v, bit_array);
+        algo_->generate_document_signature(v, weights, bit_array);
         FpItemType fpitem(docid, bit_array, v.size(), attach);
         writer->Append(fpitem);
     }
