@@ -23,8 +23,6 @@
  */
 
 #include <idmlib/idm_types.h>
-#include "rand_proj.h"
-#include "rand_proj_gen.h"
 
 #include <util/CBitArray.h>
 #include <vector>
@@ -40,10 +38,9 @@ class CharikarAlgo
 
 private:
 
-    RandProjGen rpEngine;//!< random projection engine     */
-    int nDimensions; //!< dimensions number
+    uint16_t nDimensions; //!< dimensions number
 public:
-    static const int DEFAULT_NUM_DIMENSIONS = 64;//!< default threshold value
+    static const uint16_t DEFAULT_NUM_DIMENSIONS = 64;//!< default threshold value
 public:
     /**
      * @brief constructor of CharikarAlgo, initial members
@@ -51,8 +48,8 @@ public:
      * @param nDim dimensions number
      * @param tvalue threshold value
      */
-    CharikarAlgo(int nDim=CharikarAlgo::DEFAULT_NUM_DIMENSIONS)
-            :rpEngine("", nDim), nDimensions(nDim){ }
+    CharikarAlgo(uint16_t nDim=CharikarAlgo::DEFAULT_NUM_DIMENSIONS)
+            :nDimensions(nDim){ }
 
     /**
      * @brief disconstructor
@@ -64,7 +61,7 @@ public:
      *
      * @return dimensions number
      */
-    inline int num_dimensions()
+    inline uint16_t num_dimensions()
     {
         return nDimensions;
     }
@@ -76,6 +73,8 @@ public:
         * @param[out] bitArray signature
         */
     void generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray);
+    
+    void generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, izenelib::util::CBitArray& bitArray);
 
 };
 NS_IDMLIB_DD_END
