@@ -43,7 +43,7 @@ RandProj* RandProjGen::map_find_(uint32_t token)
     if (t == slot_t::NOT_FOUND)
         return NULL;
 
-    return (RandProj*)(slot->at(t).PROJ());
+    return (RandProj*)(slot->at(t).proj);
 }
 
 void RandProjGen::map_insert_(uint32_t token, RandProj* proj)
