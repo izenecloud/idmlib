@@ -109,7 +109,8 @@ void IncrementalItemCF::buildSimMatrix()
     {
         if (++rowNum % 1000 == 0)
         {
-            std::cout << "\rbuilding row num: " << rowNum << std::flush;
+            std::cout << "\rbuilding row[" << rowNum << "], "
+                      << *this << std::flush;
         }
 
         const uint32_t row = it_i->first;
@@ -118,7 +119,8 @@ void IncrementalItemCF::buildSimMatrix()
 
         updateSimRow_(row, cols, false, rowSet, colSet);
     }
-    std::cout << "\rbuilding row num: " << rowNum << std::endl;
+    std::cout << "\rbuilding row[" << rowNum << "], "
+              << *this << std::endl;
 
     float density = 0;
     if (rowNum)
@@ -286,6 +288,17 @@ void IncrementalItemCF::flush()
 {
     covisitation_.flush();
     similarity_.flush();
+}
+
+void IncrementalItemCF::print(std::ostream& ostream) const
+{
+    ostream << covisitation_ << similarity_;
+}
+
+std::ostream& operator<<(std::ostream& out, const IncrementalItemCF& increItemCF)
+{
+    increItemCF.print(out);
+    return out;
 }
 
 NS_IDMLIB_RESYS_END

@@ -99,7 +99,7 @@ public:
 
     void print(std::ostream& ostream) const
     {
-        db_.print(ostream);
+        ostream << "CoVisit " << db_;
     }
 
     iterator begin()
