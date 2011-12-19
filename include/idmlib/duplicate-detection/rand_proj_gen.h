@@ -23,103 +23,80 @@ NS_IDMLIB_DD_BEGIN
  */
 struct UNIT_STRUCT
 {
-    char token[4];
-    char proj[8];
-
-    uint32_t& TOKEN_()
-    {
-        return *(uint32_t*)token;
-    }
-
-    uint64_t& PROJ_()
-    {
-        return *(uint64_t*)proj;
-    }
-
-    uint32_t TOKEN()const
-    {
-        return *(uint32_t*)token;
-    }
-
-    uint64_t PROJ()const
-    {
-        return *(uint64_t*)proj;
-    }
+    uint32_t token;
+    uint64_t proj;
 
     inline UNIT_STRUCT(uint32_t i, uint64_t j)
     {
-        TOKEN_() = i;
-        PROJ_() = j;
+        token = i;
+        proj = j;
     }
 
     inline UNIT_STRUCT(uint32_t i)
     {
-        TOKEN_() = i;
-        PROJ_() = -1;
+        token = i;
+        proj = -1;
     }
 
     inline UNIT_STRUCT()
     {
-        TOKEN_() = 0;
-        PROJ_() = -1;
+        token = 0;
+        proj = -1;
     }
 
     inline UNIT_STRUCT(const UNIT_STRUCT& other)
     {
-        TOKEN_() = other.TOKEN();
-        PROJ_() = other.PROJ();
+        token = other.token;
+        proj = other.proj;
     }
 
     inline UNIT_STRUCT& operator = (const UNIT_STRUCT& other)
     {
-        TOKEN_() = other.TOKEN();
-        PROJ_() = other.PROJ();
+        token = other.token;
+        proj = other.proj;
         return *this;
     }
 
     inline bool operator == (const UNIT_STRUCT& other)const
     {
-        return (TOKEN() == other.TOKEN());
+        return (token == other.token);
     }
 
     inline bool operator != (const UNIT_STRUCT& other)const
     {
-        return (TOKEN() != other.TOKEN());
+        return (token != other.token);
     }
 
     inline bool operator < (const UNIT_STRUCT& other)const
     {
-        return (TOKEN() < other.TOKEN());
+        return (token < other.token);
     }
 
     inline bool operator > (const UNIT_STRUCT& other)const
     {
-        return (TOKEN() > other.TOKEN());
+        return (token > other.token);
     }
 
     inline bool operator <= (const UNIT_STRUCT& other)const
     {
-        return (TOKEN() <= other.TOKEN());
+        return (token <= other.token);
     }
 
     inline bool operator >= (const UNIT_STRUCT& other)const
     {
-        return (TOKEN() >= other.TOKEN());
+        return (token >= other.token);
     }
 
     inline uint32_t operator % (uint32_t e)const
     {
-        return (TOKEN() % e);
+        return (token % e);
     }
 
     friend std::ostream& operator << (std::ostream& os, const UNIT_STRUCT& v)
     {
-        os<<"<"<<v.TOKEN()<<","<<v.PROJ()<<">";
+        os<<"<"<<v.token<<","<<v.proj<<">";
         return os;
     }
-
-
-
 }
 ;
 
