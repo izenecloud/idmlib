@@ -165,8 +165,12 @@ BOOST_AUTO_TEST_CASE(largeTest)
     int ORDERS = 20000;
     for(int i = 0; i < ORDERS; ++i)
     {
-        if(i%100 == 0)
-            std::cout<<i<<" orders have been processed "<<t.elapsed()<<std::endl;
+        if(i%500 == 0)
+        {
+            std::cout << "orders: " << i
+                      << ", elapsed time: " << t.elapsed() << ", "
+                      << cfManager << std::endl;
+        }
         std::list<uint32_t> oldItems;
         std::list<uint32_t> newItems;
         generators.genItems(newItems);

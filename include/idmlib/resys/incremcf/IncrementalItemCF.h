@@ -12,6 +12,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <iostream>
 
 NS_IDMLIB_RESYS_BEGIN
 
@@ -97,6 +98,8 @@ public:
 
     void flush();
 
+    void print(std::ostream& ostream) const;
+
 private:
     typedef ItemCoVisitation<CoVisitFreq>::RowType CoVisitRow;
     typedef SimilarityMatrix<uint32_t,float>::RowType SimRow;
@@ -141,6 +144,8 @@ private:
 
     friend class ItemCFTest;
 };
+
+std::ostream& operator<<(std::ostream& out, const IncrementalItemCF& increItemCF);
 
 NS_IDMLIB_RESYS_END
 

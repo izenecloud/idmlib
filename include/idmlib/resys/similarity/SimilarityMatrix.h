@@ -18,6 +18,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <iostream>
 
 NS_IDMLIB_RESYS_BEGIN
 
@@ -56,7 +57,8 @@ public:
     typedef typename MatrixDBType::row_type RowType;
 
 private:
-    typedef std::vector<std::pair<ItemType, MeasureType> > ItemNeighborType;
+    typedef std::pair<ItemType, MeasureType> ItemMeasurePair;
+    typedef std::vector<ItemMeasurePair> ItemNeighborType;
 
     typedef izenelib::sdb::unordered_sdb_tc<
         ItemType,
@@ -65,7 +67,7 @@ private:
         > NeighborSDBType;
     typedef izenelib::sdb::SDBCursorIterator<NeighborSDBType > NeighborSDBIterator;
 
-    typedef std::vector<ItemNeighborType > NeighborsType;
+    typedef std::vector<ItemNeighborType> NeighborsType;
 
 public:
     SimilarityMatrix(
@@ -282,6 +284,15 @@ public:
         }
     }
 
+    void print(std::ostream& ostream) const
+    {
+        const std::size_t neighborSize = sizeof(ItemMeasurePair) * topK_ * neighbors_.size() +
+                                         sizeof(bool) * dirtyNeighbors_.size() / 8;
+
+        ostream << "TopNeighbor[" << neighborSize
+                << "], Similarity " << store_;
+    }
+
 private:
     void loadAllNeighbors()
     {
@@ -310,7 +321,7 @@ private:
     MatrixDBType store_;
     NeighborSDBType neighbor_store_;
     NeighborsType neighbors_;
-    size_t topK_;
+    const size_t topK_;
     ItemType max_item_;
     izenelib::util::ReadWriteLock neighbor_lock_;
     /**
@@ -319,6 +330,16 @@ private:
      */
     std::vector<bool> dirtyNeighbors_;
 };
+
+template<typename ItemType, typename MeasureType>
+std::ostream& operator<<(
+    std::ostream& out,
+    const SimilarityMatrix<ItemType, MeasureType>& simMatrix
+)
+{
+    simMatrix.print(out);
+    return out;
+}
 
 NS_IDMLIB_RESYS_END
 
