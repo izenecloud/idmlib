@@ -92,7 +92,8 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
             la::ChineseAnalyzer* pch = dynamic_cast<la::ChineseAnalyzer*>(cma_analyzer.get());
             pch->setCaseSensitive(config.ema_config.case_sensitive, false);
             pch->setExtractSpecialChar(false, false);
-            pch->setAnalysisType( config.cma_config.type);
+            pch->setAnalysisType(config.cma_config.type);
+            pch->setAnalysisOption(la::ChineseAnalyzer::mergeAlphaDigit, true);
             pch->setLabelMode();
             pch->setRemoveStopwords(config.cma_config.remove_stopwords);
         }
