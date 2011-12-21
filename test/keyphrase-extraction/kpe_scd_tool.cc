@@ -116,7 +116,7 @@ int main(int ac, char** av)
       directory_iterator kItrEnd;
       for (directory_iterator itr(scd_path); itr != kItrEnd; ++itr)
       {
-          std::string file_name = itr->path().filename();
+          std::string file_name = itr->path().filename().string();
           if( exclude_map.find(file_name) )
           {
             std::cout<<file_name<<" in exclude list."<<std::endl;
@@ -303,7 +303,7 @@ int main(int ac, char** av)
   for(uint32_t i=0;i<scdfile_list.size();i++)
   {
     boost::filesystem::path p(scdfile_list[i]);
-    ofs<<p.filename()<<std::endl;
+    ofs<<p.filename().string()<<std::endl;
   }
   ofs.close();
   delete kpe;

@@ -211,7 +211,7 @@ int main(int ac, char** av)
       directory_iterator kItrEnd;
       for (directory_iterator itr(scd_path); itr != kItrEnd; ++itr)
       {
-          std::string file_name = itr->path().filename();
+          std::string file_name = itr->path().filename().string();
           if (izenelib::util::ScdParser::checkSCDFormat(file_name) )
           {
             izenelib::util::SCD_TYPE scd_type = izenelib::util::ScdParser::checkSCDType(file_name);

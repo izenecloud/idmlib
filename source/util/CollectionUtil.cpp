@@ -72,7 +72,7 @@ bool CollectionProcessor::getScdFileList(const std::string& scdDir, std::vector<
         directory_iterator iterEnd;
         for (directory_iterator iter(scdDir); iter != iterEnd; iter ++)
         {
-            std::string file_name = iter->path().filename();
+            std::string file_name = iter->path().filename().string();
             //std::cout << file_name << endl;
 
             if (ScdParser::checkSCDFormat(file_name) )

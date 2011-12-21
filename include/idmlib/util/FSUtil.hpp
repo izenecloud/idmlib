@@ -71,7 +71,7 @@ NS_IDMLIB_UTIL_BEGIN
             
             static void copy(const std::string& from, const std::string& to)
             {
-                izenelib::util::recursive_copy_directory(from, to);
+                izenelib::util::recursive_copy_directory(path(from),path(to));
             }
             
             static bool exists(const std::string& path)

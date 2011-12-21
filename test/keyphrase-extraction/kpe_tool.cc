@@ -31,7 +31,7 @@ int main(int ac, char** av)
   {
     if ( is_regular(itr->status()) )
     {
-      std::ifstream ifs( itr->path().file_string().c_str() );
+      std::ifstream ifs( itr->path().string().c_str() );
       std::string content = "";
       std::string line;
       while ( getline ( ifs,line ) )
