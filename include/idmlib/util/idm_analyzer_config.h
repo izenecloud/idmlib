@@ -44,6 +44,7 @@ class CMAConfig
         la::ChineseAnalyzer::ChineseAnalysisType type;
         bool remove_stopwords;
         bool noun_only;
+        bool merge_alpha_digit;
 };
 
 class JMAConfig
@@ -80,6 +81,7 @@ class IDMAnalyzerConfig
       config.cma_config.type = la::ChineseAnalyzer::maximum_match;
       config.cma_config.remove_stopwords = false;
       config.cma_config.noun_only = false;
+      config.cma_config.merge_alpha_digit = false;
       if( config.cma_config.path=="" )
       {
           config.cma_config.use_char = true;
@@ -121,6 +123,7 @@ class IDMAnalyzerConfig
       config.cma_config.type = la::ChineseAnalyzer::maximum_match;
       config.cma_config.remove_stopwords = false;
       config.cma_config.noun_only = false;
+      config.cma_config.merge_alpha_digit = false;
       if( config.cma_config.path=="" )
       {
           config.cma_config.use_char = true;

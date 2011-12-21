@@ -166,7 +166,14 @@ public:
     
     void RemoveDoc(const DocIdType& docid)
     {
-        //TODO
+        GroupIdType* gid = docid_group_.find(docid);
+        if ( gid != NULL )
+        {
+            docid_group_.del(docid);
+            if(*gid>=group_info_.size()) return;
+            std::vector<DocIdType>& docid_list = group_info_[*gid];
+            VectorRemove_(docid_list, docid);
+        }
     }
 
     bool IsSameGroup(const DocIdType& docid1, const DocIdType& docid2)
@@ -229,6 +236,12 @@ private:
                 docid_group_.insert(group_info_[group_id][i], group_id);
             }
         }
+    }
+    
+    template <typename T>
+    static void VectorRemove_(std::vector<T>& vec, const T& value)
+    {
+        vec.erase( std::remove(vec.begin(), vec.end(), value),vec.end());
     }
 
 private:
