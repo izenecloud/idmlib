@@ -7,7 +7,9 @@
 #include <idmlib/resys/ItemRescorer.h>
 #include <idmlib/resys/RecommendItem.h>
 #include <idmlib/resys/ItemCoVisitation.h>
-#include <idmlib/resys/similarity/SimilarityMatrix.h>
+#include <idmlib/resys/SimilarityNeighbor.h>
+
+#include <am/matrix/matrix_db.h>
 
 #include <vector>
 #include <set>
@@ -18,6 +20,23 @@ NS_IDMLIB_RESYS_BEGIN
 
 class IncrementalItemCF : public ItemCF
 {
+private:
+    typedef ItemCoVisitation<CoVisitFreq> CoVisitation;
+    CoVisitation covisitation_;
+
+    typedef CoVisitation::MatrixType VisitMatrix;
+    typedef VisitMatrix::row_type VisitRow;
+    VisitMatrix& visitMatrix_;
+
+    typedef izenelib::am::MatrixDB<uint32_t, float> SimMatrix;
+    typedef SimMatrix::row_type SimRow;
+    SimMatrix simMatrix_;
+
+    typedef SimilarityNeighbor<uint32_t, float> SimNeighbor;
+    SimNeighbor simNeighbor_;
+
+    friend class ItemCFTest;
+
 public:
     IncrementalItemCF(
         const std::string& covisit_path,
@@ -26,11 +45,10 @@ public:
         size_t similarity_row_cache_size,
         const std::string& item_neighbor_path,
         size_t topK
-        );
+    );
 
     ~IncrementalItemCF();
 
-public:
     /**
      * Update covisist and similarity matrix.
      * @param oldItems the items visited before
@@ -59,7 +77,7 @@ public:
 
     /**
      * Rebuild the whole similarity matrix in batch mode.
-     * For each row in @c covisitation_, to calculate:
+     * For each row in @c visitMatrix_, to calculate:
      * 1. the similarity value for each column
      * 2. the top K nieghbors for the row
      */
@@ -101,9 +119,6 @@ public:
     void print(std::ostream& ostream) const;
 
 private:
-    typedef ItemCoVisitation<CoVisitFreq>::RowType CoVisitRow;
-    typedef SimilarityMatrix<uint32_t,float>::RowType SimRow;
-
     /**
      * Update @p row in similarity matrix,
      * the similarity value is calculated based on covisit value @p coVisitRow.
@@ -116,7 +131,7 @@ private:
      */
     void updateSimRow_(
         uint32_t row,
-        const CoVisitRow& coVisitRow,
+        const VisitRow& coVisitRow,
         bool isUpdateCol,
         const std::set<uint32_t>& rowSet,
         std::set<uint32_t>& colSet
@@ -127,22 +142,6 @@ private:
      * @param rows the row numbers to update
      */
     void updateSimMatrix_(const std::list<uint32_t>& rows);
-
-    /**
-     * Get the @p items on @p row.
-     * @param row the row id
-     * @param items store the items
-     */
-    void getRowItems_(
-        uint32_t row,
-        std::set<uint32_t>& items
-    );
-
-private:
-    ItemCoVisitation<CoVisitFreq> covisitation_;
-    SimilarityMatrix<uint32_t,float> similarity_;
-
-    friend class ItemCFTest;
 };
 
 std::ostream& operator<<(std::ostream& out, const IncrementalItemCF& increItemCF);

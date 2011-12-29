@@ -9,11 +9,9 @@
 
 #include <am/matrix/matrix_db.h>
 
-#include <boost/shared_ptr.hpp>
 #include <string>
 #include <vector>
 #include <list>
-#include <iostream>
 
 using namespace std;
 
@@ -22,11 +20,9 @@ NS_IDMLIB_RESYS_BEGIN
 template<typename CoVisitation>
 class ItemCoVisitation
 {
-    typedef izenelib::am::MatrixDB<ItemType, CoVisitation > MatrixDBType;
-
 public:
-    typedef typename MatrixDBType::row_type RowType;
-    typedef typename MatrixDBType::iterator iterator; // first is ItemType, second is RowType
+    typedef izenelib::am::MatrixDB<ItemType, CoVisitation> MatrixType;
+    typedef typename MatrixType::row_type RowType;
 
     ItemCoVisitation(
         const std::string& homePath,
@@ -77,39 +73,14 @@ public:
         func.getResult(results);
     }
 
-    uint32_t coeff(ItemType row, ItemType col)
-    {
-        return db_.elem(row,col).freq;
-    }
-
-    /**
-     * return the items in @p row.
-     * @param row the row number
-     * @return the row items
-     */
-    boost::shared_ptr<const RowType> rowItems(ItemType row)
-    {
-        return db_.row(row);
-    }
-
     void flush()
     {
         db_.flush();
     }
 
-    void print(std::ostream& ostream) const
+    MatrixType& matrix()
     {
-        ostream << "CoVisit " << db_;
-    }
-
-    iterator begin()
-    {
-        return db_.begin();
-    }
-
-    iterator end()
-    {
-        return db_.end();
+        return db_;
     }
 
 private:
@@ -128,18 +99,8 @@ private:
     }
 
 private:
-    MatrixDBType db_;
+    MatrixType db_;
 };
-
-template<typename CoVisitation>
-std::ostream& operator<<(
-    std::ostream& out,
-    const ItemCoVisitation<CoVisitation>& covisit
-)
-{
-    covisit.print(out);
-    return out;
-}
 
 NS_IDMLIB_RESYS_END
 

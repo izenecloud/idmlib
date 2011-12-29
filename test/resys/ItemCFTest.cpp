@@ -57,7 +57,7 @@ void ItemCFTest::checkVisit(
 
     updateGoldVisitMatrix_(oldItems, newItems);
 
-    visitMatrix_->visit(oldItems, newItems);
+    covisitation_->visit(oldItems, newItems);
 
     checkVisitMatrix();
 }
@@ -94,8 +94,8 @@ void ItemCFTest::checkVisitMatrix()
         for (int j=0; j<ITEM_NUM; ++j)
         {
             BOOST_TEST_MESSAGE("check visit coeff [" << i << "][" << j << "]: " << goldVisitMatrix_[i][j]);
-            BOOST_CHECK_EQUAL(static_cast<int>(visitMatrix_->coeff(i, j)),
-                              goldVisitMatrix_[i][j]);
+            int freq = covisitation_->matrix().elem(i, j).freq;
+            BOOST_CHECK_EQUAL(freq, goldVisitMatrix_[i][j]);
         }
     }
 }
@@ -112,7 +112,7 @@ void ItemCFTest::checkCoVisitResult_(uint32_t inputItem)
 {
     // get covisit items
     std::vector<ItemType> resultVec;
-    visitMatrix_->getCoVisitation(ITEM_NUM, inputItem, resultVec);
+    covisitation_->getCoVisitation(ITEM_NUM, inputItem, resultVec);
 
     // check freq in descreasing order
     std::vector<int> goldVec(goldVisitMatrix_[inputItem]);
@@ -356,7 +356,7 @@ void ItemCFTest::checkSimMatrix()
         for (int j=0; j<ITEM_NUM; ++j)
         {
             BOOST_TEST_MESSAGE("check similarity coeff [" << i << "][" << j << "]: " << goldSimMatrix_[i][j]);
-            BOOST_CHECK_CLOSE(simMatrix_->coeff(i, j), goldSimMatrix_[i][j], 0.000001);
+            BOOST_CHECK_CLOSE(simMatrix_->elem(i, j), goldSimMatrix_[i][j], 0.000001);
         }
     }
 }

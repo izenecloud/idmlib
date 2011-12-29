@@ -19,12 +19,12 @@ NS_IDMLIB_RESYS_BEGIN
 class ItemCFTest
 {
 public:
-    typedef ItemCoVisitation<CoVisitFreq> VisitMatrix;
-    typedef SimilarityMatrix<uint32_t,float> SimMatrix;
+    typedef ItemCoVisitation<CoVisitFreq> CoVisitation;
+    typedef izenelib::am::MatrixDB<uint32_t,float> SimMatrix;
 
     ItemCFTest()
     : cfManager_(NULL)
-    , visitMatrix_(NULL)
+    , covisitation_(NULL)
     , simMatrix_(NULL)
     , goldVisitMatrix_(ITEM_NUM, std::vector<int>(ITEM_NUM))
     , goldSimMatrix_(ITEM_NUM, std::vector<float>(ITEM_NUM))
@@ -33,13 +33,13 @@ public:
     void setCFManager(IncrementalItemCF* cfManager)
     {
         cfManager_ = cfManager;
-        visitMatrix_ = &cfManager_->covisitation_;
-        simMatrix_ = &cfManager_->similarity_;
+        covisitation_ = &cfManager->covisitation_;
+        simMatrix_ = &cfManager_->simMatrix_;
     }
 
-    void setVisitMatrix(VisitMatrix* visitMatrix)
+    void setCoVisitation(CoVisitation* covisit)
     {
-        visitMatrix_ = visitMatrix;
+        covisitation_ = covisit;
     }
 
     enum {
@@ -78,7 +78,7 @@ public:
     );
 
     /**
-     * Compare each value in @c visitMatrix_ and @c goldVisitMatrix_.
+     * Compare each value in @c covisitation_ and @c goldVisitMatrix_.
      */
     void checkVisitMatrix();
 
@@ -144,7 +144,7 @@ private:
 
 private:
     IncrementalItemCF* cfManager_;
-    VisitMatrix* visitMatrix_;
+    CoVisitation* covisitation_;
     SimMatrix* simMatrix_;
 
     std::vector<std::vector<int> > goldVisitMatrix_;

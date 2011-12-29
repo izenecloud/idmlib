@@ -80,8 +80,8 @@ BOOST_AUTO_TEST_CASE(smokeTest)
 
     ItemCFTest itemCFTest;
     {
-        ItemCFTest::VisitMatrix visitMatrix(covisitPath.string()+"/visitdb");
-        itemCFTest.setVisitMatrix(&visitMatrix);
+        ItemCFTest::CoVisitation covisit(covisitPath.string()+"/visitdb");
+        itemCFTest.setCoVisitation(&covisit);
 
         itemCFTest.checkVisit("", "1 2 3");
         itemCFTest.checkCoVisitResult();
@@ -91,8 +91,8 @@ BOOST_AUTO_TEST_CASE(smokeTest)
     }
 
     {
-        ItemCFTest::VisitMatrix visitMatrix(covisitPath.string()+"/visitdb");
-        itemCFTest.setVisitMatrix(&visitMatrix);
+        ItemCFTest::CoVisitation covisit(covisitPath.string()+"/visitdb");
+        itemCFTest.setCoVisitation(&covisit);
 
         itemCFTest.checkCoVisitResult();
 
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(largeTest)
 
     int ORDERS = 5000;
 
-    ItemCFTest::VisitMatrix visitMatrix(covisitPath.string()+"/visitdb",10*1024*1024);
+    ItemCFTest::CoVisitation covisit(covisitPath.string()+"/visitdb",10*1024*1024);
 
     ClockTimer t;
 
@@ -128,12 +128,12 @@ BOOST_AUTO_TEST_CASE(largeTest)
         {
             std::cout << "orders: " << i
                       << ", elapsed time: " << t.elapsed() << ", "
-                      << visitMatrix << std::endl;
+                      << covisit.matrix() << std::endl;
         }
         std::list<uint32_t> oldItems;
         std::list<uint32_t> newItems;
         generators.genItems(oldItems,newItems);
-        visitMatrix.visit(oldItems, newItems);
+        covisit.visit(oldItems, newItems);
     }
 }
 
