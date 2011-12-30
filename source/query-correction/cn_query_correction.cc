@@ -7,11 +7,11 @@ using namespace idmlib::qc;
 
 #define CN_QC_UNIGRAM
 
-#define CN_QC_DEBUG
+//#define CN_QC_DEBUG
 
-// #define CN_QC_DEBUG_DETAIL
+//#define CN_QC_DEBUG_DETAIL
 
-// #define VITERBI_DEBUG
+//#define VITERBI_DEBUG
 
 namespace {
 
