@@ -67,6 +67,11 @@ FILE(GLOB_RECURSE topicmodels_SRC
   "topic-models/*.c"
 )
 
+FILE(GLOB_RECURSE  lshkit_SRCS 
+  "lshkit/*.cpp"
+  "lshkit/*.c"
+)
+
 ADD_LIBRARY(idmlib
   ${keyphrase_extraction_SRC}
   ${duplicate-detection_SRC}
@@ -83,6 +88,7 @@ ADD_LIBRARY(idmlib
   ${tl_SRC}
   ${resys_SRC}
   ${topicmodels_SRC}
+  ${lshkit_SRCS} 
 )
 
 INSTALL(TARGETS idmlib
