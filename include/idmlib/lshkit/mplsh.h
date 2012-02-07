@@ -186,12 +186,12 @@ public:
     }
 };
 
-extern ProbeSequenceTemplates __probeSequenceTemplates;
 
 /// Multi-Probe LSH class.
 class MultiProbeLsh: public RepeatHash<GaussianLsh> 
 {
     unsigned H_;
+    ProbeSequenceTemplates __probeSequenceTemplates;
 public:
     typedef RepeatHash<GaussianLsh> Super;
     typedef Super::Domain Domain;
@@ -220,7 +220,7 @@ public:
         }
     };
 
-    MultiProbeLsh () {}
+    MultiProbeLsh ():__probeSequenceTemplates(Probe::MAX_M, Probe::MAX_T){}
 
     template <typename RNG>
     void reset(const Parameter &param, RNG &rng)

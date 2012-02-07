@@ -77,6 +77,7 @@ static inline double p_col_helper (double x, double k)
 
 double MultiProbeLshModel::recall (double x) const
 {
+/*
     double x2 = W_ / x;
     double p = col_helper(x2);
 
@@ -108,6 +109,8 @@ double MultiProbeLshModel::recall (double x) const
         result += r;
     }
     return 1.0 - std::exp(std::log(1.0 - result) * L_);
+*/
+    return 0;
 }
 
 struct __MpLshMdlHlpr

@@ -23,7 +23,6 @@
 
 namespace lshkit
 {
-    ProbeSequenceTemplates __probeSequenceTemplates(Probe::MAX_M, Probe::MAX_T);
 
     void GenExpectScores (ProbeSequence &seq, unsigned M)
     {
@@ -106,7 +105,7 @@ namespace lshkit
         }
         std::sort(scores.begin(), scores.end());
 
-        ProbeSequence &tmpl = __probeSequenceTemplates[lsh_.size()];
+        const ProbeSequence &tmpl = __probeSequenceTemplates[lsh_.size()];
 
         seq.clear();
         for (ProbeSequence::const_iterator it = tmpl.begin();
