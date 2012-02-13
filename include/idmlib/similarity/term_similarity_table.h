@@ -1,11 +1,11 @@
 #ifndef IDMLIB_SIM_TERMSIMILARITYTABLE_H_
 #define IDMLIB_SIM_TERMSIMILARITYTABLE_H_
 
-
 #include <string>
 #include <iostream>
 #include <idmlib/idm_types.h>
 #include <util/file_object.h>
+
 
 NS_IDMLIB_SIM_BEGIN
 
@@ -16,27 +16,27 @@ public:
   typedef _IdType IdType;
   typedef std::vector<IdType> ValueType;
   typedef izenelib::util::FileObject<std::vector<ValueType> > Container;
-  
+
   TermSimilarityTable(const std::string& path)
   :storage_(new Container(path))
   {
   }
-  
+
   ~TermSimilarityTable()
   {
     delete storage_;
   }
-  
+
   bool Open()
   {
     return storage_->Load();
   }
-  
+
   bool Flush()
   {
     return storage_->Save();
   }
-  
+
   void ResizeIf(IdType max)
   {
     if(storage_->value.size()<max)
@@ -44,7 +44,7 @@ public:
       storage_->value.resize(max);
     }
   }
-  
+
   bool Update(IdType id, const ValueType& value)
   {
     if(id==0) return false;
@@ -55,7 +55,7 @@ public:
     storage_->value[id-1] = value;
     return true;
   }
-  
+
   bool Get(IdType id, ValueType& value)
   {
     if(id==0) return false;
@@ -66,15 +66,13 @@ public:
     }
     return true;
   }
-  
 
- private: 
+
+ private:
   Container* storage_;
 };
 
-   
 NS_IDMLIB_SIM_END
 
 
-
-#endif 
+#endif

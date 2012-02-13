@@ -1,12 +1,11 @@
-
 #ifndef IDMLIB_DD_CONSTANTS_H_
 #define IDMLIB_DD_CONSTANTS_H_
 
 #include <idmlib/idm_types.h>
-#include <string>
-#include <vector>
+
 
 NS_IDMLIB_DD_BEGIN
+
 class DdConstants
 {
 public:

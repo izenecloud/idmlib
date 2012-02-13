@@ -4,6 +4,7 @@
    @date 2009.11.24
  */
 #include <idmlib/duplicate-detection/charikar_algo.h>
+#include <idmlib/duplicate-detection/IntegerHashFunction.h>
 #include <util/hashFunction.h>
 
 using namespace idmlib::dd;
@@ -16,8 +17,8 @@ Description: CharikarAlgorithm implements random projection based near-duplicate
                Evaluation of Algorithms"
              Given a document, represented as a sequence of token strings,
                a document signature is nBit vector where all of the sum
-               of random projections of document tokens are later cast to etiher
-               1 (when positive) and 0 (when negative).
+               of random projections of document tokens are later cast to either
+               1 (when positive) or 0 (when negative).
              Given the two document signature objects, the number of
                agreed-on bits represents the cosine similarity between the two
                vectors and any number of bit matches higher than a threshold
@@ -28,46 +29,41 @@ History    : Yeogirl Yun                                      1/22/07
                Initial Revision
 ********************************************************************************/
 
-void CharikarAlgo::
-generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray)
+void CharikarAlgo::generate_document_signature(
+        const std::vector<std::string>& docTokens,
+        std::vector<uint64_t>& signature)
 {
     std::vector<double> weights(docTokens.size(), 1.0);
-    generate_document_signature(docTokens, weights, bitArray);
+    generate_document_signature(docTokens, weights, signature);
 }
 
-void CharikarAlgo::generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, izenelib::util::CBitArray& bitArray)
+void CharikarAlgo::generate_document_signature(
+        const std::vector<std::string>& docTokens,
+        const std::vector<double>& weights,
+        std::vector<uint64_t>& signature)
 {
-    
-
-//     RandProj rpSum(nDimensions);
-//     for (unsigned int j = 0; j < docTokens.size(); j++)
-//     {
-//         const RandProj& rp = rpEngine.get_random_projection(docTokens[j]);
-//         rpSum += rp;
-//     }
-// 
-//     rpSum.generate_bitarray(bitArray);
-    
     std::vector<double> vec(num_dimensions(), 0.0);
-    double va[] = {-1.0, 1.0};
-    for(uint32_t i=0;i<docTokens.size();i++)
+    static const double va[] = {-1.0, 1.0};
+    for (uint32_t i = 0; i < docTokens.size(); i++)
     {
-        uint64_t key= izenelib::util::HashFunction<std::string>::generateHash64(docTokens[i]);
-        for(uint32_t n=0;n<num_dimensions();n++)
+        uint64_t key = izenelib::util::HashFunction<std::string>::generateHash64(docTokens[i]);
+        for (uint32_t n = 0, l = 0; n < num_dimensions(); n++, l++)
         {
+            if (l == 64)
+            {
+                key = int_hash::hash64shift(key);
+                l = 0;
+            }
             double v = va[key & 0x01] * weights[i];
             vec[n] += v;
             key >>= 1;
         }
     }
-    bitArray.SetLength(num_dimensions()/8);
-    bitArray.ResetAll();
-    for (uint32_t i = 0; i<vec.size(); i++)
+
+    signature.resize((vec.size() + 63) / 64);
+    for (uint32_t i = 0; i < vec.size(); i++)
     {
-        if (vec[i] >= 0)
-        {
-            bitArray.SetAt(i);
-        }
+        uint32_t j = i >> 6;
+        if (vec[i] >= 0) signature[j] |= uint64_t(1) << (i & 0x3f);
     }
 }
-

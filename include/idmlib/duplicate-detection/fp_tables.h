@@ -1,7 +1,5 @@
-
 #ifndef IDMLIB_DD_FPTABLES_H_
 #define IDMLIB_DD_FPTABLES_H_
-
 
 #include <idmlib/idm_types.h>
 #include <string>
@@ -13,14 +11,16 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
+
 NS_IDMLIB_DD_BEGIN
+
 class FpTables
 {
 public:
-    void GenTables(uint32_t f, uint8_t k, uint8_t partition, std::vector<FpTable>& table_list);
+    void GenTables(uint32_t f, uint8_t k, uint8_t partition, std::vector<FpTable>& table_list) const;
 
 private:
-    void transform_(std::vector<uint8_t >& vec, uint32_t index, uint32_t size);
+    bool permutate_(std::vector<uint8_t>& vec, uint32_t index, uint32_t size) const;
 };
 
 NS_IDMLIB_DD_END

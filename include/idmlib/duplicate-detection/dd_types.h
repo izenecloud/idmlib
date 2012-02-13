@@ -5,12 +5,14 @@
 #include <vector>
 
 #include <idmlib/idm_types.h>
+
+
 NS_IDMLIB_DD_BEGIN
 
 struct NullType
 {
-    template<class Archive> 
-    void serialize(Archive& ar, const unsigned int version) 
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version)
     {
     }
 

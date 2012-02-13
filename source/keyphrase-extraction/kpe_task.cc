@@ -112,8 +112,8 @@ bool KpeTask::Compute_()
     std::string ngram_path = ngram_writer_->GetPath();
     delete ngram_writer_;
     ngram_writer_ = NULL;
-    
-    
+
+
     //set thresholds
     uint32_t docCount = GetDocCount();
     std::cout<<"[KPE] running for "<<docCount<<" docs, ngram count: "<<ngram_count<<std::endl;
@@ -125,13 +125,13 @@ bool KpeTask::Compute_()
         {
             min_freq_threshold_ = (uint32_t)std::floor( std::log( (double)docCount )/2 );
             if( min_freq_threshold_ < 3 ) min_freq_threshold_ = 3;
-            
+
             min_df_threshold_ = (uint32_t)std::floor( std::log( (double)docCount )/4 );
             if( min_df_threshold_ < 2 ) min_df_threshold_ = 2;
         }
     }
-    
-    
+
+
 //       if(!tracing_.empty())
 //       {
 //         typename TermListSSFType::ReaderType fireader(inputItemPath);
@@ -173,12 +173,12 @@ bool KpeTask::Compute_()
 //         fireader.close();
 //       }
     MEMLOG("[KPE3] finished");
-    
+
     if(!ProcessNgram_(ngram_path)) return false;
     if(!ProcessFoundKp2_()) return false;
     return true;
-    
-    
+
+
 }
 
 bool KpeTask::ProcessFoundKp_()
@@ -203,7 +203,7 @@ bool KpeTask::ProcessFoundKp_()
 //     {
 //         kp_text_list.push_back(item.text);
 //         uint32_t kpid = kp_text_list.size();
-//         
+//
 //         double idf = std::log( GetDocCount()/(double)item.docitem_list.size() );
 //         for(uint32_t i=0;i<item.docitem_list.size();i++)
 //         {
@@ -218,7 +218,7 @@ bool KpeTask::ProcessFoundKp_()
 //     kp_text_list.push_back(StringType("", StringType::UTF_8));
 //     kp_freq_list.resize(kp_text_list.size(), 0);
 //     izenelib::am::ssf::Sorter<uint32_t, uint32_t>::Sort(dk_tmp_writer.GetPath());
-//     
+//
 //     boost::unordered_map<std::string, uint32_t> term_id_map;
 //     boost::unordered_map<std::string, uint32_t>::iterator term_id_map_it;
 //     boost::unordered_map<uint32_t, uint32_t> df_map;
@@ -239,8 +239,8 @@ bool KpeTask::ProcessFoundKp_()
 //             std::string content_str = title_list[1];
 //             StringType title(title_str, StringType::UTF_8);
 //             StringType content(content_str, StringType::UTF_8);
-//             
-// 
+//
+//
 // //             std::cout<<"[docid] "<<docid<<std::endl;
 // //             std::cout<<"[title] "<<title_str<<std::endl;
 // //             std::cout<<"[content] "<<content_str<<std::endl;
@@ -248,7 +248,7 @@ bool KpeTask::ProcessFoundKp_()
 //             cma_analyzer_->GetFilteredStringList(title, title_str_list);
 //             std::vector<StringType> content_str_list;
 //             cma_analyzer_->GetFilteredStringList(content, content_str_list);
-//             
+//
 //             for(uint32_t i=0;i<title_str_list.size();i++)
 //             {
 //                 const StringType& term = title_str_list[i];
@@ -273,7 +273,7 @@ bool KpeTask::ProcessFoundKp_()
 //             }
 //             boost::unordered_map<uint32_t, bool> df_exist;
 //             boost::unordered_map<uint32_t, bool>::iterator df_exist_it;
-//             
+//
 //             std::vector<uint32_t> content_id_list;
 //             for(uint32_t i=0;i<content_str_list.size();i++)
 //             {
@@ -314,11 +314,11 @@ bool KpeTask::ProcessFoundKp_()
 //                 }
 //             }
 //         }
-//         
+//
 //     }
-//     
-//     
-//     
+//
+//
+//
 //     izenelib::am::ssf::Reader<> reader1(title_file);
 //     reader1.Open();
 //     izenelib::am::ssf::Reader<> reader2(dk_tmp_writer.GetPath());
@@ -328,9 +328,9 @@ bool KpeTask::ProcessFoundKp_()
 //     uint32_t docid = 0;
 //     std::vector<std::string> title_list;
 //     std::vector<std::pair<uint32_t, double> > kp_list;
-//     
+//
 //     typedef izenelib::util::second_greater<std::pair<uint32_t, double> > greater_than;
-//     
+//
 //     while( merger.Next( docid, title_list, kp_list) )
 //     {
 //         if(title_list.size()!=2)
@@ -342,12 +342,12 @@ bool KpeTask::ProcessFoundKp_()
 //         std::string content_str = title_list[1];
 //         StringType title(title_str, StringType::UTF_8);
 //         StringType content(content_str, StringType::UTF_8);
-// 
+//
 //         std::vector<StringType> title_str_list;
 //         cma_analyzer_->GetFilteredStringList(title, title_str_list);
 //         std::vector<StringType> content_str_list;
 //         cma_analyzer_->GetFilteredStringList(content, content_str_list);
-//         
+//
 // //         {
 // //             std::cout<<"[docid "<<docid<<"] ";
 // //             for(uint32_t i=0;i<str_list.size();i++)
@@ -358,8 +358,8 @@ bool KpeTask::ProcessFoundKp_()
 // //             }
 // //             std::cout<<std::endl;
 // //         }
-//         
-//         
+//
+//
 //         std::sort(kp_list.begin(), kp_list.end(), greater_than());
 //         uint32_t count = title_str_list.size()>kp_list.size()?kp_list.size():title_str_list.size();
 //         if(count==0) continue;
@@ -382,7 +382,7 @@ bool KpeTask::ProcessFoundKp_()
 //             doc_kp_list.push_back(kpid);
 //         }
 //         dk_callback_(docid, doc_kp_list);
-//         
+//
 //         izenelib::am::rde_hash<uint32_t, uint32_t> in_doc_count;
 //         std::vector<uint32_t> content_id_list;
 //         std::vector<double> content_id_score_list;
@@ -405,7 +405,7 @@ bool KpeTask::ProcessFoundKp_()
 //                 *p_count = (*p_count)+1;
 //             }
 //         }
-//         
+//
 //         //output to other for further process after giza
 //         other_ofs<<docid<<std::endl;
 //         for(uint32_t i=0;i<kp_list.size();i++)
@@ -427,7 +427,7 @@ bool KpeTask::ProcessFoundKp_()
 //     }
 //     reader1.Close();
 //     reader2.Close();
-// 
+//
 //     for(uint32_t i=0;i<kp_text_list.size();i++)
 //     {
 //         kp_callback_(i+1, kp_text_list[i], kp_freq_list[i]);
@@ -457,7 +457,7 @@ bool KpeTask::ProcessFoundKp2_()
     {
         kp_text_list.push_back(item.text);
         uint32_t kpid = kp_text_list.size();
-        
+
         double idf = std::log( GetDocCount()/(double)item.docitem_list.size() );
         for(uint32_t i=0;i<item.docitem_list.size();i++)
         {
@@ -472,34 +472,34 @@ bool KpeTask::ProcessFoundKp2_()
 //     kp_text_list.push_back(StringType("", StringType::UTF_8));
 //     kp_freq_list.resize(kp_text_list.size(), 0);
     izenelib::am::ssf::Sorter<uint32_t, uint32_t>::Sort(dk_tmp_writer.GetPath());
-    
+
     std::vector<idmlib::tl::IbmModel1::SentencePair> model_corpus;
     uint32_t kp_num = kp_text_list.size();
     boost::unordered_map<uint32_t, uint32_t> df_map;
-    
+
     izenelib::am::ssf::Writer<> doc_term_writer(dir_+"/doc_term_writer");
     doc_term_writer.Open();
-    
+
     {
         izenelib::am::ssf::Reader<> reader1(title_file);
         reader1.Open();
         izenelib::am::ssf::Reader<> reader2(dk_tmp_writer.GetPath());
         reader2.Open();
-        
+
         izenelib::am::ssf::Merger<uint32_t, uint32_t, std::string, std::pair<uint32_t, double> > merger(&reader1, &reader2);
         uint32_t docid = 0;
         std::vector<std::string> title_list;
         std::vector<std::pair<uint32_t, double> > kp_list;
-        
+
         typedef izenelib::util::second_greater<std::pair<uint32_t, double> > greater_than;
-        
+
         while( merger.Next( docid, title_list, kp_list) )
         {
             if(docid%100==0)
             {
                 std::cout<<"Generating sentence pair on docid "<<docid<<std::endl;
             }
-            
+
             if(title_list.size()!=2)
             {
                 std::cout<<"title list size error "<<title_list.size()<<std::endl;
@@ -514,7 +514,7 @@ bool KpeTask::ProcessFoundKp2_()
             cma_analyzer_->GetFilteredStringList(title, title_str_list);
             std::vector<StringType> content_str_list;
             cma_analyzer_->GetFilteredStringList(content, content_str_list);
-            
+
             //use content and title as refer source
             uint32_t title_weight = 1;
             uint32_t content_weight = 0;
@@ -525,7 +525,7 @@ bool KpeTask::ProcessFoundKp2_()
             sources[0] = &title_str_list;
             sources[1] = &content_str_list;
             boost::unordered_map<uint32_t, uint32_t> in_doc;
-            
+
             for(uint32_t i=0;i<sources.size();i++)
             {
                 std::vector<StringType>& source_str_list = *(sources[i]);
@@ -553,8 +553,8 @@ bool KpeTask::ProcessFoundKp2_()
                     in_doc_it->second += weights[i];
                 }
             }
-            
-            
+
+
             std::vector<std::pair<uint32_t, uint32_t> > doc_id_list;
             boost::unordered_map<uint32_t, uint32_t>::iterator in_doc_it = in_doc.begin();
             while( in_doc_it!=in_doc.end())
@@ -563,7 +563,7 @@ bool KpeTask::ProcessFoundKp2_()
                 ++in_doc_it;
             }
             doc_term_writer.Append(docid, doc_id_list);
-            
+
     //         {
     //             std::cout<<"[docid "<<docid<<"] ";
     //             for(uint32_t i=0;i<str_list.size();i++)
@@ -574,8 +574,8 @@ bool KpeTask::ProcessFoundKp2_()
     //             }
     //             std::cout<<std::endl;
     //         }
-            
-            
+
+
             std::sort(kp_list.begin(), kp_list.end(), greater_than());
             uint32_t count = title_str_list.size()>kp_list.size()?kp_list.size():title_str_list.size();
             if(count==0) continue;
@@ -584,15 +584,15 @@ bool KpeTask::ProcessFoundKp2_()
             idmlib::tl::IbmModel1::SentencePair sent_pair;
             for(uint32_t i=0;i<count;i++)
             {
-                
+
                 sent_pair.first.push_back(kp_list[i].first);
                 const StringType& title_term = title_str_list[i];
                 uint32_t title_term_id = izenelib::util::HashFunction<StringType>::generateHash32(title_term);
                 sent_pair.second.push_back(title_term_id);
             }
-            
+
             model_corpus.push_back(sent_pair);
-            
+
         }
         reader1.Close();
         reader2.Close();
@@ -600,18 +600,18 @@ bool KpeTask::ProcessFoundKp2_()
     doc_term_writer.Close();
     idmlib::tl::IbmModel1 ibm_model1(20);
     boost::unordered_map<std::pair<uint32_t, uint32_t>, double>* prob_map = ibm_model1.Train(kp_num, model_corpus);
-    
+
     {
         izenelib::am::ssf::Reader<> reader1(doc_term_writer.GetPath());
         reader1.Open();
         izenelib::am::ssf::Reader<> reader2(dk_tmp_writer.GetPath());
         reader2.Open();
-        
+
         izenelib::am::ssf::Merger<uint32_t, uint32_t, std::vector<std::pair<uint32_t, uint32_t> >, std::pair<uint32_t, double> > merger(&reader1, &reader2);
         uint32_t docid = 0;
         std::vector<std::vector<std::pair<uint32_t, uint32_t> > > all_term_id_list;
         std::vector<std::pair<uint32_t, double> > kp_list;
-        
+
         double min_score = 4.0;
         uint32_t max_kp_num = 15;
         while( merger.Next( docid, all_term_id_list, kp_list) )
@@ -638,7 +638,7 @@ bool KpeTask::ProcessFoundKp2_()
                     std::pair<uint32_t, uint32_t> key(kpid, term_id);
                     boost::unordered_map<std::pair<uint32_t, uint32_t>, double>::iterator prob_map_it = prob_map->find(key);
                     if(prob_map_it==prob_map->end()) continue;
-                    
+
                     uint32_t df = df_map.find(term_id)->second;
                     double tfidf = std::log( (double)GetDocCount()/df) * tf;
                     score += tfidf*prob_map_it->second;
@@ -655,7 +655,7 @@ bool KpeTask::ProcessFoundKp2_()
             }
             typedef izenelib::util::second_greater<std::pair<DocKpItem, double> > greater_than;
             std::sort(kp_result_list.begin(), kp_result_list.end(), greater_than());
-            
+
             std::vector<std::pair<DocKpItem, double> > post_result_list;
             knowledge_->PostProcess_(kp_result_list, post_result_list);
             uint32_t kp_result_num = std::min((uint32_t)post_result_list.size(), max_kp_num);
@@ -667,8 +667,8 @@ bool KpeTask::ProcessFoundKp2_()
                 final_result.push_back(post_result_list[i].first);
             }
             dk_callback_(docid, final_result);
-            
-            
+
+
         }
         reader1.Close();
         reader2.Close();
@@ -679,7 +679,7 @@ bool KpeTask::ProcessFoundKp2_()
 
 bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
 {
-    
+
     izenelib::am::ssf::Reader<> reader(input_ngram_file);
     if(!reader.Open()) return false;
     uint64_t p=0;
@@ -731,11 +731,11 @@ bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
                 last_ngram.Clear();
                 last_ngram.inc = inc;
                 last_ngram += ngram;
-                
+
             }
         }
-        
-        
+
+
         p++;
         LOG_PRINT2("Suffix", 1000000);
     }
@@ -752,7 +752,7 @@ bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
     std::cout<<"Sorting h2h_writer with "<<h2h_writer.Count()<<std::endl;
     izenelib::am::ssf::Sorter<uint32_t, hash_t>::Sort(h2h_writer.GetPath());
     MEMLOG("[KPE4] finished.");
-    
+
     izenelib::am::ssf::Writer<> hh_writer( dir_+"/hh_writer" );
     hh_writer.Open();
     {
@@ -760,18 +760,18 @@ bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
         reader1.Open();
         izenelib::am::ssf::Reader<> reader2(h2h_writer.GetPath());
         reader2.Open();
-        
+
         izenelib::am::ssf::Merger<uint32_t, hash_t, uint32_t, Hash2HashItem> merger(&reader1, &reader2);
-        
-        
+
+
         hash_t key = 0;
         std::vector<uint32_t> valueList1;
         std::vector<Hash2HashItem> valueList2;
-        
+
         while( merger.Next( key, valueList1, valueList2) )
         {
     //             std::cout<<"[merger] "<<key<<","<<valueList1.size()<<","<<valueList2.size()<<std::endl;
-            
+
             if( valueList1.size() > 1 )
             {
                 //impossible, just a reminder.
@@ -788,11 +788,11 @@ bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
             {
                 count = valueList1[0];
             }
-            
+
             for(uint32_t i=0;i<valueList2.size();i++)
             {
                 hh_writer.Append( valueList2[i].first, Hash2CountItem(count, valueList2[i].second) );
-                
+
             }
         }
         reader1.Close();
@@ -802,7 +802,7 @@ bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
     {
         izenelib::am::ssf::Sorter<uint32_t, uint64_t>::Sort(hh_writer.GetPath());
     }
-    
+
     izenelib::am::ssf::Writer<> hclt_writer( dir_+"/HCLTWRITER" );
     hclt_writer.Open();
     {
@@ -856,7 +856,7 @@ bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
         hh_reader.Close();
     }
     hclt_writer.Close();
-    
+
     {
         double min_logl = 10.0;
         double min_mi = 5.0;
@@ -864,7 +864,7 @@ bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
         reader1.Open();
         izenelib::am::ssf::Reader<> reader2(hclt_writer.GetPath());
         reader2.Open();
-    
+
         izenelib::am::ssf::Merger<uint32_t, hash_t, CandidateItem, HashCountListItem > merger(&reader1, &reader2);
 
         hash_t key = 0;
@@ -897,12 +897,12 @@ bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
             }
 
             const HashCountListItem& hclItem = valueList2[0];
-            
+
             const std::vector<id2count_t>& docItem = hlItem.docitem_list;
             uint32_t f = hlItem.freq;
             const std::vector<id2count_t>& leftTermList = hlItem.lc_list;
             const std::vector<id2count_t>& rightTermList = hlItem.rc_list;
-            
+
             if(termIdList.size()==2 )
             {
                 uint32_t f1 = boost::get<0>(hclItem);
@@ -932,7 +932,7 @@ bool KpeTask::ProcessNgram_(const std::string& input_ngram_file)
                     continue;
                 }
                 double logL = KpeStatistic::LogL(f,f1,f2,n);
-                if( logL>=min_logl && KpeStatistic::LogL(f,f1,f4,n)>=min_logl 
+                if( logL>=min_logl && KpeStatistic::LogL(f,f1,f4,n)>=min_logl
                     && KpeStatistic::LogL(f,f3,f2,n)>=min_logl )
                 {
                     FindKP_( termIdList, docItem, GetScore(f, termIdList.size(),logL) , leftTermList,rightTermList);
@@ -955,7 +955,7 @@ void KpeTask::Init_()
     doc_count_ = 0;
     all_term_count_ = 0;
     boost::filesystem::create_directories(dir_);
-    
+
     if( title_writer_ == NULL )
     {
         title_writer_ = new izenelib::am::ssf::Writer<>(dir_+"/title");
@@ -1028,13 +1028,13 @@ bool KpeTask::AddTerms_(uint32_t docId, const std::vector<idmlib::util::IDMTerm>
                 break;
             }
         }
-        
+
     }
     iBegin = i;
     if( splitVec.size() == 0 ) return false;
     bool bFirstTerm = true;
     bool bLastTerm = true;
-    if( splitVec.size() == 1 ) 
+    if( splitVec.size() == 1 )
     {
         if( splitVec[0].first == true )
         {
@@ -1045,7 +1045,7 @@ bool KpeTask::AddTerms_(uint32_t docId, const std::vector<idmlib::util::IDMTerm>
     {
         bFirstTerm = !splitVec.front().first;
         bLastTerm = !splitVec.back().first;
-        
+
     }
     std::vector<TermInNgram> terms( splitVec.size() );
     for(uint32_t p=_begin;p<_begin+splitVec.size();p++)
@@ -1055,7 +1055,7 @@ bool KpeTask::AddTerms_(uint32_t docId, const std::vector<idmlib::util::IDMTerm>
         id_manager_->Put(terms[_index].id, termList[p].text);
 //             if( !splitVec[_index].first )
 //             {
-//                 
+//
 //             }
     }
     AppendNgram_(docId, terms, bFirstTerm, bLastTerm);
@@ -1069,7 +1069,7 @@ void KpeTask::AppendNgram_(uint32_t docid, const std::vector<TermInNgram>& termL
 {
 //         std::cout<<docId<<"### "<<termList.size()<<" "<<(int)bFirstTerm<<" "<<(int)bLastTerm<<std::endl;
     if( termList.size() == 0 ) return;
-    if( termList.size() == 1 ) 
+    if( termList.size() == 1 )
     {
         if( bFirstTerm && bLastTerm )
         {
@@ -1077,14 +1077,14 @@ void KpeTask::AppendNgram_(uint32_t docid, const std::vector<TermInNgram>& termL
             WriteNgram_(ngram);
 //             if( scorer_->prefixTest(termList) != KPStatus::RETURN)
 //             {
-//                 
+//
 //             }
 //             appendHashItem_(hash_(termList));
             all_term_count_ += 1;
         }
         return;
     }
-    if( termList.size() == 2 && !bFirstTerm && !bLastTerm ) 
+    if( termList.size() == 2 && !bFirstTerm && !bLastTerm )
     {
         return;
     }
@@ -1101,7 +1101,7 @@ void KpeTask::AppendNgram_(uint32_t docid, const std::vector<TermInNgram>& termL
         increase--;
         end -= 1;
     }
-    
+
     for(uint32_t i=start; i<end; i++)
     {
         uint32_t len = std::min(end-i,(uint32_t)(max_phrase_len_+1));
@@ -1113,7 +1113,7 @@ void KpeTask::AppendNgram_(uint32_t docid, const std::vector<TermInNgram>& termL
             ngram.left_term = termList[i-1];
         }
         WriteNgram_(ngram);
-        
+
 //         if(!tracing_.empty())
 //         {
 //             if(VecStarts_(frag, tracing_))
@@ -1126,7 +1126,7 @@ void KpeTask::AppendNgram_(uint32_t docid, const std::vector<TermInNgram>& termL
 //             std::cout<<std::endl;
 //             }
 //         }
-        
+
         //append hash item
 //         for(uint32_t j= i+1; j<= end; j++)
 //         {
@@ -1134,7 +1134,7 @@ void KpeTask::AppendNgram_(uint32_t docid, const std::vector<TermInNgram>& termL
 //             std::vector<uint32_t> ifrag( termList.begin()+i, termList.begin()+j );
 //             appendHashItem_(hash_(ifrag));
 //         }
-        
+
     }
     all_term_count_ += increase;
 }
@@ -1177,9 +1177,9 @@ void KpeTask::WriteNgram_(const Ngram& ngram)
 //     {
 //     pHashWriter_->append(hash_value);
 //     }
-//     
+//
 // }
-// 
+//
 // void KpeTask::ReleaseCachedHashItem_()
 // {
 //     if( cache_size_ > 0 )
@@ -1240,7 +1240,7 @@ bool KpeTask::MakeKPStr_(const std::vector<uint32_t>& termIdList, std::vector<iz
     }
     return true;
 }
-    
+
 bool KpeTask::MakeKPStr_(const std::vector<izenelib::util::UString>& strList, izenelib::util::UString& result)
 {
     if(strList.size()>0)
@@ -1250,10 +1250,10 @@ bool KpeTask::MakeKPStr_(const std::vector<izenelib::util::UString>& strList, iz
         for(std::size_t i=1;i<strList.size();i++)
         {
             if( strList[i].length() == 0 ) return false;
-            if( result.isAlphaChar( result.length()-1 ) 
+            if( result.isAlphaChar( result.length()-1 )
                 && strList[i].isAlphaChar(0) )
             {
-                result.append(izenelib::util::UString(" ", izenelib::util::UString::UTF_8));
+                result.push_back(' ');
             }
             else
             {
@@ -1322,7 +1322,7 @@ void KpeTask::GetCandidate_(const std::vector<NgramInCollection>& data, izenelib
                 {
                     post_order[i] = index_stack.top();
                     ++i;
-                    
+
                     index_stack.pop();
                     depth_stack.pop();
                 }
@@ -1334,12 +1334,12 @@ void KpeTask::GetCandidate_(const std::vector<NgramInCollection>& data, izenelib
         {
             post_order[i] = index_stack.top();
             ++i;
-            
+
             index_stack.pop();
             depth_stack.pop();
         }
     }
-    
+
     std::stack<uint32_t> depth_stack;
     std::stack<uint32_t> freq_stack;
     std::stack<std::vector<id2count_t> > doc_item_stack;
@@ -1392,15 +1392,15 @@ void KpeTask::GetCandidate_(const std::vector<NgramInCollection>& data, izenelib
         //get the suffix term
         TermInNgram suffix_term = termList[depth];
         suffix_term_stack.push(std::make_pair(suffix_term, freq) );
-        
+
         if( termList.size() > max_phrase_len_ ) continue;
-        
+
         std::vector<uint32_t> termIdList(termList.size());
         for(uint32_t i=0;i<termList.size();i++)
         {
             termIdList[i] = termList[i].id;
         }
-        
+
         idmlib::util::accumulateList(docItemList);
         idmlib::util::accumulateList(prefixTermList);
         idmlib::util::accumulateList(suffixTermList);
@@ -1410,7 +1410,7 @@ void KpeTask::GetCandidate_(const std::vector<NgramInCollection>& data, izenelib
             left_termid_list[i].first = prefixTermList[i].first.id;
             left_termid_list[i].second = prefixTermList[i].second;
         }
-        
+
         std::vector<std::pair<uint32_t, uint32_t> > right_termid_list(suffixTermList.size());
         for(uint32_t i=0;i<suffixTermList.size();i++)
         {
@@ -1435,8 +1435,8 @@ void KpeTask::GetCandidate_(const std::vector<NgramInCollection>& data, izenelib
         {
             h2c_writer->Append(hash_id, freq);
         }
-        
-        
+
+
 //         SI lri(termList, freq);
 //         SCI leftLC( prefixTermList);
 //         SCI rightLC( suffixTermList);
@@ -1463,7 +1463,7 @@ void KpeTask::GetCandidate_(const std::vector<NgramInCollection>& data, izenelib
 //         {
 //             status = scorer_->PrefixTest(termIdList);
 //         }
-        
+
         if( status == KPStatus::NON_KP || status == KPStatus::RETURN )
         {
             continue;
@@ -1490,10 +1490,10 @@ void KpeTask::GetCandidate_(const std::vector<NgramInCollection>& data, izenelib
         double test_result = knowledge_->Test(termList, freq, docItemList, GetDocCount(), prefixTermList, suffixTermList);
         if( !test_result ) continue;
 
-        
-        
+
+
         CandidateItem htList(termIdList, docItemList, freq, left_termid_list,right_termid_list );
-        
+
         candidate_writer->Append(hash_id , htList );
 
         if( termIdList.size() >= 2 )
@@ -1547,7 +1547,7 @@ void KpeTask::GetCandidate_(const std::vector<NgramInCollection>& data, izenelib
 //                 }
             }
         }
-        
+
     }
-        
+
 }

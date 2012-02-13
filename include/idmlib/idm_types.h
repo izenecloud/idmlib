@@ -63,4 +63,3 @@ typedef unsigned __int64  uint64_t;
 #define NS_IDMLIB_TL_END }}
 
 #endif
-

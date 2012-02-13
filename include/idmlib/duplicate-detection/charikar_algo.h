@@ -11,8 +11,8 @@
  * Evaluation of Algorithms"
  * Given a document, represented as a sequence of token strings,
  * a document signature is nBit vector where all of the sum
- * of random projections of document tokens are later cast to etiher
- * 1 (when positive) and 0 (when negative).
+ * of random projections of document tokens are later cast to either
+ * 1 (when positive) or 0 (when negative).
  * Given the two document signature objects, the number of
  * agreed-on bits represents the cosine similarity between the two
  * vectors and any number of bit matches higher than a threshold
@@ -24,7 +24,7 @@
 
 #include <idmlib/idm_types.h>
 
-#include <util/CBitArray.h>
+#include <string>
 #include <vector>
 
 
@@ -35,12 +35,12 @@ NS_IDMLIB_DD_BEGIN
  */
 class CharikarAlgo
 {
-
 private:
-
     uint16_t nDimensions; //!< dimensions number
+
 public:
     static const uint16_t DEFAULT_NUM_DIMENSIONS = 64;//!< default threshold value
+
 public:
     /**
      * @brief constructor of CharikarAlgo, initial members
@@ -48,20 +48,23 @@ public:
      * @param nDim dimensions number
      * @param tvalue threshold value
      */
-    CharikarAlgo(uint16_t nDim=CharikarAlgo::DEFAULT_NUM_DIMENSIONS)
-            :nDimensions(nDim){ }
+    CharikarAlgo(uint16_t nDim = DEFAULT_NUM_DIMENSIONS)
+        :nDimensions(nDim)
+    {
+    }
 
     /**
      * @brief disconstructor
      */
     ~CharikarAlgo() {}
+
 public:
     /**
      * @brief get dimensions number
      *
      * @return dimensions number
      */
-    inline uint16_t num_dimensions()
+    inline uint16_t num_dimensions() const
     {
         return nDimensions;
     }
@@ -70,11 +73,11 @@ public:
         * @brief generate signature from a vector
         *
         * @param[in] docTokens input source, a term id array
-        * @param[out] bitArray signature
+        * @param[out] signature generated signature
         */
-    void generate_document_signature(const std::vector<std::string>& docTokens, izenelib::util::CBitArray& bitArray);
-    
-    void generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, izenelib::util::CBitArray& bitArray);
+    void generate_document_signature(const std::vector<std::string>& docTokens, std::vector<uint64_t>& signature);
+
+    void generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, std::vector<uint64_t>& signature);
 
 };
 NS_IDMLIB_DD_END

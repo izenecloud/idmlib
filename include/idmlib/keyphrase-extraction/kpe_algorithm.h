@@ -34,7 +34,7 @@ typedef izenelib::util::UString string_type;
 public:
   typedef KPEScorer ScorerType;
   typedef typename OutputType::function_type callback_type;
-  
+
     KPEAlgorithm(const std::string& dir, idmlib::util::IDMAnalyzer* analyzer, callback_type callback )
     : dir_(dir), id_dir_(dir+"/id"), tmp_dir_(dir+"/tmp"), kp_dir_(dir+"/kp"), analyzer_(analyzer)
     , id_manager_(NULL), outside_idmanager_(false)
@@ -45,7 +45,7 @@ public:
     {
       init_();
     }
-    
+
     KPEAlgorithm(const std::string& dir, idmlib::util::IDMAnalyzer* analyzer, callback_type callback, idmlib::util::IDMIdManager* id_manager )
     : dir_(dir), id_dir_(dir+"/id"), tmp_dir_(dir+"/tmp"), kp_dir_(dir+"/kp"), analyzer_(analyzer)
     , id_manager_(id_manager), outside_idmanager_(true)
@@ -55,23 +55,23 @@ public:
     {
       init_();
     }
-    
+
     ~KPEAlgorithm()
     {
       release_();
-        
+
     }
-    
+
     void try_compute_num(uint32_t num)
     {
       try_compute_num_ = num;
     }
-    
+
     void set_no_freq_limit()
     {
       no_freq_limit_ = true;
     }
-    
+
     void add_manmade(const izenelib::util::UString& ustr)
     {
       std::vector<idmlib::util::IDMTerm> term_list;
@@ -83,7 +83,7 @@ public:
       }
       manmade_.insert(termid_list,0);
     }
-    
+
     void set_tracing(const izenelib::util::UString& ustr)
     {
       std::vector<idmlib::util::IDMTerm> term_list;
@@ -97,19 +97,19 @@ public:
       }
       std::cout<<std::endl;
     }
-    
+
     void set_max_phrase_len(uint8_t max_len)
     {
         max_phrase_len_ = max_len;
     }
-    
+
     void set_cache_size(uint32_t size)
     {
       cache_size_ = size;
       cache_vec_.resize(cache_size_);
       cache_vec_.resize(0);
     }
-    
+
     bool load(const std::string& res_ath)
     {
       if( scorer_ == NULL )
@@ -127,7 +127,7 @@ public:
       }
       return true;
     }
-    
+
     void set_scorer(ScorerType* scorer)
     {
       scorer_ = scorer;
@@ -154,24 +154,24 @@ public:
         }
         last_doc_id_ = docId;
     }
-    
+
     void close()
     {
-      
+
       compute_();
       kp_construct_();
     }
-    
-    
-    
+
+
+
     uint32_t getDocCount()
     {
         return doc_count_;
     }
-    
+
 private:
-  
-  
+
+
     void kp_construct_()
     {
       if( kpWriter_->getItemCount() ==0 )
@@ -190,7 +190,7 @@ private:
       KPItem kp;
       std::vector<KPItem> kp_list;
       hash_t last_hash = 0;
-      
+
       {
         typename KPSSFType::ReaderType kpReader(kpWriterPath);
         kpReader.open();
@@ -236,7 +236,7 @@ private:
         kpWriter_->open();
       }
     }
-  
+
     void try_compute_()
     {
       if( try_compute_num_>0 && pHashWriter_->getItemCount() >= try_compute_num_ )
@@ -245,7 +245,7 @@ private:
         reinit_();
       }
     }
-  
+
     void reinit_()
     {
       scorer_->flush();
@@ -265,7 +265,7 @@ private:
         pHashWriter_->open();
       }
     }
-  
+
     void compute_()
     {
       releaseCachedHashItem_();
@@ -282,7 +282,7 @@ private:
       pTermListWriter_ = NULL;
       delete pHashWriter_;
       pHashWriter_ = NULL;
-      
+
       //set thresholds
       uint32_t docCount = getDocCount_();
       std::cout<<"[KPE] running for "<<docCount<<" docs, hash total count: "<<hash_total_count<<std::endl;
@@ -294,7 +294,7 @@ private:
         {
             min_freq_threshold_ = (uint32_t)std::floor( std::log( (double)docCount )/2 );
             if( min_freq_threshold_ < 3 ) min_freq_threshold_ = 3;
-            
+
             min_df_threshold_ = (uint32_t)std::floor( std::log( (double)docCount )/4 );
             if( min_df_threshold_ < 2 ) min_df_threshold_ = 2;
         }
@@ -347,7 +347,7 @@ private:
           hcwriter.append(saveId, count);
           hreader.close();
           idmlib::util::FSUtil::del(hashItemPath);
-          
+
       }
       hcwriter.close();
       MEMLOG("[KPE2] finished");
@@ -433,7 +433,7 @@ private:
               if( zeroPos == keyList.size()-2 )
               {
                   docId = keyList[keyList.size()-1];
-                  
+
               }
               else if( zeroPos == keyList.size()-3 )
               {
@@ -459,10 +459,10 @@ private:
                       std::vector<uint32_t> value;
                       sItem.getValue(value);
                       swriter.append( value );
-                      
+
                       std::vector<uint32_t> incTermIdList(sItem.termIdList_.begin(),
                       sItem.termIdList_.begin()+inc);
-                      incTermIdList.insert(incTermIdList.end(), 
+                      incTermIdList.insert(incTermIdList.end(),
                       termIdList.begin()+inc, termIdList.end());
                       SortedFragmentItem tmp(inc, incTermIdList);
                       std::swap(sItem, tmp);
@@ -471,7 +471,7 @@ private:
               sItem.addDocId(docId, 1);
               if(hasPrefix)
                   sItem.addPrefixTerm(prefixTermId);
-              
+
               p++;
               LOG_PRINT("Suffix", 1000000);
           }
@@ -496,11 +496,11 @@ private:
       std::vector<uint32_t> docIdList(0);
 
       LOG_BEGIN("AAA", &reader);
-      
+
       std::vector<Data > data;
       double aaa_time = 0.0;
       izenelib::util::ClockTimer aaa_clocker;
-      
+
       std::vector<uint32_t> completeTermIdList;
       while( reader.nextKeyList(keyList) )
       {
@@ -510,7 +510,7 @@ private:
           this_data.docitem_list = SortedFragmentItem::parseDocItemList(keyList);
           this_data.freq = SortedFragmentItem::parseFreq(keyList);
           this_data.lc_list = SortedFragmentItem::parsePrefixTermList(keyList);
-          
+
           completeTermIdList.resize(this_data.inc);
           completeTermIdList.insert( completeTermIdList.end(), this_data.termid_list.begin(), this_data.termid_list.end() );
           this_data.termid_list = completeTermIdList;
@@ -536,7 +536,7 @@ private:
           data.push_back(this_data);
           p++;
           LOG_PRINT("AAA", 100000);
-              
+
       }
       aaa_clocker.restart();
       getCandidateLabel2_(data, &hclWriter, &h2hWriter);
@@ -546,7 +546,7 @@ private:
       h2hWriter.close();
       MEMLOG("[KPE4] finished.");
       MEMLOG("[KPE4-AAA] %f seconds.", aaa_time);
-      
+
       {
           typename CandidateSSFType::SorterType sorter;
           sorter.sort(hclWriter.getPath());
@@ -577,7 +577,7 @@ private:
           for(uint32_t i=0;i<valueList2.size();i++)
           {
               h2cWriter.append( valueList2[i].first, Hash2CountItem(valueList1[0],valueList2[i].second) );
-              
+
           }
       }
       h2cWriter.close();
@@ -668,7 +668,7 @@ private:
                   //we may face to a hash conflict, ignore them
                   continue;
               }
-              
+
               if( valueList2.size()!=1 )
               {
                   //impossible, just a reminder.
@@ -714,7 +714,7 @@ private:
                       continue;
                   }
                   double logL = StatisticalScorer::logL(f,f1,f2,n);
-                  if( logL>=10 && StatisticalScorer::logL(f,f1,f4,n)>=10 
+                  if( logL>=10 && StatisticalScorer::logL(f,f1,f4,n)>=10
                       && StatisticalScorer::logL(f,f3,f2,n)>=10 )
                   {
                       insertKP_( termIdList, docItem, getScore(f, termIdList.size(),logL) , leftTermList,rightTermList);
@@ -723,7 +723,7 @@ private:
           }
       }
     }
-    
+
     void init_()
     {
       try_compute_num_ = 400000000;
@@ -759,8 +759,8 @@ private:
       }
       kp_construct_();
     }
-    
-    
+
+
     void release_()
     {
         if( pTermListWriter_!= NULL)
@@ -792,9 +792,9 @@ private:
         boost::filesystem::remove_all(tmp_dir_);
         boost::filesystem::remove_all(kp_dir_);
     }
-    
-    
-    
+
+
+
     bool addTerms_(uint32_t docId, const std::vector<idmlib::util::IDMTerm>& termList, uint32_t& iBegin)
     {
 //         std::cout<<docId<<"#### "<<termList.size()<<std::endl;
@@ -806,7 +806,7 @@ private:
         for ( ;i<termList.size();i++ )
         {
             bool bSplit = scorer_->isSplitTerm(termList[i].text, termList[i].tag, termList[i].id, insertTermId);
-          
+
             splitVec.push_back(std::make_pair(bSplit, insertTermId));
             if( i == iBegin ) //first term
             {
@@ -824,13 +824,13 @@ private:
                     break;
                 }
             }
-            
+
         }
         iBegin = i;
         if( splitVec.size() == 0 ) return false;
         bool bFirstTerm = true;
         bool bLastTerm = true;
-        if( splitVec.size() == 1 ) 
+        if( splitVec.size() == 1 )
         {
             if( splitVec[0].first == true )
             {
@@ -841,7 +841,7 @@ private:
         {
             bFirstTerm = !splitVec.front().first;
             bLastTerm = !splitVec.back().first;
-            
+
         }
         std::vector<uint32_t> terms( splitVec.size() );
         for(uint32_t p=_begin;p<_begin+splitVec.size();p++)
@@ -851,7 +851,7 @@ private:
             id_manager_->Put(terms[_index], termList[p].text);
 //             if( !splitVec[_index].first )
 //             {
-//                 
+//
 //             }
         }
         addTerms_(docId, terms, bFirstTerm, bLastTerm);
@@ -859,13 +859,13 @@ private:
 
 
     }
-    
-    
+
+
     void addTerms_(uint32_t docId, const std::vector<uint32_t>& termList, bool bFirstTerm = true, bool bLastTerm = true)
     {
 //         std::cout<<docId<<"### "<<termList.size()<<" "<<(int)bFirstTerm<<" "<<(int)bLastTerm<<std::endl;
         if( termList.size() == 0 ) return;
-        if( termList.size() == 1 ) 
+        if( termList.size() == 1 )
         {
             if( bFirstTerm && bLastTerm )
             {
@@ -876,13 +876,13 @@ private:
                 {
                   appendTermList_(inputItem);
                 }
-                
+
                 appendHashItem_(hash_(termList));
                 incTermCount_(1);
             }
             return;
         }
-        if( termList.size() == 2 && !bFirstTerm && !bLastTerm ) 
+        if( termList.size() == 2 && !bFirstTerm && !bLastTerm )
         {
             return;
         }
@@ -899,7 +899,7 @@ private:
             increase--;
             end -= 1;
         }
-        
+
         for(uint32_t i=start; i<end; i++)
         {
             uint32_t len = std::min(end-i,(uint32_t)(max_phrase_len_+1));
@@ -946,21 +946,21 @@ private:
                 std::vector<uint32_t> ifrag( termList.begin()+i, termList.begin()+j );
                 appendHashItem_(hash_(ifrag));
             }
-            
+
         }
 
-        
+
         incTermCount_(increase);
-        
+
 
 
     }
-    
+
     inline void appendTermList_(const std::vector<uint32_t>& inputItem)
     {
       pTermListWriter_->append(inputItem);
     }
-    
+
     void appendHashItem_(hash_t hash_value)
     {
       if( cache_size_ > 0 )
@@ -992,9 +992,9 @@ private:
       {
         pHashWriter_->append(hash_value);
       }
-      
+
     }
-    
+
     void releaseCachedHashItem_()
     {
       if( cache_size_ > 0 )
@@ -1008,34 +1008,34 @@ private:
         cache_map_.clear();
       }
     }
-    
+
     void setDocCount_(uint32_t count)
     {
         doc_count_ = count;
     }
-    
+
     uint32_t getDocCount_()
     {
         return doc_count_;
     }
-    
-    
-    
+
+
+
     void incTermCount_(uint32_t inc = 1)
     {
        all_term_count_ += inc;
     }
-    
+
     uint32_t getTermCount_()
     {
         return all_term_count_;
     }
-    
+
     inline hash_t hash_(const std::vector<uint32_t>& termIdList)
     {
         return izenelib::util::HashFunction<std::vector<uint32_t> >::generateHash64BySer(termIdList);
     }
-    
+
     inline const bool AstartWithB(const std::vector<uint32_t>& termIdList1, const std::vector<uint32_t>& termIdList2)
     {
         if(termIdList1.size()<termIdList2.size()) return false;
@@ -1045,7 +1045,7 @@ private:
         }
         return true;
     }
-    
+
     bool makeKPStr_(const std::vector<uint32_t>& termIdList,
         std::vector<izenelib::util::UString>& strList,
         izenelib::util::UString& result)
@@ -1056,7 +1056,7 @@ private:
         if(!b) return false;
         return true;
     }
-    
+
     bool makeKPStr_(const std::vector<uint32_t>& termIdList, std::vector<izenelib::util::UString>& strList)
     {
         if ( termIdList.empty() ) return false;//if empty
@@ -1079,7 +1079,7 @@ private:
         }
         return true;
     }
-        
+
     bool makeKPStr_(const std::vector<izenelib::util::UString>& strList, izenelib::util::UString& result)
     {
         result.clear();
@@ -1090,20 +1090,20 @@ private:
             for(std::size_t i=1;i<strList.size();i++)
             {
                 if( strList[i].length() == 0 ) return false;
-                if( result.isChineseChar( result.length()-1 ) 
+                if( result.isChineseChar( result.length()-1 )
                     && strList[i].isChineseChar(0) )
                 {
                 }
                 else
                 {
-                    result.append(izenelib::util::UString(" ", izenelib::util::UString::UTF_8));
+                    result.push_back(' ');
                 }
                 result.append(strList[i]);
             }
         }
         return true;
     }
-    
+
     template <class T>
     bool vec_equal_(const std::vector<T>& v1, const std::vector<T>& v2)
     {
@@ -1114,7 +1114,7 @@ private:
       }
       return true;
     }
-    
+
     template <class T>
     bool vec_starts_(const std::vector<T>& v1, const std::vector<T>& v2)
     {
@@ -1125,7 +1125,7 @@ private:
       }
       return true;
     }
-    
+
     uint8_t getScore(uint32_t f, uint32_t termCount, double logL)
     {
         double score=sqrt(f> 200 ? 100 : f/2)*(termCount > 4 ? 4: termCount);
@@ -1151,22 +1151,22 @@ private:
         {
             hash_t hash = hash_(terms);
             kpWriter_->append(hash, KPItem( KPStr, docItem, score, leftTermList, rightTermList));
-            
+
         }
     }
-    
+
     void outputKP_(const KPItem& kpItem)
     {
       output_.output(kpItem.text, kpItem.docitem_list, kpItem.docitem_list.size(), kpItem.score , kpItem.lc_list, kpItem.rc_list);
     }
-    
-    
-    
+
+
+
     //with complete termidlist version.
     void getCandidateLabel2_(const std::vector<Data>& data, CandidateSSFType::WriterType* htlWriter, typename Hash2HashSSFType::WriterType* h2hWriter)
     {
         if( data.size()==0 ) return;
-        
+
         //sorting with postorder
         std::vector<uint32_t> post_order(data.size());
         {
@@ -1182,7 +1182,7 @@ private:
               {
                 post_order[i] = index_stack.top();
                 ++i;
-                
+
                 index_stack.pop();
                 depth_stack.pop();
               }
@@ -1194,12 +1194,12 @@ private:
           {
             post_order[i] = index_stack.top();
             ++i;
-            
+
             index_stack.pop();
             depth_stack.pop();
           }
         }
-        
+
         std::stack<uint32_t> depth_stack;
         std::stack<uint32_t> freq_stack;
         std::stack<std::vector<id2count_t> > doc_item_stack;
@@ -1252,20 +1252,20 @@ private:
           //get the suffix term
           uint32_t suffix_termid = termIdList[depth];
           suffix_term_stack.push(std::make_pair(suffix_termid, freq) );
-          
+
           if( termIdList.size() > max_phrase_len_ ) continue;
 //           std::vector<uint32_t> docIdList;
 //           std::vector<uint32_t> tfInDocList;
 //           idmlib::util::getIdAndCountList(docItemList, docIdList, tfInDocList);
-//                               
+//
 //           std::vector<uint32_t> leftTermIdList;
 //           std::vector<uint32_t> leftTermCountList;
 //           idmlib::util::getIdAndCountList(prefixTermList, leftTermIdList, leftTermCountList);
-//           
+//
 //           std::vector<uint32_t> rightTermIdList;
 //           std::vector<uint32_t> rightTermCountList;
 //           idmlib::util::getIdAndCountList(suffixTermList, rightTermIdList, rightTermCountList);
-          
+
           idmlib::util::accumulateList(docItemList);
           idmlib::util::accumulateList(prefixTermList);
           idmlib::util::accumulateList(suffixTermList);
@@ -1295,7 +1295,7 @@ private:
           {
               status = scorer_->prefixTest(termIdList);
           }
-          
+
           if( status == KPStatus::NON_KP || status == KPStatus::RETURN )
           {
               continue;
@@ -1309,7 +1309,7 @@ private:
 //           if( !lcdResult.first ) continue;
 //           std::pair<bool, double> rcdResult = scorer_->test(lri, rightLC);
 //           if( !rcdResult.first ) continue;
-          
+
           //debug output
 //           std::cout<<lri.ToString(id_manager_)<<std::endl;
 //           std::cout<<leftLC.ToString(id_manager_)<<std::endl;
@@ -1345,14 +1345,14 @@ private:
                   h2hWriter->append( hash_(vec), item);
               }
           }
-            
+
         }
-            
-            
-        
+
+
+
     }
-    
-    
+
+
 private:
   const std::string dir_;
   const std::string id_dir_;
@@ -1363,21 +1363,21 @@ private:
   bool outside_idmanager_;
   OutputType output_;
   uint8_t max_phrase_len_;
-  
+
   TermListWriter* pTermListWriter_;
   HashWriter* pHashWriter_;
   KPSSFType::WriterType* kpWriter_;
   uint32_t cache_size_;
   izenelib::am::rde_hash<hash_t, uint32_t> cache_map_;
   std::vector< std::pair<hash_t, uint32_t> > cache_vec_;
-  
+
   ScorerType* scorer_;
   bool outside_scorer_;
-  
+
   uint32_t last_doc_id_;
   uint32_t doc_count_;
   uint32_t all_term_count_;
-  
+
   uint32_t min_freq_threshold_;
   uint32_t min_df_threshold_;
   uint32_t try_compute_num_;
@@ -1385,10 +1385,10 @@ private:
   izenelib::am::rde_hash<std::vector<uint32_t>, int> manmade_;
   std::vector<uint32_t> tracing_;
   uint32_t test_num_;
-    
-    
+
+
 };
 
 NS_IDMLIB_KPE_END
 
-#endif 
+#endif

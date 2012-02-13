@@ -1,8 +1,8 @@
 #ifndef IDMLIB_SIM_TERMSIMILARITY_H_
 #define IDMLIB_SIM_TERMSIMILARITY_H_
 
-#include <time.h> 
-#include <stdio.h> 
+#include <time.h>
+#include <stdio.h>
 #include <string>
 #include <iostream>
 #include <boost/bind.hpp>
@@ -17,6 +17,8 @@
 #include <idmlib/semantic_space/vector_traits.h>
 #include <idmlib/semantic_space/apss.h>
 #include <am/sequence_file/ssfr.h>
+
+
 NS_IDMLIB_SIM_BEGIN
 
 ///@see RandomIndexing class
@@ -33,7 +35,7 @@ public:
   typedef idmlib::ssp::Apss<IdType> ApssType;
   typedef TermSimilarityTable<uint32_t> SimTableType;
   typedef izenelib::am::SparseVector<double, typename RIType::DimensionsType> NormalizedType;
-  
+
   TermSimilarity(const std::string& dir, const std::string& rig_dir, OutputHandlerType* output_handler, double sim_min_score = 0.4)
   :RIType(dir+"/ri", rig_dir), dir_(dir), apss_(NULL), doc_apss_(NULL)
   , output_handler_(output_handler), sim_min_score_(sim_min_score)
@@ -41,13 +43,13 @@ public:
     apss_ = new ApssType(sim_min_score_, boost::bind( &TermSimilarity::FindSim_, this, _1, _2, _3), RIType::GetDimensions() );
     doc_apss_ = new ApssType(0.8, boost::bind( &TermSimilarity::FindDocSim_, this, _1, _2, _3), RIType::GetDimensions() );
   }
-  
+
   ~TermSimilarity()
   {
     delete apss_;
     delete doc_apss_;
   }
-  
+
   bool Open()
   {
     try
@@ -62,18 +64,17 @@ public:
     }
     return true;
   }
-  
+
   void SetDocSim(bool sim)
   {
       RIType::SetContextSim(sim);
   }
-  
+
   bool DocSim() const
   {
       return RIType::ContextSim();
   }
-  
- 
+
   bool Compute()
   {
     RIType::Clear();
@@ -91,7 +92,7 @@ public:
             delete vector_reader;
             return false;
         }
-        
+
         std::cout<<"[TermSimilarity] total count"<<vector_reader->Count()<<std::endl;
         std::string normal_matrix_file = dir_+"/normal_vec";
         boost::filesystem::remove_all(normal_matrix_file);
@@ -118,12 +119,11 @@ public:
         normal_matrix_writer.Close();
         std::cout<<"[TermSimilarity] normalization finished."<<std::endl;
 
-        
         IdType id = 0;
         NormalizedType normal_vec;
 
         apss_->Compute(normal_matrix_file, id, normal_vec);
-        
+
         if(!output_handler_->Flush())
         {
             std::cerr<<"output handler flush failed"<<std::endl;
@@ -149,7 +149,7 @@ public:
         }
         std::cout<<"term_vector_list load finished, size: "<<term_vector_list.size()<<std::endl;
         vector_reader.Close();
-        
+
         izenelib::am::ssf::Reader<>* doc_vector_reader = RIType::GetContextVectorReader();
         if(!doc_vector_reader->Open())
         {
@@ -157,8 +157,7 @@ public:
             delete doc_vector_reader;
             return false;
         }
-     
-        
+
         std::cout<<"[TermSimilarity] doc total count"<<doc_vector_reader->Count()<<std::endl;
         typedef izenelib::am::ssf::Merger<uint32_t, uint32_t, SparseType, std::vector<std::pair<ContextIdType, FreqType> > > MergerType;
 //         MergerType merger(vector_reader, doc_vector_reader);
@@ -171,7 +170,7 @@ public:
             izenelib::am::ssf::Writer<> doc_raw_writer(dir_+"/doc_raw_writer");
             doc_raw_writer.Open();
             NormalizedType sum_vector;
-            
+
             FreqType all_term_count = 0;
             while(doc_vector_reader->Next(key, value))
             {
@@ -179,14 +178,14 @@ public:
                 {
                     std::cout<<"Processing term id : "<<key<<std::endl;
                 }
-                
+
                 const NormalizedType& term_vector = term_vector_list[key-1];
                 FreqType count =0;
                 for(uint32_t i=0;i<value.size();i++)
                 {
                     ContextIdType doc_id = value[i].first;
                     FreqType freq = value[i].second;
-                    
+
                     doc_raw_writer.Append(doc_id, std::make_pair(key, freq));
 //                     doc_raw_writer.Append(app[i].first, std::make_pair(term_vector, app[i].second));
                     count += freq;
@@ -205,8 +204,7 @@ public:
         }
         doc_vector_reader->Close();
         delete doc_vector_reader;
-       
-        
+
         std::string doc_normal_matrix_file = dir_+"/doc_normal_vec";
         boost::filesystem::remove_all(doc_normal_matrix_file);
         izenelib::am::ssf::Writer<> doc_normal_matrix_writer(doc_normal_matrix_file);
@@ -214,7 +212,7 @@ public:
         {
             return false;
         }
-        
+
 //         for(uint32_t i=0;i<doc_raw_vec.size();i++)
 //         {
 //             const SparseType& sum = doc_raw_vec[i].first;
@@ -237,7 +235,7 @@ public:
 //                 return false;
 //             }
 //         }
-        
+
         izenelib::am::ssf::Joiner<uint32_t, ContextIdType, std::pair<IdType, FreqType> > joiner(dir_+"/doc_raw_writer");
         joiner.Open();
         ContextIdType key = 0;
@@ -276,63 +274,56 @@ public:
                 return false;
             }
         }
-        
+
         doc_normal_matrix_writer.Close();
         std::cout<<"[TermSimilarity] doc normalization finished."<<std::endl;
 
-        
         IdType id = 0;
         NormalizedType normal_vec;
 
         doc_apss_->Compute(doc_normal_matrix_file, id, normal_vec);
 //         doc_apss_->ComputeMR(doc_normal_matrix_file, id, normal_vec, dir_+"/tmp_mr");
     }
-    
+
     return true;
   }
-  
+
 //   bool GetSimVector(IdType id, std::vector<IdType>& vec)
 //   {
 //     return table_->Get(id, vec);
 //   }
-  
+
  private:
-  
+
   void FindSim_(IdType id1, IdType id2, double score)
   {
     output_handler_->AddSimPair(id1, id2, score);
   }
-  
+
   void FindDocSim_(IdType id1, IdType id2, double score)
   {
     std::cout<<"[DocSim] "<<id1<<","<<id2<<":"<<score<<std::endl;
   }
-  
-  
-  
-  
+
   std::string time_string_()
   {
     time_t t = time(NULL);
-    char tmp[14]; 
-    strftime( tmp, sizeof(tmp), "%H:%M:%S",localtime(&t) ); 
+    char tmp[14];
+    strftime( tmp, sizeof(tmp), "%H:%M:%S",localtime(&t) );
     std::string r(tmp);
     return r;
   }
- private: 
-  
+ private:
+
   std::string dir_;
   ApssType* apss_;
   ApssType* doc_apss_;
   OutputHandlerType* output_handler_;
   double sim_min_score_;//min score of similarity measure
-  
-  
+
 };
 
-   
 NS_IDMLIB_SIM_END
 
 
-
-#endif 
+#endif
