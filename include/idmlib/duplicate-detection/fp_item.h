@@ -1,5 +1,5 @@
-#ifndef SF1R_DD_FPITEM_H_
-#define SF1R_DD_FPITEM_H_
+#ifndef IDMLIB_DD_FPITEM_H_
+#define IDMLIB_DD_FPITEM_H_
 
 #include "dd_types.h"
 #include <string>

@@ -19,10 +19,8 @@
 
 NS_IDMLIB_DD_BEGIN
 //#define DUPD_GROUP_DEBUG;
-//#define DUPD_TEXT_DEBUG;
 //#define DUPD_DEBUG;
 //#define DUPD_FP_DEBUG;
-//#define NO_IN_SITE;
 template <typename DT, typename GT, class AttachType = NullType>
 class DupDetector
 {
@@ -33,26 +31,28 @@ public:
     typedef GroupTable<DocIdType, GroupIdType> GroupTableType;
     typedef FpItem<DocIdType, AttachType> FpItemType;
 
-    DupDetector(const std::string& container, GroupTableType* group_table)
+    DupDetector(const std::string& container, GroupTableType* group_table, bool enable_knn = false, bool fp_only = false)
         : container_(container)
         , maxk_(0), partition_num_(0)
         , algo_(NULL)
         , writer_(NULL)
         , group_table_(group_table)
+        , enable_knn_(enable_knn)
+        , fp_only_(fp_only)
     {
         SetParameters_();
     }
 
     ~DupDetector()
     {
-        if(algo_)
+        if (algo_)
         delete algo_;
     }
 
     bool Open()
     {
-        fp_storage_path_ = container_+"/fp";
-        fp_working_path_ = container_+"/fp_working";
+        fp_storage_path_ = container_ + "/fp";
+        fp_working_path_ = container_ + "/fp_working";
         try
         {
             boost::filesystem::create_directories(container_);
@@ -60,19 +60,37 @@ public:
         }
         catch(std::exception& ex)
         {
-            std::cerr<<ex.what()<<std::endl;
+            std::cerr << ex.what() << std::endl;
             return false;
         }
 
         algo_ = new CharikarAlgo(DdConstants::f);
         FpTables tables;
         tables.GenTables(DdConstants::f, maxk_, partition_num_, table_list_);
-        std::cout<<"Generated "<<table_list_.size()<<" tables for maxk="<<(int)maxk_<<std::endl;
+        std::cout << "Generated " << table_list_.size() << " tables for maxk =" << (int) maxk_ << std::endl;
+
+        if (enable_knn_)
+        {
+            boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
+            izenelib::am::ssf::Util<>::Load(fp_storage_path_, fp_vec_);
+        }
 
         return true;
     }
 
-    void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v, std::vector<double>& weights = std::vector<double>(), const AttachType& attach = AttachType())
+    uint32_t GetInsertedDocCount()
+    {
+        boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
+        return fp_vec_.size() + working_fp_vec_.size();
+    }
+
+    void IncreaseCacheCapacity(uint32_t capacity) const
+    {
+        boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
+        working_fp_vec_.reserve(working_fp_vec_.size() + capacity);
+    }
+
+    void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v, std::vector<double>& weights, const AttachType& attach = AttachType())
     {
         FpWriterType* writer = GetFpWriter_();
         if (!writer)
@@ -87,61 +105,244 @@ public:
         FpItemType fpitem(docid, v.size(), std::vector<uint64_t>(), attach);
         // CharikarAlgorithm algo;
         algo_->generate_document_signature(v, weights, fpitem.fp);
-        writer->Append(fpitem);
+        if (enable_knn_)
+        {
+            boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
+            working_fp_vec_.push_back(fpitem);
+        }
+        else
+        {
+            writer->Append(fpitem);
+        }
     }
 
-//  void InsertDoc(const DocIdType& docid, const std::vector<std::vector<std::string> >& v_list)
-//  {
-//      FpWriterType* writer = GetFpWriter_();
-//      if (!writer)
-//      {
-//          std::cout << "writer null" << std::endl;
-//          return;
-//      }
-//      izenelib::util::CBitArray bit_array;
-//      uint32_t length = 0;
-//      // CharikarAlgorithm algo;
-//      for(uint32_t i=0;i<v_list.size();i++)
-//      {
-//          izenelib::util::CBitArray p_bit_array;
-//          algo_->generate_document_signature(v_list[i], p_bit_array);
-//          if (bit_array.IsEmpty())
-//          {
-//              bit_array = p_bit_array;
-//          }
-//          else
-//          {
-//              bit_array^=p_bit_array;
-//          }
-//          length += v_list[i].size();
-//      }
-//      FpItemType fpitem(docid, bit_array, length);
-//      writer->Append(fpitem);
-//  }
+    void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v, const AttachType& attach = AttachType())
+    {
+        FpWriterType* writer = GetFpWriter_();
+        if (!writer)
+        {
+            std::cout << "writer null" << std::endl;
+            return;
+        }
+        FpItemType fpitem(docid, v.size(), std::vector<uint64_t>(), attach);
+        // CharikarAlgorithm algo;
+        algo_->generate_document_signature(v, fpitem.fp);
+        if (enable_knn_)
+        {
+            boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
+            working_fp_vec_.push_back(fpitem);
+        }
+        else
+        {
+            writer->Append(fpitem);
+        }
+    }
 
     void RemoveDoc(const DocIdType& docid)
     {
         group_table_->RemoveDoc(docid);
     }
 
-    bool RunDdAnalysis()
+    bool RunDdAnalysis(bool force = false)
     {
-        std::vector<FpItemType> vec;
+        if (enable_knn_)
+        {
+            return RunDdAnalysisEnableKNN_(force);
+        }
+        else
+        {
+            return RunDdAnalysisDisableKNN_(force);
+        }
+    }
+
+    bool GetDuplicatedDocIdList(const DocIdType& docId, std::vector<DocIdType>& docIdList)
+    {
+        boost::lock_guard<boost::shared_mutex> lock(group_table_mutex_);
+        group_table_->Find(docId, docIdList);
+        if (!docIdList.empty())
+        {
+            for (typename std::vector<DocIdType>::iterator it = docIdList.begin();
+                    it != docIdList.end(); ++it)
+            {
+                if (*it == docId)
+                {
+                    docIdList.erase(it);
+                    break;
+                }
+            }
+        }
+        return true;
+    }
+
+    bool GetUniqueDocIdList(const std::vector<DocIdType>& docIdList, std::vector<DocIdType>& cleanDocs)
+    {
+        boost::lock_guard<boost::shared_mutex> lock(group_table_mutex_);
+        cleanDocs.reserve(docIdList.size());
+        for (uint32_t i = 0; i < docIdList.size(); ++i)
+        {
+            bool clean = true;
+            for (uint32_t j = 0; j < cleanDocs.size(); ++j)
+            {
+                if (group_table_->IsSameGroup(docIdList[i], cleanDocs[j]))
+                {
+                    clean = false;
+                    break;
+                }
+            }
+            if (clean)
+            {
+                cleanDocs.push_back(docIdList[i]);
+            }
+        }
+        return true;
+    }
+
+    void GetKNNListBySignature(
+            const std::vector<uint64_t>& signature,
+            uint32_t count,
+            std::vector<std::pair<uint32_t, DocIdType> >& knn_list)
+    {
+        if (!enable_knn_) return;
+
+        knn_list.clear();
+        knn_list.reserve(count + 1);
+
+        for (uint32_t i = 0; i < fp_vec_.size(); i++)
+        {
+            uint32_t hamming_dist = fp_vec_[i].calcHammingDist(signature);
+            knn_list.push_back(std::make_pair(hamming_dist, fp_vec_[i].docid));
+            std::push_heap(knn_list.begin(), knn_list.end());
+            if (knn_list.size() > count)
+            {
+                std::pop_heap(knn_list.begin(), knn_list.end());
+                knn_list.pop_back();
+            }
+        }
+
+        std::sort_heap(knn_list.begin(), knn_list.end());
+    }
+
+    inline void SetFixK(uint8_t k)
+    {
+        fixk_ = k;
+    }
+
+    inline void SetMaxProcessTable(uint32_t t)
+    {
+        maxt_ = t;
+    }
+
+    inline const CharikarAlgo* GetCharikarAlgo() const
+    {
+        return algo_;
+    }
+
+private:
+    FpWriterType* GetFpWriter_()
+    {
+        if (!writer_)
+        {
+            writer_ = new FpWriterType(fp_working_path_);
+            if (!writer_->Open())
+            {
+                delete writer_;
+                writer_ = NULL;
+            }
+        }
+        return writer_;
+    }
+
+    bool RunDdAnalysisEnableKNN_(bool force)
+    {
         if (writer_)
         {
             writer_->Close();
             delete writer_;
             writer_ = NULL;
         }
+        if (!force && working_fp_vec_.empty())
+        {
+            std::cout << "no new data" << std::endl;
+            return true;
+        }
+        for (uint32_t i = 0; i < working_fp_vec_.size(); i++)
+        {
+            working_fp_vec_[i].status = 1; //set status = new
+        }
+
+        std::cout << "Processed doc count : " << fp_vec_.size() << std::endl;
+        {
+            boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
+            fp_vec_.insert(fp_vec_.end(), working_fp_vec_.begin(), working_fp_vec_.end());
+            working_fp_vec_.clear();
+        }
+        if (!izenelib::am::ssf::Util<>::Save(fp_storage_path_, fp_vec_))
+        {
+            std::cerr << "Save fps failed" << std::endl;
+        }
+        boost::filesystem::remove_all(fp_working_path_);//delete working data
+
+#ifdef DUPD_FP_DEBUG
+        for (uint32_t i = 0; i < fp_vec_.size(); i++)
+        {
+            const FpItemType& item = fp_vec_[i];
+            std::cout << "FP " << item.docid << "," << item.length << ",";
+            std::ostringstream oss;
+            oss << hex << setfill('0');
+            for (int j = item.fp.size() - 1; j >= 0; j--)
+                oss << setw(16) << item.fp[j];
+            std::cout << oss.str() << std::endl;
+        }
+#endif
+
+        if (fp_only_) return true;
+
+        uint32_t table_count = table_list_.size();
+        if (maxt_ > 0 && maxt_ < table_count)
+        {
+            table_count = maxt_;
+        }
+        std::cout << "Now all doc count : " << fp_vec_.size() << std::endl;
+        std::cout << "Table count : " << table_count << std::endl;
+
+        std::vector<FpItemType> vec_all(fp_vec_);
+        for (uint32_t tid = 0; tid < table_count; tid++)
+        {
+            MEMLOG("Processing table id : %d", tid);
+            const FpTable& table = table_list_[tid];
+            std::sort(vec_all.begin(), vec_all.end(), table);
+            FindDD_(vec_all, table, tid);
+        }
+        if (!group_table_->Flush())
+        {
+            std::cerr << "group flush error" << std::endl;
+            return false;
+        }
+        group_table_->PrintStat();
+        //output to text file for manually review
+        //   std::string output_txt_file = container_+"/output_group_dd.txt";
+        //   OutputResult_(output_txt_file);
+        return true;
+    }
+
+    bool RunDdAnalysisDisableKNN_(bool force)
+    {
+        if (writer_)
+        {
+            writer_->Close();
+            delete writer_;
+            writer_ = NULL;
+        }
+        std::vector<FpItemType> vec;
         izenelib::am::ssf::Util<>::Load(fp_working_path_, vec);
-        if (vec.empty())
+        if (!force && vec.empty())
         {
             std::cout << "no new data" << std::endl;
             return true;
         }
         for (uint32_t i = 0; i < vec.size(); i++)
         {
-            vec[i].status = 1; //set status= new
+            vec[i].status = 1; //set status = new
         }
 
         std::vector<FpItemType> vec_all;
@@ -154,6 +355,7 @@ public:
             std::cerr << "Save fps failed" << std::endl;
         }
         boost::filesystem::remove_all(fp_working_path_);//delete working data
+
 #ifdef DUPD_FP_DEBUG
         for (uint32_t i = 0; i < vec_all.size(); i++)
         {
@@ -194,39 +396,14 @@ public:
         return true;
     }
 
-    void SetFixK(uint8_t k)
-    {
-        fixk_ = k;
-    }
-
-    void SetMaxProcessTable(uint32_t t)
-    {
-        maxt_ = t;
-    }
-
-private:
-    FpWriterType* GetFpWriter_()
-    {
-        if (!writer_)
-        {
-            writer_ = new FpWriterType(fp_working_path_);
-            if (!writer_->Open())
-            {
-                delete writer_;
-                writer_ = NULL;
-            }
-        }
-        return writer_;
-    }
-
     void FindDD_(const std::vector<FpItemType>& data, const FpTable& table, uint32_t table_id)
     {
-        std::vector<FpItemType> for_compare;
         bool is_first = true;
         bool has_new = false;
         std::vector<uint64_t> last_compare_value, compare_value;
         uint32_t total_count = data.size();
         uint32_t dd_count = 0;
+        uint32_t start = 0, finish = 0;
         for (uint32_t i = 0; i < total_count; i++)
         {
             //     if(i%10000==0) std::cout<<"[dup-id] "<<i<<std::endl;
@@ -238,17 +415,16 @@ private:
             {
                 if (last_compare_value != compare_value)
                 {
-                    //process for_compare
                     if (has_new)
                     {
-                        if (!SkipTrash_(total_count, for_compare.size(), table_id))
-                        PairWiseCompare_(for_compare, dd_count);
+                        if (!SkipTrash_(total_count, finish - start, table_id))
+                        PairWiseCompare_(data, start, finish, dd_count);
                     }
-                    for_compare.clear();
+                    start = finish;
                     has_new = false;
                 }
             }
-            for_compare.push_back(data[i]);
+            ++finish;
             last_compare_value = compare_value;
 
             if (data[i].status > 0)
@@ -259,8 +435,8 @@ private:
         }
         if (has_new)
         {
-            if (!SkipTrash_(total_count, for_compare.size(), table_id))
-                PairWiseCompare_(for_compare, dd_count);
+            if (!SkipTrash_(total_count, finish - start, table_id))
+                PairWiseCompare_(data, start, finish, dd_count);
         }
         LOG(INFO) << "table id " << table_id << " discovered " << dd_count << " dd pairs." << std::endl;
     }
@@ -272,28 +448,26 @@ private:
         return true;
     }
 
-    void PairWiseCompare_(const std::vector<FpItemType>& for_compare, uint32_t& dd_count)
+    void PairWiseCompare_(const std::vector<FpItemType>& data, uint32_t start, uint32_t finish, uint32_t& dd_count)
     {
-        if (for_compare.empty()) return;
+        if (start >= finish) return;
 #ifdef DUPD_GROUP_DEBUG
-        std::cout << "[in-group] " << for_compare.size() << std::endl;
+        std::cout << "[in-group] " << finish - start << std::endl;
 #endif
-        for (uint32_t i = 0; i < for_compare.size(); i++)
+        for (uint32_t i = start; i < finish; i++)
         {
-            for (uint32_t j = i + 1; j < for_compare.size(); j++)
+            for (uint32_t j = start + 1; j < finish; j++)
             {
-                if (for_compare[i].status == 0 && for_compare[j].status == 0) continue;
-                if (IsDuplicated_(for_compare[i], for_compare[j]))
+                if (data[i].status == 0 && data[j].status == 0) continue;
+                if (IsDuplicated_(data[i], data[j]))
                 {
-                    boost::lock_guard<boost::shared_mutex> lock(read_write_mutex_);
+                    boost::lock_guard<boost::shared_mutex> lock(group_table_mutex_);
                     //if this is a new discovery
-                    if (group_table_->AddDoc(for_compare[i].docid, for_compare[j].docid))
+                    if (group_table_->AddDoc(data[i].docid, data[j].docid))
                     {
                         ++dd_count;
                     }
-
                 }
-
             }
         }
     }
@@ -318,14 +492,14 @@ private:
         if (hamming_dist <= k)
         {
             result = true;
+            if (!item1.attach.dd(item2.attach)) result = false;
         }
+#ifdef DUPD_DEBUG
         if (result)
         {
-            if (!item1.attach.dd(item2.attach)) result = false;
-#ifdef DUPD_DEBUG
             LOG(INFO) << "find dd: " << item1.docid << " , " << item2.docid << " : " << (uint32_t) k << "," << hamming_dist << std::endl;
-#endif
         }
+#endif
         return result;
     }
 
@@ -372,13 +546,22 @@ private:
 
     ///finger prints handler
     std::vector<FpTable> table_list_;
+
     std::string fp_storage_path_;
     std::string fp_working_path_;
+
     FpWriterType* writer_;
 
     GroupTableType* group_table_;
 
-    boost::shared_mutex read_write_mutex_;
+    std::vector<FpItemType> fp_vec_;
+    std::vector<FpItemType> working_fp_vec_;
+
+    bool enable_knn_;
+    bool fp_only_;
+
+    boost::shared_mutex group_table_mutex_;
+    boost::shared_mutex fp_vec_mutex_;
 };
 
 NS_IDMLIB_DD_END

@@ -1,5 +1,5 @@
-#ifndef CHARIKAR_ALGO_H
-#define CHARIKAR_ALGO_H
+#ifndef IDMLIB_CHARIKAR_ALGO_H
+#define IDMLIB_CHARIKAR_ALGO_H
 /**
  * @file charikar_algo.h
  * @brief impliments Charikar's algorith
@@ -35,9 +35,6 @@ NS_IDMLIB_DD_BEGIN
  */
 class CharikarAlgo
 {
-private:
-    uint16_t nDimensions; //!< dimensions number
-
 public:
     static const uint16_t DEFAULT_NUM_DIMENSIONS = 64;//!< default threshold value
 
@@ -75,11 +72,14 @@ public:
         * @param[in] docTokens input source, a term id array
         * @param[out] signature generated signature
         */
-    void generate_document_signature(const std::vector<std::string>& docTokens, std::vector<uint64_t>& signature);
+    void generate_document_signature(const std::vector<std::string>& docTokens, std::vector<uint64_t>& signature) const;
 
-    void generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, std::vector<uint64_t>& signature);
+    void generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, std::vector<uint64_t>& signature) const;
 
+private:
+    uint16_t nDimensions; //!< dimensions number
 };
+
 NS_IDMLIB_DD_END
 
 #endif
