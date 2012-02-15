@@ -1,9 +1,6 @@
 #ifndef IDMLIB_DD_DDTYPES_H_
 #define IDMLIB_DD_DDTYPES_H_
 
-#include <string>
-#include <vector>
-
 #include <idmlib/idm_types.h>
 
 

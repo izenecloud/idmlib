@@ -1,20 +1,16 @@
 #ifndef IDMLIB_DD_DUPDETECTOR_H_
 #define IDMLIB_DD_DUPDETECTOR_H_
 
-#include <idmlib/idm_types.h>
+#include "dd_constants.h"
 #include "dd_types.h"
 #include "charikar_algo.h"
-#include "group_table.h"
 #include "fp_tables.h"
-#include "dd_constants.h"
+#include "group_table.h"
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
 #include <am/sequence_file/ssfr.h>
-#include <util/ClockTimer.h>
-#include <idmlib/util/file_object.h>
-#include <idmlib/util/idm_analyzer.h>
 
 
 NS_IDMLIB_DD_BEGIN
@@ -38,7 +34,7 @@ public:
         , writer_(NULL)
         , group_table_(group_table)
         , enable_knn_(enable_knn)
-        , fp_only_(fp_only)
+        , fp_only_(enable_knn && fp_only)
     {
         SetParameters_();
     }
@@ -84,7 +80,7 @@ public:
         return fp_vec_.size() + working_fp_vec_.size();
     }
 
-    void IncreaseCacheCapacity(uint32_t capacity) const
+    void IncreaseCacheCapacity(uint32_t capacity)
     {
         boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
         working_fp_vec_.reserve(working_fp_vec_.size() + capacity);
@@ -92,11 +88,15 @@ public:
 
     void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v, std::vector<double>& weights, const AttachType& attach = AttachType())
     {
-        FpWriterType* writer = GetFpWriter_();
-        if (!writer)
+        FpWriterType* writer = NULL;
+        if (!enable_knn_)
         {
-            std::cout << "writer null" << std::endl;
-            return;
+            writer = GetFpWriter_();
+            if (!writer)
+            {
+                std::cout << "writer null" << std::endl;
+                return;
+            }
         }
         if (weights.size() != v.size())
         {
@@ -118,11 +118,15 @@ public:
 
     void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v, const AttachType& attach = AttachType())
     {
-        FpWriterType* writer = GetFpWriter_();
-        if (!writer)
+        FpWriterType* writer = NULL;
+        if (!enable_knn_)
         {
-            std::cout << "writer null" << std::endl;
-            return;
+            writer = GetFpWriter_();
+            if (!writer)
+            {
+                std::cout << "writer null" << std::endl;
+                return;
+            }
         }
         FpItemType fpitem(docid, v.size(), std::vector<uint64_t>(), attach);
         // CharikarAlgorithm algo;
@@ -200,6 +204,7 @@ public:
     void GetKNNListBySignature(
             const std::vector<uint64_t>& signature,
             uint32_t count,
+            uint32_t max_hamming_dist,
             std::vector<std::pair<uint32_t, DocIdType> >& knn_list)
     {
         if (!enable_knn_) return;
@@ -210,6 +215,7 @@ public:
         for (uint32_t i = 0; i < fp_vec_.size(); i++)
         {
             uint32_t hamming_dist = fp_vec_[i].calcHammingDist(signature);
+            if (hamming_dist > max_hamming_dist) continue;
             knn_list.push_back(std::make_pair(hamming_dist, fp_vec_[i].docid));
             std::push_heap(knn_list.begin(), knn_list.end());
             if (knn_list.size() > count)
@@ -254,12 +260,6 @@ private:
 
     bool RunDdAnalysisEnableKNN_(bool force)
     {
-        if (writer_)
-        {
-            writer_->Close();
-            delete writer_;
-            writer_ = NULL;
-        }
         if (!force && working_fp_vec_.empty())
         {
             std::cout << "no new data" << std::endl;
@@ -406,23 +406,16 @@ private:
         uint32_t start = 0, finish = 0;
         for (uint32_t i = 0; i < total_count; i++)
         {
-            //     if(i%10000==0) std::cout<<"[dup-id] "<<i<<std::endl;
             table.GetMaskedBits(data[i].fp, compare_value);
-            if (is_first)
+            if (!is_first && last_compare_value != compare_value)
             {
-            }
-            else
-            {
-                if (last_compare_value != compare_value)
+                if (has_new)
                 {
-                    if (has_new)
-                    {
-                        if (!SkipTrash_(total_count, finish - start, table_id))
+                    if (!SkipTrash_(total_count, finish - start, table_id))
                         PairWiseCompare_(data, start, finish, dd_count);
-                    }
-                    start = finish;
-                    has_new = false;
                 }
+                start = finish;
+                has_new = false;
             }
             ++finish;
             last_compare_value = compare_value;
@@ -456,7 +449,7 @@ private:
 #endif
         for (uint32_t i = start; i < finish; i++)
         {
-            for (uint32_t j = start + 1; j < finish; j++)
+            for (uint32_t j = i + 1; j < finish; j++)
             {
                 if (data[i].status == 0 && data[j].status == 0) continue;
                 if (IsDuplicated_(data[i], data[j]))

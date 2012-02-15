@@ -1,13 +1,10 @@
 #ifndef IDMLIB_DD_FPTABLES_H_
 #define IDMLIB_DD_FPTABLES_H_
 
-#include <idmlib/idm_types.h>
-#include <string>
-#include <vector>
-#include <ir/dup_det/index_fp.hpp>
-#include <ir/dup_det/integer_dyn_array.hpp>
-#include "charikar_algo.h"
 #include "fp_table.h"
+
+#include <idmlib/idm_types.h>
+#include <vector>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 

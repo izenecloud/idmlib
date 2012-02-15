@@ -2,7 +2,7 @@
 #define IDMLIB_DD_GROUP_TABLE_H
 
 #include <idmlib/idm_types.h>
-#include "dd_types.h"
+
 #include <am/sequence_file/SimpleSequenceFile.hpp>
 #include <am/3rdparty/rde_hash.h>
 #include <glog/logging.h>
