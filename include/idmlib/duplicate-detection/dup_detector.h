@@ -144,7 +144,7 @@ public:
 
     void RemoveDoc(const DocIdType& docid)
     {
-        group_table_->RemoveDoc(docid);
+        if (!fp_only) group_table_->RemoveDoc(docid);
     }
 
     bool RunDdAnalysis(bool force = false)
@@ -161,6 +161,8 @@ public:
 
     bool GetDuplicatedDocIdList(const DocIdType& docId, std::vector<DocIdType>& docIdList)
     {
+        if (fp_only_) return false;
+
         boost::lock_guard<boost::shared_mutex> lock(group_table_mutex_);
         group_table_->Find(docId, docIdList);
         if (!docIdList.empty())
@@ -180,6 +182,8 @@ public:
 
     bool GetUniqueDocIdList(const std::vector<DocIdType>& docIdList, std::vector<DocIdType>& cleanDocs)
     {
+        if (fp_only_) return false;
+
         boost::lock_guard<boost::shared_mutex> lock(group_table_mutex_);
         cleanDocs.reserve(docIdList.size());
         for (uint32_t i = 0; i < docIdList.size(); ++i)
