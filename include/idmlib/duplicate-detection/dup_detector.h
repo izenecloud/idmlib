@@ -214,18 +214,23 @@ public:
         if (!enable_knn_) return;
 
         knn_list.clear();
-        knn_list.reserve(count + 1);
+        knn_list.reserve(count);
 
         for (uint32_t i = 0; i < fp_vec_.size(); i++)
         {
             uint32_t hamming_dist = fp_vec_[i].calcHammingDist(signature);
             if (hamming_dist > max_hamming_dist) continue;
-            knn_list.push_back(std::make_pair(hamming_dist, fp_vec_[i].docid));
-            std::push_heap(knn_list.begin(), knn_list.end());
-            if (knn_list.size() > count)
+            if (knn_list.size() < count)
+            {
+                knn_list.push_back(std::make_pair(hamming_dist, fp_vec_[i].docid));
+                std::push_heap(knn_list.begin(), knn_list.end());
+            }
+            else if (hamming_dist < knn_list[0].first)
             {
                 std::pop_heap(knn_list.begin(), knn_list.end());
-                knn_list.pop_back();
+                knn_list.back().first = hamming_dist;
+                knn_list.back().second = fp_vec_[i].docid;
+                std::push_heap(knn_list.begin(), knn_list.end());
             }
         }
 
