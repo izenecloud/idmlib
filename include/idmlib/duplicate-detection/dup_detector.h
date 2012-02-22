@@ -144,7 +144,7 @@ public:
 
     void RemoveDoc(const DocIdType& docid)
     {
-        if (!fp_only) group_table_->RemoveDoc(docid);
+        if (!fp_only_) group_table_->RemoveDoc(docid);
     }
 
     bool RunDdAnalysis(bool force = false)
