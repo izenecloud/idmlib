@@ -61,9 +61,12 @@ public:
         }
 
         algo_ = new CharikarAlgo(DdConstants::f);
-        FpTables tables;
-        tables.GenTables(DdConstants::f, maxk_, partition_num_, table_list_);
-        std::cout << "Generated " << table_list_.size() << " tables for maxk =" << (int) maxk_ << std::endl;
+
+        if (!fp_only_)
+        {
+            FpTables().GenTables(DdConstants::f, maxk_, partition_num_, table_list_);
+            std::cout << "Generated " << table_list_.size() << " tables for maxk =" << (int) maxk_ << std::endl;
+        }
 
         if (enable_knn_)
         {
