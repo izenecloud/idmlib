@@ -35,11 +35,12 @@ class IDMTermTag
     
     static char GetTermTag(const std::string& la_tag)
     {
-      if(la_tag=="SC")
-      {
-        return SYMBOL;
-      }
-      return la_tag[0];
+        if(la_tag=="SC")
+        {
+            return SYMBOL;
+        }
+        if(la_tag=="M") return NUM;
+        return la_tag[0];
     }
 };
 

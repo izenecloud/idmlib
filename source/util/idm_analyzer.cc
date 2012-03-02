@@ -288,7 +288,16 @@ void IDMAnalyzer::GetTermList(const izenelib::util::UString& text, std::vector<i
             idmlib::util::IDMTerm term;
             term.text = it->text_;
             term.tag = IDMTermTag::GetTermTag( it->pos_ );
-            term.id = IDMIdConverter::GetId( it->text_, term.tag);
+            if(term.tag == IDMTermTag::ENG)
+            {
+                std::string str;
+                term.text.convertString(str, izenelib::util::UString::UTF_8);
+                if(str=="-")
+                {
+                    term.tag = IDMTermTag::SYMBOL;
+                }
+            }
+            term.id = IDMIdConverter::GetId( term.text, term.tag);
             term.position = it->wordOffset_;
             term_list.push_back(term);
         }
