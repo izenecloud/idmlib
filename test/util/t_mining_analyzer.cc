@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE(cma_test)
         izenelib::util::UString text("101 Ways to Improve Your Memory Games - Tricks - Strategies [平装]", izenelib::util::UString::UTF_8);
 
         std::vector<IDMTerm> term_vec;
-        term_vec.push_back( IDMTerm("101",0, 'M' ));
+        term_vec.push_back( IDMTerm("101",0, 'S' ));
         term_vec.push_back( IDMTerm("Ways",1, 'F' ));
         term_vec.push_back( IDMTerm("to",2, 'F' ));
         term_vec.push_back( IDMTerm("Improve",3, 'F' ));
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE(cma_test)
         term_vec.push_back( IDMTerm("是",8, 'A' ));
         term_vec.push_back( IDMTerm("目前",9, 'T' ));
         term_vec.push_back( IDMTerm("全球",10, 'N' ));
-        term_vec.push_back( IDMTerm("第三",11, 'M' ));
+        term_vec.push_back( IDMTerm("第三",11, 'S' ));
         term_vec.push_back( IDMTerm("大",12, 'A' ));
         term_vec.push_back( IDMTerm("的",13, 'A' ));
         term_vec.push_back( IDMTerm("媒体",14, 'N' ));
