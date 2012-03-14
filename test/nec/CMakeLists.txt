@@ -30,6 +30,7 @@ SET(libs
   ${TokyoCabinet_LIBRARIES}
   ${Glog_LIBRARIES}
   ${xml2_LIBRARIES}
+  ${ImageMagick_LIBRARIES}  
   )
 
 IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)

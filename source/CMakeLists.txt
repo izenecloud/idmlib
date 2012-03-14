@@ -62,6 +62,11 @@ FILE(GLOB_RECURSE resys_SRC
   "resys/*.cpp"
 )
 
+FILE(GLOB_RECURSE ise_SRC
+  "ise/*.cpp"
+  "ise/*.c"
+)
+
 FILE(GLOB_RECURSE topicmodels_SRC
   "topic-models/*.cpp"
   "topic-models/*.c"
@@ -87,6 +92,7 @@ ADD_LIBRARY(idmlib
   ${sim_SRC}
   ${tl_SRC}
   ${resys_SRC}
+  ${ise_SRC}
   ${topicmodels_SRC}
   ${lshkit_SRCS} 
 )

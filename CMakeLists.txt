@@ -137,6 +137,7 @@ ${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
 ${xml2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
+${ImageMagick_INCLUDE_DIRS}
 )
 
 SET(libs
@@ -145,7 +146,8 @@ SET(libs
   ${xml2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
-  )
+  ${ImageMagick_LIBRARIES}
+)
 
 MESSAGE(STATUS "include path: ${include_directories}")
 
