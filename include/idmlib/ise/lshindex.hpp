@@ -246,7 +246,7 @@ public:
 
 ///-----------------------------------------------------------------------
 typedef LSHFuncs<lshkit::DeltaLSB<lshkit::GaussianLsh>  > LshFuncsType;
-typedef typename LshFuncsType::Domain Domain; 
+typedef LshFuncsType::Domain Domain; 
 class LshTable
 {
 public:
