@@ -1,5 +1,4 @@
 #include <idmlib/ise/extractor.hpp>
-#include <idmlib/ise/sift.hpp>
 #include <idmlib/ise/imgutil.hpp>
 
 namespace idmlib{ namespace ise{
@@ -7,23 +6,21 @@ namespace idmlib{ namespace ise{
 struct ExtractorImpl
 {
     typedef lshkit::Sketch<lshkit::DeltaLSB<lshkit::GaussianLsh> > LshSketch;
-    LshSketch sketch;
-    Sift xtor;
+    LshSketch sketch_;
+    Sift xtor_;
 public:
     ExtractorImpl ()
-        : xtor(-1, 3, 0, -1, 3, -1, MIN_ENTROPY, true)
+        : xtor_(-1, 3, 0, -1, 3, -1, MIN_ENTROPY, true)
     {
         lshkit::DefaultRng rng;
         LshSketch::Parameter pm;
         pm.W = LSH_W;
-        pm.dim = 128; // Sift::dim();
-        sketch.reset(SKETCH_SIZE, pm, rng);
+        pm.dim = 128;
+        sketch_.reset(SKETCH_SIZE, pm, rng);
     }
 
-    void extract (const std::string &path, Record *record, bool query)
+    void ExtractSift(const std::string &path, std::vector<Sift::Feature>& sift, bool query)
     {
-        record->clear();
-
         if (path.empty()) return;
 
         CImg<unsigned char> im(path.c_str());
@@ -37,7 +34,6 @@ public:
             if (lshkit::min(im.height(), im.width()) < int(MIN_IMAGE_SIZE)) return;
         }
 
-        std::vector<Sift::Feature> sift;
         CImg<float> gray;
 
         CImgToGray(im, &gray);
@@ -48,26 +44,17 @@ public:
             scale *= CImgLimitSizeBelow(&gray, QUERY_IMAGE_SCALE_THRESHOLD);
         }
 
-        xtor.extract(gray, scale, &sift);
-
-        record->meta.width = im.width();
-        record->meta.height = im.height();
-
-        if (LOG_BASE > 0)
-        {
-            logscale(&sift, LOG_BASE);
-        }
-
+        xtor_.extract(gray, scale, &sift);
         SampleFeature(&sift, MAX_FEATURES, SAMPLE_SIZE);
+    }
 
-        record->regions.resize(sift.size());
-        record->features.resize(sift.size());
+    void BuildSketch(std::vector<Sift::Feature>& sift, std::vector<Sketch >& sketches)
+    {
+        sketches.resize(sift.size());
         for (unsigned i = 0; i < sift.size(); ++i)
         {
-            record->regions[i] = sift[i].region;
-            sketch.apply(&sift[i].desc[0], record->features[i].sketch);
+            sketch_.apply(&sift[i].desc[0], sketches[i].desc);
         }
-
     }
 };
 
@@ -75,9 +62,14 @@ Extractor::Extractor (): impl(new ExtractorImpl)
 {
 }
 
-void Extractor::extract (const std::string &image, Record *record, bool query)
+void Extractor::ExtractSift(const std::string &path, std::vector<Sift::Feature>& sift, bool query)
 {
-    return impl->extract(image, record, query);
+    impl->ExtractSift(path, sift, query);
+}
+
+void Extractor::BuildSketch(std::vector<Sift::Feature>& sift, std::vector<Sketch>& sketches)
+{
+    impl->BuildSketch(sift, sketches);
 }
 
 Extractor::~Extractor ()

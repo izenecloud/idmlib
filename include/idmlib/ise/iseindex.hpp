@@ -16,6 +16,8 @@ struct IseOptions
     unsigned dim;
     ///Lsh tables 
     unsigned ntables;
+    ///Lsh index path
+    std::string home;
 };
 
 class IseIndex
@@ -25,11 +27,13 @@ class IseIndex
 
     LshIndexType lshIndex_;
 
+    std::string home_;
 public:
     IseIndex(const IseOptions& options);
 
     ~IseIndex();
 
+    
 
 };
 

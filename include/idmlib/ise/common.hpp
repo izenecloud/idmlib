@@ -24,64 +24,16 @@ static const unsigned QUERY_IMAGE_SCALE_THRESHOLD = 80;
 static const unsigned MAX_IMAGE_SIZE = 250;
 
 typedef uint8_t Chunk;
-typedef Chunk Sketch[SKETCH_SIZE];
+typedef Chunk SketchData[SKETCH_SIZE];
+
+struct Sketch {
+    SketchData desc;
+};
 
 struct Region
 {
     float x, y, r, t;
 };
-
-struct Feature
-{
-    Sketch sketch;
-};
-
-// An indexed record.
-struct Record
-{
-    struct Meta
-    {
-        unsigned width;
-        unsigned height;
-        unsigned size;
-    };
-    struct Source
-    {
-        std::string url;
-        std::string parentUrl;
-    };
-
-    Meta meta;
-    std::string checksum;
-    std::string thumbnail;
-    std::vector<Region> regions;
-    std::vector<Feature> features;
-    std::vector<Source> sources;
-
-    void clear ()
-    {
-        meta.width = meta.height = meta.size = 0;
-        checksum.clear();
-        thumbnail.clear();
-        regions.clear();
-        features.clear();
-        sources.clear();
-    }
-
-    void swap (Record &r)
-    {
-        Meta tmp = meta;
-        meta = r.meta;
-        r.meta = tmp;
-        checksum.swap(r.checksum);
-        thumbnail.swap(r.thumbnail);
-        regions.swap(r.regions);
-        features.swap(r.features);
-        sources.swap(r.sources);
-    }
-
-};
-
 
 }}
 

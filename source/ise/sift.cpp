@@ -36,7 +36,7 @@ void Sift::extract(const CImg<float> &image, float scale, std::vector<Feature> *
         for (int i = 0; i < nkeys ; ++i)
         {
             VlSiftKeypoint const *key = keys + i;
-            double                angles [4] ;
+            double angles [4] ;
 
             int nangles = 0;
             if (do_angle)

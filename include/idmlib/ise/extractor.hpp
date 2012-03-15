@@ -15,6 +15,7 @@
 #define IDMLIB_ISE_EXTRACTOR_HPP
 
 #include <idmlib/ise/common.hpp>
+#include <idmlib/ise/sift.hpp>
 
 namespace idmlib { namespace ise{
 
@@ -27,7 +28,9 @@ public:
 
     ~Extractor ();
 
-    void extract (const std::string &imagePath, Record *record, bool query = true);
+    void ExtractSift(const std::string &path, std::vector<Sift::Feature>& sift, bool query = true);
+
+    void BuildSketch(std::vector<Sift::Feature>& sift, std::vector<Sketch>& sketches);
 };
 
 }}
