@@ -108,8 +108,9 @@ public:
     {
         for (unsigned i = 0; i < lshs_.size(); ++i) {
             unsigned index = lshs_[i](obj);
-            //TODO
-            tables_[i][index].push_back(point);
+            Bucket& bucket = tables_[i][index];
+            if(bucket.empty()||bucket.back() < point)
+                bucket.push_back(point);
         }
     }
 
@@ -121,6 +122,7 @@ public:
             result.resize(result.size() + bucket.size());
             std::copy(bucket.begin(), bucket.end(), std::back_inserter(result));
         }
+        std::sort(result.begin(), result.end());		
         result.resize(std::unique(result.begin(), result.end()) - result.begin());		
     }
 };
