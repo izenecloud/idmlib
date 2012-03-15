@@ -4,6 +4,8 @@
 #include <idmlib/idm_types.h>
 #include "dd_types.h"
 #include "fp_item.h"
+
+#include <boost/assert.hpp>
 #include <string>
 #include <vector>
 
@@ -38,6 +40,8 @@ public:
         if (right.fp.empty()) return false;
         if (left.fp.empty()) return true;
 
+        BOOST_ASSERT(bit_mask_.size() == left.size());
+        BOOST_ASSERT(bit_mask_.size() == right.size());
         for (int i = bit_mask_.size() - 1; i >= 0; i--)
         {
             if ((left.fp[i] & bit_mask_[i]) < (right.fp[i] & bit_mask_[i]))
@@ -50,6 +54,9 @@ public:
 
     void GetMaskedBits(const std::vector<uint64_t>& raw_bits, std::vector<uint64_t>& masked_bits) const
     {
+        if (raw_bits.empty()) return;
+
+        BOOST_ASSERT(bit_mask_.size() == raw_bits.size());
         masked_bits.resize(raw_bits.size());
         for (uint32_t i = 0; i < raw_bits.size(); i++)
         {
