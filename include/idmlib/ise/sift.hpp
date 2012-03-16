@@ -6,6 +6,7 @@
 
 #define cimg_display 0
 #define cimg_debug 0
+#define cimg_use_magick 0
 
 #include <idmlib/ise/image/CImg.h>
 #include <idmlib/ise/common.hpp>

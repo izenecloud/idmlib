@@ -3,7 +3,7 @@
 
 #define cimg_display 0
 #define cimg_debug 0
-#define cimg_use_magick
+//#define cimg_use_magick
 
 #include <idmlib/ise/image/CImg.h>
 
@@ -65,11 +65,11 @@ void CImgToGray (const CImg<T> &img, CImg<float> *gray)
 
     CImg<float> result(img.width(), img.height(), img.depth(), 1);
 
-    if (img.spectrum() == 3)
+    if (img.spectrum() == 3 || img.spectrum() == 4)
     {
         const T *p1 = img.data(0,0,0,0),
-                 *p2 = img.data(0,0,0,1),
-                  *p3 = img.data(0,0,0,2);
+                *p2 = img.data(0,0,0,1),
+                *p3 = img.data(0,0,0,2);
         float *pr = result.data(0,0,0,0);
         for (unsigned int N = img.width()*img.height()*img.depth(); N; --N)
         {
@@ -80,7 +80,7 @@ void CImgToGray (const CImg<T> &img, CImg<float> *gray)
             *(pr++) = 0.299f * R + 0.587f * G + 0.114f * B;
         }
     }
-    else if (img.spectrum() == 1)
+    else if (img.spectrum() == 1 || img.spectrum() == 2)
     {
         const T *p = img.data(0,0,0,0);
         float *pr = result.data(0,0,0,0);
@@ -91,6 +91,7 @@ void CImgToGray (const CImg<T> &img, CImg<float> *gray)
     }
     else
     {
+        std::cout << "The channel number is: " << img.spectrum() << std::endl;
         throw std::runtime_error("image is not a RGB or gray image.");
     }
     result.move_to(*gray);
@@ -99,4 +100,3 @@ void CImgToGray (const CImg<T> &img, CImg<float> *gray)
 }}
 
 #endif
-

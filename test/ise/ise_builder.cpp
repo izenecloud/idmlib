@@ -10,10 +10,10 @@
 #include <iostream>
 #include <fstream>
 
-namespace po = boost::program_options; 
+namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
     std::string input;
     po::options_description desc("Allowed options");
@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).
                      options(desc).positional(p).run(), vm);
-    po::notify(vm); 
+    po::notify(vm);
 
     if ((vm.count("input") == 0) ) {
         std::cerr << desc;
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     options.repeat = 10;
     options.w = 8;
     options.dim = 128;
-	
+
     idmlib::ise::IseIndex iseIndex(options);
     bfs::recursive_directory_iterator dir_iter(input), end_iter;
     for(; dir_iter!= end_iter; ++dir_iter)
@@ -49,8 +49,6 @@ int main(int argc, char **argv)
             iseIndex.Insert(bfs::path(*dir_iter).string());
         }
     }
-    
+
     return 0;
 }
-
-
