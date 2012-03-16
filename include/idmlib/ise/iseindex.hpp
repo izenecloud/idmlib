@@ -2,6 +2,7 @@
 #define IDMLIB_ISEINDEX_HPP
 
 #include "lshindex.hpp"
+#include "extractor.hpp"
 
 namespace idmlib{ namespace ise{
 
@@ -9,6 +10,7 @@ struct IseOptions
 {
     ///Lsh table size
     unsigned range;
+    ///Lsh repeat size
     unsigned repeat;
     ///Lsh window size
     unsigned w;
@@ -27,13 +29,15 @@ class IseIndex
 
     LshIndexType lshIndex_;
 
+    Extractor extractor_;
+
     std::string home_;
 public:
     IseIndex(const IseOptions& options);
 
     ~IseIndex();
 
-    
+    void Insert(const std::string& imgPath);
 
 };
 
