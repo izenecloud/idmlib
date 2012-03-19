@@ -3,7 +3,7 @@
 
 #define cimg_display 0
 #define cimg_debug 0
-//#define cimg_use_magick
+#define cimg_use_magick 1
 
 #include <idmlib/ise/image/CImg.h>
 

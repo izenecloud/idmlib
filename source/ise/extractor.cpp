@@ -1,5 +1,4 @@
 #include <idmlib/ise/extractor.hpp>
-#include <idmlib/ise/imgutil.hpp>
 
 namespace idmlib{ namespace ise{
 
@@ -45,6 +44,7 @@ public:
         }
 
         xtor_.extract(gray, scale, &sift);
+        if(sift.empty()) std::cout<<path<<std::endl;
         SampleFeature(&sift, MAX_FEATURES, SAMPLE_SIZE);
     }
 

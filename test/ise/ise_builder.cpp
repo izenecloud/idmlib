@@ -19,6 +19,7 @@ int main(int argc, char **argv)
     po::options_description desc("Allowed options");
     desc.add_options()
     ("input,F", po::value(&input), "image directory")
+    ("query,Q", "query image")
     ;
 
     po::positional_options_description p;
@@ -28,27 +29,44 @@ int main(int argc, char **argv)
                      options(desc).positional(p).run(), vm);
     po::notify(vm);
 
-    if ((vm.count("input") == 0) ) {
+    if ((vm.count("input") == 0)&&(vm.count("query") == 0) ) {
         std::cerr << desc;
         return 1;
     }
 
-    idmlib::ise::IseOptions options;
-    options.range = 1000000;
-    options.repeat = 10;
-    options.w = 8;
-    options.dim = 128;
+    idmlib::ise::IseIndex iseIndex("ise");
 
-    idmlib::ise::IseIndex iseIndex(options);
-    bfs::recursive_directory_iterator dir_iter(input), end_iter;
-    for(; dir_iter!= end_iter; ++dir_iter)
+    if(vm.count("input") != 0)
     {
-        if(bfs::is_regular_file(*dir_iter))
+        idmlib::ise::IseOptions options;
+        options.range = 1000000;
+        options.repeat = 10;
+        options.w = 8;
+        options.dim = 128;
+        options.ntables = 5;
+        iseIndex.ResetLSH(options);
+        bfs::recursive_directory_iterator dir_iter(input), end_iter;
+        for(; dir_iter!= end_iter; ++dir_iter)
         {
-            std::cout<<bfs::path(*dir_iter).string()<<std::endl;
-            iseIndex.Insert(bfs::path(*dir_iter).string());
+            if(bfs::is_regular_file(*dir_iter))
+            {
+                iseIndex.Insert(bfs::path(*dir_iter).string());
+            }
+        }
+        iseIndex.SaveLSH();
+    }
+    else if(vm.count("query") !=0)
+    {
+        for(;;)
+        {
+            std::string queryImgPath;
+            std::cin >> queryImgPath;
+            if(!std::cin) break;
+            std::vector<std::string> results;
+            iseIndex.Search(queryImgPath, results);
+            for(unsigned i = 0; i < results.size(); ++i)
+                std::cout<<results[i]<<std::endl;
         }
     }
-
     return 0;
 }

@@ -110,7 +110,10 @@ public:
             unsigned index = lshs_[i](obj);
             Bucket& bucket = tables_[i][index];
             if(bucket.empty()||bucket.back() < point)
+            	{
+            	std::cout<<"insert "<<point<<std::endl;
                 bucket.push_back(point);
+            	}
         }
     }
 

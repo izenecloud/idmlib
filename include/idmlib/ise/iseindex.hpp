@@ -4,6 +4,8 @@
 #include "lshindex.hpp"
 #include "extractor.hpp"
 
+#include <am/leveldb/Table.h>
+
 namespace idmlib{ namespace ise{
 
 struct IseOptions
@@ -18,26 +20,36 @@ struct IseOptions
     unsigned dim;
     ///Lsh tables 
     unsigned ntables;
-    ///Lsh index path
-    std::string home;
 };
 
 class IseIndex
 {
     typedef lshkit::Tail<lshkit::RepeatHash<lshkit::GaussianLsh> > LshFuncType;
     typedef LSHIndex<LshFuncType, unsigned> LshIndexType;
+    typedef izenelib::am::leveldb::Table<unsigned, std::string > ImageMetaStorageType;
+
+    std::string lshHome_;
+
+    std::string imgMetaHome_;
 
     LshIndexType lshIndex_;
 
     Extractor extractor_;
 
-    std::string home_;
+    ImageMetaStorageType imgMetaStorage_;
+
 public:
-    IseIndex(const IseOptions& options);
+    IseIndex(const std::string& homePath);
 
     ~IseIndex();
 
+    void ResetLSH(const IseOptions& options);
+
+    void SaveLSH();
+
     void Insert(const std::string& imgPath);
+
+    void Search(const std::string& queryImgpath, std::vector<std::string>& results);
 
 };
 

@@ -4,13 +4,9 @@
 #ifndef IDMLIB_IISE_SIFT_HPP
 #define IDMLIB_IISE_SIFT_HPP
 
-#define cimg_display 0
-#define cimg_debug 0
-#define cimg_use_magick 0
-
-#include <idmlib/ise/image/CImg.h>
 #include <idmlib/ise/common.hpp>
 #include <idmlib/lshkit.h>
+#include <idmlib/ise/imgutil.hpp>
 
 namespace idmlib{ namespace ise{
 
