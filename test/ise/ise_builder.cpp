@@ -29,14 +29,15 @@ int main(int argc, char **argv)
                      options(desc).positional(p).run(), vm);
     po::notify(vm);
 
-    if ((vm.count("input") == 0)&&(vm.count("query") == 0) ) {
+    if ((vm.count("input") == 0) && (vm.count("query") == 0))
+    {
         std::cerr << desc;
         return 1;
     }
 
-    idmlib::ise::IseIndex iseIndex("ise");
+    idmlib::ise::IseIndex iseIndex("ise", idmlib::ise::IseIndex::LSH);
 
-    if(vm.count("input") != 0)
+    if (vm.count("input") != 0)
     {
         idmlib::ise::IseOptions options;
         options.range = 1000000;
@@ -46,7 +47,7 @@ int main(int argc, char **argv)
         options.ntables = 4;
         iseIndex.Reset(options);
         bfs::recursive_directory_iterator dir_iter(input), end_iter;
-        for(; dir_iter!= end_iter; ++dir_iter)
+        for (; dir_iter!= end_iter; ++dir_iter)
         {
             if(bfs::is_regular_file(*dir_iter))
             {
@@ -55,18 +56,18 @@ int main(int argc, char **argv)
         }
         iseIndex.Save();
     }
-    else if(vm.count("query") !=0)
+    else if (vm.count("query") != 0)
     {
-        for(;;)
+        for (;;)
         {
             std::string queryImgPath;
             std::cin >> queryImgPath;
             if(!std::cin) break;
             std::vector<std::string> results;
             iseIndex.Search(queryImgPath, results);
-            for(unsigned i = 0; i < results.size(); ++i)
-                std::cout<<results[i]<<std::endl;
-            std::cout<<"result size: "<<results.size()<<std::endl;
+            for (unsigned i = 0; i < results.size(); ++i)
+                std::cout << results[i] << std::endl;
+            std::cout << "result size: " << results.size() << std::endl;
         }
     }
     return 0;

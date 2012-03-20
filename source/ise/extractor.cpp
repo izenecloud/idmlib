@@ -4,7 +4,7 @@ namespace idmlib{ namespace ise{
 
 struct ExtractorImpl
 {
-    typedef lshkit::Sketch<lshkit::DeltaLSB<lshkit::GaussianLsh> > LshSketch;
+    typedef lshkit::Sketch<lshkit::DeltaLSB<lshkit::GaussianLsh>, Chunk> LshSketch;
     LshSketch sketch_;
     Sift xtor_;
 public:
@@ -44,11 +44,11 @@ public:
         }
 
         xtor_.extract(gray, scale, &sift);
-        if(sift.empty()) std::cout<<path<<std::endl;
+        if (sift.empty()) std::cout << path << std::endl;
         SampleFeature(&sift, MAX_FEATURES, SAMPLE_SIZE);
     }
 
-    void BuildSketch(std::vector<Sift::Feature>& sift, std::vector<Sketch >& sketches)
+    void BuildSketch(std::vector<Sift::Feature>& sift, std::vector<Sketch>& sketches)
     {
         if (LOG_BASE > 0) {
             logscale(&sift, LOG_BASE);
@@ -81,4 +81,3 @@ Extractor::~Extractor ()
 }
 
 }}
-

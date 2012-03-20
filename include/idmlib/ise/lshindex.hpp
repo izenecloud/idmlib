@@ -1,6 +1,6 @@
 /**
 * Build LSH index for SIFT image features.
-* We don't store the raw SIFT points within the LSH tables, 
+* We don't store the raw SIFT points within the LSH tables,
 * instead, we only store the image identifiers to save as much memory as possible
 */
 #ifndef IDMLIB_ISE_LSHINDEX_HPP
@@ -38,7 +38,7 @@ public:
       * @param param parameter of LSH function.
       * @param engine random number generator.
       * @param L number of hash table maintained.
-      */
+      */
     template <typename Engine>
     void Init (const Parameter &param, Engine &engine, unsigned L)
     {
@@ -46,9 +46,11 @@ public:
         BOOST_VERIFY(tables_.size() == 0);
         lshs_.resize(L);
         tables_.resize(L);
-        for (unsigned i = 0; i < L; ++i) {
+        for (unsigned i = 0; i < L; ++i)
+        {
             lshs_[i].reset(param, engine);
-            if (lshs_[i].getRange() == 0) {
+            if (lshs_[i].getRange() == 0)
+            {
                 throw std::logic_error("LSH with unlimited range should not be used to construct an LSH index.  Use lshkit::Tail<> to wrapp the LSH.");
             }
             tables_[i].resize(lshs_[i].getRange());
@@ -61,13 +63,15 @@ public:
         ar & L;
         lshs_.resize(L);
         tables_.resize(L);
-        for (unsigned i = 0; i < L; ++i) {
+        for (unsigned i = 0; i < L; ++i)
+        {
             lshs_[i].serialize(ar, 0);
             unsigned l;
             ar & l;
             LSHTable &table = tables_[i];
             table.resize(l);
-            for (;;) {
+            for (;;)
+            {
                 unsigned idx, ll;
                 ar & idx;
                 ar & ll;
@@ -83,13 +87,15 @@ public:
         unsigned L;
         L = lshs_.size();
         ar & L;
-        for (unsigned i = 0; i < L; ++i) {
+        for (unsigned i = 0; i < L; ++i)
+        {
             lshs_[i].serialize(ar, 0);
             LSHTable &table = tables_[i];
             unsigned l = table.size();
             ar & l;
             unsigned idx, ll;
-            for (unsigned j = 0; j < l; ++j) {
+            for (unsigned j = 0; j < l; ++j)
+            {
                 if (table[j].empty()) continue;
                 idx = j;
                 ll = table[j].size();
@@ -105,21 +111,22 @@ public:
 
     void Insert (Domain obj, Key point)
     {
-        for (unsigned i = 0; i < lshs_.size(); ++i) {
+        for (unsigned i = 0; i < lshs_.size(); ++i)
+        {
             unsigned index = lshs_[i](obj);
             Bucket& bucket = tables_[i][index];
-            if(bucket.empty()||bucket.back() < point)
+            if (bucket.empty() || bucket.back() < point)
                 bucket.push_back(point);
         }
     }
 
     void Search (Domain obj, std::vector<unsigned>& result) const
     {
-        for (unsigned i = 0; i < lshs_.size(); ++i) {
+        for (unsigned i = 0; i < lshs_.size(); ++i)
+        {
             unsigned index = lshs_[i](obj);
             const Bucket& bucket = tables_[i][index];
-            result.resize(result.size() + bucket.size());
-            std::copy(bucket.begin(), bucket.end(), std::back_inserter(result));
+            result.insert(result.end(), bucket.begin(), bucket.end());
         }
     }
 };
@@ -140,13 +147,14 @@ private:
     Parameter param_;
     lshkit::MultiProbeLshRecallTable recall_;
 
-public: 
+public:
     typedef typename Super::Domain Domain;
     typedef KEY Key;
 
     /// Constructor.
-    MultiProbeLSHIndex() {
-    } 
+    MultiProbeLSHIndex()
+    {
+    }
 
     /// Initialize MPLSH.
     /**
@@ -157,7 +165,8 @@ public:
       * @param L number of hash tables maintained.
       */
     template <typename Engine>
-    void Init (const Parameter &param, Engine &engine, unsigned L) {
+    void Init (const Parameter &param, Engine &engine, unsigned L)
+    {
         Super::Init(param, engine, L);
         param_ = param;
         // we are going to normalize the distance by window size, so here we pass W = 1.0.
@@ -166,7 +175,7 @@ public:
     }
 
     /// Load the index from stream.
-    void Load (std::istream &ar) 
+    void Load (std::istream &ar)
     {
         Super::Load(ar);
         param_.serialize(ar, 0);
@@ -184,16 +193,18 @@ public:
     /// Query for K-NNs.
     /**
       * @param obj the query object.
-      * @param scanner 
+      * @param scanner
       */
     void Search(Domain obj, std::vector<unsigned>& result)
     {
         std::vector<unsigned> seq;
-        for (unsigned i = 0; i < Super::lshs_.size(); ++i) {
+        for (unsigned i = 0; i < Super::lshs_.size(); ++i)
+        {
             Super::lshs_[i].genProbeSequence(obj, seq, lshkit::Probe::MAX_T);
-            for (unsigned j = 0; j < seq.size(); ++j) {
+            for (unsigned j = 0; j < seq.size(); ++j)
+            {
                 typename Super::Bucket &bucket = Super::tables_[i][seq[j]];
-                std::copy(bucket.begin(), bucket.end(), std::back_inserter(result));
+                result.insert(result.end(), bucket.begin(), bucket.end());
             }
         }
     }
