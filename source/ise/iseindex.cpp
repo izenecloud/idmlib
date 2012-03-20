@@ -8,7 +8,6 @@ namespace idmlib{ namespace ise{
 
 IseIndex::IseIndex(const std::string& homePath, ALGORITHM algo)
     : lshHome_((bfs::path(homePath) / "lshindex").string())
-    , sketchHome_(bfs::path(bfs::path(homePath)/"sketchindex").string())
     , imgMetaHome_((bfs::path(homePath) / "imgmeta").string())
     , psmAlgo_((bfs::path(homePath) / "psm").string(), algo == BF)
     , imgMetaStorage_(imgMetaHome_)
@@ -32,12 +31,6 @@ IseIndex::IseIndex(const std::string& homePath, ALGORITHM algo)
         break;
 
     case BF:
-        if (bfs::exists(sketchHome_))
-        {
-            LoadSketch_();
-        }
-        break;
-
     case PSM:
         psmAlgo_.Init();
         break;
@@ -66,8 +59,6 @@ void IseIndex::Save()
         break;
 
     case BF:
-        SaveSketch_();
-
     case PSM:
         psmAlgo_.Finish();
         break;
@@ -96,35 +87,6 @@ void IseIndex::SaveLSH_()
     lshIndex_.Save(os);
 }
 
-void IseIndex::LoadSketch_()
-{
-    std::ifstream ar(sketchHome_.c_str(), std::ios_base::binary);
-    unsigned L;
-    ar & L;
-    sketches_.resize(L);
-    for (unsigned i = 0; i < L; ++i)
-    {
-        Sketch sketch;
-        ar.read((char *)&sketch, sizeof(Sketch));
-        unsigned id;
-        ar.read((char *)&id, sizeof(unsigned));
-        sketches_[i] = std::make_pair(sketch,id);
-    }
-}
-
-void IseIndex::SaveSketch_()
-{
-    std::ofstream ar(sketchHome_.c_str(), std::ios_base::binary);
-    unsigned L;
-    L = sketches_.size();
-    ar & L;
-    for (unsigned i = 0; i < L; ++i)
-    {
-        ar.write((char *)&sketches_[i].first, sizeof(Sketch));
-        ar.write((char *)&sketches_[i].second, sizeof(unsigned));
-    }
-}
-
 bool IseIndex::Insert(const std::string& imgPath)
 {
     static unsigned id = 0;
@@ -140,14 +102,6 @@ bool IseIndex::Insert(const std::string& imgPath)
         break;
 
     case BF:
-        {
-            std::vector<Sketch > sketches;
-            extractor_.BuildSketch(sift, sketches);
-            for (unsigned i = 0; i < sketches.size(); ++i)
-                sketches_.push_back(std::make_pair(sketches[i],id));
-        }
-        break;
-
     case PSM:
         {
             std::vector<Sketch> sketches;
@@ -175,9 +129,6 @@ void IseIndex::Search(const std::string& queryImgPath, std::vector<std::string>&
         break;
 
     case BF:
-        DoSketchSearch_(sift, imgIds);
-        break;
-
     case PSM:
         DoPSMSearch_(sift, imgIds);
         break;
@@ -203,25 +154,6 @@ void IseIndex::DoLSHSearch_(std::vector<Sift::Feature>& sift, std::vector<unsign
     results.resize(std::unique(results.begin(), results.end()) - results.begin());
 }
 
-void IseIndex::DoSketchSearch_(std::vector<Sift::Feature>& sift, std::vector<unsigned>& results)
-{
-    std::vector<Sketch> sketches;
-    extractor_.BuildSketch(sift, sketches);
-    Hamming hamming;
-    for (unsigned i = 0; i < sketches.size(); ++i)
-    {
-        for (unsigned j = 0; j < sketches_.size(); ++j)
-        {
-            if (hamming(sketches[i].desc,sketches_[j].first.desc) < 4)
-            {
-                results.push_back(sketches_[j].second);
-            }
-        }
-    }
-    std::sort(results.begin(), results.end());
-    results.resize(std::unique(results.begin(), results.end()) - results.begin());
-}
-
 void IseIndex::DoPSMSearch_(std::vector<Sift::Feature>& sift, std::vector<unsigned>& results)
 {
     std::vector<Sketch> sketches;
@@ -236,7 +168,6 @@ void IseIndex::DoPSMSearch_(std::vector<Sift::Feature>& sift, std::vector<unsign
 
 void IseIndex::DoPostFiltering_(std::vector<unsigned>& in, std::vector<unsigned>& out)
 {
-
 }
 
 }}

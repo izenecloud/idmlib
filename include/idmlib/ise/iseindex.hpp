@@ -61,8 +61,6 @@ private:
 
     void DoLSHSearch_(std::vector<Sift::Feature>& sift, std::vector<unsigned>& results);
 
-    void DoSketchSearch_(std::vector<Sift::Feature>& sift, std::vector<unsigned>& results);
-
     void DoPSMSearch_(std::vector<Sift::Feature>& sift, std::vector<unsigned>& results);
 
     void DoPostFiltering_(std::vector<unsigned>& in, std::vector<unsigned>& out);
@@ -70,15 +68,11 @@ private:
 private:
     std::string lshHome_;
 
-    std::string sketchHome_;
-
     std::string imgMetaHome_;
 
     LshIndexType lshIndex_;
 
     ProbSimMatch psmAlgo_;
-
-    std::vector<std::pair<Sketch,unsigned> > sketches_;
 
     Extractor extractor_;
 
