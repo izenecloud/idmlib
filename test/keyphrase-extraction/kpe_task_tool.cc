@@ -356,7 +356,10 @@ int main(int ac, char** av)
         }
       }
       if(limited) break;
-      task.Insert(docid, title, content);
+      if(title.length()>0 && content.length()>0)
+      {
+        task.Insert(docid, title, content);
+      }
       ++it;
     }
     if(limited) break;
