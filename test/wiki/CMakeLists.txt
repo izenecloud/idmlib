@@ -27,6 +27,7 @@ SET(libs
   ${izenecma_LIBRARIES}
   ${wisekma_LIBRARIES}
   ${xml2_LIBRARIES}
+  ${ImageMagick_LIBRARIES}  
   )
 SET(Boost_USE_STATIC_LIBS OFF)
 

@@ -77,12 +77,6 @@ public:
         return true;
     }
 
-    uint32_t GetInsertedDocCount()
-    {
-        boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
-        return fp_vec_.size() + working_fp_vec_.size();
-    }
-
     void IncreaseCacheCapacity(uint32_t capacity)
     {
         boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
@@ -147,7 +141,41 @@ public:
 
     void RemoveDoc(const DocIdType& docid)
     {
+        removed_docs_.push_back(docid);
         if (!fp_only_) group_table_->RemoveDoc(docid);
+    }
+
+    void FinishRemoveDocs()
+    {
+        if (removed_docs_.empty()) return;
+
+        if (!enable_knn_)
+        {
+            izenelib::am::ssf::Util<>::Load(fp_storage_path_, fp_vec_);
+        }
+
+        std::vector<FpItemType> new_fp_vec;
+        new_fp_vec.reserve(fp_vec_.size() - removed_docs_.size());
+        typename std::vector<FpItemType>::iterator it(fp_vec_.begin());
+        for (uint32_t i = 0; i < removed_docs_.size(); i++)
+        {
+            for (; it != fp_vec_.end() && it->docid < removed_docs_[i]; ++it)
+                new_fp_vec.push_back(*it);
+            if (it != fp_vec_.end() && it->docid == removed_docs_[i])
+                ++it;
+        }
+        new_fp_vec.insert(new_fp_vec.end(), it, fp_vec_.end());
+
+        izenelib::am::ssf::Util<>::Load(fp_storage_path_, new_fp_vec);
+        if (enable_knn_)
+        {
+            new_fp_vec.swap(fp_vec_);
+        }
+        else
+        {
+            std::vector<FpItemType>().swap(fp_vec_);
+        }
+        std::vector<DocIdType>().swap(removed_docs_);
     }
 
     bool RunDdAnalysis(bool force = false)
@@ -286,7 +314,7 @@ private:
         {
             boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
             fp_vec_.insert(fp_vec_.end(), working_fp_vec_.begin(), working_fp_vec_.end());
-            working_fp_vec_.clear();
+            std::vector<FpItemType>().swap(working_fp_vec_);
         }
         if (!izenelib::am::ssf::Util<>::Save(fp_storage_path_, fp_vec_))
         {
@@ -361,7 +389,6 @@ private:
         izenelib::am::ssf::Util<>::Load(fp_storage_path_, vec_all);
         std::cout << "Processed doc count : " << vec_all.size() << std::endl;
         vec_all.insert(vec_all.end(), vec.begin(), vec.end());
-        vec.clear();
         if (!izenelib::am::ssf::Util<>::Save(fp_storage_path_, vec_all))
         {
             std::cerr << "Save fps failed" << std::endl;
@@ -561,6 +588,7 @@ private:
 
     std::vector<FpItemType> fp_vec_;
     std::vector<FpItemType> working_fp_vec_;
+    std::vector<DocIdType> removed_docs_;
 
     bool enable_knn_;
     bool fp_only_;

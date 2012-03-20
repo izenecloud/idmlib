@@ -135,6 +135,8 @@
 #include "mplsh-model.h"
 #include "topk.h"
 
+#include <util/singleton.h>
+
 namespace lshkit
 {
 
@@ -176,7 +178,7 @@ void GenProbeSequenceTemplate (ProbeSequence &seq, unsigned M, unsigned T);
 class ProbeSequenceTemplates: public std::vector<ProbeSequence>
 {
 public:
-    ProbeSequenceTemplates(unsigned max_M, unsigned max_T)
+    ProbeSequenceTemplates(unsigned max_M = Probe::MAX_M, unsigned max_T = Probe::MAX_T)
         : std::vector<ProbeSequence>(max_M + 1)
     {
         for (unsigned i = 1; i <= max_M; ++i)
@@ -184,14 +186,16 @@ public:
             GenProbeSequenceTemplate(at(i), i, max_T);
         }
     }
+    static ProbeSequenceTemplates* get()
+    {
+        return izenelib::util::Singleton<ProbeSequenceTemplates>::get();
+    }
 };
-
 
 /// Multi-Probe LSH class.
 class MultiProbeLsh: public RepeatHash<GaussianLsh> 
 {
     unsigned H_;
-    ProbeSequenceTemplates __probeSequenceTemplates;
 public:
     typedef RepeatHash<GaussianLsh> Super;
     typedef Super::Domain Domain;
@@ -220,7 +224,7 @@ public:
         }
     };
 
-    MultiProbeLsh ():__probeSequenceTemplates(Probe::MAX_M, Probe::MAX_T){}
+    MultiProbeLsh (){}
 
     template <typename RNG>
     void reset(const Parameter &param, RNG &rng)

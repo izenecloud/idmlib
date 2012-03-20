@@ -7,6 +7,7 @@ SET(libs
   ${Boost_LIBRARIES}
   xml2
   ${Glog_LIBRARIES}
+  ${ImageMagick_LIBRARIES}  
   )
 
 ADD_EXECUTABLE(t_dc t_dc.cpp)

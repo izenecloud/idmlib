@@ -33,6 +33,25 @@
 
 namespace lshkit {
 
+#define URAND ((double)rand() / (double)RAND_MAX)
+
+//get a random number between M1->M2-1
+#define RAND(M1, M2) (URAND * ((M2)-(M1)) + (M1))
+
+inline float randn()
+{
+    float x1, x2, w;
+    do 
+    { 
+        x1 = 2.0 * URAND - 1.0; 
+        x2 = 2.0 * URAND - 1.0; 
+        w = x1 * x1 + x2 * x2; 
+    } while ( w >= 1.0  || w == 0); 
+    return x1 * sqrt(-2.0 * log( w ) / w);
+}
+
+#define NRAND randn()
+
 class TrivialLsh
 {
 public:
@@ -145,6 +164,7 @@ public:
         for (unsigned i = 0; i < dim_; ++i) a_[i] = gen();
 
         b_ = boost::variate_generator<RNG &, Uniform>(rng, Uniform(0,W_))();
+        //b_ = (float)RAND(0, W_);
     }
 
     template <typename RNG>
@@ -159,14 +179,19 @@ public:
         return 0;
     }
 
-    unsigned operator () (Domain obj) const
+    uint64_t operator () (Domain obj) const
     {
         float ret = b_;
         for (unsigned i = 0; i < dim_; ++i)
         {
             ret += a_[i] * obj[i];
         }
-        return unsigned(int(std::floor(ret / W_)));
+        //float norm = 0;
+        //for (unsigned i = 0; i < dim_; ++i)
+        //    norm += obj[i]*obj[i];
+        //norm = sqrt(norm);
+        //ret = (ret / norm) + 1.0; //norm2;
+        return uint64_t((std::floor(ret/ W_)));
     }
 
     unsigned operator () (Domain obj, float *delta) const

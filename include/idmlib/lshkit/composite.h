@@ -46,6 +46,12 @@
  *
  * 
  */
+#define HASH_POLY       1368547 
+#define HASH_POLY_REM   573440
+
+#define HASH_POLY_A_NUM 15
+const uint32_t  HASH_POLY_A[] = {1342, 876454, 656565, 223, 337, 9847, 87676, 
+  34234, 23445, 76543, 8676234, 3497, 9876, 87856, 2342858};
 
 namespace lshkit {
 
@@ -413,12 +419,13 @@ public:
         return 0;
     }
 
-    unsigned operator () (Domain obj) const
+    uint64_t operator () (Domain obj) const
     {
-        unsigned ret = 0;
+        uint64_t ret = 0;
         for (unsigned i = 0; i < lsh_.size(); ++i)
         {
             ret += lsh_[i](obj) * a_[i];
+			
         }
         return ret;
     }
@@ -433,9 +440,71 @@ public:
 protected:
     std::vector<Super> lsh_;
     std::vector<unsigned> a_;
-
 };
 
+template <typename LSH>
+class RepeatHash2
+{
+    BOOST_CONCEPT_ASSERT((LshConcept<LSH>));
+
+public:
+    typedef LSH Super;
+    /**
+     * Parameter to Repeat.
+     */
+    struct Parameter: public Super::Parameter {
+        /// The number of instances of the base LSH concatenated.
+        unsigned repeat;
+    };
+
+    typedef typename LSH::Domain Domain;
+
+    RepeatHash2 ()
+    {
+    }
+
+    template <typename RNG>
+    void reset(const Parameter &param, RNG &rng)
+    {
+        assert(param.repeat > 0);
+        lsh_.resize(param.repeat);
+        for (unsigned i = 0; i < param.repeat; ++i)
+        {
+            lsh_[i].reset(param, rng);
+        }
+    }
+
+    template <typename RNG>
+    RepeatHash2(const Parameter &param, RNG &rng)
+    {
+        reset(param, rng);
+    }
+
+    unsigned getRange () const
+    {
+        return 0;
+    }
+
+    uint64_t operator () (Domain obj) const
+    {
+        uint64_t ret = 0;
+        for (unsigned i = 0; i < lsh_.size(); ++i)
+        {
+            ret = (lsh_[i](obj) * HASH_POLY_A[i % HASH_POLY_A_NUM] % HASH_POLY) + 
+              (ret * HASH_POLY_REM % HASH_POLY);
+			
+        }
+        return ret;
+    }
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & lsh_;
+    }
+protected:
+    std::vector<Super> lsh_;
+};
 
 ///  XOR a number of 1-bit LSHes.
 /*

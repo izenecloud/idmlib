@@ -118,14 +118,14 @@ struct __MpLshMdlHlpr
     const MultiProbeLshModel *model;
     const GammaDouble *gamma;
 };
-
+/*
 static double recall_helper (double xsqr, void *_param)
 {
     __MpLshMdlHlpr *param = reinterpret_cast<__MpLshMdlHlpr
         *>(_param);
     return boost::math::pdf(*param->gamma, xsqr) * param->model->recall(std::sqrt(xsqr));
 }
-
+*/
 static double recall (__MpLshMdlHlpr *param)
 {
 /*

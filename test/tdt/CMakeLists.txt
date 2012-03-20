@@ -21,6 +21,7 @@ SET(libs
   ${wisekma_LIBRARIES}
   ${izenejma_LIBRARIES}
   ${xml2_LIBRARIES}
+  ${ImageMagick_LIBRARIES}
   bz2
   )
 
