@@ -1,7 +1,7 @@
 #ifndef IDMLIB_ProbSimMatch_HPP
 #define IDMLIB_ProbSimMatch_HPP
 
-#include "common.hpp"
+#include "sift.hpp"
 
 #include <am/leveldb/Table.h>
 #include <3rdparty/am/drum/drum.hpp>
@@ -44,7 +44,7 @@ public:
         izenelib::am::leveldb::Table
     > SketchToImgIdType;
 
-    ProbSimMatch(const std::string& path, bool brute_force = false);
+    ProbSimMatch(const std::string& path);
 
     ~ProbSimMatch();
 
@@ -54,7 +54,12 @@ public:
 
     void Delete(key_t key);
 
-    void Search(const Sketch& sketch, std::vector<key_t>& result) const;
+    void BFSearch(const std::vector<Sketch>& sketches, std::vector<key_t>& results) const;
+
+    void PSMSearch(
+            const std::vector<Sift::Feature>& sifts,
+            const std::vector<Sketch>& sketches,
+            std::vector<key_t>& results) const;
 
     void Finish();
 
@@ -65,11 +70,11 @@ private:
 
     unsigned CalcHammingDist_(const Sketch& s1, const Sketch& s2) const;
 
+    void GenTableIds_(const std::vector<float>& components, std::vector<unsigned>& table_ids) const;
+
 private:
     std::string sketch_path_;
     std::string drum_path_;
-
-    bool brute_force_;
 
     std::vector<std::vector<Sketch> > sketches_;
     boost::shared_ptr<SketchToImgIdType> sketch_to_imgid_;

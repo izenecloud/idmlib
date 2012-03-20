@@ -50,7 +50,8 @@ public:
 
     void BuildSketch(std::vector<Sift::Feature>& sift, std::vector<Sketch>& sketches)
     {
-        if (LOG_BASE > 0) {
+        if (LOG_BASE > 0)
+        {
             logscale(&sift, LOG_BASE);
         }
         sketches.resize(sift.size());

@@ -14,8 +14,8 @@
 #ifndef IDMLIB_ISE_EXTRACTOR_HPP
 #define IDMLIB_ISE_EXTRACTOR_HPP
 
-#include <idmlib/ise/common.hpp>
-#include <idmlib/ise/sift.hpp>
+#include "common.hpp"
+#include "sift.hpp"
 
 namespace idmlib { namespace ise{
 

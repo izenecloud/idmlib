@@ -4,9 +4,9 @@
 #ifndef IDMLIB_IISE_SIFT_HPP
 #define IDMLIB_IISE_SIFT_HPP
 
-#include <idmlib/ise/common.hpp>
+#include "common.hpp"
+#include "imgutil.hpp"
 #include <idmlib/lshkit.h>
-#include <idmlib/ise/imgutil.hpp>
 
 namespace idmlib{ namespace ise{
 

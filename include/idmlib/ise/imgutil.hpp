@@ -91,7 +91,6 @@ void CImgToGray (const CImg<T> &img, CImg<float> *gray)
     }
     else
     {
-        std::cout << "The channel number is: " << img.spectrum() << std::endl;
         throw std::runtime_error("image is not a RGB or gray image.");
     }
     result.move_to(*gray);

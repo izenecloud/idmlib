@@ -17,10 +17,9 @@ unsigned CountBits(uint64_t v)
 
 namespace idmlib{ namespace ise{
 
-ProbSimMatch::ProbSimMatch(const std::string& path, bool brute_force)
+ProbSimMatch::ProbSimMatch(const std::string& path)
     : sketch_path_(path + "/sketches")
     , drum_path_(path + "/sketch_to_imgid")
-    , brute_force_(brute_force)
 {
 }
 
@@ -30,9 +29,10 @@ ProbSimMatch::~ProbSimMatch()
 
 void ProbSimMatch::Init()
 {
-    sketches_.resize(1 << (Parameter::p));
     boost::filesystem::create_directories(drum_path_);
     sketch_to_imgid_.reset(new SketchToImgIdType(drum_path_, 64, 32768, 4194304));
+
+    sketches_.resize(1 << (Parameter::p));
     std::ifstream ifs(sketch_path_.c_str(), std::ios_base::binary);
     LoadSketches_(ifs);
 }
@@ -49,6 +49,18 @@ void ProbSimMatch::LoadSketches_(std::istream &iar)
     }
 }
 
+void ProbSimMatch::Finish()
+{
+    for (unsigned i = 0; i < sketches_.size(); i++)
+    {
+        std::sort(sketches_[i].begin(), sketches_[i].end());
+    }
+    std::ofstream ofs(sketch_path_.c_str(), std::ios_base::binary);
+    SaveSketches_(ofs);
+
+    sketch_to_imgid_->Synchronize();
+}
+
 void ProbSimMatch::SaveSketches_(std::ostream &oar)
 {
     if (!oar) return;
@@ -62,15 +74,14 @@ void ProbSimMatch::SaveSketches_(std::ostream &oar)
 
 void ProbSimMatch::Insert(key_t key, const std::vector<Sketch>& sketches)
 {
-    for (std::vector<Sketch>::const_iterator it = sketches.begin();
-            it != sketches.end(); ++it)
+    for (unsigned i = 0; i < sketches.size(); i++)
     {
-        unsigned index = it->desc[0] >> (sizeof(key) * 8 - Parameter::p);
-        sketches_[index].push_back(*it);
+        unsigned index = sketches[i].desc[0] >> (sizeof(key) * 8 - Parameter::p);
+        sketches_[index].push_back(sketches[i]);
 
         std::set<key_t> key_set;
         key_set.insert(key);
-        sketch_to_imgid_->Append(*it, key_set);
+        sketch_to_imgid_->Append(sketches[i], key_set);
     }
 }
 
@@ -78,37 +89,53 @@ void ProbSimMatch::Delete(key_t key)
 {
 }
 
-void ProbSimMatch::Search(const Sketch& sketch, std::vector<key_t>& result) const
+void ProbSimMatch::BFSearch(const std::vector<Sketch>& sketches, std::vector<key_t>& results) const
 {
-    std::vector<Sketch> matched;
-    if (brute_force_)
+    for (unsigned i = 0; i < sketches.size(); i++)
     {
-        for (unsigned i = 0; i < sketches_.size(); i++)
-            for (unsigned j = 0; j < sketches_[i].size(); j++)
-                if (CalcHammingDist_(sketch, sketches_[i][j]) <= 3)
-                    matched.push_back(sketches_[i][j]);
-    }
-    else
-    {
-        // TODO
-    }
-    for (unsigned i = 0; i < matched.size(); i++)
-    {
-        std::set<key_t> key_set;
-        sketch_to_imgid_->GetValue(matched[i], key_set);
-        result.insert(result.end(), key_set.begin(), key_set.end());
+        for (unsigned j = 0; j < sketches_.size(); j++)
+        {
+            for (unsigned k = 0; k < sketches_[j].size(); k++)
+            {
+                if (CalcHammingDist_(sketches[i], sketches_[j][k]) <= 3)
+                {
+                    std::set<key_t> key_set;
+                    sketch_to_imgid_->GetValue(sketches_[j][k], key_set);
+                    results.insert(results.end(), key_set.begin(), key_set.end());
+                }
+            }
+        }
     }
 }
 
-void ProbSimMatch::Finish()
+void ProbSimMatch::PSMSearch(
+        const std::vector<Sift::Feature>& sifts,
+        const std::vector<Sketch>& sketches,
+        std::vector<key_t>& results) const
 {
-    for (unsigned i = 0; i < sketches_.size(); i++)
+    for (unsigned i = 0; i < sifts.size(); i++)
     {
-        std::sort(sketches_[i].begin(), sketches_[i].end());
+        std::vector<unsigned> table_ids;
+        GenTableIds_(sifts[i].desc, table_ids);
+        for (std::vector<unsigned>::const_iterator it = table_ids.begin();
+                it != table_ids.end(); ++it)
+        {
+            for (unsigned k = 0; k < sketches_[*it].size(); k++)
+            {
+                if (CalcHammingDist_(sketches[i], sketches_[*it][k]) <= 3)
+                {
+                    std::set<key_t> key_set;
+                    sketch_to_imgid_->GetValue(sketches_[*it][k], key_set);
+                    results.insert(results.end(), key_set.begin(), key_set.end());
+                }
+            }
+        }
     }
-    std::ofstream ofs(sketch_path_.c_str(), std::ios_base::binary);
-    SaveSketches_(ofs);
-    sketch_to_imgid_->Synchronize();
+}
+
+void ProbSimMatch::GenTableIds_(const std::vector<float>& components, std::vector<unsigned>& table_ids) const
+{
+    // TODO
 }
 
 unsigned ProbSimMatch::CalcHammingDist_(const Sketch& s1, const Sketch& s2) const

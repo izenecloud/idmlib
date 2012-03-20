@@ -9,7 +9,7 @@ namespace idmlib{ namespace ise{
 IseIndex::IseIndex(const std::string& homePath, ALGORITHM algo)
     : lshHome_((bfs::path(homePath) / "lshindex").string())
     , imgMetaHome_((bfs::path(homePath) / "imgmeta").string())
-    , psmAlgo_((bfs::path(homePath) / "psm").string(), algo == BF)
+    , probSimMatch_((bfs::path(homePath) / "psm").string())
     , imgMetaStorage_(imgMetaHome_)
     , algo_(algo)
 {
@@ -32,7 +32,7 @@ IseIndex::IseIndex(const std::string& homePath, ALGORITHM algo)
 
     case BF:
     case PSM:
-        psmAlgo_.Init();
+        probSimMatch_.Init();
         break;
 
     default:
@@ -60,7 +60,7 @@ void IseIndex::Save()
 
     case BF:
     case PSM:
-        psmAlgo_.Finish();
+        probSimMatch_.Finish();
         break;
 
     default:
@@ -91,22 +91,22 @@ bool IseIndex::Insert(const std::string& imgPath)
 {
     static unsigned id = 0;
     ++id;
-    std::vector<Sift::Feature> sift;
-    extractor_.ExtractSift(imgPath, sift, false);
-    if (sift.empty()) return false;
+    std::vector<Sift::Feature> sifts;
+    extractor_.ExtractSift(imgPath, sifts, false);
+    if (sifts.empty()) return false;
     switch (algo_)
     {
     case LSH:
-        for (unsigned i = 0; i < sift.size(); ++i)
-            lshIndex_.Insert(&sift[i].desc[0], id);
+        for (unsigned i = 0; i < sifts.size(); ++i)
+            lshIndex_.Insert(&sifts[i].desc[0], id);
         break;
 
     case BF:
     case PSM:
         {
             std::vector<Sketch> sketches;
-            extractor_.BuildSketch(sift, sketches);
-            psmAlgo_.Insert(id, sketches);
+            extractor_.BuildSketch(sifts, sketches);
+            probSimMatch_.Insert(id, sketches);
         }
         break;
 
@@ -119,23 +119,29 @@ bool IseIndex::Insert(const std::string& imgPath)
 
 void IseIndex::Search(const std::string& queryImgPath, std::vector<std::string>& results)
 {
-    std::vector<Sift::Feature> sift;
-    extractor_.ExtractSift(queryImgPath, sift, true);
+    std::vector<Sift::Feature> sifts;
+    extractor_.ExtractSift(queryImgPath, sifts, true);
+    if (sifts.empty()) return;
     std::vector<unsigned> imgIds;
     switch (algo_)
     {
     case LSH:
-        DoLSHSearch_(sift, imgIds);
+        DoLSHSearch_(sifts, imgIds);
         break;
 
     case BF:
+        DoBFSearch_(sifts, imgIds);
+        break;
+
     case PSM:
-        DoPSMSearch_(sift, imgIds);
+        DoPSMSearch_(sifts, imgIds);
         break;
 
     default:
         break;
     }
+    std::sort(imgIds.begin(), imgIds.end());
+    imgIds.resize(std::unique(imgIds.begin(), imgIds.end()) - imgIds.begin());
     for (unsigned i = 0; i < imgIds.size(); ++i)
     {
         std::string img;
@@ -144,26 +150,26 @@ void IseIndex::Search(const std::string& queryImgPath, std::vector<std::string>&
     }
 }
 
-void IseIndex::DoLSHSearch_(std::vector<Sift::Feature>& sift, std::vector<unsigned>& results)
+void IseIndex::DoLSHSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results)
 {
-    for (unsigned i = 0; i < sift.size(); ++i)
+    for (unsigned i = 0; i < sifts.size(); ++i)
     {
-        lshIndex_.Search(&sift[i].desc[0], results);
+        lshIndex_.Search(&sifts[i].desc[0], results);
     }
-    std::sort(results.begin(), results.end());
-    results.resize(std::unique(results.begin(), results.end()) - results.begin());
 }
 
-void IseIndex::DoPSMSearch_(std::vector<Sift::Feature>& sift, std::vector<unsigned>& results)
+void IseIndex::DoBFSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results)
 {
     std::vector<Sketch> sketches;
-    extractor_.BuildSketch(sift, sketches);
-    for (unsigned i = 0; i < sketches.size(); ++i)
-    {
-        psmAlgo_.Search(sketches[i], results);
-    }
-    std::sort(results.begin(), results.end());
-    results.resize(std::unique(results.begin(), results.end()) - results.begin());
+    extractor_.BuildSketch(sifts, sketches);
+    probSimMatch_.BFSearch(sketches, results);
+}
+
+void IseIndex::DoPSMSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results)
+{
+    std::vector<Sketch> sketches;
+    extractor_.BuildSketch(sifts, sketches);
+    probSimMatch_.PSMSearch(sifts, sketches, results);
 }
 
 void IseIndex::DoPostFiltering_(std::vector<unsigned>& in, std::vector<unsigned>& out)
