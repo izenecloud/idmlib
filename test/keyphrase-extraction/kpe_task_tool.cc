@@ -5,7 +5,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <util/scd_parser.h>
-
+#include <util/functional.h>
 #include "../TestResources.h"
 using namespace idmlib;
 using namespace idmlib::kpe;
@@ -122,11 +122,20 @@ typedef izenelib::util::UString StringType;
 // };
 
 
+struct ScoreItem
+{
+    ScoreItem(): tf(0.0), df(0.0)
+    {
+    }
+    double tf;
+    double df;
+};
+
 class Callback2
 {
     public:
-        Callback2(const std::string& result_file)
-        :ofs_(result_file.c_str())
+        Callback2(const std::string& result_file, bool chinese_only = false)
+        :ofs_(result_file.c_str()), adf_(0), chinese_only_(chinese_only)
         {
             
         }
@@ -142,12 +151,31 @@ class Callback2
             ofs_<<str_docid<<std::endl;
             for(uint32_t i=0;i<kp_list.size();i++)
             {
-                if(i>0) ofs_<<",";
-                std::string str;
-                kp_list[i].text.convertString(str, StringType::UTF_8);
-                ofs_<<str;
+                if(kp_list[i].score==0.0)
+                {
+                    //std::cout<<"SCORE 0 : "<<str<<std::endl;
+                    continue;
+                }
+                bool has_chinese = false;
+                for(uint32_t c=0;c<kp_list[i].text.length();c++)
+                {
+                    if(kp_list[i].text.isChineseChar(c))
+                    {
+                        has_chinese = true;
+                        break;
+                    }
+                }
+                if(!chinese_only_ || has_chinese)
+                {
+                    std::string str;
+                    kp_list[i].text.convertString(str, StringType::UTF_8);
+                    ofs_<<str<<",";
+                    kp_map_[str].tf += kp_list[i].score;
+                    kp_map_[str].df += 1;
+                }
             }
             ofs_<<std::endl;
+            adf_+=1;
         }
         
         void SetDocId(uint32_t docid, const std::string& str_docid)
@@ -157,12 +185,28 @@ class Callback2
         
         void Close()
         {
+            std::vector<std::pair<std::string, double> > kp_list;
+            for(boost::unordered_map<std::string, ScoreItem>::const_iterator it = kp_map_.begin(); it!=kp_map_.end(); ++it)
+            {
+                double tfidf = std::log( (double)adf_/it->second.df) * it->second.tf;
+                kp_list.push_back(std::make_pair(it->first, tfidf));
+            }
+            typedef izenelib::util::second_greater<std::pair<std::string, double> > greater_than;
+            std::sort(kp_list.begin(), kp_list.end(), greater_than());
+            ofs_<<"=========KP BEGIN========"<<std::endl;
+            for(uint32_t i=0;i<kp_list.size();i++)
+            {
+                ofs_<<kp_list[i].first<<","<<kp_list[i].second<<std::endl;
+            }
             ofs_.close();
         }
         
     private:
         std::ofstream ofs_;
         boost::unordered_map<uint32_t, std::string> docid_map_;
+        boost::unordered_map<std::string, ScoreItem > kp_map_;
+        uint32_t adf_;
+        bool chinese_only_;
         
 };
 
@@ -176,6 +220,7 @@ int main(int ac, char** av)
     ("output-file,O", po::value<std::string>(), "output key-phrases file for each doc")
     ("working-path,W", po::value<std::string>(), "temp working path used for kpe, default: ./kpe_scd_working")
     ("max-doc,M", po::value<uint32_t>(), "max doc count which will be processed.")
+    ("chinese-only", "only output KPs which have at least chinese character.")
   ;
   std::string default_working_path = "./kpe_task_working";
   izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8;
@@ -284,6 +329,13 @@ int main(int ac, char** av)
     std::cout << "max-doc: " << max_doc <<std::endl;
   } 
   
+  bool chinese_only = false;
+  if(vm.count("chinese-only"))
+  {
+      chinese_only = true;
+      std::cout<<"set chinese-only"<<std::endl;
+  }
+  
   if( !analyzer->LoadT2SMapFile(resource_path+"/cs_ct") )
   {
     return -1;
@@ -293,7 +345,7 @@ int main(int ac, char** av)
   knowledge->Load(resource_path);
   KpeTask task(working_path, analyzer, cma_analyzer, id_manager, knowledge);
   
-  Callback2 callback(output_file);
+  Callback2 callback(output_file, chinese_only);
   
 //   KpeTask::KpTextCallback kp_callback = boost::bind( &Callback::FindKp, &callback, _1, _2, _3);
   KpeTask::DocKpCallback doc_callback = boost::bind( &Callback2::FindDoc, &callback, _1, _2);
