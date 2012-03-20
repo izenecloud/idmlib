@@ -100,12 +100,13 @@ bool IseIndex::Insert(const std::string& imgPath)
     std::vector<Sift::Feature> sift;
     extractor_.ExtractSift(imgPath, sift, false);
     if(sift.empty()) return false;
+    for(unsigned i = 0; i < sift.size(); ++i)
+        lshIndex_.Insert(&sift[i].desc[0],id);
+
     std::vector<Sketch > sketches;
     extractor_.BuildSketch(sift, sketches);
     for(unsigned i = 0; i < sketches.size(); ++i)
         sketches_.push_back(std::make_pair(sketches[i],id));
-    for(unsigned i = 0; i < sift.size(); ++i)
-        lshIndex_.Insert(&sift[i].desc[0],id);
     
     imgMetaStorage_.insert(id,imgPath);
     return true;
@@ -116,8 +117,8 @@ void IseIndex::Search(const std::string& queryImgPath, std::vector<std::string>&
     std::vector<Sift::Feature> sift;
     extractor_.ExtractSift(queryImgPath, sift, true);
     std::vector<unsigned> imgIds;
-    //DoLSHSearch_(sift, imgIds);
-    DoSketchSearch_(sift, imgIds);
+    DoLSHSearch_(sift, imgIds);
+    //DoSketchSearch_(sift, imgIds);
     for(unsigned i = 0; i < imgIds.size(); ++i)
     {
         std::string img;

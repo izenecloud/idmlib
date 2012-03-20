@@ -24,7 +24,7 @@ struct IseOptions
 
 class IseIndex
 {
-    typedef lshkit::Tail<lshkit::RepeatHash2<lshkit::GaussianLsh> > LshFuncType;
+    typedef lshkit::Tail<lshkit::RepeatHash<lshkit::GaussianLsh> > LshFuncType;
     typedef LSHIndex<LshFuncType, unsigned> LshIndexType;
     //typedef MultiProbeLSHIndex<unsigned> LshIndexType;
     typedef izenelib::am::leveldb::Table<unsigned, std::string > ImageMetaStorageType;
