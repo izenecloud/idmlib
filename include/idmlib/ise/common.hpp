@@ -26,6 +26,9 @@ static const unsigned MAX_IMAGE_SIZE = 250;
 typedef uint8_t Chunk;
 typedef Chunk SketchData[SKETCH_SIZE];
 
+static const unsigned CHUNK_BIT = sizeof(Chunk) * 8;
+static const unsigned DATA_CHUNK = 128 / CHUNK_BIT;
+
 struct Sketch {
     SketchData desc;
 };
@@ -34,6 +37,34 @@ struct Region
 {
     float x, y, r, t;
 };
+
+class Hamming
+{
+    static unsigned char_bit_cnt[];
+    template <typename B>
+    unsigned __hamming (B a, B b)
+    {
+        B c = a ^ b;
+        unsigned char *p = reinterpret_cast<unsigned char *>(&c);
+        unsigned r = 0;
+        for (unsigned i = 0; i < sizeof(B); i++)
+        {
+            r += char_bit_cnt[*p++];
+        }
+        return r;
+    }
+public:
+    float operator () (const Chunk *first1, const Chunk *first2) 
+    {
+        unsigned r = 0;
+        for (unsigned i = 0; i < DATA_CHUNK; ++i)
+        {
+            r += __hamming(first1[i], first2[i]);
+        }
+        return float(r);
+    }
+};
+
 
 }}
 

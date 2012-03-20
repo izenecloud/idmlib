@@ -39,12 +39,12 @@ int main(int argc, char **argv)
     if(vm.count("input") != 0)
     {
         idmlib::ise::IseOptions options;
-        options.range = 1000000;
-        options.repeat = 10;
-        options.w = 8;
+        options.range = 10000;
+        options.repeat = 100;
+        options.w = 1.0F;
         options.dim = 128;
-        options.ntables = 5;
-        iseIndex.ResetLSH(options);
+        options.ntables = 4;
+        iseIndex.Reset(options);
         bfs::recursive_directory_iterator dir_iter(input), end_iter;
         for(; dir_iter!= end_iter; ++dir_iter)
         {
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
                 iseIndex.Insert(bfs::path(*dir_iter).string());
             }
         }
-        iseIndex.SaveLSH();
+        iseIndex.Save();
     }
     else if(vm.count("query") !=0)
     {
@@ -66,6 +66,7 @@ int main(int argc, char **argv)
             iseIndex.Search(queryImgPath, results);
             for(unsigned i = 0; i < results.size(); ++i)
                 std::cout<<results[i]<<std::endl;
+            std::cout<<"result size: "<<results.size()<<std::endl;
         }
     }
     return 0;

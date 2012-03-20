@@ -46,7 +46,6 @@ public:
         BOOST_VERIFY(tables_.size() == 0);
         lshs_.resize(L);
         tables_.resize(L);
-
         for (unsigned i = 0; i < L; ++i) {
             lshs_[i].reset(param, engine);
             if (lshs_[i].getRange() == 0) {
@@ -110,10 +109,7 @@ public:
             unsigned index = lshs_[i](obj);
             Bucket& bucket = tables_[i][index];
             if(bucket.empty()||bucket.back() < point)
-            	{
-            	std::cout<<"insert "<<point<<std::endl;
                 bucket.push_back(point);
-            	}
         }
     }
 
@@ -125,11 +121,83 @@ public:
             result.resize(result.size() + bucket.size());
             std::copy(bucket.begin(), bucket.end(), std::back_inserter(result));
         }
-        std::sort(result.begin(), result.end());		
-        result.resize(std::unique(result.begin(), result.end()) - result.begin());		
     }
 };
 
+/// Multi-Probe LSH index.
+template <typename KEY>
+class MultiProbeLSHIndex: public LSHIndex<lshkit::MultiProbeLsh, KEY>
+{
+public:
+    typedef LSHIndex<lshkit::MultiProbeLsh, KEY> Super;
+    /**
+     * Super::Parameter is the same as MultiProbeLsh::Parameter
+     */
+    typedef typename Super::Parameter Parameter;
+
+private:
+
+    Parameter param_;
+    lshkit::MultiProbeLshRecallTable recall_;
+
+public: 
+    typedef typename Super::Domain Domain;
+    typedef KEY Key;
+
+    /// Constructor.
+    MultiProbeLSHIndex() {
+    } 
+
+    /// Initialize MPLSH.
+    /**
+      * @param param parameters.
+      * @param engine random number generator (if you are not sure about what to
+      * use, then pass DefaultRng.
+      * @param accessor object accessor (same as in LshIndex).
+      * @param L number of hash tables maintained.
+      */
+    template <typename Engine>
+    void Init (const Parameter &param, Engine &engine, unsigned L) {
+        Super::Init(param, engine, L);
+        param_ = param;
+        // we are going to normalize the distance by window size, so here we pass W = 1.0.
+        // We tune adaptive probing for KNN distance range [0.0001W, 20W].
+        recall_.reset(lshkit::MultiProbeLshModel(Super::lshs_.size(), 1.0, param_.repeat, lshkit::Probe::MAX_T), 200, 0.0001, 20.0);
+    }
+
+    /// Load the index from stream.
+    void Load (std::istream &ar) 
+    {
+        Super::Load(ar);
+        param_.serialize(ar, 0);
+        recall_.load(ar);
+    }
+
+    /// Save to the index to stream.
+    void Save (std::ostream &ar)
+    {
+        Super::Save(ar);
+        param_.serialize(ar, 0);
+        recall_.save(ar);
+    }
+
+    /// Query for K-NNs.
+    /**
+      * @param obj the query object.
+      * @param scanner 
+      */
+    void Search(Domain obj, std::vector<unsigned>& result)
+    {
+        std::vector<unsigned> seq;
+        for (unsigned i = 0; i < Super::lshs_.size(); ++i) {
+            Super::lshs_[i].genProbeSequence(obj, seq, lshkit::Probe::MAX_T);
+            for (unsigned j = 0; j < seq.size(); ++j) {
+                typename Super::Bucket &bucket = Super::tables_[i][seq[j]];
+                std::copy(bucket.begin(), bucket.end(), std::back_inserter(result));
+            }
+        }
+    }
+};
 
 }}
 #endif /*IDMLIB_ISE_LSHINDEX_HPP*/
