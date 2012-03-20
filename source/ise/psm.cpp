@@ -21,10 +21,7 @@ ProbSimMatch::ProbSimMatch(const std::string& path, bool brute_force)
     : sketch_path_(path + "/sketches")
     , drum_path_(path + "/sketch_to_imgid")
     , brute_force_(brute_force)
-    , sketches_(1 << (Parameter::p))
 {
-    boost::filesystem::create_directories(drum_path_);
-    sketch_to_imgid_.reset(new SketchToImgIdType(drum_path_, 64, 32768, 4194304));
 }
 
 ProbSimMatch::~ProbSimMatch()
@@ -33,6 +30,9 @@ ProbSimMatch::~ProbSimMatch()
 
 void ProbSimMatch::Init()
 {
+    sketches_.resize(1 << (Parameter::p));
+    boost::filesystem::create_directories(drum_path_);
+    sketch_to_imgid_.reset(new SketchToImgIdType(drum_path_, 64, 32768, 4194304));
     std::ifstream ifs(sketch_path_.c_str(), std::ios_base::binary);
     LoadSketches_(ifs);
 }
