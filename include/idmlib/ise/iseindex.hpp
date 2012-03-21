@@ -73,7 +73,7 @@ private:
     std::string imgMetaHome_;
 
     LshIndexType lshIndex_;
-
+    BruteForce bruteForce_;
     ProbSimMatch probSimMatch_;
 
     Extractor extractor_;

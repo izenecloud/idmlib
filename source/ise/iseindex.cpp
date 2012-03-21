@@ -9,7 +9,8 @@ namespace idmlib{ namespace ise{
 IseIndex::IseIndex(const std::string& homePath, ALGORITHM algo)
     : lshHome_((bfs::path(homePath) / "lshindex").string())
     , imgMetaHome_((bfs::path(homePath) / "imgmeta").string())
-    , probSimMatch_((bfs::path(homePath) / "psm").string())
+    , bruteForce_((bfs::path(homePath) / "sketchindex").string())
+    , probSimMatch_((bfs::path(homePath) / "psmindex").string())
     , imgMetaStorage_(imgMetaHome_)
     , algo_(algo)
 {
@@ -31,6 +32,9 @@ IseIndex::IseIndex(const std::string& homePath, ALGORITHM algo)
         break;
 
     case BF:
+        bruteForce_.Init();
+        break;
+
     case PSM:
         probSimMatch_.Init();
         break;
@@ -59,6 +63,9 @@ void IseIndex::Save()
         break;
 
     case BF:
+        bruteForce_.Finish();
+        break;
+
     case PSM:
         probSimMatch_.Finish();
         break;
@@ -102,12 +109,15 @@ bool IseIndex::Insert(const std::string& imgPath)
         break;
 
     case BF:
-    case PSM:
         {
             std::vector<Sketch> sketches;
             extractor_.BuildSketch(sifts, sketches);
-            probSimMatch_.Insert(id, sketches);
+            bruteForce_.Insert(id, sketches);
         }
+        break;
+
+    case PSM:
+        probSimMatch_.Insert(id, sifts);
         break;
 
     default:
@@ -162,14 +172,12 @@ void IseIndex::DoBFSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsign
 {
     std::vector<Sketch> sketches;
     extractor_.BuildSketch(sifts, sketches);
-    probSimMatch_.BFSearch(sketches, results);
+    bruteForce_.Search(sketches, results);
 }
 
 void IseIndex::DoPSMSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results)
 {
-    std::vector<Sketch> sketches;
-    extractor_.BuildSketch(sifts, sketches);
-    probSimMatch_.PSMSearch(sifts, sketches, results);
+    probSimMatch_.Search(sifts, results);
 }
 
 void IseIndex::DoPostFiltering_(std::vector<unsigned>& in, std::vector<unsigned>& out)

@@ -18,48 +18,41 @@ struct BucketIdentifier<idmlib::ise::Sketch>
     }
 };
 
+template <>
+struct BucketIdentifier<idmlib::ise::SimHash>
+{
+    static std::size_t Calculate(idmlib::ise::SimHash const& key, std::size_t const& num_bucket_bits)
+    {
+        return static_cast<std::size_t>(key.desc[0] >> (64 - num_bucket_bits));
+    }
+};
+
 DRUM_END_NAMESPACE
 
 namespace idmlib{ namespace ise{
 
-class ProbSimMatch
+class BruteForce
 {
 public:
-    struct Parameter
-    {
-        typedef unsigned key_t;
-
-        static const unsigned p = 20;
-        static const unsigned h = 3;
-        static const unsigned k = 17;
-    };
-
-    typedef Parameter::key_t key_t;
-
     typedef izenelib::drum::Drum<
         Sketch,
-        std::set<key_t>,
+        std::set<unsigned>,
         char,
         izenelib::am::leveldb::TwoPartComparator,
         izenelib::am::leveldb::Table
     > SketchToImgIdType;
 
-    ProbSimMatch(const std::string& path);
+    BruteForce(const std::string& path);
 
-    ~ProbSimMatch();
+    ~BruteForce();
 
     void Init();
 
-    void Insert(key_t key, const std::vector<Sketch>& sketches);
+    void Insert(unsigned key, const std::vector<Sketch>& sketches);
 
-    void Delete(key_t key);
+    void Delete(unsigned key);
 
-    void BFSearch(const std::vector<Sketch>& sketches, std::vector<key_t>& results) const;
-
-    void PSMSearch(
-            const std::vector<Sift::Feature>& sifts,
-            const std::vector<Sketch>& sketches,
-            std::vector<key_t>& results) const;
+    void Search(const std::vector<Sketch>& sketches, std::vector<unsigned>& results) const;
 
     void Finish();
 
@@ -68,21 +61,67 @@ private:
 
     void SaveSketches_(std::ostream& oar);
 
-    unsigned CalcHammingDist_(const Sketch& s1, const Sketch& s2) const;
-
-    void GenTableIds_(const std::vector<float>& components, std::vector<unsigned>& table_ids) const;
-
 private:
     std::string sketch_path_;
     std::string drum_path_;
 
-    std::vector<std::vector<Sketch> > sketches_;
+    std::vector<Sketch> sketches_;
     boost::shared_ptr<SketchToImgIdType> sketch_to_imgid_;
+};
+
+class ProbSimMatch
+{
+public:
+    struct Parameter
+    {
+        static const unsigned p = 20;
+        static const unsigned h = 3;
+        static const unsigned k = 17;
+    };
+
+    typedef izenelib::drum::Drum<
+        SimHash,
+        std::set<unsigned>,
+        char,
+        izenelib::am::leveldb::TwoPartComparator,
+        izenelib::am::leveldb::Table
+    > SimHashToImgIdType;
+
+    ProbSimMatch(const std::string& path);
+
+    ~ProbSimMatch();
+
+    void Init();
+
+    void Insert(unsigned key, const std::vector<Sift::Feature>& sifts);
+
+    void Delete(unsigned key);
+
+    void Search(const std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results) const;
+
+    void Finish();
+
+private:
+    void LoadSimHashes_(std::istream& iar);
+
+    void SaveSimHashes_(std::ostream& oar);
+
+    void GenSimHash_(const std::vector<float>& components, SimHash& simhash) const;
+
+    void GenTableIds_(const std::vector<float>& components, SimHash& simhash, std::vector<unsigned>& table_ids) const;
+
+private:
+    std::string simhash_path_;
+    std::string drum_path_;
+
+    std::vector<std::vector<SimHash> > simhashes_;
+    boost::shared_ptr<SimHashToImgIdType> simhash_to_imgid_;
 };
 
 }}
 
 MAKE_MEMCPY_TYPE(idmlib::ise::Sketch)
-MAKE_FEBIRD_SERIALIZATION(std::set<idmlib::ise::ProbSimMatch::key_t>)
+MAKE_MEMCPY_TYPE(idmlib::ise::SimHash)
+MAKE_FEBIRD_SERIALIZATION(std::set<unsigned>)
 
 #endif
