@@ -106,9 +106,11 @@ private:
 
     void SaveSimHashes_(std::ostream& oar);
 
-    void GenSimHash_(const std::vector<float>& components, SimHash& simhash) const;
+    void MapFeatureToCharVec_(const Sift::Feature& feature, std::vector<float>& char_vec) const;
 
-    void GenTableIds_(const std::vector<float>& components, SimHash& simhash, std::vector<unsigned>& table_ids) const;
+    void GenSimHash_(const std::vector<float>& char_vec, SimHash& simhash) const;
+
+    void GenTableIds_(const std::vector<float>& char_vec, SimHash& simhash, std::vector<unsigned>& table_ids) const;
 
 private:
     std::string simhash_path_;
@@ -116,6 +118,8 @@ private:
 
     std::vector<std::vector<SimHash> > simhashes_;
     boost::shared_ptr<SimHashToImgIdType> simhash_to_imgid_;
+    std::vector<SimHash> rand_vec_table_;
+    std::vector<std::vector<unsigned> > bit_flip_table_;
 };
 
 }}
