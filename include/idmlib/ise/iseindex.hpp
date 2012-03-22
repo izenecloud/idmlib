@@ -34,8 +34,9 @@ public:
     enum ALGORITHM
     {
         LSH,
-        BF,
-        PSM
+        BF_SKETCH,
+        PSM,
+        BF_SIMHASH
     };
 
     IseIndex(const std::string& homePath, ALGORITHM algo = LSH);
@@ -64,6 +65,8 @@ private:
     void DoBFSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results);
 
     void DoPSMSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results);
+
+    void DoBFSimHashSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results);
 
     void DoPostFiltering_(std::vector<unsigned>& in, std::vector<unsigned>& out);
 

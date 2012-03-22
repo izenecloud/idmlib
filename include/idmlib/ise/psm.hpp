@@ -97,7 +97,7 @@ public:
 
     void Delete(unsigned key);
 
-    void Search(const std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results) const;
+    void Search(const std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results, bool brute_force = false) const;
 
     void Finish();
 
@@ -106,7 +106,7 @@ private:
 
     void SaveSimHashes_(std::ostream& oar);
 
-    void MapFeatureToCharVec_(const Sift::Feature& feature, std::vector<float>& char_vec) const;
+    void MapFeatureToCharVec_(const std::vector<float>& feature, std::vector<float>& char_vec) const;
 
     void GenSimHash_(const std::vector<float>& char_vec, SimHash& simhash) const;
 

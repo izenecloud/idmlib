@@ -24,9 +24,9 @@ unsigned CalcHammingDist(const uint64_t* v1, const uint64_t* v2, unsigned count)
     return dist;
 }
 
-bool AbsCompare(float left, float right)
+bool AbsCompare(const std::vector<float>& vec, unsigned index1, unsigned index2)
 {
-    return fabsf(left) < fabsf(right);
+    return fabsf(vec[index1]) < fabsf(vec[index2]);
 }
 
 }
@@ -185,33 +185,34 @@ void ProbSimMatch::Insert(unsigned key, const std::vector<Sift::Feature>& sifts)
     std::set<unsigned> key_set;
     key_set.insert(key);
 
+    unsigned bit_mask = (1 << Parameter::p) - 1;
     for (unsigned i = 0; i < sifts.size(); i++)
     {
-        MapFeatureToCharVec_(sifts[i], char_vec);
+        MapFeatureToCharVec_(sifts[i].desc, char_vec);
         GenSimHash_(char_vec, simhash);
-        unsigned index = simhash.desc[0] & ((1 << Parameter::p) - 1);
+        unsigned index = simhash.desc[0] & bit_mask;
         simhashes_[index].push_back(simhash);
 
         simhash_to_imgid_->Append(simhash, key_set);
     }
 }
 
-void ProbSimMatch::MapFeatureToCharVec_(const Sift::Feature& feature, std::vector<float>& char_vec) const
+void ProbSimMatch::MapFeatureToCharVec_(const std::vector<float>& feature, std::vector<float>& char_vec) const
 {
     char_vec.clear();
     char_vec.resize(SIMHASH_BIT);
-    const std::vector<float>& v = feature.desc;
     for (unsigned i = 0; i < Sift::dim(); i++)
     {
         std::vector<float>::iterator it = char_vec.begin();
         for (unsigned j = 0; j < SIMHASH_SIZE; j++)
         {
+            Chunk chunk = rand_vec_table_[i].desc[j];
             for (unsigned k = 0; k < CHUNK_BIT; k++)
             {
-                if ((rand_vec_table_[i].desc[j] >> k) & 0x1)
-                    *it += v[i];
+                if ((chunk >> k) & 0x1)
+                    *it += feature[i];
                 else
-                    *it -= v[i];
+                    *it -= feature[i];
                 ++it;
             }
         }
@@ -238,25 +239,45 @@ void ProbSimMatch::Delete(unsigned key)
     // TODO
 }
 
-void ProbSimMatch::Search(const std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results) const
+void ProbSimMatch::Search(const std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results, bool brute_force) const
 {
     std::vector<float> char_vec;
     SimHash simhash;
     for (unsigned i = 0; i < sifts.size(); i++)
     {
-        std::vector<unsigned> table_ids;
-        MapFeatureToCharVec_(sifts[i], char_vec);
-        GenTableIds_(char_vec, simhash, table_ids);
-        for (std::vector<unsigned>::const_iterator it = table_ids.begin();
-                it != table_ids.end(); ++it)
+        MapFeatureToCharVec_(sifts[i].desc, char_vec);
+        if (brute_force)
         {
-            for (unsigned j = 0; j < simhashes_[*it].size(); j++)
+            GenSimHash_(char_vec, simhash);
+            for (unsigned j = 0; j < simhashes_.size(); j++)
             {
-                if (CalcHammingDist(simhash.desc, simhashes_[*it][j].desc, SIMHASH_SIZE) <= Parameter::h)
+                const std::vector<SimHash>& table = simhashes_[j];
+                for (unsigned k = 0; k < table.size(); k++)
                 {
-                    std::set<unsigned> key_set;
-                    simhash_to_imgid_->GetValue(simhashes_[*it][j], key_set);
-                    results.insert(results.end(), key_set.begin(), key_set.end());
+                    if (CalcHammingDist(simhash.desc, table[k].desc, SIMHASH_SIZE) <= Parameter::h)
+                    {
+                        std::set<unsigned> key_set;
+                        simhash_to_imgid_->GetValue(table[k], key_set);
+                        results.insert(results.end(), key_set.begin(), key_set.end());
+                    }
+                }
+            }
+        }
+        else
+        {
+            std::vector<unsigned> table_ids;
+            GenTableIds_(char_vec, simhash, table_ids);
+            for (unsigned j = 0; j < table_ids.size(); j++)
+            {
+                const std::vector<SimHash>& table = simhashes_[table_ids[j]];
+                for (unsigned k = 0; k < table.size(); k++)
+                {
+                    if (CalcHammingDist(simhash.desc, table[k].desc, SIMHASH_SIZE) <= Parameter::h)
+                    {
+                        std::set<unsigned> key_set;
+                        simhash_to_imgid_->GetValue(table[k], key_set);
+                        results.insert(results.end(), key_set.begin(), key_set.end());
+                    }
                 }
             }
         }
@@ -272,18 +293,10 @@ void ProbSimMatch::GenTableIds_(const std::vector<float>& char_vec, SimHash& sim
     {
         prob_order[i] = i;
     }
-    for (unsigned i = 0; i < Parameter::p - 1; i++)
-    {
-        unsigned s = i;
-        for (unsigned j = i + 1; j < Parameter::p; j++)
-            if (AbsCompare(char_vec[prob_order[j]], char_vec[prob_order[s]]))
-                s = j;
-        unsigned tmp = prob_order[i];
-        prob_order[i] = prob_order[s];
-        prob_order[s] = tmp;
-    }
+    std::sort(prob_order.begin(), prob_order.end(), boost::bind(AbsCompare, char_vec, _1, _2));
+
     table_ids.clear();
-    table_ids.reserve(Parameter::k);
+    table_ids.reserve(Parameter::k + 1);
     unsigned index = simhash.desc[0] & ((1 << Parameter::p) - 1);
     table_ids.push_back(index);
     for (unsigned i = 0; i < bit_flip_table_.size(); i++)
