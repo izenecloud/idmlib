@@ -35,14 +35,14 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    idmlib::ise::IseIndex iseIndex("ise", idmlib::ise::IseIndex::LSH);
+    idmlib::ise::IseIndex iseIndex("ise", idmlib::ise::IseIndex::BF_SIMHASH);
 
     if (vm.count("input") != 0)
     {
         idmlib::ise::IseOptions options;
         options.range = 1000000;
         options.repeat = 100;
-        options.w = 8.0F;
+        options.w = 12.0F;
         options.dim = 128;
         options.ntables = 4;
         iseIndex.Reset(options);

@@ -156,6 +156,22 @@ static inline void logscale (std::vector<Sift::Feature> *v, float l)
     }
 }
 
+static inline void normalize (std::vector<Sift::Feature>& v)
+{
+    float norm = 0;
+    BOOST_FOREACH(Sift::Feature &f, v)
+    {
+        BOOST_FOREACH(float &d, f.desc)
+        {
+            norm += d*d;
+        }
+        BOOST_FOREACH(float &d, f.desc)
+        {
+            d /= norm;
+        }
+    }
+}
+
 }}
 
 #endif
