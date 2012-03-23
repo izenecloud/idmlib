@@ -76,8 +76,8 @@ public:
     {
         static const unsigned p = 24;
         static const unsigned h = 2;
-        static const unsigned k = 300;
-        static const unsigned ki = 24;
+        static const unsigned k = 21;
+        static const unsigned ki = 6;
     };
 
     typedef izenelib::drum::Drum<
@@ -123,8 +123,8 @@ private:
     std::vector<std::vector<SimHash> > simhashes_;
     boost::shared_ptr<SimHashToImgIdType> simhash_to_imgid_;
     std::vector<SimHash> rand_vec_table_;
-//  std::vector<std::vector<unsigned> > bit_flip_table_;
-    std::vector<unsigned> bit_flip_table_;
+//  std::vector<unsigned> bit_flip_table_;
+    std::vector<std::vector<unsigned> > bit_flip_table_;
 };
 
 }}

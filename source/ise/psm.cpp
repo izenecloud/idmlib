@@ -132,18 +132,35 @@ void ProbSimMatch::Init()
 
     InitRandVecTable_();
 
-    bit_flip_table_.reserve(Parameter::k);
+//  bit_flip_table_.reserve(Parameter::k);
+//  for (unsigned i = 0; i < Parameter::ki; i++)
+//  {
+//      bit_flip_table_.push_back(1 << i);
+//  }
+//  unsigned index = 0;
+//  for (unsigned i = 0; i < Parameter::ki - 1; i++)
+//  {
+//      unsigned id1 = bit_flip_table_[index++];
+//      for (unsigned j = i + 1; j < Parameter::ki; j++)
+//      {
+//          bit_flip_table_.push_back(id1 | (1 << j));
+//      }
+//  }
+    bit_flip_table_.resize(Parameter::k);
+    std::vector<std::vector<unsigned> >::iterator it = bit_flip_table_.begin();
     for (unsigned i = 0; i < Parameter::ki; i++)
     {
-        bit_flip_table_.push_back(1 << i);
+        it->resize(1, i);
+        ++it;
     }
-    unsigned index = 0;
     for (unsigned i = 0; i < Parameter::ki - 1; i++)
     {
-        unsigned id1 = bit_flip_table_[index++];
         for (unsigned j = i + 1; j < Parameter::ki; j++)
         {
-            bit_flip_table_.push_back(id1 | (1 << j));
+            it->reserve(2);
+            it->push_back(i);
+            it->push_back(j);
+            ++it;
         }
     }
 }
@@ -317,31 +334,31 @@ void ProbSimMatch::GenTableIds_(const std::vector<float>& char_vec, SimHash& sim
 {
     GenSimHash_(char_vec, simhash);
 
-//  std::vector<unsigned> prob_order(Parameter::p);
-//  for (unsigned i = 1; i < Parameter::p; i++)
-//  {
-//      prob_order[i] = i;
-//  }
-//  std::sort(prob_order.begin(), prob_order.end(), boost::bind(AbsCompare, char_vec, _1, _2));
+    std::vector<unsigned> prob_order(Parameter::p);
+    for (unsigned i = 1; i < Parameter::p; i++)
+    {
+        prob_order[i] = i;
+    }
+    std::sort(prob_order.begin(), prob_order.end(), boost::bind(AbsCompare, char_vec, _1, _2));
 
     table_ids.clear();
     table_ids.reserve(bit_flip_table_.size() + 1);
     unsigned id = simhash.desc[0] & ((1 << Parameter::p) - 1);
     table_ids.push_back(id);
-    for (unsigned i = 0; i < bit_flip_table_.size(); i++)
-    {
-        table_ids.push_back(id ^ bit_flip_table_[i]);
-    }
 //  for (unsigned i = 0; i < bit_flip_table_.size(); i++)
 //  {
-//      unsigned new_id = id;
-//      for (std::vector<unsigned>::const_iterator it = bit_flip_table_[i].begin();
-//              it != bit_flip_table_[i].end(); ++it)
-//      {
-//          new_id ^= 1 << prob_order[*it];
-//      }
-//      table_ids.push_back(new_id);
+//      table_ids.push_back(id ^ bit_flip_table_[i]);
 //  }
+    for (unsigned i = 0; i < bit_flip_table_.size(); i++)
+    {
+        unsigned new_id = id;
+        for (std::vector<unsigned>::const_iterator it = bit_flip_table_[i].begin();
+                it != bit_flip_table_[i].end(); ++it)
+        {
+            new_id ^= 1 << prob_order[*it];
+        }
+        table_ids.push_back(new_id);
+    }
 }
 
 }}
