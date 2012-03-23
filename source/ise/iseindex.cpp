@@ -36,7 +36,6 @@ IseIndex::IseIndex(const std::string& homePath, ALGORITHM algo)
         break;
 
     case PSM:
-    case BF_SIMHASH:
         probSimMatch_.Init();
         break;
 
@@ -68,7 +67,6 @@ void IseIndex::Save()
         break;
 
     case PSM:
-    case BF_SIMHASH:
         probSimMatch_.Finish();
         break;
 
@@ -119,7 +117,6 @@ bool IseIndex::Insert(const std::string& imgPath)
         break;
 
     case PSM:
-    case BF_SIMHASH:
         probSimMatch_.Insert(id, sifts);
         break;
 
@@ -148,10 +145,6 @@ void IseIndex::Search(const std::string& queryImgPath, std::vector<std::string>&
 
     case PSM:
         DoPSMSearch_(sifts, imgIds);
-        break;
-
-    case BF_SIMHASH:
-        DoBFSimHashSearch_(sifts, imgIds);
         break;
 
     default:
@@ -185,11 +178,6 @@ void IseIndex::DoBFSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsign
 void IseIndex::DoPSMSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results)
 {
     probSimMatch_.Search(sifts, results);
-}
-
-void IseIndex::DoBFSimHashSearch_(std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results)
-{
-    probSimMatch_.Search(sifts, results, true);
 }
 
 void IseIndex::DoPostFiltering_(std::vector<unsigned>& in, std::vector<unsigned>& out)

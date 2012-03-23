@@ -108,7 +108,7 @@ public:
 
     void Delete(unsigned key);
 
-    void Search(const std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results, bool brute_force = false) const;
+    void Search(const std::vector<Sift::Feature>& sifts, std::vector<unsigned>& results) const;
 
     void Finish();
 
@@ -133,7 +133,6 @@ private:
     std::vector<std::vector<SimHash> > simhashes_;
     boost::shared_ptr<SimHashToImgIdType> simhash_to_imgid_;
     std::vector<SimHash> rand_vec_table_;
-//  std::vector<unsigned> bit_flip_table_;
     std::vector<std::vector<unsigned> > bit_flip_table_;
 };
 
