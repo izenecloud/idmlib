@@ -34,6 +34,13 @@ namespace idmlib{ namespace ise{
 class BruteForce
 {
 public:
+    struct Parameter
+    {
+        static const unsigned p = 24;
+        static const unsigned h = 3;
+        static const unsigned k = 2324;
+    };
+
     typedef izenelib::drum::Drum<
         Sketch,
         std::set<unsigned>,
@@ -61,12 +68,15 @@ private:
 
     void SaveSketches_(std::ostream& oar);
 
+    void GenTableIds_(const Sketch& sketch, std::vector<unsigned>& table_ids) const;
+
 private:
     std::string sketch_path_;
     std::string drum_path_;
 
-    std::vector<Sketch> sketches_;
+    std::vector<std::vector<Sketch> > sketches_;
     boost::shared_ptr<SketchToImgIdType> sketch_to_imgid_;
+    std::vector<unsigned> bit_flip_table_;
 };
 
 class ProbSimMatch

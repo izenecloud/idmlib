@@ -49,15 +49,45 @@ void BruteForce::Init()
 
     std::ifstream ifs(sketch_path_.c_str(), std::ios_base::binary);
     LoadSketches_(ifs);
+
+    bit_flip_table_.reserve(Parameter::k);
+    for (unsigned i = 0; i < Parameter::p; i++)
+    {
+        bit_flip_table_.push_back(1 << i);
+    }
+    unsigned index = 0;
+    for (unsigned i = 0; i < Parameter::p - 1; i++)
+    {
+        unsigned id1 = bit_flip_table_[index++];
+        for (unsigned j = i + 1; j < Parameter::p; j++)
+        {
+            bit_flip_table_.push_back(id1 | (1 << j));
+        }
+    }
+    for (unsigned i = 0; i < Parameter::p - 2; i++)
+    {
+        ++index;
+        for (unsigned j = i + 1; j < Parameter::p - 1; j++)
+        {
+            unsigned id2 = bit_flip_table_[index++];
+            for (unsigned k = j + 1; k < Parameter::p; k++)
+            {
+                bit_flip_table_.push_back(id2 | (1 << k));
+            }
+        }
+    }
 }
 
 void BruteForce::LoadSketches_(std::istream &iar)
 {
     if (!iar) return;
-    unsigned len;
-    iar.read((char *)&len, sizeof(len));
-    sketches_.resize(len);
-    iar.read((char *)&sketches_[0], len * sizeof(Sketch));
+    for (unsigned i = 0; i < sketches_.size(); i++)
+    {
+        unsigned len;
+        iar.read((char *)&len, sizeof(len));
+        sketches_[i].resize(len);
+        iar.read((char *)&sketches_[i][0], len * sizeof(Sketch));
+    }
 }
 
 void BruteForce::Finish()
@@ -72,21 +102,28 @@ void BruteForce::Finish()
 void BruteForce::SaveSketches_(std::ostream &oar)
 {
     if (!oar) return;
-    unsigned len = sketches_.size();
-    oar.write((char *)&len, sizeof(len));
-    oar.write((char *)&sketches_[0], len * sizeof(Sketch));
+    for (unsigned i = 0; i < sketches_.size(); i++)
+    {
+        unsigned len = sketches_[i].size();
+        oar.write((char *)&len, sizeof(len));
+        oar.write((char *)&sketches_[i][0], len * sizeof(Sketch));
+    }
 }
 
 void BruteForce::Insert(unsigned key, const std::vector<Sketch>& sketches)
 {
-    sketches_.insert(sketches_.end(), sketches.begin(), sketches.end());
-
     std::set<unsigned> key_set;
     key_set.insert(key);
+    unsigned bit_mask = (1 << Parameter::p) - 1;
+
     for (unsigned i = 0; i < sketches.size(); i++)
     {
+        unsigned id = sketches[i].desc[0] & bit_mask;
+        sketches_[id].push_back(sketches[i]);
+
         sketch_to_imgid_->Append(sketches[i], key_set);
     }
+
 }
 
 void BruteForce::Delete(unsigned key)
@@ -96,17 +133,36 @@ void BruteForce::Delete(unsigned key)
 
 void BruteForce::Search(const std::vector<Sketch>& sketches, std::vector<unsigned>& results) const
 {
-    for (unsigned i = 0; i < sketches.size(); i++)
+    std::vector<unsigned> table_ids;
+    for (std::vector<Sketch>::const_iterator it = sketches.begin();
+            it != sketches.end(); ++it)
     {
-        for (unsigned j = 0; j < sketches_.size(); j++)
+        GenTableIds_(*it, table_ids);
+        for (unsigned j = 0; j < table_ids.size(); j++)
         {
-            if (CalcHammingDist(sketches[i].desc, sketches_[j].desc, SKETCH_SIZE) <= 3)
+            const std::vector<Sketch>& table = sketches_[table_ids[j]];
+            for (unsigned k = 0; k < table.size(); k++)
             {
-                std::set<unsigned> key_set;
-                sketch_to_imgid_->GetValue(sketches_[j], key_set);
-                results.insert(results.end(), key_set.begin(), key_set.end());
+                if (CalcHammingDist(it->desc, table[k].desc, SKETCH_SIZE) <= Parameter::h)
+                {
+                    std::set<unsigned> key_set;
+                    sketch_to_imgid_->GetValue(table[k], key_set);
+                    results.insert(results.end(), key_set.begin(), key_set.end());
+                }
             }
         }
+    }
+}
+
+void BruteForce::GenTableIds_(const Sketch& sketch, std::vector<unsigned>& table_ids) const
+{
+    table_ids.clear();
+    table_ids.reserve(bit_flip_table_.size() + 1);
+    unsigned id = sketch.desc[0] & ((1 << Parameter::p) - 1);
+    table_ids.push_back(id);
+    for (unsigned i = 0; i < bit_flip_table_.size(); i++)
+    {
+        table_ids.push_back(id ^ bit_flip_table_[i]);
     }
 }
 
@@ -132,20 +188,6 @@ void ProbSimMatch::Init()
 
     InitRandVecTable_();
 
-//  bit_flip_table_.reserve(Parameter::k);
-//  for (unsigned i = 0; i < Parameter::ki; i++)
-//  {
-//      bit_flip_table_.push_back(1 << i);
-//  }
-//  unsigned index = 0;
-//  for (unsigned i = 0; i < Parameter::ki - 1; i++)
-//  {
-//      unsigned id1 = bit_flip_table_[index++];
-//      for (unsigned j = i + 1; j < Parameter::ki; j++)
-//      {
-//          bit_flip_table_.push_back(id1 | (1 << j));
-//      }
-//  }
     bit_flip_table_.resize(Parameter::k);
     std::vector<std::vector<unsigned> >::iterator it = bit_flip_table_.begin();
     for (unsigned i = 0; i < Parameter::ki; i++)
@@ -230,8 +272,8 @@ void ProbSimMatch::Insert(unsigned key, const std::vector<Sift::Feature>& sifts)
     SimHash simhash;
     std::set<unsigned> key_set;
     key_set.insert(key);
-
     unsigned bit_mask = (1 << Parameter::p) - 1;
+
     for (unsigned i = 0; i < sifts.size(); i++)
     {
         MapFeatureToCharVec_(sifts[i].desc, char_vec);
@@ -289,11 +331,11 @@ void ProbSimMatch::Search(const std::vector<Sift::Feature>& sifts, std::vector<u
 {
     std::vector<float> char_vec;
     SimHash simhash;
-    for (unsigned i = 0; i < sifts.size(); i++)
+    if (brute_force)
     {
-        MapFeatureToCharVec_(sifts[i].desc, char_vec);
-        if (brute_force)
+        for (unsigned i = 0; i < sifts.size(); i++)
         {
+            MapFeatureToCharVec_(sifts[i].desc, char_vec);
             GenSimHash_(char_vec, simhash);
             for (unsigned j = 0; j < simhashes_.size(); j++)
             {
@@ -309,9 +351,13 @@ void ProbSimMatch::Search(const std::vector<Sift::Feature>& sifts, std::vector<u
                 }
             }
         }
-        else
+    }
+    else
+    {
+        std::vector<unsigned> table_ids;
+        for (unsigned i = 0; i < sifts.size(); i++)
         {
-            std::vector<unsigned> table_ids;
+            MapFeatureToCharVec_(sifts[i].desc, char_vec);
             GenTableIds_(char_vec, simhash, table_ids);
             for (unsigned j = 0; j < table_ids.size(); j++)
             {
