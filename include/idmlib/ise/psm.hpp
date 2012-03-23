@@ -74,9 +74,10 @@ class ProbSimMatch
 public:
     struct Parameter
     {
-        static const unsigned p = 20;
-        static const unsigned h = 3;
-        static const unsigned k = 17;
+        static const unsigned p = 24;
+        static const unsigned h = 2;
+        static const unsigned k = 300;
+        static const unsigned ki = 24;
     };
 
     typedef izenelib::drum::Drum<
@@ -102,6 +103,8 @@ public:
     void Finish();
 
 private:
+    void InitRandVecTable_();
+
     void LoadSimHashes_(std::istream& iar);
 
     void SaveSimHashes_(std::ostream& oar);
@@ -115,11 +118,13 @@ private:
 private:
     std::string simhash_path_;
     std::string drum_path_;
+    std::string rand_vec_path_;
 
     std::vector<std::vector<SimHash> > simhashes_;
     boost::shared_ptr<SimHashToImgIdType> simhash_to_imgid_;
     std::vector<SimHash> rand_vec_table_;
-    std::vector<std::vector<unsigned> > bit_flip_table_;
+//  std::vector<std::vector<unsigned> > bit_flip_table_;
+    std::vector<unsigned> bit_flip_table_;
 };
 
 }}

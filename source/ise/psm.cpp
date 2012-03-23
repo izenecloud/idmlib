@@ -1,5 +1,4 @@
 #include <idmlib/ise/psm.hpp>
-#include <util/hashFunction.h>
 
 #include <boost/filesystem.hpp>
 
@@ -46,7 +45,7 @@ BruteForce::~BruteForce()
 void BruteForce::Init()
 {
     boost::filesystem::create_directories(drum_path_);
-    sketch_to_imgid_.reset(new SketchToImgIdType(drum_path_, 64, 32768, 4194304));
+    sketch_to_imgid_.reset(new SketchToImgIdType(drum_path_, 64, 131072, 4194304));
 
     std::ifstream ifs(sketch_path_.c_str(), std::ios_base::binary);
     LoadSketches_(ifs);
@@ -114,6 +113,7 @@ void BruteForce::Search(const std::vector<Sketch>& sketches, std::vector<unsigne
 ProbSimMatch::ProbSimMatch(const std::string& path)
     : simhash_path_(path + "/simhashes")
     , drum_path_(path + "/simhash_to_imgid")
+    , rand_vec_path_(path + "/rand_vec_table")
 {
 }
 
@@ -124,23 +124,52 @@ ProbSimMatch::~ProbSimMatch()
 void ProbSimMatch::Init()
 {
     boost::filesystem::create_directories(drum_path_);
-    simhash_to_imgid_.reset(new SimHashToImgIdType(drum_path_, 64, 32768, 4194304));
+    simhash_to_imgid_.reset(new SimHashToImgIdType(drum_path_, 64, 131072, 4194304));
 
     simhashes_.resize(1 << (Parameter::p));
     std::ifstream ifs(simhash_path_.c_str(), std::ios_base::binary);
     LoadSimHashes_(ifs);
 
-    rand_vec_table_.resize(Sift::dim());
-    unsigned s = 0;
-    for (unsigned i = 0; i < Sift::dim(); i++)
+    InitRandVecTable_();
+
+    bit_flip_table_.reserve(Parameter::k);
+    for (unsigned i = 0; i < Parameter::ki; i++)
     {
-        for (unsigned j = 0; j < SIMHASH_SIZE; j++)
+        bit_flip_table_.push_back(1 << i);
+    }
+    unsigned index = 0;
+    for (unsigned i = 0; i < Parameter::ki - 1; i++)
+    {
+        unsigned id1 = bit_flip_table_[index++];
+        for (unsigned j = i + 1; j < Parameter::ki; j++)
         {
-            rand_vec_table_[i].desc[j] = HashFunction<std::string>::generateHash64(boost::lexical_cast<std::string>(s++));
+            bit_flip_table_.push_back(id1 | (1 << j));
         }
     }
+}
 
-    // TODO: initialize bit_flip_table_
+void ProbSimMatch::InitRandVecTable_()
+{
+    rand_vec_table_.resize(Sift::dim());
+    std::ifstream ifs(rand_vec_path_.c_str(), std::ios_base::binary);
+    if (ifs)
+    {
+        ifs.read((char *)&rand_vec_table_[0], Sift::dim() * sizeof(SimHash));
+    }
+    else
+    {
+        lshkit::DefaultRng rng;
+        rng.seed(std::time(0));
+        for (unsigned i = 0; i < Sift::dim(); i++)
+        {
+            for (unsigned j = 0; j < SIMHASH_SIZE; j++)
+            {
+                rand_vec_table_[i].desc[j] = uint64_t(rng()) | (uint64_t(rng()) << 32);
+            }
+        }
+        std::ofstream ofs(rand_vec_path_.c_str(), std::ios_base::binary);
+        ofs.write((char *)&rand_vec_table_[0], Sift::dim() * sizeof(SimHash));
+    }
 }
 
 void ProbSimMatch::LoadSimHashes_(std::istream &iar)
@@ -190,8 +219,8 @@ void ProbSimMatch::Insert(unsigned key, const std::vector<Sift::Feature>& sifts)
     {
         MapFeatureToCharVec_(sifts[i].desc, char_vec);
         GenSimHash_(char_vec, simhash);
-        unsigned index = simhash.desc[0] & bit_mask;
-        simhashes_[index].push_back(simhash);
+        unsigned id = simhash.desc[0] & bit_mask;
+        simhashes_[id].push_back(simhash);
 
         simhash_to_imgid_->Append(simhash, key_set);
     }
@@ -288,26 +317,31 @@ void ProbSimMatch::GenTableIds_(const std::vector<float>& char_vec, SimHash& sim
 {
     GenSimHash_(char_vec, simhash);
 
-    std::vector<unsigned> prob_order(Parameter::p);
-    for (unsigned i = 1; i < Parameter::p; i++)
-    {
-        prob_order[i] = i;
-    }
-    std::sort(prob_order.begin(), prob_order.end(), boost::bind(AbsCompare, char_vec, _1, _2));
+//  std::vector<unsigned> prob_order(Parameter::p);
+//  for (unsigned i = 1; i < Parameter::p; i++)
+//  {
+//      prob_order[i] = i;
+//  }
+//  std::sort(prob_order.begin(), prob_order.end(), boost::bind(AbsCompare, char_vec, _1, _2));
 
     table_ids.clear();
-    table_ids.reserve(Parameter::k + 1);
-    unsigned index = simhash.desc[0] & ((1 << Parameter::p) - 1);
-    table_ids.push_back(index);
+    table_ids.reserve(bit_flip_table_.size() + 1);
+    unsigned id = simhash.desc[0] & ((1 << Parameter::p) - 1);
+    table_ids.push_back(id);
     for (unsigned i = 0; i < bit_flip_table_.size(); i++)
     {
-        unsigned new_index = index;
-        for (unsigned j = 0; j < bit_flip_table_[i].size(); j++)
-        {
-            new_index ^= 1 << prob_order[bit_flip_table_[i][j]];
-        }
-        table_ids.push_back(new_index);
+        table_ids.push_back(id ^ bit_flip_table_[i]);
     }
+//  for (unsigned i = 0; i < bit_flip_table_.size(); i++)
+//  {
+//      unsigned new_id = id;
+//      for (std::vector<unsigned>::const_iterator it = bit_flip_table_[i].begin();
+//              it != bit_flip_table_[i].end(); ++it)
+//      {
+//          new_id ^= 1 << prob_order[*it];
+//      }
+//      table_ids.push_back(new_id);
+//  }
 }
 
 }}

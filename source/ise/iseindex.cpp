@@ -120,7 +120,6 @@ bool IseIndex::Insert(const std::string& imgPath)
 
     case PSM:
     case BF_SIMHASH:
-        normalize(sifts);
         probSimMatch_.Insert(id, sifts);
         break;
 

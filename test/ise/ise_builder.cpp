@@ -35,7 +35,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    idmlib::ise::IseIndex iseIndex("ise", idmlib::ise::IseIndex::BF_SIMHASH);
+    idmlib::ise::IseIndex iseIndex("ise", idmlib::ise::IseIndex::PSM);
 
     if (vm.count("input") != 0)
     {
@@ -65,6 +65,7 @@ int main(int argc, char **argv)
             if(!std::cin) break;
             std::vector<std::string> results;
             iseIndex.Search(queryImgPath, results);
+            std::cout << "query for: " << queryImgPath << std::endl;
             for (unsigned i = 0; i < results.size(); ++i)
                 std::cout << results[i] << std::endl;
             std::cout << "result size: " << results.size() << std::endl;
