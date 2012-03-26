@@ -1,7 +1,5 @@
 #include <idmlib/ise/psm.hpp>
 
-#include <boost/filesystem.hpp>
-
 
 namespace {
 

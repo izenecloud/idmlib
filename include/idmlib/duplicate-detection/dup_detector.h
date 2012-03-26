@@ -99,9 +99,10 @@ public:
         {
             weights.resize(v.size(), 1.0);
         }
-        FpItemType fpitem(docid, v.size(), std::vector<uint64_t>(), attach);
         // CharikarAlgorithm algo;
-        algo_->generate_document_signature(v, weights, fpitem.fp);
+        FpType fp;
+        algo_->generate_document_signature(v, weights, fp);
+        FpItemType fpitem(docid, v.size(), fp, attach);
         if (enable_knn_)
         {
             boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
@@ -115,28 +116,8 @@ public:
 
     void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v, const AttachType& attach = AttachType())
     {
-        FpWriterType* writer = NULL;
-        if (!enable_knn_)
-        {
-            writer = GetFpWriter_();
-            if (!writer)
-            {
-                std::cout << "writer null" << std::endl;
-                return;
-            }
-        }
-        FpItemType fpitem(docid, v.size(), std::vector<uint64_t>(), attach);
-        // CharikarAlgorithm algo;
-        algo_->generate_document_signature(v, fpitem.fp);
-        if (enable_knn_)
-        {
-            boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
-            working_fp_vec_.push_back(fpitem);
-        }
-        else
-        {
-            writer->Append(fpitem);
-        }
+        std::vector<double> weights(v.size(), 1.0);
+        InsertDoc(docid, v, weights, attach);
     }
 
     void RemoveDoc(const DocIdType& docid)
@@ -249,7 +230,7 @@ public:
 
         for (uint32_t i = 0; i < fp_vec_.size(); i++)
         {
-            uint32_t hamming_dist = fp_vec_[i].calcHammingDist(signature);
+            uint32_t hamming_dist = fp_vec_[i].calcHammingDist(&signature[0]);
             if (hamming_dist > max_hamming_dist) continue;
             if (knn_list.size() < count)
             {
@@ -439,7 +420,7 @@ private:
     {
         bool is_first = true;
         bool has_new = false;
-        std::vector<uint64_t> last_compare_value, compare_value;
+        FpType last_compare_value, compare_value;
         uint32_t total_count = data.size();
         uint32_t dd_count = 0;
         uint32_t start = 0, finish = 0;
@@ -506,7 +487,7 @@ private:
 
     bool IsDuplicated_(const FpItemType& item1, const FpItemType& item2)
     {
-        uint32_t hamming_dist = item1.calcHammingDist(item2.fp);
+        uint32_t hamming_dist = item1.calcHammingDist(item2.fp.desc);
         bool result = false;
 
         // K should be selected by longer document. (longer document generates lower K value)

@@ -4,8 +4,6 @@
 #include "dd_types.h"
 #include <string>
 #include <vector>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/serialization.hpp>
 
 
 NS_IDMLIB_DD_BEGIN
@@ -18,7 +16,7 @@ public:
     {
     }
 
-    FpItem(const DocIdType& pdocid, uint32_t plength, const std::vector<uint64_t>& pfp, const AttachType& pattach = AttachType())
+    FpItem(const DocIdType& pdocid, uint32_t plength, const FpType& pfp, const AttachType& pattach = AttachType())
         : docid(pdocid), length(plength), status(0), fp(pfp), attach(pattach)
     {
     }
@@ -28,17 +26,12 @@ public:
         return docid < other.docid;
     }
 
-    uint32_t calcHammingDist(const std::vector<uint64_t>& ofp) const
+    uint32_t calcHammingDist(const uint64_t* ofp) const
     {
         uint32_t hamming_dist = 0;
-        uint32_t common_len = std::min(fp.size(), ofp.size());
 
-        for (uint32_t i = 0; i < common_len; i++)
-            hamming_dist += countBits_(fp[i] ^ ofp[i]);
-        for (uint32_t i = common_len; i < fp.size(); i++)
-            hamming_dist += countBits_(fp[i]);
-        for (uint32_t i = common_len; i < ofp.size(); i++)
-            hamming_dist += countBits_(ofp[i]);
+        for (uint32_t i = 0; i < FpType::FP_SIZE; i++)
+            hamming_dist += countBits_(fp.desc[i] ^ ofp[i]);
 
         return hamming_dist;
     }
@@ -63,7 +56,7 @@ public:
     DocIdType docid;
     uint32_t length;
     int status; //1 means its new, 0 means old, not serialized.
-    std::vector<uint64_t> fp;
+    FpType fp;
     AttachType attach;
 };
 

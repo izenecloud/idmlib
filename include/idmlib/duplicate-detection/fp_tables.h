@@ -3,8 +3,6 @@
 
 #include "fp_table.h"
 
-#include <idmlib/idm_types.h>
-#include <vector>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 

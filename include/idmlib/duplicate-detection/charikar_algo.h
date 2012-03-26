@@ -22,7 +22,7 @@
  * @date 11/09/09
  */
 
-#include <idmlib/idm_types.h>
+#include "dd_types.h"
 
 #include <string>
 #include <vector>
@@ -36,17 +36,14 @@ NS_IDMLIB_DD_BEGIN
 class CharikarAlgo
 {
 public:
-    static const uint16_t DEFAULT_NUM_DIMENSIONS = 64;//!< default threshold value
-
-public:
     /**
      * @brief constructor of CharikarAlgo, initial members
      *
      * @param nDim dimensions number
      * @param tvalue threshold value
      */
-    CharikarAlgo(uint16_t nDim = DEFAULT_NUM_DIMENSIONS)
-        :nDimensions(nDim)
+    CharikarAlgo(uint16_t nDim = DdConstants::f)
+        : nDimensions(nDim)
     {
     }
 
@@ -72,9 +69,9 @@ public:
         * @param[in] docTokens input source, a term id array
         * @param[out] signature generated signature
         */
-    void generate_document_signature(const std::vector<std::string>& docTokens, std::vector<uint64_t>& signature) const;
+    void generate_document_signature(const std::vector<std::string>& docTokens, FpType& signature) const;
 
-    void generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, std::vector<uint64_t>& signature) const;
+    void generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, FpType& signature) const;
 
 private:
     uint16_t nDimensions; //!< dimensions number
