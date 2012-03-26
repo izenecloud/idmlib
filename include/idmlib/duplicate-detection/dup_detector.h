@@ -134,6 +134,7 @@ public:
         {
             izenelib::am::ssf::Util<>::Load(fp_storage_path_, fp_vec_);
         }
+        if (fp_vec_.empty()) return;
 
         std::vector<FpItemType> new_fp_vec;
         new_fp_vec.reserve(fp_vec_.size() - removed_docs_.size());
