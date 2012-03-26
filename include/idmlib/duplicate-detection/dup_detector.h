@@ -137,7 +137,7 @@ public:
         if (fp_vec_.empty()) return;
 
         std::vector<FpItemType> new_fp_vec;
-        new_fp_vec.reserve(fp_vec_.size() - removed_docs_.size());
+        new_fp_vec.reserve(fp_vec_.size());
         typename std::vector<FpItemType>::iterator it(fp_vec_.begin());
         for (uint32_t i = 0; i < removed_docs_.size(); i++)
         {
