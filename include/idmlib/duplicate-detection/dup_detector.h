@@ -148,7 +148,7 @@ public:
         }
         new_fp_vec.insert(new_fp_vec.end(), it, fp_vec_.end());
 
-        izenelib::am::ssf::Util<>::Load(fp_storage_path_, new_fp_vec);
+        izenelib::am::ssf::Util<>::Save(fp_storage_path_, new_fp_vec);
         if (enable_knn_)
         {
             new_fp_vec.swap(fp_vec_);
