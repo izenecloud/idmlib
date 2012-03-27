@@ -22,20 +22,20 @@ struct NullType
 
 };
 
-struct FpType
+struct SimHash
 {
     static const uint32_t FP_SIZE = DdConstants::f / 64;
 
     uint64_t desc[FP_SIZE];
 
-    FpType() : desc() {}
+    SimHash() : desc() {}
 
-    FpType(const FpType& other)
+    SimHash(const SimHash& other)
     {
         operator=(other);
     }
 
-    int compare(const FpType& other) const
+    int compare(const SimHash& other) const
     {
         for (unsigned i = 0; i < FP_SIZE; i++)
         {
@@ -47,17 +47,17 @@ struct FpType
         return 0;
     }
 
-    bool operator<(const FpType& other) const
+    bool operator<(const SimHash& other) const
     {
         return compare(other) == -1;
     }
 
-    bool operator!=(const FpType& other) const
+    bool operator!=(const SimHash& other) const
     {
         return compare(other) != 0;
     }
 
-    const FpType& operator=(const FpType& other)
+    const SimHash& operator=(const SimHash& other)
     {
         for (unsigned i = 0; i < FP_SIZE; i++)
         {

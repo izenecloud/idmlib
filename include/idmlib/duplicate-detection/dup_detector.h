@@ -100,7 +100,7 @@ public:
             weights.resize(v.size(), 1.0);
         }
         // CharikarAlgorithm algo;
-        FpType fp;
+        SimHash fp;
         algo_->generate_document_signature(v, weights, fp);
         FpItemType fpitem(docid, v.size(), fp, attach);
         if (enable_knn_)
@@ -421,7 +421,7 @@ private:
     {
         bool is_first = true;
         bool has_new = false;
-        FpType last_compare_value, compare_value;
+        SimHash last_compare_value, compare_value;
         uint32_t total_count = data.size();
         uint32_t dd_count = 0;
         uint32_t start = 0, finish = 0;

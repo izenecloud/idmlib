@@ -16,7 +16,7 @@ public:
     {
     }
 
-    FpItem(const DocIdType& pdocid, uint32_t plength, const FpType& pfp, const AttachType& pattach = AttachType())
+    FpItem(const DocIdType& pdocid, uint32_t plength, const SimHash& pfp, const AttachType& pattach = AttachType())
         : docid(pdocid), length(plength), status(0), fp(pfp), attach(pattach)
     {
     }
@@ -30,7 +30,7 @@ public:
     {
         uint32_t hamming_dist = 0;
 
-        for (uint32_t i = 0; i < FpType::FP_SIZE; i++)
+        for (uint32_t i = 0; i < SimHash::FP_SIZE; i++)
             hamming_dist += countBits_(fp.desc[i] ^ ofp[i]);
 
         return hamming_dist;
@@ -56,7 +56,7 @@ public:
     DocIdType docid;
     uint32_t length;
     int status; //1 means its new, 0 means old, not serialized.
-    FpType fp;
+    SimHash fp;
     AttachType attach;
 };
 

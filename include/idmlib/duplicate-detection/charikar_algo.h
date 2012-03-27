@@ -69,9 +69,9 @@ public:
         * @param[in] docTokens input source, a term id array
         * @param[out] signature generated signature
         */
-    void generate_document_signature(const std::vector<std::string>& docTokens, FpType& signature) const;
+    void generate_document_signature(const std::vector<std::string>& docTokens, SimHash& signature) const;
 
-    void generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, FpType& signature) const;
+    void generate_document_signature(const std::vector<std::string>& docTokens, const std::vector<double>& weights, SimHash& signature) const;
 
 private:
     uint16_t nDimensions; //!< dimensions number
