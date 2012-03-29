@@ -77,6 +77,20 @@ public:
         return true;
     }
 
+    uint32_t GetFpCount() const
+    {
+        if (enable_knn_)
+        {
+            return fp_vec_.size();
+        }
+        else
+        {
+            std::vector<FpItemType> vec_all;
+            izenelib::am::ssf::Util<>::Load(fp_storage_path_, vec_all);
+            return vec_all.size();
+        }
+    }
+
     void IncreaseCacheCapacity(uint32_t capacity)
     {
         boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
