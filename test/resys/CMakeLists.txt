@@ -1,4 +1,4 @@
-INCLUDE_DIRECTORIES(         
+INCLUDE_DIRECTORIES(
   ${izenelib_INCLUDE_DIRS}
   ${izenelib_INCLUDE_DIRS}/3rdparty/am
   ${idmlib_INCLUDE_DIRS}
@@ -20,7 +20,8 @@ SET(libs
   ${xml2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
-  ${ImageMagick_LIBRARIES}  
+  ${LibCURL_LIBRARIES}
+  ${ImageMagick_LIBRARIES}
   )
 
 SET(Boost_USE_STATIC_LIBS OFF)

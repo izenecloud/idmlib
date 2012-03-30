@@ -16,13 +16,14 @@ FIND_PACKAGE(izenelib REQUIRED
   snappy
   luxio
   )
-  
+
 FIND_PACKAGE(wisekma REQUIRED)
 FIND_PACKAGE(izenecma REQUIRED)
 FIND_PACKAGE(izenejma REQUIRED)
 FIND_PACKAGE(ilplib REQUIRED)
 FIND_PACKAGE(imllib REQUIRED)
 FIND_PACKAGE(xml2 REQUIRED)
+FIND_PACKAGE(LibCURL REQUIRED)
 FIND_PACKAGE(ImageMagick COMPONENTS Magick++)
 
 ##################################################
@@ -47,4 +48,3 @@ FIND_PACKAGE(Boost 1.36 REQUIRED
 
 FIND_PACKAGE(TokyoCabinet 1.4.29 REQUIRED)
 FIND_PACKAGE(Glog REQUIRED)
-

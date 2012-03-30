@@ -24,7 +24,8 @@ SET(libs
   ${wisekma_LIBRARIES}
   ${izenejma_LIBRARIES}
   ${xml2_LIBRARIES}
-  ${ImageMagick_LIBRARIES}  
+  ${LibCURL_LIBRARIES}
+  ${ImageMagick_LIBRARIES}
   )
 SET(Boost_USE_STATIC_LIBS OFF)
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
@@ -111,6 +112,3 @@ TARGET_LINK_LIBRARIES(bce_trainer_cn
 SET_TARGET_PROPERTIES(bce_trainer_cn PROPERTIES
 RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/bin
 )
-    
-    
-

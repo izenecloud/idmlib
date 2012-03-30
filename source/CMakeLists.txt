@@ -72,7 +72,7 @@ FILE(GLOB_RECURSE topicmodels_SRC
   "topic-models/*.c"
 )
 
-FILE(GLOB_RECURSE  lshkit_SRCS 
+FILE(GLOB_RECURSE  lshkit_SRCS
   "lshkit/*.cpp"
   "lshkit/*.c"
 )
@@ -94,7 +94,7 @@ ADD_LIBRARY(idmlib
   ${resys_SRC}
   ${ise_SRC}
   ${topicmodels_SRC}
-  ${lshkit_SRCS} 
+  ${lshkit_SRCS}
 )
 
 INSTALL(TARGETS idmlib

@@ -137,6 +137,7 @@ ${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
 ${xml2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
+${LibCURL_INCLUDE_DIRS}
 ${ImageMagick_INCLUDE_DIRS}
 )
 
@@ -146,6 +147,7 @@ SET(libs
   ${xml2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
+  ${LibCURL_LIBRARIES}
   ${ImageMagick_LIBRARIES}
 )
 
@@ -233,7 +235,14 @@ IF(VERBOSE)
   ELSE(Glog_FOUND)
     MESSAGE(STATUS "Google Glog: not found")
   ENDIF(Glog_FOUND)
-  
+
+  IF(LibCURL_FOUND)
+    MESSAGE(STATUS "libcurl:")
+    MESSAGE(STATUS "  header: ${LibCURL_INCLUDE_DIRS}")
+    MESSAGE(STATUS "  lib: ${LibCURL_LIBRARIES}")
+  ELSE(LibCURL_FOUND)
+    MESSAGE(STATUS "libcurl: not found!")
+  ENDIF(LibCURL_FOUND)
 
   MESSAGE(STATUS "----------------------------------------")
   MESSAGE(STATUS "COMPONENTS BUILD:")

@@ -1,4 +1,4 @@
-INCLUDE_DIRECTORIES(         
+INCLUDE_DIRECTORIES(
   ${izenelib_INCLUDE_DIRS}
   ${idmlib_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
@@ -18,7 +18,8 @@ SET(libs
   ${xml2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
-  ${ImageMagick_LIBRARIES}  
+  ${LibCURL_LIBRARIES}
+  ${ImageMagick_LIBRARIES}
   )
 
 SET(Boost_USE_STATIC_LIBS OFF)
@@ -31,7 +32,7 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
   )
 
 ADD_EXECUTABLE(ise_builder ise_builder.cpp)
-  
+
 TARGET_LINK_LIBRARIES(ise_builder
   ${libs}
 )

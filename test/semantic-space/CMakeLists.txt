@@ -19,11 +19,12 @@ SET(libs
   ${wisekma_LIBRARIES}
   ${izenejma_LIBRARIES}
   ${xml2_LIBRARIES}
-  ${ImageMagick_LIBRARIES}  
+  ${LibCURL_LIBRARIES}
+  ${ImageMagick_LIBRARIES}
   )
 
 ADD_EXECUTABLE(esa_builder esa_builder.cpp)
-  
+
 TARGET_LINK_LIBRARIES(esa_builder
   ${libs}
 )
