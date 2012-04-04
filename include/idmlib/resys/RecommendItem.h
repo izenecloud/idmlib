@@ -2,6 +2,7 @@
 #define IDMLIB_RESYS_RECOMMEND_ITEM_H
 
 #include <idmlib/idm_types.h>
+#include <3rdparty/msgpack/msgpack.hpp>
 
 #include <vector>
 #include <boost/serialization/access.hpp>
@@ -28,6 +29,8 @@ struct RecommendItem
         ar & weight_;
         ar & reasonItemIds_;
     }
+
+    MSGPACK_DEFINE(itemId_, weight_, reasonItemIds_);
 };
 
 typedef std::vector<RecommendItem> RecommendItemVec;
