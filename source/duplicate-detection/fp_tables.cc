@@ -49,14 +49,13 @@ void FpTables::GenTables(uint32_t f, uint8_t k, uint8_t partition_num, std::vect
     do
     {
         table_list.push_back(FpTable());
-        std::vector<uint64_t>& bit_mask = table_list.back().bit_mask_;
-        bit_mask.resize((f + 63) / 64);
+        SimHash& bit_mask = table_list.back().bit_mask_;
         for (uint8_t i = 0; i < len; i++)
         {
             std::vector<std::pair<uint8_t, uint64_t> >::const_iterator it
                 = mask_blocks[vec[i]].begin();
             for (; it != mask_blocks[vec[i]].end(); ++it)
-                bit_mask[it->first] |= it->second;
+                bit_mask.desc[it->first] |= it->second;
         }
     }
     while (permutate_(vec, len - 1, blocks.size()));

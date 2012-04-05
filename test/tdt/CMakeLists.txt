@@ -1,4 +1,4 @@
-INCLUDE_DIRECTORIES(         
+INCLUDE_DIRECTORIES(
 
   ${izenelib_INCLUDE_DIRS}
   ${idmlib_INCLUDE_DIRS}
@@ -21,6 +21,7 @@ SET(libs
   ${wisekma_LIBRARIES}
   ${izenejma_LIBRARIES}
   ${xml2_LIBRARIES}
+  ${LibCURL_LIBRARIES}
   ${ImageMagick_LIBRARIES}
   bz2
   )

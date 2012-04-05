@@ -48,6 +48,8 @@ public:
 
     bool Insert(const std::string& imgPath);
 
+    bool FetchRemoteImage(const std::string& url, std::string& filename);
+
     void Search(const std::string& queryImgpath, std::vector<std::string>& results);
 
 private:
@@ -69,7 +71,6 @@ private:
 
 private:
     std::string lshHome_;
-
     std::string imgMetaHome_;
 
     LshIndexType lshIndex_;

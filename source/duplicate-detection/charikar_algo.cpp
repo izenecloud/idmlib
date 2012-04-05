@@ -31,7 +31,7 @@ History    : Yeogirl Yun                                      1/22/07
 
 void CharikarAlgo::generate_document_signature(
         const std::vector<std::string>& docTokens,
-        std::vector<uint64_t>& signature) const
+        SimHash& signature) const
 {
     std::vector<double> weights(docTokens.size(), 1.0);
     generate_document_signature(docTokens, weights, signature);
@@ -40,7 +40,7 @@ void CharikarAlgo::generate_document_signature(
 void CharikarAlgo::generate_document_signature(
         const std::vector<std::string>& docTokens,
         const std::vector<double>& weights,
-        std::vector<uint64_t>& signature) const
+        SimHash& signature) const
 {
     std::vector<double> vec(num_dimensions(), 0.0);
     static const double va[] = {-1.0, 1.0};
@@ -60,10 +60,9 @@ void CharikarAlgo::generate_document_signature(
         }
     }
 
-    signature.resize((vec.size() + 63) / 64);
     for (uint32_t i = 0; i < vec.size(); i++)
     {
         uint32_t j = i >> 6;
-        if (vec[i] >= 0) signature[j] |= uint64_t(1) << (i & 0x3f);
+        if (vec[i] >= 0) signature.desc[j] |= uint64_t(1) << (i & 0x3f);
     }
 }

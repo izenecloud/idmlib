@@ -19,11 +19,12 @@ SET(libs
   ${wisekma_LIBRARIES}
   ${izenejma_LIBRARIES}
   ${xml2_LIBRARIES}
-  ${ImageMagick_LIBRARIES}  
+  ${LibCURL_LIBRARIES}
+  ${ImageMagick_LIBRARIES}
   )
 
 ADD_EXECUTABLE(doc_similarity doc_similarity.cpp)
-  
+
 TARGET_LINK_LIBRARIES(doc_similarity
   ${libs}
 )

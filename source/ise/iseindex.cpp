@@ -1,6 +1,8 @@
 #include <idmlib/ise/iseindex.hpp>
+#include <util/hashFunction.h>
 
 #include <boost/filesystem.hpp>
+#include <curl/curl.h>
 
 namespace bfs = boost::filesystem;
 
@@ -125,6 +127,34 @@ bool IseIndex::Insert(const std::string& imgPath)
     }
     imgMetaStorage_.insert(id, imgPath);
     return true;
+}
+
+bool IseIndex::FetchRemoteImage(const std::string& url, std::string& filename)
+{
+    if (filename.empty())
+    {
+        filename.reserve(41);
+        filename.assign("/dev/shm/");
+
+        uint128_t hash = HashFunction<std::string>::generateHash128(url);
+        char hash_str[33];
+        sprintf(hash_str, "%016llx%016llx", (unsigned long long) (hash >> 64), (unsigned long long) hash);
+        filename.append(reinterpret_cast<const char *>(hash_str), 32);
+    }
+
+    CURL* conn;
+    FILE* fp = fopen(filename.c_str(), "w");
+
+    conn = curl_easy_init();
+    if (conn == NULL) return false;
+
+    curl_easy_setopt(conn, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(conn, CURLOPT_WRITEDATA, fp);
+
+    CURLcode code = curl_easy_perform(conn);
+    curl_easy_cleanup(conn);
+
+    return code == CURLE_OK;
 }
 
 void IseIndex::Search(const std::string& queryImgPath, std::vector<std::string>& results)
