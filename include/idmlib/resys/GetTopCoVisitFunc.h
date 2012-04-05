@@ -45,7 +45,7 @@ class GetTopCoVisitFunc
 public:
     GetTopCoVisitFunc(
         ItemType rowItem,
-        ItemRescorer* filter,
+        const ItemRescorer* filter,
         std::size_t topCount
     )
     : rowItem_(rowItem)
@@ -81,7 +81,7 @@ public:
 
 private:
     const ItemType rowItem_;
-    ItemRescorer* filter_;
+    const ItemRescorer* filter_;
     CoVisitationQueue<CoVisitation> queue_;
 };
 

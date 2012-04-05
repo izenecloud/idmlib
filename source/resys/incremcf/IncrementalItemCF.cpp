@@ -207,7 +207,7 @@ void IncrementalItemCF::recommend(
     int howMany,
     const std::vector<uint32_t>& visitItems,
     RecommendItemVec& recItems,
-    ItemRescorer* rescorer
+    const ItemRescorer* rescorer
 )
 {
     std::set<uint32_t> visitSet(visitItems.begin(), visitItems.end());
@@ -245,7 +245,7 @@ void IncrementalItemCF::recommend(
     int howMany,
     const ItemWeightMap& visitItemWeights,
     RecommendItemVec& recItems,
-    ItemRescorer* rescorer
+    const ItemRescorer* rescorer
 )
 {
     // get candidate items which has positive weight and similarity value

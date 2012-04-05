@@ -65,7 +65,7 @@ public:
         size_t topCount,
         ItemType item,
         std::vector<ItemType>& results,
-        ItemRescorer* rescorer = NULL
+        const ItemRescorer* rescorer = NULL
     )
     {
         GetTopCoVisitFunc<CoVisitation, RowType> func(item, rescorer, topCount);

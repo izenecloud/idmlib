@@ -94,7 +94,7 @@ public:
         int howMany,
         const std::vector<uint32_t>& visitItems,
         RecommendItemVec& recItems,
-        ItemRescorer* rescorer = NULL
+        const ItemRescorer* rescorer = NULL
     );
 
     /**
@@ -111,7 +111,7 @@ public:
         int howMany,
         const ItemWeightMap& visitItemWeights,
         RecommendItemVec& recItems,
-        ItemRescorer* rescorer = NULL
+        const ItemRescorer* rescorer = NULL
     );
 
     void flush();
