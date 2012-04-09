@@ -3,6 +3,7 @@
 
 #include "CoVisitFreq.h"
 #include "ItemRescorer.h"
+#include "RecommendItem.h"
 #include <util/PriorityQueue.h>
 
 #include <vector>
@@ -51,11 +52,12 @@ public:
     : rowItem_(rowItem)
     , filter_(filter)
     , queue_(topCount)
+    , totalFreq_(0)
     {}
 
     void operator() (const RowType& row)
     {
-        for(typename RowType::const_iterator iter = row.begin();
+        for (typename RowType::const_iterator iter = row.begin();
             iter != row.end(); ++iter)
         {
             const ItemType item = iter->first;
@@ -64,18 +66,22 @@ public:
             if (item != rowItem_ &&
                 (!filter_ || !filter_->isFiltered(item)))
             {
+                totalFreq_ += value.freq;
                 queue_.insert(CoVisitationQueueItem<CoVisitation>(item, value));
             }
         }
     }
 
-    void getResult(std::vector<ItemType>& results)
+    void getResult(RecommendItemVec& recItems)
     {
-        results.resize(queue_.size());
-        for (std::vector<ItemType>::reverse_iterator rit = results.rbegin();
-            rit != results.rend(); ++rit)
+        recItems.resize(queue_.size());
+
+        for (RecommendItemVec::reverse_iterator rit = recItems.rbegin();
+            rit != recItems.rend(); ++rit)
         {
-            *rit = queue_.pop().itemId;
+            const CoVisitationQueueItem<CoVisitation>& queueItem = queue_.pop();
+            rit->itemId_ = queueItem.itemId;
+            rit->weight_ = static_cast<float>(queueItem.covisitation.freq) / totalFreq_;
         }
     }
 
@@ -83,6 +89,7 @@ private:
     const ItemType rowItem_;
     const ItemRescorer* filter_;
     CoVisitationQueue<CoVisitation> queue_;
+    uint32_t totalFreq_;
 };
 
 NS_IDMLIB_RESYS_END

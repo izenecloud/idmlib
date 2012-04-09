@@ -121,6 +121,11 @@ private:
     */
     void checkCoVisitResult_(uint32_t inputItem);
 
+    void calcCoVisitWeights_(
+        uint32_t inputItem,
+        std::vector<float>& weights
+    ) const;
+
     /**
      * Check recommend results, given @p inputItems,
      * calculate weight for each item, and compare them with results.

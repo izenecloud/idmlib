@@ -111,32 +111,43 @@ void ItemCFTest::checkCoVisitResult()
 void ItemCFTest::checkCoVisitResult_(uint32_t inputItem)
 {
     // get covisit items
-    std::vector<ItemType> resultVec;
-    covisitation_->getCoVisitation(ITEM_NUM, inputItem, resultVec);
+    RecommendItemVec recItems;
+    covisitation_->getCoVisitation(ITEM_NUM, inputItem, recItems);
 
-    // check freq in descreasing order
-    std::vector<int> goldVec(goldVisitMatrix_[inputItem]);
-    goldVec[inputItem] = 0;
-    int prevFreq = INT_MAX;
-    for (std::vector<ItemType>::const_iterator resultIt = resultVec.begin();
-        resultIt != resultVec.end(); ++resultIt)
+    std::vector<float> goldWeights;
+    calcCoVisitWeights_(inputItem, goldWeights);
+
+    checkWeights_(recItems, goldWeights);
+}
+
+void ItemCFTest::calcCoVisitWeights_(
+    uint32_t inputItem,
+    std::vector<float>& weights
+) const
+{
+    weights.assign(ITEM_NUM, 0);
+
+    float total = 0;
+
+    const std::vector<int>& goldVisitVec = goldVisitMatrix_[inputItem];
+    for (unsigned int i=0; i<ITEM_NUM; ++i)
     {
-        int freq = goldVec[*resultIt];
-        // check result freq should not be zero
-        BOOST_CHECK(freq != 0);
+        if (i == inputItem)
+            continue;
 
-        // check result is sorted by freq decreasingly
-        BOOST_CHECK(freq <= prevFreq);
-
-        // reset freq value to compare with zeroVec
-        goldVec[*resultIt] = 0;
-        prevFreq = freq;
+        total += goldVisitVec[i];
     }
 
-    // to check all results are returned
-    std::vector<int> zeroVec(ITEM_NUM);
-    BOOST_CHECK_EQUAL_COLLECTIONS(goldVec.begin(), goldVec.end(),
-                                  zeroVec.begin(), zeroVec.end());
+    if (total == 0)
+        return;
+
+    for (unsigned int i=0; i<ITEM_NUM; ++i)
+    {
+        if (i == inputItem)
+            continue;
+
+        weights[i] = goldVisitVec[i] / total;
+    }
 }
 
 void ItemCFTest::checkPurchase(

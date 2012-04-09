@@ -5,6 +5,7 @@
 #include "UpdateCoVisitFunc.h"
 #include "GetTopCoVisitFunc.h"
 #include "ItemRescorer.h"
+#include "RecommendItem.h"
 #include <idmlib/idm_types.h>
 
 #include <am/matrix/matrix_db.h>
@@ -64,13 +65,13 @@ public:
     void getCoVisitation(
         size_t topCount,
         ItemType item,
-        std::vector<ItemType>& results,
+        RecommendItemVec& recItems,
         const ItemRescorer* rescorer = NULL
     )
     {
         GetTopCoVisitFunc<CoVisitation, RowType> func(item, rescorer, topCount);
         db_.read_row_with_func(item, func);
-        func.getResult(results);
+        func.getResult(recItems);
     }
 
     void flush()
