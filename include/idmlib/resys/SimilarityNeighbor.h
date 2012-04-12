@@ -84,7 +84,6 @@ public:
     {
         flush();
 
-        db_storage_.flush();
         db_storage_.close();
     }
 
@@ -216,6 +215,7 @@ public:
                 db_storage_.update(i, neighbors_[i]);
             }
         }
+        db_storage_.flush();
         dirty_flags_.clear();
     }
 
