@@ -13,6 +13,11 @@ class UpdateCoVisitFunc
 public:
     typedef std::list<ItemType> ItemList;
 
+    UpdateCoVisitFunc(const ItemList& list1)
+    : list1_(list1)
+    , list2_(EMPTY_LIST)
+    {}
+
     UpdateCoVisitFunc(const ItemList& list1, const ItemList& list2)
     : list1_(list1)
     , list2_(list2)
@@ -37,7 +42,12 @@ private:
 private:
     const ItemList& list1_;
     const ItemList& list2_;
+
+    static const ItemList EMPTY_LIST;
 };
+
+template <typename RowType>
+const typename UpdateCoVisitFunc<RowType>::ItemList UpdateCoVisitFunc<RowType>::EMPTY_LIST;
 
 NS_IDMLIB_RESYS_END
 

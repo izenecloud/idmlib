@@ -55,8 +55,7 @@ public:
     )
     {
         // update old*new pairs
-        std::list<ItemType> emptyList;
-        updateCoVisit_(oldItems, newItems, emptyList);
+        updateCoVisit_(oldItems, newItems);
 
         // update new*total pairs
         updateCoVisit_(newItems, oldItems, newItems);
@@ -87,11 +86,28 @@ public:
 private:
     void updateCoVisit_(
         const std::list<ItemType>& rows,
+        const std::list<ItemType>& cols
+    )
+    {
+        UpdateCoVisitFunc<RowType> func(cols);
+        updateDB_(rows, func);
+    }
+
+    void updateCoVisit_(
+        const std::list<ItemType>& rows,
         const std::list<ItemType>& cols1,
         const std::list<ItemType>& cols2
     )
     {
         UpdateCoVisitFunc<RowType> func(cols1, cols2);
+        updateDB_(rows, func);
+    }
+
+    void updateDB_(
+        const std::list<ItemType>& rows,
+        const UpdateCoVisitFunc<RowType>& func
+    )
+    {
         for(std::list<ItemType>::const_iterator iter = rows.begin();
             iter != rows.end(); ++iter)
         {
