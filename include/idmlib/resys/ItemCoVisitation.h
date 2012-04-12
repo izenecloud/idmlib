@@ -14,8 +14,6 @@
 #include <vector>
 #include <list>
 
-using namespace std;
-
 NS_IDMLIB_RESYS_BEGIN
 
 template<typename CoVisitation>
@@ -62,7 +60,7 @@ public:
     }
 
     void getCoVisitation(
-        size_t topCount,
+        std::size_t topCount,
         ItemType item,
         RecommendItemVec& recItems,
         const ItemRescorer* rescorer = NULL
