@@ -78,7 +78,8 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         IncrementalItemCF cfManager(
             cfPathStr + "/covisit", 1024*1024,
             cfPathStr + "/sim.sdb", 1024*1024,
-            cfPathStr + "/nb.sdb", 30
+            cfPathStr + "/nb.sdb", 30,
+            cfPathStr + "/visit_freq.sdb"
         );
         itemCFTest.setCFManager(&cfManager);
 
@@ -106,7 +107,8 @@ BOOST_AUTO_TEST_CASE(smokeTest)
         IncrementalItemCF cfManager(
             cfPathStr + "/covisit", 1024*1024,
             cfPathStr + "/sim.sdb", 1024*1024,
-            cfPathStr + "/nb.sdb", 30
+            cfPathStr + "/nb.sdb", 30,
+            cfPathStr + "/visit_freq.sdb"
         );
         itemCFTest.setCFManager(&cfManager);
         itemCFTest.checkVisitMatrix();
@@ -153,7 +155,8 @@ BOOST_AUTO_TEST_CASE(largeTest)
     IncrementalItemCF cfManager(
         cfPathStr + "/covisit", 1024*1024,
         cfPathStr + "/sim.sdb", 1024*1024,
-        cfPathStr + "/nb.sdb", 30
+        cfPathStr + "/nb.sdb", 30,
+        cfPathStr + "/visit_freq.sdb"
     );
 
     int MaxITEM = 100000;

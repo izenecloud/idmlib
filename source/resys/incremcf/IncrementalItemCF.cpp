@@ -68,13 +68,16 @@ IncrementalItemCF::IncrementalItemCF(
     const std::string& item_item_similarity_path,
     size_t similarity_row_cache_size,
     const std::string& item_neighbor_path,
-    size_t topK
+    size_t topK,
+    const std::string& visit_freq_path
 )
     : covisitation_(covisit_path, covisit_row_cache_size)
     , visitMatrix_(covisitation_.matrix())
     , simMatrix_(similarity_row_cache_size, item_item_similarity_path)
     , simNeighbor_(item_neighbor_path, topK)
+    , visitFreqDB_(visit_freq_path)
 {
+    visitFreqDB_.open();
 }
 
 IncrementalItemCF::~IncrementalItemCF()
@@ -95,6 +98,20 @@ void IncrementalItemCF::updateVisitMatrix(
     const std::list<uint32_t>& newItems)
 {
     covisitation_.visit(oldItems, newItems);
+
+    updateVisitFreq_(newItems);
+}
+
+void IncrementalItemCF::updateVisitFreq_(const std::list<uint32_t>& newItems)
+{
+    for (std::list<uint32_t>::const_iterator it = newItems.begin();
+        it != newItems.end(); ++it)
+    {
+        uint32_t freq = 0;
+        visitFreqDB_.get(*it, freq);
+        ++freq;
+        visitFreqDB_.update(*it, freq);
+    }
 }
 
 void IncrementalItemCF::buildSimMatrix()
@@ -161,7 +178,8 @@ void IncrementalItemCF::updateSimRow_(
             continue;
 
         const uint32_t visit_i_j = it_j->second.freq;
-        const uint32_t visit_j_j = visitMatrix_.elem(col, col).freq;
+        uint32_t visit_j_j = 0;
+        visitFreqDB_.getValue(col, visit_j_j);
         assert(visit_i_j && visit_i_i && visit_j_j && "the freq value in visit matrix should be positive.");
 
         float sim = (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
@@ -285,6 +303,7 @@ void IncrementalItemCF::flush()
     covisitation_.flush();
     simMatrix_.flush();
     simNeighbor_.flush();
+    visitFreqDB_.flush();
 }
 
 void IncrementalItemCF::print(std::ostream& ostream) const

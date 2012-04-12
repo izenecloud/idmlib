@@ -10,6 +10,7 @@
 #include <idmlib/resys/SimilarityNeighbor.h>
 
 #include <am/matrix/matrix_db.h>
+#include <sdb/SequentialDB.h>
 
 #include <vector>
 #include <set>
@@ -35,6 +36,10 @@ private:
     typedef SimilarityNeighbor<uint32_t, float> SimNeighbor;
     SimNeighbor simNeighbor_;
 
+    // itemid -> visit freq
+    typedef izenelib::sdb::unordered_sdb_tc<uint32_t, uint32_t, ReadWriteLock> VisitFreqDB;
+    VisitFreqDB visitFreqDB_;
+
     friend class ItemCFTest;
 
 public:
@@ -44,7 +49,8 @@ public:
         const std::string& item_item_similarity_path,
         size_t similarity_row_cache_size,
         const std::string& item_neighbor_path,
-        size_t topK
+        size_t topK,
+        const std::string& visit_freq_path
     );
 
     ~IncrementalItemCF();
@@ -142,6 +148,11 @@ private:
      * @param rows the row numbers to update
      */
     void updateSimMatrix_(const std::list<uint32_t>& rows);
+
+    /**
+     * Increment visit frequency.
+     */
+    void updateVisitFreq_(const std::list<uint32_t>& newItems);
 };
 
 std::ostream& operator<<(std::ostream& out, const IncrementalItemCF& increItemCF);
