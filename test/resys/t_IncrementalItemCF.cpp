@@ -71,16 +71,12 @@ BOOST_AUTO_TEST_CASE(smokeTest)
     bfs::path cfPath(TEST_DIR_STR);
     boost::filesystem::remove_all(cfPath);
     bfs::create_directories(cfPath);
-    std::string cfPathStr = cfPath.string();
 
+    ItemCFParam itemCFParam(cfPath.string());
     ItemCFTest itemCFTest;
+
     {
-        IncrementalItemCF cfManager(
-            cfPathStr + "/covisit", 1024*1024,
-            cfPathStr + "/sim.sdb", 1024*1024,
-            cfPathStr + "/nb.sdb", 30,
-            cfPathStr + "/visit_freq.sdb"
-        );
+        IncrementalItemCF cfManager(itemCFParam);
         itemCFTest.setCFManager(&cfManager);
 
         uint32_t user1 = 1;
@@ -104,13 +100,9 @@ BOOST_AUTO_TEST_CASE(smokeTest)
     }
 
     {
-        IncrementalItemCF cfManager(
-            cfPathStr + "/covisit", 1024*1024,
-            cfPathStr + "/sim.sdb", 1024*1024,
-            cfPathStr + "/nb.sdb", 30,
-            cfPathStr + "/visit_freq.sdb"
-        );
+        IncrementalItemCF cfManager(itemCFParam);
         itemCFTest.setCFManager(&cfManager);
+
         itemCFTest.checkVisitMatrix();
         itemCFTest.checkSimMatrix();
 
@@ -150,14 +142,9 @@ BOOST_AUTO_TEST_CASE(largeTest)
     bfs::path cfPath(TEST_DIR_STR);
     boost::filesystem::remove_all(cfPath);
     bfs::create_directories(cfPath);
-    std::string cfPathStr = cfPath.string();
 
-    IncrementalItemCF cfManager(
-        cfPathStr + "/covisit", 1024*1024,
-        cfPathStr + "/sim.sdb", 1024*1024,
-        cfPathStr + "/nb.sdb", 30,
-        cfPathStr + "/visit_freq.sdb"
-    );
+    ItemCFParam itemCFParam(cfPath.string());
+    IncrementalItemCF cfManager(itemCFParam);
 
     int MaxITEM = 100000;
     int MaxNewVisit = 10;

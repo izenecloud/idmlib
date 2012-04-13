@@ -6,6 +6,7 @@
 #include "GetTopCoVisitFunc.h"
 #include "ItemRescorer.h"
 #include "RecommendItem.h"
+#include "MatrixSharder.h"
 #include <idmlib/idm_types.h>
 
 #include <am/matrix/matrix_db.h>
@@ -25,9 +26,11 @@ public:
 
     ItemCoVisitation(
         const std::string& homePath,
-        size_t cache_size = 1024*1024
+        std::size_t cache_size = 1024*1024,
+        MatrixSharder* matrixSharder = NULL
     )
         : db_(cache_size, homePath)
+        , matrixSharder_(matrixSharder)
     {
     }
 
@@ -66,6 +69,9 @@ public:
         const ItemRescorer* rescorer = NULL
     )
     {
+        if (! isMyRow_(item))
+            return;
+
         GetTopCoVisitFunc<CoVisitation, RowType> func(item, rescorer, topCount);
         db_.read_row_with_func(item, func);
         func.getResult(recItems);
@@ -82,6 +88,14 @@ public:
     }
 
 private:
+    bool isMyRow_(ItemType row)
+    {
+        if (! matrixSharder_)
+            return true;
+
+        return matrixSharder_->testRow(row);
+    }
+
     void updateCoVisit_(
         const std::list<ItemType>& rows,
         const std::list<ItemType>& cols
@@ -109,12 +123,16 @@ private:
         for(std::list<ItemType>::const_iterator iter = rows.begin();
             iter != rows.end(); ++iter)
         {
+            if (! isMyRow_(*iter))
+                continue;
+
             db_.update_row_with_func(*iter, func);
         }
     }
 
 private:
     MatrixType db_;
+    MatrixSharder* matrixSharder_;
 };
 
 NS_IDMLIB_RESYS_END
