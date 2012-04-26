@@ -27,6 +27,11 @@ public:
     {
     }
 
+    //inline bool IsSymmetric() const
+    //{
+        //return true;
+    //}
+
     bool Load()
     {
         if (!boost::filesystem::exists(file_))
@@ -73,7 +78,7 @@ public:
     }
 
     /// Return whether this is a discovery
-    bool AddDoc(const DocIdType& docid1, const DocIdType& docid2)
+    bool AddDoc(const DocIdType& docid1, const DocIdType& docid2, char flag = 0)
     {
         bool result = true;
         GroupIdType* value1 = docid_group_.find(docid1);

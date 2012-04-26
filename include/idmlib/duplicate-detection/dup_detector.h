@@ -512,14 +512,37 @@ private:
             for (uint32_t j = i + 1; j < finish; j++)
             {
                 if (data[i].status == 0 && data[j].status == 0) continue;
+                char flag = 0;
+                if(data[i].status>0) flag |= 0x01;
+                if(data[j].status>0) flag |= 0x02;
                 if (IsDuplicated_(data[i], data[j]))
                 {
                     boost::lock_guard<boost::shared_mutex> lock(group_table_mutex_);
                     //if this is a new discovery
-                    if (group_table_->AddDoc(data[i].docid, data[j].docid))
+                    if (group_table_->AddDoc(data[i].docid, data[j].docid, flag))
                     {
                         ++dd_count;
                     }
+                    //if(group_table_->IsSymmetric())
+                    //{
+                    //}
+                    //else
+                    //{
+                        //if(data[i].status>0)
+                        //{
+                            //if (group_table_->AddDoc(data[i].docid, data[j].docid))
+                            //{
+                                //++dd_count;
+                            //}
+                        //}
+                        //if(data[j].status>0)
+                        //{
+                            //if (group_table_->AddDoc(data[j].docid, data[i].docid))
+                            //{
+                                //++dd_count;
+                            //}
+                        //}
+                    //}
                 }
             }
         }
