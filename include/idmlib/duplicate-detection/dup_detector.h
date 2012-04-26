@@ -17,18 +17,19 @@ NS_IDMLIB_DD_BEGIN
 //#define DUPD_GROUP_DEBUG;
 //#define DUPD_DEBUG;
 //#define DUPD_FP_DEBUG;
-template <typename DT, typename GT, class AttachType = NullType>
+template <typename DT, typename GT, class AttachType = NullType, template<typename _DT, typename _GT> class GroupTableT = idmlib::dd::GroupTable>
 class DupDetector
 {
 public:
     typedef DT DocIdType;
     typedef GT GroupIdType;
     typedef izenelib::am::ssf::Writer<> FpWriterType;
-    typedef GroupTable<DocIdType, GroupIdType> GroupTableType;
+    typedef GroupTableT<DocIdType, GroupIdType> GroupTableType;
     typedef FpItem<DocIdType, AttachType> FpItemType;
 
     DupDetector(const std::string& container, GroupTableType* group_table, bool enable_knn = false, bool fp_only = false)
         : container_(container)
+        , redo_(false)
         , maxk_(0), partition_num_(0)
         , algo_(NULL)
         , writer_(NULL)
@@ -72,6 +73,14 @@ public:
         {
             boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
             izenelib::am::ssf::Util<>::Load(fp_storage_path_, fp_vec_);
+        }
+
+        std::string redo_file = container_+"/redo";
+        if(boost::filesystem::exists(redo_file))
+        {
+            LOG(INFO)<<"DD set redo=true"<<std::endl;
+            redo_ = true;
+            boost::filesystem::remove_all(redo_file);
         }
 
         return true;
@@ -311,6 +320,14 @@ private:
             boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
             fp_vec_.insert(fp_vec_.end(), working_fp_vec_.begin(), working_fp_vec_.end());
             std::vector<FpItemType>().swap(working_fp_vec_);
+            if(redo_)
+            {
+                for (uint32_t i = 0; i <fp_vec_.size(); i++)
+                {
+                    fp_vec_[i].status = 1; //set status = new
+                }
+                redo_ = false;
+            }
         }
         if (!izenelib::am::ssf::Util<>::Save(fp_storage_path_, fp_vec_))
         {
@@ -385,6 +402,14 @@ private:
         izenelib::am::ssf::Util<>::Load(fp_storage_path_, vec_all);
         std::cout << "Processed doc count : " << vec_all.size() << std::endl;
         vec_all.insert(vec_all.end(), vec.begin(), vec.end());
+        if(redo_)
+        {
+            for (uint32_t i = 0; i <vec_all.size(); i++)
+            {
+                vec_all[i].status = 1; //set status = new
+            }
+            redo_ = false;
+        }
         if (!izenelib::am::ssf::Util<>::Save(fp_storage_path_, vec_all))
         {
             std::cerr << "Save fps failed" << std::endl;
@@ -558,6 +583,7 @@ private:
 
 private:
     std::string container_;
+    bool redo_;
 
     /// parameters.
     uint8_t maxk_;

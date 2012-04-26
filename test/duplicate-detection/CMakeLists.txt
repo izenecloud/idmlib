@@ -44,6 +44,21 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
 # ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
 
 
+ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+   INCLUDE_DIRECTORIES(
+     ${Boost_INCLUDE_DIRS}
+   )
+   ADD_EXECUTABLE(t_group_table
+     Runner.cpp
+     t_group_table.cpp
+     )
+   TARGET_LINK_LIBRARIES(t_group_table ${libs})
+   SET_TARGET_PROPERTIES(t_group_table PROPERTIES
+     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/testbin
+     )
+ ADD_TEST(GROUP_TABLE "${PROJECT_SOURCE_DIR}/testbin/t_group_table")
+ ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+
 ADD_EXECUTABLE(grouptable
 group_table.cpp
 )
