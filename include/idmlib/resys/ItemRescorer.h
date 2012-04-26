@@ -11,7 +11,7 @@ struct ItemRescorer
 
     virtual float rescore(uint32_t itemId, float originalScore) = 0;
 
-    virtual bool isFiltered(uint32_t itemId) = 0;
+    virtual bool isFiltered(uint32_t itemId) const = 0;
 };
 
 NS_IDMLIB_RESYS_END
