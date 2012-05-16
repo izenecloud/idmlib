@@ -99,7 +99,7 @@ public:
 
                 bool ret = s_pIdManager_->getDocIdByDocName(propertyValue, docId, false);
                 if (ret)  /*exist*/;
-                indexDocument.setId(0);
+                indexDocument.setOldId(0);
                 indexDocument.setDocId(docId, idmlib::ssp::IzeneIndexHelper::COLLECTION_ID);
             }
             else if (propertyName == izenelib::util::UString("date", encoding_) )
