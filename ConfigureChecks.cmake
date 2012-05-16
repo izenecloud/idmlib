@@ -6,12 +6,12 @@
 #####
 FIND_PACKAGE(izenelib REQUIRED
   COMPONENTS
+  izene_util
   index_manager
   febird
   am
-  izene_util
-  procmeminfo
   izene_log
+  procmeminfo
   leveldb
   snappy
   luxio

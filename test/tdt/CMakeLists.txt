@@ -9,12 +9,12 @@ INCLUDE_DIRECTORIES(
 # if a dpendes b, a must precede b
 SET(libs
   idmlib
+  ${izenelib_LIBRARIES}
+  ${Boost_LIBRARIES}
   ${ilplib_LIBRARIES}
   ${imllib_LIBRARIES}
-  ${izenelib_LIBRARIES}
 
   #external
-  ${Boost_LIBRARIES}
   ${TokyoCabinet_LIBRARIES}
   ${Glog_LIBRARIES}
   ${izenecma_LIBRARIES}
