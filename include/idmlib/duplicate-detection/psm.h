@@ -1,10 +1,13 @@
 #ifndef IDMLIB_DD_PSM_H_
 #define IDMLIB_DD_PSM_H_
 
+#include <algorithm>
 #include <am/succinct/fujimap/fujimap.hpp>
+#include <am/sequence_file/ssfr.h>
 #include "dd_types.h"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/serialization.hpp>
+#include <boost/filesystem.hpp>
 #include <util/hashFunction.h>
 
 NS_IDMLIB_DD_BEGIN
@@ -16,17 +19,17 @@ public:
     typedef Fingerprint<f, KeyType, AttachType> ThisType;
     typedef uint64_t IntType;
     static const uint32_t FP_SIZE = f / 64;
-    typedef IntType[FP_SIZE] BitsType;
+    //typedef IntType[1] BitsType;
 
     KeyType key;
-    BitsType bits;
+    IntType bits[FP_SIZE];
     AttachType attach;
 
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-        for (uint32_t i = 0; i < FP_SIZE; i++) ar & desc[i];
+        for (uint32_t i = 0; i < FP_SIZE; i++) ar & bits[i];
         ar & key & attach;
     }
 
@@ -117,7 +120,6 @@ class WeakBitCombination
 public:
     typedef uint64_t IntType;
     static const uint32_t FP_SIZE = f / 64;
-    typedef IntType[FP_SIZE] BitsType;
     WeakBitCombination(const std::vector<double>& weight_vector)
     {
         double sqrt_sum = 0.0;
@@ -150,7 +152,7 @@ public:
         }
     }
 
-    void Next(BitsType& bits)
+    void Next(IntType* bits)
     {
         const SortType& st = queue_.top();
 
@@ -158,7 +160,7 @@ public:
             for(uint32_t i=0;i<st.item_list.size();i++)
             {
                 uint64_t v = 0;
-                v <<= (st.item_list[i].windex%64)
+                v <<= (st.item_list[i].windex%64);
                 bits[st.item_list[i].windex/64]+=v;
             }
         }
@@ -233,7 +235,8 @@ class PSM
 {
 public:
     typedef Fingerprint<f,KeyType,AttachType> FingerprintType;
-    typedef FingerprintType::BitsType BitsType;
+    //typedef FingerprintType::BitsType BitsType;
+    typedef uint64_t IntType;
     typedef uint32_t TableIndex;
     typedef uint64_t PType;
     typedef izenelib::am::succinct::fujimap::Fujimap<PType, TableIndex> HashType;
@@ -278,7 +281,7 @@ public:
         delete writer_;
         writer_ = NULL;
         ReaderType* reader = GetReader_();
-        table_.reverse(table_.size()+reader->Count());
+        table_.reserve(table_.size()+reader->Count());
         FingerprintType fp;
         while(reader->Next(fp))
         {
@@ -295,23 +298,24 @@ public:
     {
         WeightVector weight_vector;
         ToWeightVector_(doc_vector, weight_vector);
-        BitsType bits;
+        IntType bits[FP_SIZE];
         ToFingerprint_(weight_vector, bits);
-        BitsType flip = bits;
+        IntType flip[FP_SIZE];
+        memcpy(flip, bits, sizeof(bits));
         WeakBitCombination<f,h> wbc(weight_vector);
         for(uint32_t i=0;i<=k_;i++)
         {
             //get flip for i>0
             if(i>0)
             {
-                for(uint32_t f=0;f<FP_SIZE;f++)
+                for(uint32_t ff=0;ff<FP_SIZE;ff++)
                 {
-                    flip[f] = 0;
+                    flip[ff] = 0;
                 }
                 wbc.Next(flip);
-                for(uint32_t f=0;f<FP_SIZE;f++)
+                for(uint32_t ff=0;ff<FP_SIZE;ff++)
                 {
-                    flip[f] ^= bits[f];
+                    flip[ff] ^= bits[ff];
                 }
             }
             uint64_t p_value = GetTopValue_(flip);
@@ -324,9 +328,9 @@ public:
                 uint64_t fp_p_value = GetTopValue_(fp.bits);
                 if(fp_p_value!=p_value) break;
                 uint32_t diff = 0;
-                for(uint32_t f=0;f<FP_SIZE;f++)
+                for(uint32_t ff=0;ff<FP_SIZE;ff++)
                 {
-                    uint64_t db = flip[f]^fp.bits[f];
+                    uint64_t db = flip[ff]^fp.bits[ff];
                     uint64_t di = 0;
                     for(uint32_t id=0;id<64;id++)
                     {
@@ -399,7 +403,7 @@ private:
         }
     }
 
-    void ToFingerprint_(const WeightVector& weight_vector, BitsType& bits)
+    void ToFingerprint_(const WeightVector& weight_vector, IntType* bits)
     {
         uint64_t value = 0;
         uint32_t index = 0;
@@ -418,7 +422,7 @@ private:
         }
     }
 
-    void ToFingerprint_(const DocVector& doc_vector, BitsType& bits)
+    void ToFingerprint_(const DocVector& doc_vector, IntType* bits)
     {
         WeightVector weight_vector;
         ToWeightVector_(doc_vector, weight_vector);
@@ -427,10 +431,10 @@ private:
 
     void SortTable_()
     {
-        std::sort(table_.begin(), table.end());
+        std::sort(table_.begin(), table_.end());
     }
 
-    PType GetTopValue_(const BitsType& bits) const
+    PType GetTopValue_(const IntType* bits) const
     {
         //get the top p bits value of fp
         uint64_t i = bits[FP_SIZE-1];
