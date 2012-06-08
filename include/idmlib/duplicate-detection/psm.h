@@ -66,7 +66,7 @@ public:
 
 };
 
-template<uint32_t f, uint32_t h>
+template<uint32_t f, uint32_t h, uint32_t p>
 class WeakBitCombination
 {
     struct ItemType
@@ -148,7 +148,7 @@ public:
 #ifdef PSM_SEARCH_DEBUG
         //LOG(INFO)<<"sqrt_sum "<<sqrt_sum<<std::endl;
 #endif
-        for(uint32_t i=0;i<weight_vector.size();i++)
+        for(uint32_t i=f-p;i<weight_vector.size();i++)
         {
             ItemType item;
             item.windex = i;
@@ -289,7 +289,7 @@ private:
     std::priority_queue<SortType> queue_;
 };
 
-template <uint32_t f, uint32_t h, class KeyType, class StringType, class AttachType>
+template <uint32_t f, uint32_t h, uint32_t p, class KeyType, class StringType, class AttachType>
 class PSM
 {
 public:
@@ -306,7 +306,7 @@ public:
 
     PSM(const std::string& path)
     :path_(path), writer_(NULL), hash_(NULL)
-     ,p_(24), k_(21), FP_SIZE(FingerprintType::FP_SIZE)
+     , k_(21), FP_SIZE(FingerprintType::FP_SIZE)
     {
     }
     ~PSM()
@@ -316,7 +316,6 @@ public:
     }
 
     void SetK(uint32_t k) {k_ = k;}
-    void SetP(uint32_t p) {p_ = p;}
 
     bool Open()
     {
@@ -370,7 +369,7 @@ public:
         //}
         IntType flip[FP_SIZE];
         memcpy(flip, bits, sizeof(bits));
-        WeakBitCombination<f,h> wbc(weight_vector);
+        WeakBitCombination<f,h,p> wbc(weight_vector);
         for(uint32_t i=0;i<=k_;i++)
         {
 #ifdef PSM_SEARCH_DEBUG
@@ -412,8 +411,9 @@ public:
                 uint32_t diff = 0;
                 for(uint32_t ff=0;ff<FP_SIZE;ff++)
                 {
-                    uint32_t ffdiff = GetDistance(flip[ff], fp.bits[ff]);
+                    uint32_t ffdiff = GetDistance(bits[ff], fp.bits[ff]);
                     diff += ffdiff;
+                    //LOG(INFO)<<"distance on [0] "<<diff<<","<<flip[ff]<<","<<fp.bits[ff]<<std::endl;
                     if(diff>h) break;
                 }
                 if(diff>h) continue;
@@ -546,7 +546,7 @@ private:
     {
         //get the top p bits value of fp
         uint64_t i = bits[FP_SIZE-1];
-        i = (i >> (64-p_));
+        i = (i >> (64-p));
         return i;
     }
 
