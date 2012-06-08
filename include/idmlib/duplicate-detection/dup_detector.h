@@ -26,6 +26,7 @@ public:
     typedef izenelib::am::ssf::Writer<> FpWriterType;
     typedef GroupTableT<DocIdType, GroupIdType> GroupTableType;
     typedef FpItem<DocIdType, AttachType> FpItemType;
+    typedef std::vector<std::pair<std::string, double> > DocVector;
 
     DupDetector(const std::string& container, GroupTableType* group_table, bool enable_knn = false, bool fp_only = false)
         : container_(container)
@@ -104,6 +105,18 @@ public:
     {
         boost::lock_guard<boost::shared_mutex> lock(fp_vec_mutex_);
         working_fp_vec_.reserve(working_fp_vec_.size() + capacity);
+    }
+
+    void InsertDoc(const DocIdType& docid, const DocVector& doc_vector, const AttachType& attach = AttachType())
+    {
+        std::vector<std::string> v(doc_vector.size());
+        std::vector<double> weights(doc_vector.size());
+        for(uint32_t i=0;i<doc_vector.size();i++)
+        {
+            v[i] = doc_vector[i].first;
+            weights[i] = doc_vector[i].second;
+        }
+        InsertDoc(docid, v, weights, attach);
     }
 
     void InsertDoc(const DocIdType& docid, const std::vector<std::string>& v, std::vector<double>& weights, const AttachType& attach = AttachType())
