@@ -568,10 +568,10 @@ private:
             hash_->setInteger(value, i);
             last = value;
         }
-        if(hash_->build()<0)
-        {
-            LOG(ERROR)<<"build hash error"<<std::endl;
-        }
+//      if(hash_->build()<0)
+//      {
+//          LOG(ERROR)<<"build hash error"<<std::endl;
+//      }
     }
 
     bool Load_()
@@ -654,5 +654,4 @@ private:
 
 NS_IDMLIB_DD_END
 
-#endif 
-
+#endif
