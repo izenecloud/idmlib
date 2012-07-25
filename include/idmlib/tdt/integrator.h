@@ -8,6 +8,7 @@
 #include "temporal_kpe.h"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <idmlib/util/time_util.h>
+
 NS_IDMLIB_TDT_BEGIN
 
 template <class DMType>
@@ -16,23 +17,23 @@ class Integrator
     public:
         typedef typename DMType::DocumentType DocumentType;
     public:
-        
+
         Integrator(const std::string& dir, const std::string& rig_dir, const std::string& kpe_res_dir, idmlib::util::IDMAnalyzer* analyzer)
         : dir_(dir), rig_dir_(rig_dir), kpe_res_dir_(kpe_res_dir), analyzer_(analyzer), data_source_(NULL)
         {
-            
+
         }
-        
+
         ~Integrator()
         {
 
         }
-        
+
         void SetDataSource(DMType* data_source)
         {
             data_source_ = data_source;
         }
-        
+
         bool Process(Storage* storage)
         {
             if(data_source_==NULL)
@@ -77,10 +78,10 @@ class Integrator
             storage->Flush();
             return true;
         }
-        
-                
+
+
     private:
-        
+
         bool ParseDocument_(const DocumentType& doc, izenelib::util::UString& title, izenelib::util::UString& content, boost::gregorian::date& date)
         {
             typename DocumentType::property_const_iterator property_it = doc.propertyBegin();
@@ -90,7 +91,7 @@ class Integrator
                 boost::algorithm::to_lower(property_name);
                 if(property_name == "date")
                 {
-                    izenelib::util::UString date_value = property_it->second.get<izenelib::util::UString>();
+                    const izenelib::util::UString& date_value = property_it->second.template get<izenelib::util::UString>();
 //                     std::string date_str;
 //                     date_value.convertString(date_str, izenelib::util::UString::UTF_8);
 //                     std::cout<<"got date : "<<date_str<<std::endl;
@@ -107,11 +108,11 @@ class Integrator
                 }
                 else if(property_name == "title")
                 {
-                    title = property_it->second.get<izenelib::util::UString>();
+                    title = property_it->second.template get<izenelib::util::UString>();
                 }
                 else if(property_name == "content")
                 {
-                    content = property_it->second.get<izenelib::util::UString>();
+                    content = property_it->second.template get<izenelib::util::UString>();
                 }
                 property_it++;
             }
@@ -121,7 +122,7 @@ class Integrator
             }
             return true;
         }
-        
+
         bool CheckDataSource_(uint32_t start_id, uint32_t end_id, DateRange& date_range, uint32_t& max_docid)
         {
             uint32_t total = end_id-start_id+1;
@@ -141,8 +142,8 @@ class Integrator
                 izenelib::util::UString content;
                 boost::gregorian::date date;
                 if(!ParseDocument_(doc, title, content, date)) continue;
-                
-                
+
+
                 if(date_range.start.is_not_a_date())
                 {
                     date_range.start = date;
@@ -170,7 +171,7 @@ class Integrator
             }
             return true;
         }
-        
+
         boost::gregorian::date ParseDate_(const izenelib::util::UString& text)
         {
             boost::gregorian::date date;
@@ -181,7 +182,7 @@ class Integrator
             }
             return date;
         }
-        
+
         boost::gregorian::date ParseDate_(int64_t time_stamp)
         {
             boost::gregorian::date date;
@@ -192,16 +193,16 @@ class Integrator
             }
             return date;
         }
-        
+
     private:
         std::string dir_;
         std::string rig_dir_;
         std::string kpe_res_dir_;
         idmlib::util::IDMAnalyzer* analyzer_;
         DMType* data_source_;
-        
+
 };
 
 NS_IDMLIB_TDT_END
 
-#endif 
+#endif
