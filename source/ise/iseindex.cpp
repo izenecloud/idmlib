@@ -136,7 +136,7 @@ bool IseIndex::FetchRemoteImage(const std::string& url, std::string& filename)
         filename.reserve(41);
         filename.assign("/dev/shm/");
 
-        uint128_t hash = HashFunction<std::string>::generateHash128(url);
+        uint128_t hash = izenelib::util::HashFunction<std::string>::generateHash128(url);
         char hash_str[33];
         sprintf(hash_str, "%016llx%016llx", (unsigned long long) (hash >> 64), (unsigned long long) hash);
         filename.append(reinterpret_cast<const char *>(hash_str), 32);
