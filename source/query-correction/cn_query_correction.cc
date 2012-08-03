@@ -13,13 +13,14 @@ using namespace idmlib::qc;
 
 //#define VITERBI_DEBUG
 
-namespace {
+namespace
+{
 
 #ifdef CN_QC_UNIGRAM
-    const double u_weight = 0.000001;
+const double u_weight = 0.000001;
 #endif
-    const double b_weight = 0.004;
-    const double t_weight = 0.004;
+const double b_weight = 0.004;
+const double t_weight = 0.004;
 
 }
 
@@ -331,6 +332,16 @@ void CnQueryCorrection::GetPinyin(const izenelib::util::UString& cn_chars, std::
     return pinyin_.GetPinyin(cn_chars, result_list);
 }
 
+//author wangqian
+void CnQueryCorrection::GetPinyin2(const izenelib::util::UString& cn_chars2, std::vector<std::string>& result_list)
+{
+    return pinyin_.GetPinyin2(cn_chars2, result_list);
+}
+void CnQueryCorrection::GetRelativeList(const izenelib::util::UString& hanzi,std::vector<std::pair<izenelib::util::UString,uint32_t> >& ResultList)
+{
+    return pinyin_.GetRelativeList(hanzi, ResultList);
+}
+//....
 double CnQueryCorrection::GetScore_(const izenelib::util::UString& text, double ori_score, double pinyin_score)
 {
     double score = std::pow(ori_score, 1.0 / text.length());

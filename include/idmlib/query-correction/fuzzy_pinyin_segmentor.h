@@ -43,6 +43,17 @@ class FuzzyPinyinSegmentor
         void GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list);
         bool GetPinyinTerm(const izenelib::util::UCS2Char& cn_char, std::vector<std::string>& result_list);
 
+         // autohr wangqian
+        void GetPinyin2(const izenelib::util::UString& cn_chars2, std::vector<std::pair<double, std::string> >& result_list);
+        void GetPinyin2(const izenelib::util::UString& cn_chars2, std::vector<std::string>& result_list);
+        void GetPinyinFirst(const izenelib::util::UString& cn_chars2, std::vector<std::pair<double, std::string> >& result_list);
+        void GetPinyinFirst(const izenelib::util::UString& cn_chars2, std::vector<std::string>& result_list);
+        void GetRelativeList(const izenelib::util::UString& cn_chars2, std::vector<std::pair<izenelib::util::UString,uint32_t> >& ResultList);
+        void GetRelativeList(const izenelib::util::UString& cn_chars2, const izenelib::util::UString& mid_result, double score, std::vector<std::pair<izenelib::util::UString,uint32_t> >& ResultList);
+        void GetRelativeList1(const izenelib::util::UString& cn_chars2, const izenelib::util::UString& mid_result, double score, std::vector<std::pair<izenelib::util::UString,uint32_t> >& ResultList);
+        //..
+      
+
         bool GetChar(const std::string& pinyin_term, std::vector<izenelib::util::UCS2Char>& result_list);
 
         uint32_t CountPinyinTerm(const std::string& pinyin);
@@ -66,7 +77,11 @@ class FuzzyPinyinSegmentor
         void FuzzySegmentRaw_(const std::string& pinyin_str, const std::string& mid_result, double score, std::vector<std::pair<double, std::string> >& result_list);
 
         void GetPinyin_(const izenelib::util::UString& cn_chars, const std::string& mid_result, double score, std::vector<std::pair<double, std::string> >& result_list);
+        //author wang qian
+        void GetPinyin2_(const izenelib::util::UString& cn_chars2, const std::string& mid_result, double score, std::vector<std::pair<double, std::string> >& result_list);
 
+        void GetPinyinFirst_(const izenelib::util::UString& cn_chars, const std::string& mid_result, double score, std::vector<std::pair<double, std::string> >& result_list);
+        //..
         void CorrectPinyin_(std::string& pinyin_str);
 
     private:

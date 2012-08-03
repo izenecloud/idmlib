@@ -51,7 +51,10 @@ public:
     bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
 
     void GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list);
-
+//WANG QIAN
+    void GetPinyin2(const izenelib::util::UString& cn_chars2, std::vector<std::string>& result_list);
+    void GetRelativeList(const izenelib::util::UString& hanzi,std::vector<std::pair<izenelib::util::UString,uint32_t> >& ResultList);
+//...
 private:
 
     void LoadRawTextTransProb_(TransProbType& trans_prob, const std::string& file);
