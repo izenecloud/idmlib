@@ -17,7 +17,6 @@ struct PinyinItem
     std::string pinyin;
     double score;
 };
-
 typedef std::vector<PinyinItem> FuzzyPinyinItem;
 typedef std::vector<FuzzyPinyinItem> PinyinSegmentResult;
 

@@ -15,7 +15,6 @@ using namespace idmlib::qc;
 
 namespace
 {
-
 #ifdef CN_QC_UNIGRAM
 const double u_weight = 0.000001;
 #endif

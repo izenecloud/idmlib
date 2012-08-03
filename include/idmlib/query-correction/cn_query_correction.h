@@ -16,6 +16,7 @@
 
 NS_IDMLIB_QC_BEGIN
 
+
 class CnQueryCorrection
 {
 

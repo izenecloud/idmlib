@@ -10,7 +10,6 @@ FuzzyPinyinSegmentor::FuzzyPinyinSegmentor()
 {
     InitRule_();
 }
-
 void FuzzyPinyinSegmentor::LoadPinyinFile(const std::string& file)//载入文件
 {
     std::ifstream ifs(file.c_str());
