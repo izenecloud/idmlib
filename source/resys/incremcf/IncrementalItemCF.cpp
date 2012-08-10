@@ -3,6 +3,8 @@
 
 #include <map>
 #include <cmath> // for sqrt
+#include <boost/bind.hpp>
+#include <boost/ref.hpp>
 #include <glog/logging.h>
 
 namespace
@@ -98,8 +100,9 @@ void IncrementalItemCF::UpdateSimFunc::updateNeighbor()
         it != updatedRows_.end(); ++it)
     {
         uint32_t row = *it;
-        boost::shared_ptr<const SimRow> simRow = simMatrix_.row(row);
-        simNeighbor_.updateNeighbor(row, *simRow);
+
+        simMatrix_.read_row_with_func(row, boost::bind(
+            &SimNeighbor::updateNeighbor<SimRow>, &simNeighbor_, row, _1));
     }
 }
 
@@ -190,8 +193,9 @@ void IncrementalItemCF::updateSimMatrix_(const std::list<uint32_t>& rows)
         if (! isMyRow_(row))
             continue;
 
-        boost::shared_ptr<const VisitRow> coVisitRow = visitMatrix_.row(row);
-        updateSimRow_(row, *coVisitRow);
+        visitMatrix_.read_row_with_func(row, boost::bind(
+            &IncrementalItemCF::updateSimRow_, this,
+            row, _1, (UpdateSimFunc*)NULL));
     }
 }
 
@@ -210,8 +214,9 @@ void IncrementalItemCF::updateSimMatrix_(
         if (! isMyRow_(row))
             continue;
 
-        boost::shared_ptr<const VisitRow> coVisitRow = visitMatrix_.row(row);
-        updateSimRowCols_(row, *coVisitRow, cols, func);
+        visitMatrix_.read_row_with_func(row, boost::bind(
+            &IncrementalItemCF::updateSimRowCols_, this,
+            row, _1, boost::cref(cols), boost::ref(func)));
     }
 
     func.updateNeighbor();
@@ -229,8 +234,9 @@ void IncrementalItemCF::updateSymmetricMatrix_(const std::list<uint32_t>& rows)
         if (! isMyRow_(row))
             continue;
 
-        boost::shared_ptr<const VisitRow> coVisitRow = visitMatrix_.row(row);
-        updateSimRow_(row, *coVisitRow, &func);
+        visitMatrix_.read_row_with_func(row, boost::bind(
+            &IncrementalItemCF::updateSimRow_, this,
+            row, _1, &func));
     }
 
     func.updateNeighbor();

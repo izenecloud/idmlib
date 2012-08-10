@@ -47,12 +47,13 @@ public:
     GetTopCoVisitFunc(
         ItemType rowItem,
         const ItemRescorer* filter,
-        std::size_t topCount
+        uint32_t& totalFreq,
+        CoVisitationQueue<CoVisitation>& queue
     )
     : rowItem_(rowItem)
     , filter_(filter)
-    , queue_(topCount)
-    , totalFreq_(0)
+    , totalFreq_(totalFreq)
+    , queue_(queue)
     {}
 
     void operator() (const RowType& row)
@@ -88,8 +89,8 @@ public:
 private:
     const ItemType rowItem_;
     const ItemRescorer* filter_;
-    CoVisitationQueue<CoVisitation> queue_;
-    uint32_t totalFreq_;
+    uint32_t& totalFreq_;
+    CoVisitationQueue<CoVisitation>& queue_;
 };
 
 NS_IDMLIB_RESYS_END
