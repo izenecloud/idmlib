@@ -61,6 +61,15 @@ NS_IDMLIB_RESYS_BEGIN
 
 IncrementalItemCF::UpdateSimFunc::UpdateSimFunc(
     SimMatrix& simMatrix,
+    SimNeighbor& simNeighbor
+)
+    : simMatrix_(simMatrix)
+    , simNeighbor_(simNeighbor)
+{
+}
+
+IncrementalItemCF::UpdateSimFunc::UpdateSimFunc(
+    SimMatrix& simMatrix,
     SimNeighbor& simNeighbor,
     const std::list<uint32_t>& excludeRowList
 )
@@ -191,6 +200,8 @@ void IncrementalItemCF::updateSimMatrix_(
     const std::list<uint32_t>& cols
 )
 {
+    UpdateSimFunc func(simMatrix_, simNeighbor_);
+
     for (std::list<uint32_t>::const_iterator it_i = rows.begin();
         it_i != rows.end(); ++it_i)
     {
@@ -200,18 +211,10 @@ void IncrementalItemCF::updateSimMatrix_(
             continue;
 
         boost::shared_ptr<const VisitRow> coVisitRow = visitMatrix_.row(row);
-        VisitRow updateRow;
-        getCoVisitFreq_(*coVisitRow, row, updateRow[row].freq);
-
-        for (std::list<uint32_t>::const_iterator it_j = cols.begin();
-            it_j != cols.end(); ++it_j)
-        {
-            uint32_t col = *it_j;
-            getCoVisitFreq_(*coVisitRow, col, updateRow[col].freq);
-        }
-
-        updateSimRow_(row, updateRow);
+        updateSimRowCols_(row, *coVisitRow, cols, func);
     }
+
+    func.updateNeighbor();
 }
 
 void IncrementalItemCF::updateSymmetricMatrix_(const std::list<uint32_t>& rows)
@@ -253,8 +256,10 @@ void IncrementalItemCF::updateSimRow_(
             continue;
 
         uint32_t visit_i_j = it_j->second.freq;
+
         uint32_t visit_j_j = 0;
         visitFreqDB_.getValue(col, visit_j_j);
+
         assert(visit_i_j && visit_i_i && visit_j_j &&
                "the freq value in visit matrix should be positive.");
 
@@ -269,6 +274,39 @@ void IncrementalItemCF::updateSimRow_(
 
     simMatrix_.update_row(row, simRow);
     simNeighbor_.updateNeighbor(row, *simRow);
+}
+
+void IncrementalItemCF::updateSimRowCols_(
+    uint32_t row,
+    const VisitRow& coVisitRow,
+    const std::list<uint32_t>& cols,
+    UpdateSimFunc& func
+)
+{
+    uint32_t visit_i_i = 0;
+    getCoVisitFreq_(coVisitRow, row, visit_i_i);
+
+    for (std::list<uint32_t>::const_iterator it_j = cols.begin();
+        it_j != cols.end(); ++it_j)
+    {
+        uint32_t col = *it_j;
+
+        // no similarity value on diagonal line
+        if (row == col)
+            continue;
+
+        uint32_t visit_i_j = 0;
+        getCoVisitFreq_(coVisitRow, col, visit_i_j);
+
+        uint32_t visit_j_j = 0;
+        visitFreqDB_.getValue(col, visit_j_j);
+
+        assert(visit_i_j && visit_i_i && visit_j_j &&
+               "the freq value in visit matrix should be positive.");
+
+        float sim = (float)visit_i_j / sqrt(visit_i_i * visit_j_j);
+        func(row, col, sim);
+    }
 }
 
 void IncrementalItemCF::buildSimMatrix()
