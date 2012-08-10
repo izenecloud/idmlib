@@ -540,7 +540,7 @@ void FuzzyPinyinSegmentor::GetRelativeList(const izenelib::util::UString& cn_cha
 
     if (cn_chars2.includeChineseChar())
     {
-        typename std::vector<std::pair<izenelib::util::UString,uint32_t> >::iterator iter=ResultList.begin();
+        std::vector<std::pair<izenelib::util::UString,uint32_t> >::iterator iter=ResultList.begin();
 
         //for (uint32_t j = 0; j < filterList.size(); j++,k++)
         for (iter=ResultList.begin(); iter!=ResultList.end(); )
@@ -556,7 +556,7 @@ void FuzzyPinyinSegmentor::GetRelativeList(const izenelib::util::UString& cn_cha
         }
     }
 
-    typename std::vector<std::pair<izenelib::util::UString,uint32_t> >::iterator iter=ResultList.begin();
+    std::vector<std::pair<izenelib::util::UString,uint32_t> >::iterator iter=ResultList.begin();
 
     //for (uint32_t j = 0; j < filterList.size(); j++,k++)
     for (iter=ResultList.begin(); iter!=ResultList.end(); )
