@@ -201,6 +201,20 @@ private:
     );
 
     /**
+     * Update the @p cols of @p row in similarity matrix.
+     * @param row the row id to update
+     * @param coVisitRow the covisit values on the row, used to calculate similarity value
+     * @param cols only update similarity matrix on these columns
+     * @param func a function object, used to update symmetric values
+     */
+    void updateSimRowCols_(
+        uint32_t row,
+        const VisitRow& coVisitRow,
+        const std::list<uint32_t>& cols,
+        UpdateSimFunc& func
+    );
+
+    /**
      * Increment visit frequency.
      */
     void updateVisitFreq_(const std::list<uint32_t>& newItems);
@@ -247,6 +261,11 @@ std::ostream& operator<<(std::ostream& out, const IncrementalItemCF& increItemCF
 class IncrementalItemCF::UpdateSimFunc
 {
 public:
+    UpdateSimFunc(
+        SimMatrix& simMatrix,
+        SimNeighbor& simNeighbor
+    );
+
     UpdateSimFunc(
         SimMatrix& simMatrix,
         SimNeighbor& simNeighbor,

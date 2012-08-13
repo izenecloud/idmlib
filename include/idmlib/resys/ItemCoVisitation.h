@@ -72,7 +72,11 @@ public:
         if (! isMyRow_(item))
             return;
 
-        GetTopCoVisitFunc<CoVisitation, RowType> func(item, rescorer, topCount);
+        uint32_t totalFreq = 0;
+        CoVisitationQueue<CoVisitation> queue(topCount);
+        GetTopCoVisitFunc<CoVisitation, RowType> func(
+            item, rescorer, totalFreq, queue);
+
         db_.read_row_with_func(item, func);
         func.getResult(recItems);
     }
