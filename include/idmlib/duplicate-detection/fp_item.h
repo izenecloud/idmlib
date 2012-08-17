@@ -39,10 +39,11 @@ public:
 private:
     uint32_t countBits_(uint64_t v) const
     {
-        v -= (v >> 1) & 0x5555555555555555ULL;
-        v = (v & 0x3333333333333333ULL) + ((v >> 2) & 0x3333333333333333ULL);
-        v = (v + (v >> 4)) & 0xf0f0f0f0f0f0f0fULL;
-        return (v * 0x101010101010101ULL) >> 56;
+//      v -= (v >> 1) & 0x5555555555555555ULL;
+//      v = (v & 0x3333333333333333ULL) + ((v >> 2) & 0x3333333333333333ULL);
+//      v = (v + (v >> 4)) & 0xf0f0f0f0f0f0f0fULL;
+//      return (v * 0x101010101010101ULL) >> 56;
+        return __builtin_popcountl(v);
     }
 
     friend class boost::serialization::access;
