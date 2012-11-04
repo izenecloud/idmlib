@@ -504,6 +504,18 @@ public:
         ++freq;
         return *this;
     }
+
+    NgramInCollection& operator+=(const NgramInCollection& ngram)
+    {
+        if(term_list.empty())
+        {
+            term_list = ngram.term_list;
+        }
+        docitem_list.insert(docitem_list.end(), ngram.docitem_list.begin(), ngram.docitem_list.end());
+        lc_list.insert(lc_list.end(), ngram.lc_list.begin(), ngram.lc_list.end());
+        freq+=ngram.freq;
+        return *this;
+    }
     
     bool IsEmpty() const
     {
