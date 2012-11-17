@@ -152,6 +152,12 @@ public:
         //}
 
     public:
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive & ar, const unsigned int version)
+        {
+            ar & suffixes;
+        }
 
         Suffixes suffixes;
     };
@@ -163,6 +169,12 @@ public:
         UString text;
         std::vector<TermType> terms;
         SuffixType suffix;
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive & ar, const unsigned int version)
+        {
+            ar & text & terms & suffix;
+        }
     };
 
 public:
@@ -247,6 +259,11 @@ public:
     double Sim(const std::string& x, const std::string& y)
     {
         return Sim(UString(x, UString::UTF_8), UString(y, UString::UTF_8));
+    }
+
+    static double SimBaise(const Object& x, const Object& y)
+    {
+        return GetSim_(x.terms, y.suffix);
     }
 
     static double Sim(const Object& x, const Object& y)
