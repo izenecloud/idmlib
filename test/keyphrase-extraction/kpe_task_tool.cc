@@ -216,6 +216,8 @@ int main(int ac, char** av)
   desc.add_options()
     ("help", "produce help message")
     ("resource-path,R", po::value<std::string>(), "KPE resource path")
+    ("title-property,T", po::value<std::string>(), "title property name")    
+    ("content-property,C", po::value<std::string>(), "content property name")    
     ("scd-path,S", po::value<std::string>(), "scd directory to be processed")
     ("output-file,O", po::value<std::string>(), "output key-phrases file for each doc")
     ("working-path,W", po::value<std::string>(), "temp working path used for kpe, default: ./kpe_scd_working")
@@ -340,6 +342,18 @@ int main(int ac, char** av)
   {
     return -1;
   }
+  std::string docid_property("docid");
+  std::string title_property("title");
+  std::string content_property("content");
+  if (vm.count("title-property")) {
+    title_property = vm["title-property"].as<std::string>();
+  } 
+  if (vm.count("content-property")) {
+    content_property = vm["content-property"].as<std::string>();
+  } 
+  boost::to_lower(docid_property);
+  boost::to_lower(title_property);
+  boost::to_lower(content_property);  
   idmlib::util::IDMIdManager* id_manager = new idmlib::util::IDMIdManager(working_path+"/idmanager");
   KpeKnowledge* knowledge = new KpeKnowledge(analyzer);
   knowledge->Load(resource_path);
@@ -382,7 +396,7 @@ int main(int ac, char** av)
         property_name.toLowerString();
         std::string str_property;
         property_name.convertString(str_property, izenelib::util::UString::UTF_8);
-        if( str_property == "docid" )
+        if( str_property == docid_property )
         {
           docid++;
           if( max_doc>0 && docid > max_doc ) 
@@ -398,11 +412,11 @@ int main(int ac, char** av)
           p->second.convertString(str_docid, StringType::UTF_8);
           callback.SetDocId(docid, str_docid);
         }
-        else if( str_property == "title")
+        else if( str_property == title_property )
         {
             title = p->second;
         }
-        else if( str_property == "content")
+        else if( str_property == content_property)
         {
             content = p->second;
         }
