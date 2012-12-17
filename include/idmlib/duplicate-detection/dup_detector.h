@@ -229,18 +229,53 @@ public:
         return true;
     }
 
-    bool GetUniqueDocIdList(const std::vector<DocIdType>& docIdList, std::vector<DocIdType>& cleanDocs)
+    /**
+     * Get the unique docids.
+     * For example, given @p docIdList "1 2 3 4 5 6", and "2 4 6" are duplicated
+     * docs, then @p uniqueDocs would be "1 3 5".
+     */
+    bool GetUniqueDocIdList(
+        const std::vector<DocIdType>& docIdList,
+        std::vector<DocIdType>& uniqueDocs)
+    {
+        std::vector<std::size_t> uniquePosList;
+
+        if (!GetUniquePosList(docIdList, uniquePosList))
+            return false;
+
+        const std::size_t uniqueNum = uniquePosList.size();
+        std::vector<DocIdType> tempDocs(uniqueNum);
+
+        for (std::size_t i = 0; i < uniqueNum; ++i)
+        {
+            std::size_t pos = uniquePosList[i];
+            tempDocs[i] = docIdList[pos];
+        }
+        uniqueDocs.swap(tempDocs);
+        return true;
+    }
+
+    /**
+     * Get the unique docid positions in original list.
+     * For example, given @p docIdList "1 2 3 4 5 6", and "2 4 6" are duplicated
+     * docs, then @p uniquePosList would be "0 2 4", as they are the positions
+     * of docs "1 3 5" in original list.
+     */
+    bool GetUniquePosList(
+        const std::vector<DocIdType>& docIdList,
+        std::vector<std::size_t>& uniquePosList)
     {
         if (fp_only_) return false;
 
         boost::lock_guard<boost::shared_mutex> lock(group_table_mutex_);
-        cleanDocs.reserve(docIdList.size());
+        uniquePosList.reserve(docIdList.size());
         for (uint32_t i = 0; i < docIdList.size(); ++i)
         {
             bool clean = true;
-            for (uint32_t j = 0; j < cleanDocs.size(); ++j)
+            for (uint32_t j = 0; j < uniquePosList.size(); ++j)
             {
-                if (group_table_->IsSameGroup(docIdList[i], cleanDocs[j]))
+                std::size_t pos = uniquePosList[j];
+                if (group_table_->IsSameGroup(docIdList[i], docIdList[pos]))
                 {
                     clean = false;
                     break;
@@ -248,7 +283,7 @@ public:
             }
             if (clean)
             {
-                cleanDocs.push_back(docIdList[i]);
+                uniquePosList.push_back(i);
             }
         }
         return true;
