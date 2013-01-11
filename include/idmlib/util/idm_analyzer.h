@@ -15,6 +15,7 @@
 #include <la/util/UStringUtil.h>
 #include <idmlib/idm_types.h>
 #include <idmlib/util/resource_util.h>
+#include <am/3rdparty/rde_hash.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <boost/algorithm/string/trim.hpp>
 #include "idm_analyzer_config.h"

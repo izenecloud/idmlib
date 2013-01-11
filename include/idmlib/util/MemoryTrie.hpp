@@ -10,8 +10,7 @@
 #ifndef IDMUTIL_MEMORYTRIE_H_
 #define IDMUTIL_MEMORYTRIE_H_
 #include <string>
-#include <am/sdb_btree/sdb_bptree.h>
-#include <3rdparty/am/rde_hashmap/hash_map.h>
+#include <am/3rdparty/rde_hash.h>
 #include <am/db_trie/common_trie.h>
 #include "../idm_types.h"
 NS_IDMLIB_UTIL_BEGIN
