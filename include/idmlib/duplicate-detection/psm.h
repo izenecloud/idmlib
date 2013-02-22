@@ -565,13 +565,13 @@ private:
             LOG(INFO)<<"pvalue "<<value<<std::endl;
 #endif
             if(i>0 && value==last) continue;
-            hash_->setInteger(value, i);
+            hash_->setInteger(value, i, true);
             last = value;
         }
-        if(hash_->build()<0)
-        {
-          LOG(ERROR)<<"build hash error"<<std::endl;
-        }
+//      if(hash_->build()<0)
+//      {
+//        LOG(ERROR)<<"build hash error"<<std::endl;
+//      }
     }
 
     bool Load_()

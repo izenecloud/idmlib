@@ -13,7 +13,6 @@ bool CollectionProcessor::processSCD()
      DLOG(INFO) << "Start Collection (SCD) processing." << endl;
 
      // parsing all SCD files
-     s_pIdManager_->warmUp();
      for (size_t i = 1; i <= scdFileList.size(); i++)
      {
          std::string scdFile = scdFileList[i-1];
@@ -52,7 +51,6 @@ bool CollectionProcessor::processSCD()
              }
          }
      }
-     s_pIdManager_->coolDown();
 
      DLOG(INFO) << "post processing..."<<endl;
      postProcess(); // xxx
