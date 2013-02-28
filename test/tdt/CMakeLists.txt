@@ -20,7 +20,7 @@ SET(libs
   ${izenecma_LIBRARIES}
   ${wisekma_LIBRARIES}
   ${izenejma_LIBRARIES}
-  ${xml2_LIBRARIES}
+  ${XML2_LIBRARIES}
   ${LibCURL_LIBRARIES}
   ${ImageMagick_LIBRARIES}
   bz2

@@ -17,7 +17,7 @@ SET(libs
   ${iise_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${TokyoCabinet_LIBRARIES}
-  ${xml2_LIBRARIES}
+  ${XML2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   ${LibCURL_LIBRARIES}

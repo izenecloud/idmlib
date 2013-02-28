@@ -26,7 +26,7 @@ SET(libs
   ${Glog_LIBRARIES}
   ${izenecma_LIBRARIES}
   ${wisekma_LIBRARIES}
-  ${xml2_LIBRARIES}
+  ${XML2_LIBRARIES}
   ${LibCURL_LIBRARIES}
   ${ImageMagick_LIBRARIES}
   )

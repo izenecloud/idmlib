@@ -29,8 +29,8 @@ SET(libs
   ${Boost_LIBRARIES}
   ${TokyoCabinet_LIBRARIES}
   ${Glog_LIBRARIES}
-  ${xml2_LIBRARIES}
-  ${sqlite3_LIBRARIES}
+  ${XML2_LIBRARIES}
+  ${SQLITE3_LIBRARIES}
   ${ImageMagick_LIBRARIES}  
   )
 SET(Boost_USE_STATIC_LIBS OFF)
