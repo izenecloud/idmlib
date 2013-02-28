@@ -29,7 +29,7 @@ SET(libs
   ${Boost_LIBRARIES}
   ${TokyoCabinet_LIBRARIES}
   ${Glog_LIBRARIES}
-  ${xml2_LIBRARIES}
+  ${XML2_LIBRARIES}
   ${sqlite3_LIBRARIES}
   ${LibCURL_LIBRARIES}
   ${ImageMagick_LIBRARIES}

@@ -1,4 +1,4 @@
-INCLUDE_DIRECTORIES(         
+INCLUDE_DIRECTORIES(
 
   ${izenelib_INCLUDE_DIRS}
   ${idmlib_INCLUDE_DIRS}
@@ -6,7 +6,7 @@ INCLUDE_DIRECTORIES(
   ${imllib_INCLUDE_DIRS}
   ${wisekma_INCLUDE_DIRS}
   ${izenecma_INCLUDE_DIRS}
-  ${izenejma_INCLUDE_DIRS}  
+  ${izenejma_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${TokyoCabinet_INCLUDE_DIRS}
   ${Glog_INCLUDE_DIRS}
@@ -29,9 +29,9 @@ SET(libs
   ${Boost_LIBRARIES}
   ${TokyoCabinet_LIBRARIES}
   ${Glog_LIBRARIES}
-  ${xml2_LIBRARIES}
+  ${XML2_LIBRARIES}
   ${sqlite3_LIBRARIES}
-  ${ImageMagick_LIBRARIES}  
+  ${ImageMagick_LIBRARIES}
   )
 SET(Boost_USE_STATIC_LIBS OFF)
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
