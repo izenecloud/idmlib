@@ -5,7 +5,7 @@ SET(libs
   ${ilplib_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${Boost_LIBRARIES}
-  xml2
+  ${XML2_LIBRARIES}
   ${Glog_LIBRARIES}
   ${LibCURL_LIBRARIES}
   ${ImageMagick_LIBRARIES}

@@ -135,7 +135,7 @@ ${izenejma_INCLUDE_DIRS}
 ${wisekma_INCLUDE_DIRS}
 ${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
-${xml2_INCLUDE_DIRS}
+${XML2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
 ${LibCURL_INCLUDE_DIRS}
 ${ImageMagick_INCLUDE_DIRS}
@@ -144,7 +144,7 @@ ${ImageMagick_INCLUDE_DIRS}
 SET(libs
   ${izenelib_LIBRARIES}
   ${ilplib_LIBRARIES}
-  ${xml2_LIBRARIES}
+  ${XML2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   ${LibCURL_LIBRARIES}

@@ -57,7 +57,7 @@ IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
     )
   ADD_TEST(resys "${PROJECT_SOURCE_DIR}/testbin/t_IncrementalItemCF")
 
-ADD_DEFINITIONS("-fopenmp -Wunused-variable") 
+ADD_DEFINITIONS("-fopenmp -Wunused-variable")
 
   ADD_EXECUTABLE(t_FactorizationMachine
     Runner.cpp

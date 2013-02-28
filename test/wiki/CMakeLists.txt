@@ -4,7 +4,7 @@ ${izenelib_INCLUDE_DIRS}
 ${Boost_INCLUDE_DIRS}
 ${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
-${xml2_INCLUDE_DIRS}
+${XML2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
 )
 
