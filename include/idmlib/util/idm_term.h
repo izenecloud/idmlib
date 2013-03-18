@@ -49,6 +49,12 @@ struct IDMTerm
   uint32_t position;
   char tag;
   
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & text & id & position & tag;
+    }
   
   std::string TextString() const
   {
