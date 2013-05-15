@@ -101,6 +101,8 @@ private:
     double mid_threshold_;
     uint16_t max_pinyin_term_;
 
+    bool fromDb_;
+
     boost::mutex mutex_;
 };
 

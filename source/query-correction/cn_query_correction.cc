@@ -34,12 +34,13 @@ CnQueryCorrection::CnQueryCorrection(const std::string& collection_dir)
     , threshold_(0.0005)
     , mid_threshold_(0.0001)
     , max_pinyin_term_(7)
+    , fromDb_(false)
 {
 }
 
 bool CnQueryCorrection::ForceReload()
 {
-    if (fromDb) return true;
+    if (fromDb_) return true;
 
     global_trans_prob_.clear();
     return Load();
@@ -48,6 +49,8 @@ bool CnQueryCorrection::ForceReload()
 bool CnQueryCorrection::Load(bool fromDb, const std::list<QueryLogType>& queryList)
 {
     boost::mutex::scoped_lock scopedLock(mutex_);
+
+    fromDb_ = fromDb;
 
     if (fromDb)
     {
