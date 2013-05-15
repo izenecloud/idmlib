@@ -43,7 +43,9 @@ class CnQueryCorrection
 public:
     explicit CnQueryCorrection(const std::string& collection_dir = "");
 
-    bool Load(bool fromDb = false, const std::list<QueryLogType>& queryList = std::list<QueryLogType>());
+    bool Load();
+
+    bool LoadFromDb(const std::list<QueryLogType>& queryList);
 
     bool ForceReload();
 

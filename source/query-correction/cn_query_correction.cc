@@ -46,22 +46,9 @@ bool CnQueryCorrection::ForceReload()
     return Load();
 }
 
-bool CnQueryCorrection::Load(bool fromDb, const std::list<QueryLogType>& queryList)
+bool CnQueryCorrection::Load()
 {
     boost::mutex::scoped_lock scopedLock(mutex_);
-
-    fromDb_ = fromDb;
-
-    if (fromDb)
-    {
-        if (global_trans_prob_.empty())
-        {
-            std::cout << "[CnQueryCorrection] start loading query logs." << std::endl;
-            LoadQueryList_(global_trans_prob_, queryList);
-            std::cout << "[CnQueryCorrection] loaded query logs." << std::endl;
-        }
-        return true;
-    }
 
     std::cout << "[CnQueryCorrection] start loading Chinese resources." << std::endl;
     if (global_trans_prob_.empty())
@@ -103,6 +90,31 @@ bool CnQueryCorrection::Load(bool fromDb, const std::list<QueryLogType>& queryLi
     }
     std::cout << "[CnQueryCorrection] loaded Chinese resources." << std::endl;
 
+    return true;
+}
+
+bool CnQueryCorrection::LoadFromDb(const std::list<QueryLogType>& queryList)
+{
+    boost::mutex::scoped_lock scopedLock(mutex_);
+
+    fromDb_ = true;
+
+    if (global_trans_prob_.empty())
+    {
+        std::cout << "[CnQueryCorrection] loading pinyin." << std::endl;
+        std::string pinyin_file = res_dir_ + "/pinyin.txt";
+        if (!boost::filesystem::exists(pinyin_file))
+        {
+            std::cout << "[CnQueryCorrection] failed loading pinyin." << std::endl;
+            return false;
+        }
+        pinyin_.LoadPinyinFile(pinyin_file);
+        std::cout << "[CnQueryCorrection] loaded pinyin." << std::endl;
+
+        std::cout << "[CnQueryCorrection] start loading query logs." << std::endl;
+        LoadQueryList_(global_trans_prob_, queryList);
+        std::cout << "[CnQueryCorrection] loaded query logs." << std::endl;
+    }
     return true;
 }
 
