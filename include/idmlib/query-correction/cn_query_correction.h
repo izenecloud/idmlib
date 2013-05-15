@@ -43,11 +43,13 @@ class CnQueryCorrection
 public:
     explicit CnQueryCorrection(const std::string& collection_dir = "");
 
-    bool Load();
+    bool Load(bool fromDb=false,const std::list<QueryLogType>& queryList=std::list<QueryLogType>() );
 
     bool ForceReload();
 
     bool Update(const std::list<QueryLogType>& queryList, const std::list<PropertyLabelType>& labelList, bool forceMode = false);
+
+    void LoadRawTextFromVector_(TransProbType& trans_prob,const std::list<QueryLogType>& queryList);
 
     bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
 
