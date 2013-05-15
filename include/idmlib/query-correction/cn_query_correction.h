@@ -59,13 +59,13 @@ public:
 private:
     void LoadRawTextTransProb_(TransProbType& trans_prob, const std::string& file);
 
-    void LoadQueryList_(const std::list<QueryLogType>& queryList);
+    void LoadQueryList_(TransProbType& trans_prob, const std::list<QueryLogType>& queryList);
 
     void FlushRawTextTransProb_(const std::string& file, const TransProbType& trans_prob);
 
     double TransProb_(const izenelib::util::UCS2Char& from, const izenelib::util::UCS2Char& to);
 
-    void UpdateItem_(const uint32_t df, const izenelib::util::UString& text);
+    void UpdateItem_(TransProbType& trans_prob, const uint32_t df, const izenelib::util::UString& text);
 
     //trigram version only
     double TransProbT_(const izenelib::util::UString& from, const izenelib::util::UCS2Char& to);
@@ -102,7 +102,6 @@ private:
     uint16_t max_pinyin_term_;
 
     boost::mutex mutex_;
-
 };
 
 NS_IDMLIB_QC_END
