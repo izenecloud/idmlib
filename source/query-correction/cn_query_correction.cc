@@ -43,7 +43,7 @@ bool CnQueryCorrection::ForceReload()
     return Load();
 }
 
-bool CnQueryCorrection::Load(bool fromDb,const std::list<QueryLogType>& queryList )
+bool CnQueryCorrection::Load(bool fromDb, const std::list<QueryLogType>& queryList)
 {
     boost::mutex::scoped_lock scopedLock(mutex_);
 
@@ -67,34 +67,29 @@ bool CnQueryCorrection::Load(bool fromDb,const std::list<QueryLogType>& queryLis
             std::cout << "[CnQueryCorrection] failed loading global_trans_prob." << std::endl;
             return false;
         }
-        if (!fromDb)
-        {
-            LoadRawTextTransProb_(global_trans_prob_, trans_prob_file);
-        }
-        else
-        {
-            LoadRawTextFromVector_(global_trans_prob_, queryList);
-        }
+        LoadRawTextTransProb_(global_trans_prob_, trans_prob_file);
         std::cout << "[CnQueryCorrection] loaded global_trans_prob." << std::endl;
     }
     if (!collection_dir_.empty())
     {
-        std::string trans_prob_file = collection_dir_ + "/trans_prob.txt";
-        if (boost::filesystem::exists(trans_prob_file))
+        if (fromDb)
         {
-            std::cout << "[CnQueryCorrection] loading collection_trans_prob." << std::endl;
-            if (!fromDb)
+            LoadQueryList_(queryList);
+        }
+        else
+        {
+            std::string trans_prob_file = collection_dir_ + "/trans_prob.txt";
+            if (boost::filesystem::exists(trans_prob_file))
             {
+                std::cout << "[CnQueryCorrection] loading collection_trans_prob." << std::endl;
                 LoadRawTextTransProb_(collection_trans_prob_, trans_prob_file);
+                std::cout << "[CnQueryCorrection] loaded collection_trans_prob." << std::endl;
             }
             else
             {
-                LoadRawTextFromVector_(collection_trans_prob_,queryList);
+                boost::filesystem::create_directories(collection_dir_);
             }
-            std::cout << "[CnQueryCorrection] loaded collection_trans_prob." << std::endl;
         }
-        else
-            boost::filesystem::create_directories(collection_dir_);
     }
     std::cout << "[CnQueryCorrection] loaded Chinese resources." << std::endl;
 
@@ -116,8 +111,7 @@ bool CnQueryCorrection::Update(const std::list<QueryLogType>& queryList, const s
         if (GetInputType_(text) != -1)
             continue;
 
-        const uint32_t &df = it->get<0>();
-        UpdateItem_(df, text);
+        UpdateItem_(it->get<0>(), text);
     }
 
     for (std::list<PropertyLabelType>::const_iterator it = labelList.begin();
@@ -127,8 +121,7 @@ bool CnQueryCorrection::Update(const std::list<QueryLogType>& queryList, const s
         if (GetInputType_(text) != -1)
             continue;
 
-        const uint32_t &df = it->first;
-        UpdateItem_(df, text);
+        UpdateItem_(it->first, text);
     }
     std::cout << "[CnQueryCorrection] loaded query logs." << std::endl;
 
@@ -142,156 +135,54 @@ bool CnQueryCorrection::Update(const std::list<QueryLogType>& queryList, const s
 
 void CnQueryCorrection::UpdateItem_(const uint32_t df, const izenelib::util::UString& text)
 {
-    double score;
+    double u_score = u_weight * df;
+    double b_score = b_weight * df;
+    double t_score = t_weight * df;
     size_t len = text.length();
 
     for (size_t i = 2; i < len; i++)
     {
 #ifdef CN_QC_UNIGRAM
         Unigram u(text[i - 2]);
-        score = u_weight * df;
-        collection_trans_prob_.u_trans_prob_[u] += score;
+        collection_trans_prob_.u_trans_prob_[u] += u_score;
 #endif
 
         Bigram b(text[i - 2], text[i - 1]);
-        score = b_weight * df;
-        collection_trans_prob_.b_trans_prob_[b] += score;
+        collection_trans_prob_.b_trans_prob_[b] += b_score;
 
         Trigram t(b, text[i]);
-        score = t_weight * df;
-        collection_trans_prob_.t_trans_prob_[t] += score;
+        collection_trans_prob_.t_trans_prob_[t] += t_score;
     }
 
     if (len >= 2)
     {
 #ifdef CN_QC_UNIGRAM
         Unigram u(text[len - 2]);
-        score = u_weight * df;
-        collection_trans_prob_.u_trans_prob_[u] += score;
+        collection_trans_prob_.u_trans_prob_[u] += u_score;
 #endif
 
         Bigram b(text[len - 2], text[len - 1]);
-        score = b_weight * df;
-        collection_trans_prob_.b_trans_prob_[b] += score;
+        collection_trans_prob_.b_trans_prob_[b] += b_score;
     }
 
 #ifdef CN_QC_UNIGRAM
     if (len >= 1)
     {
         Unigram u(text[len - 1]);
-        score = u_weight * df;
-        collection_trans_prob_.u_trans_prob_[u] += score;
+        collection_trans_prob_.u_trans_prob_[u] += u_score;
     }
 #endif
 }
 
-
-void CnQueryCorrection::LoadRawTextFromVector_(TransProbType& trans_prob,const std::list<QueryLogType>& queryList)
+void CnQueryCorrection::LoadQueryList_(const std::list<QueryLogType>& queryList)
 {
-    //cout<<":LoadRawTextFromVector_"<<endl;
-    collection_trans_prob_.clear();
-
     for (std::list<QueryLogType>::const_iterator it = queryList.begin();
             it != queryList.end(); ++it)
     {
-        const izenelib::util::UString &text = it->get<2>();
-        //if (GetInputType_(text) != -1)
-        //  continue;
-        string str;
-        text .convertString(str,izenelib::util::UString::UTF_8);
-        const uint32_t &df = it->get<0>();
-        double score=0;
-        //cout<<"str"<<str<<"df"<<score<<endl;
-        size_t len = text.length();
-
-        for (size_t i = 2; i < len; i++)
-        {
-#ifdef CN_QC_UNIGRAM
-            Unigram u(text[i - 2]);
-            //score = u_weight * df;
-            trans_prob.u_trans_prob_.insert(std::make_pair(u, score));
-#endif
-
-            Bigram b(text[i - 2], text[i - 1]);
-            //score = b_weight * df;
-            trans_prob.b_trans_prob_.insert(std::make_pair(b, score));
-
-            Trigram t(b, text[i]);
-            //score = t_weight * df;
-            trans_prob.t_trans_prob_.insert(std::make_pair(t, score));
-        }
-
-        if (len >= 2)
-        {
-#ifdef CN_QC_UNIGRAM
-            Unigram u(text[len - 2]);
-            //score = u_weight * df;
-            trans_prob.u_trans_prob_.insert(std::make_pair(u, score));
-#endif
-
-            Bigram b(text[len - 2], text[len - 1]);
-            //score = b_weight * df;
-            trans_prob.b_trans_prob_.insert(std::make_pair(b, score));
-        }
-
-#ifdef CN_QC_UNIGRAM
-        if (len >= 1)
-        {
-            Unigram u(text[len - 1]);
-            //score = u_weight * df;
-            trans_prob.u_trans_prob_.insert(std::make_pair(u, score));
-        }
-#endif
+        UpdateItem_(it->get<0>(), it->get<2>());
     }
-    //std::cout << "[CnQueryCorrection] start loading query logs." << std::endl;
-
-    collection_trans_prob_.clear();
-
-    for (std::list<QueryLogType>::const_iterator it = queryList.begin();
-            it != queryList.end(); ++it)
-    {
-        const izenelib::util::UString &text = it->get<2>();
-        //if (GetInputType_(text) != -1)
-        //    continue;
-
-        const uint32_t &df = it->get<0>();
-        UpdateItem_(df, text);
-    }
-
-    /*
-
-            switch (text.length())
-            {
-    #ifdef CN_QC_UNIGRAM
-            case 1:
-            {
-                Unigram u(text[0]);
-                trans_prob.u_trans_prob_.insert(std::make_pair(u, score));
-                break;
-            }
-    #endif
-            case 2:
-            {
-                Bigram b(text[0], text[1]);
-                trans_prob.b_trans_prob_.insert(std::make_pair(b, score));
-                break;
-            }
-            case 3:
-            {
-                Bigram b(text[0], text[1]);
-                Trigram t(b, text[2]);
-                trans_prob.t_trans_prob_.insert(std::make_pair(t, score));
-                break;
-            }
-            default:
-                break;
-            }
-        */
-
-    // ++count;
-    //UpdateItem_(df, text);
-
 }
+
 void CnQueryCorrection::LoadRawTextTransProb_(TransProbType& trans_prob, const std::string& file)
 {
     std::ifstream ifs(file.c_str());

@@ -43,24 +43,23 @@ class CnQueryCorrection
 public:
     explicit CnQueryCorrection(const std::string& collection_dir = "");
 
-    bool Load(bool fromDb=false,const std::list<QueryLogType>& queryList=std::list<QueryLogType>() );
+    bool Load(bool fromDb = false, const std::list<QueryLogType>& queryList = std::list<QueryLogType>());
 
     bool ForceReload();
 
     bool Update(const std::list<QueryLogType>& queryList, const std::list<PropertyLabelType>& labelList, bool forceMode = false);
 
-    void LoadRawTextFromVector_(TransProbType& trans_prob,const std::list<QueryLogType>& queryList);
-
     bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
 
     void GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list);
-//WANG QIAN
+
     void GetPinyin2(const izenelib::util::UString& cn_chars2, std::vector<std::string>& result_list);
     void GetRelativeList(const izenelib::util::UString& hanzi,std::vector<std::pair<izenelib::util::UString,uint32_t> >& ResultList);
-//...
-private:
 
+private:
     void LoadRawTextTransProb_(TransProbType& trans_prob, const std::string& file);
+
+    void LoadQueryList_(const std::list<QueryLogType>& queryList);
 
     void FlushRawTextTransProb_(const std::string& file, const TransProbType& trans_prob);
 
