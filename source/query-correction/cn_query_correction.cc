@@ -39,6 +39,8 @@ CnQueryCorrection::CnQueryCorrection(const std::string& collection_dir)
 
 bool CnQueryCorrection::ForceReload()
 {
+    if (fromDb) return true;
+
     global_trans_prob_.clear();
     return Load();
 }
