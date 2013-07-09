@@ -91,11 +91,11 @@ class Integrator
                 boost::algorithm::to_lower(property_name);
                 if(property_name == "date")
                 {
-                    const izenelib::util::UString& date_value = property_it->second.template get<izenelib::util::UString>();
+                    const sf1r::PropertyValue::PropertyValueStrType& date_value = property_it->second.getPropertyStrValue();
 //                     std::string date_str;
 //                     date_value.convertString(date_str, izenelib::util::UString::UTF_8);
 //                     std::cout<<"got date : "<<date_str<<std::endl;
-                    date = ParseDate_(date_value);
+                    date = ParseDate_(sf1r::propstr_to_ustr(date_value));
 //                     std::cout<<"parse finished"<<std::endl;
 //                     if(date.is_not_a_date())
 //                     {
@@ -108,11 +108,11 @@ class Integrator
                 }
                 else if(property_name == "title")
                 {
-                    title = property_it->second.template get<izenelib::util::UString>();
+                    title = sf1r::propstr_to_ustr(property_it->second.getPropertyStrValue());
                 }
                 else if(property_name == "content")
                 {
-                    content = property_it->second.template get<izenelib::util::UString>();
+                    content = sf1r::propstr_to_ustr(property_it->second.getPropertyStrValue());
                 }
                 property_it++;
             }
