@@ -34,7 +34,7 @@ void ScdDocument::setContent(const string& cont, bool process)
 		la::LA* laMgr = LaMgrFactory::getLaMgr();
 		la::TermList termList;
 		la::TermList::const_iterator it;
-		laMgr->process(cont, termList); // bigram
+		laMgr->process(UString(cont, UString::UTF_8), termList); // bigram
 		for(it=termList.begin(); it!=termList.end(); ++it )
 		{
 			terms.push_back((*it).text_);
