@@ -9,7 +9,9 @@
 #include <ir/be_index/AVMapper.hpp>
 #include <3rdparty/json/json.h>
 
-namespace izenelib { namespace ir { namespace be_index {
+using namespace izenelib::ir::be_index;
+
+namespace idmlib {
 
 class AdPredictor {
 public:
@@ -174,6 +176,6 @@ private:
     double beta;
 };
 
-}}}
+}
 
 #endif
