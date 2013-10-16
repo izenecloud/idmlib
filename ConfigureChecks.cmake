@@ -15,6 +15,7 @@ FIND_PACKAGE(izenelib REQUIRED
   leveldb
   snappy
   luxio
+  json
   )
 
 FIND_PACKAGE(wisekma REQUIRED)
