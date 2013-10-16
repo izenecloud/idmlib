@@ -57,6 +57,26 @@ public:
 
     void GetPinyin2(const izenelib::util::UString& cn_chars2, std::vector<std::string>& result_list);
     void GetRelativeList(const izenelib::util::UString& hanzi,std::vector<std::pair<izenelib::util::UString,uint32_t> >& ResultList);
+        
+    void Segment(const std::string& pinyin_str, std::vector<PinyinSegmentResult>& result_list)
+    {
+        pinyin_.Segment(pinyin_str, result_list);
+    }
+
+    void SegmentRaw(const std::string& pinyin_str, std::vector<std::string>& result_list)
+    {
+        pinyin_.SegmentRaw(pinyin_str, result_list);
+    }
+
+    void FuzzySegmentRaw(const std::string& pinyin_str, std::vector<std::pair<double, std::string> >& result_list)
+    {
+        pinyin_.FuzzySegmentRaw(pinyin_str, result_list);
+    }
+
+    void FuzzySegmentRaw(const std::string& pinyin_str, std::vector<std::string>& result_list)
+    {
+        pinyin_.FuzzySegmentRaw(pinyin_str, result_list);
+    }
 
 private:
     void LoadRawTextTransProb_(TransProbType& trans_prob, const std::string& file);
