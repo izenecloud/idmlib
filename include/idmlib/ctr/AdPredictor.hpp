@@ -2,11 +2,13 @@
 #define ADPREDICTOR_H_
 
 #include <utility>
+#include <iostream>
 #include <vector>
 #include <string>
 #include <cmath>
 #include <types.h>
 #include <ir/be_index/AVMapper.hpp>
+#include <ir/be_index/SimpleSerialization.hpp>
 #include <3rdparty/json/json.h>
 
 using namespace izenelib::ir::be_index;
@@ -111,6 +113,46 @@ public:
             return;
         }
         fromJson(root);
+    }
+
+    void save_binary(std::ostream & os)
+    {
+        serialize(weights.size(), os);
+        for (std::size_t i = 0; i != weights.size(); ++i) {
+            serialize(weights[i].size(), os);
+            for (std::size_t j = 0; j != weights[i].size(); ++j) {
+                serialize(weights[i][j].first, os);
+                serialize(weights[i][j].second, os);
+            }
+        }
+
+        avMapper.save_binary(os);
+
+        serialize(default_mean, os);
+        serialize(default_variance, os);
+        serialize(beta, os);
+    }
+
+    void load_binary(std::istream & is)
+    {
+        std::size_t rowNum;
+        deserialize(is, rowNum);
+        weights.resize(rowNum);
+        for (std::size_t i = 0; i != rowNum; ++i) {
+            std::size_t colNum;
+            deserialize(is, colNum);
+            weights[i].resize(rowNum);
+            for (std::size_t j = 0; j != colNum; ++j) {
+                deserialize(is, weights[i][j].first);
+                deserialize(is, weights[i][j].second);
+            }
+        }
+
+        avMapper.load_binary(is);
+
+        deserialize(is, default_mean);
+        deserialize(is, default_variance);
+        deserialize(is, beta);
     }
 
 private:

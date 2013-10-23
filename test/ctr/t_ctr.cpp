@@ -21,16 +21,7 @@ void test1()
     a.update(v, false);
     a.update(v, false);
     std::cout << "res: "<< a.predict(v) << std::endl;
-    a.save(std::cout);
-    AdPredictor b;
-    b.load(std::cin);
-    std::cout << "res b: "<< b.predict(v) << std::endl;
 }
-
-void test2()
-{
-}
-
 
 int main()
 {
