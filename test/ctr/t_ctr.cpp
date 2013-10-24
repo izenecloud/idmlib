@@ -11,7 +11,7 @@ using namespace idmlib;
 
 void test1()
 {
-    AdPredictor a(0.0, 400.0, 450.0);
+    AdPredictor a(0.0, 400.0, 450.0, 0.08);
     std::vector<std::pair<std::string, std::string> > v;
     v.push_back(std::make_pair("age", "3"));
     v.push_back(std::make_pair("gender", "male"));
@@ -23,6 +23,7 @@ void test1()
     std::cout << "res: "<< a.predict(v) << std::endl;
 
     AdPredictor b(a);
+    b.forget();
     std::cout << "res: "<< b.predict(v) << std::endl;
 }
 

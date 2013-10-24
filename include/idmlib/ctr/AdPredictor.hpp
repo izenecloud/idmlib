@@ -21,7 +21,7 @@ public:
     {
     }
 
-    AdPredictor(double m, double v, double b): default_mean(m), default_variance(v), beta(b)
+    AdPredictor(double m, double v, double b, double f): default_mean(m), default_variance(v), beta(b), forget_rate(f)
     {
     }
 
@@ -57,6 +57,18 @@ public:
         }
     }
 
+    void forget()
+    {
+        for (std::size_t i = 0; i != weights.size(); ++i) {
+            for (std::size_t j = 0; j != weights[i].size(); ++j) {
+                double new_variance = default_variance * weights[i][j].second / ((1 - forget_rate) * default_variance + forget_rate * weights[i][j].second);
+                double new_mean = new_variance * ((1 - forget_rate) * weights[i][j].first / weights[i][j].second + forget_rate * default_mean / default_variance);
+                weights[i][j].first = new_mean;
+                weights[i][j].second = new_variance;
+            }
+        }
+    }
+
     double predict(const std::vector<std::pair<std::string, std::string> > & assignment)
     {
         double sum_of_mean = 0.0;
@@ -84,6 +96,7 @@ public:
         root["default_mean"] = default_mean;
         root["default_variance"] = default_variance;
         root["beta"] = beta;
+        root["forget_rate"] = forget_rate;
     }
 
     void fromJson(Json::Value & root)
@@ -93,6 +106,7 @@ public:
         default_mean = root["default_mean"].asDouble();
         default_variance = root["default_variance"].asDouble();
         beta = root["beta"].asDouble();
+        forget_rate = root["forget_rate"].asDouble();
     }
 
     void save(std::ostream & os)
@@ -131,6 +145,7 @@ public:
         serialize(default_mean, os);
         serialize(default_variance, os);
         serialize(beta, os);
+        serialize(forget_rate, os);
     }
 
     void load_binary(std::istream & is)
@@ -153,6 +168,7 @@ public:
         deserialize(is, default_mean);
         deserialize(is, default_variance);
         deserialize(is, beta);
+        deserialize(is, forget_rate);
     }
 
 private:
@@ -216,6 +232,8 @@ private:
     double default_mean;
     double default_variance;
     double beta;
+
+    double forget_rate;
 };
 
 }
