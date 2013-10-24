@@ -21,6 +21,9 @@ void test1()
     a.update(v, false);
     a.update(v, false);
     std::cout << "res: "<< a.predict(v) << std::endl;
+
+    AdPredictor b(a);
+    std::cout << "res: "<< b.predict(v) << std::endl;
 }
 
 int main()
