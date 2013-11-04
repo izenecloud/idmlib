@@ -156,7 +156,7 @@ public:
         for (std::size_t i = 0; i != rowNum; ++i) {
             std::size_t colNum;
             deserialize(is, colNum);
-            weights[i].resize(rowNum);
+            weights[i].resize(colNum);
             for (std::size_t j = 0; j != colNum; ++j) {
                 deserialize(is, weights[i][j].first);
                 deserialize(is, weights[i][j].second);

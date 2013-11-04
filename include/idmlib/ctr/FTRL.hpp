@@ -7,6 +7,8 @@
 #include <utility>
 #include <string>
 #include <types.h>
+#include <ir/be_index/SimpleSerialization.hpp>
+#include <iostream>
 
 using namespace izenelib::ir::be_index;
 
@@ -18,6 +20,24 @@ public:
     {
         z = 0.0;
         n = 0.0;
+    }
+
+    void save_binary(std::ostream & os)
+    {
+        serialize(w, os);
+        serialize(g, os);
+        serialize(delta, os);
+        serialize(z, os);
+        serialize(n, os);
+    }
+
+    void load_binary(std::istream & is)
+    {
+        deserialize(is, w);
+        deserialize(is, g);
+        deserialize(is, delta);
+        deserialize(is, z);
+        deserialize(is, n);
     }
 
     double w;
@@ -86,6 +106,46 @@ public:
         }
 
         return sigmoid(sum_of_w);
+    }
+
+    void save_binary(std::ostream & os)
+    {
+        serialize(alpha, os);
+        serialize(beta, os);
+        serialize(lambda_1, os);
+        serialize(lambda_2, os);
+
+        avMapper.save_binary(os);
+
+        serialize(weights.size(), os);
+        for (std::size_t i = 0; i != weights.size(); ++i) {
+            serialize(weights[i].size(), os);
+            for (std::size_t j = 0; j != weights[i].size(); ++j) {
+                weights[i][j].save_binary(os);
+            }
+        }
+    }
+
+    void load_binary(std::istream & is)
+    {
+        deserialize(is, alpha);
+        deserialize(is, beta);
+        deserialize(is, lambda_1);
+        deserialize(is, lambda_2);
+
+        avMapper.load_binary(is);
+
+        std::size_t rowNum;
+        deserialize(is, rowNum);
+        weights.resize(rowNum);
+        for (std::size_t i = 0; i != rowNum; ++i) {
+            std::size_t colNum;
+            deserialize(is, colNum);
+            weights[i].resize(colNum);
+            for (std::size_t j = 0; j != colNum; ++j) {
+                weights[i][j].load_binary(is);
+            }
+        }
     }
 
 private:
