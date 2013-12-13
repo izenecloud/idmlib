@@ -11,8 +11,6 @@
 #include <ir/be_index/SimpleSerialization.hpp>
 #include <3rdparty/json/json.h>
 
-using namespace izenelib::ir::be_index;
-
 namespace idmlib {
 
 class AdPredictor {
@@ -143,6 +141,8 @@ public:
 
     void save_binary(std::ostream & os)
     {
+        using namespace izenelib::ir::be_index;
+
         serialize(weights.size(), os);
         for (std::size_t i = 0; i != weights.size(); ++i) {
             serialize(weights[i].size(), os);
@@ -162,6 +162,8 @@ public:
 
     void load_binary(std::istream & is)
     {
+        using namespace izenelib::ir::be_index;
+
         std::size_t rowNum;
         deserialize(is, rowNum);
         weights.resize(rowNum);
@@ -239,7 +241,7 @@ private:
 
     // each pair is a (mean, variance) pair
     std::vector<std::vector<std::pair<double, double> > > weights;
-    AVMapper avMapper;
+    izenelib::ir::be_index::AVMapper avMapper;
 
     double default_mean;
     double default_variance;

@@ -10,8 +10,6 @@
 #include <ir/be_index/SimpleSerialization.hpp>
 #include <iostream>
 
-using namespace izenelib::ir::be_index;
-
 namespace idmlib {
 
 class FTRLweights {
@@ -24,6 +22,8 @@ public:
 
     void save_binary(std::ostream & os)
     {
+        using namespace izenelib::ir::be_index;
+
         serialize(w, os);
         serialize(g, os);
         serialize(delta, os);
@@ -33,6 +33,8 @@ public:
 
     void load_binary(std::istream & is)
     {
+        using namespace izenelib::ir::be_index;
+
         deserialize(is, w);
         deserialize(is, g);
         deserialize(is, delta);
@@ -110,6 +112,8 @@ public:
 
     void save_binary(std::ostream & os)
     {
+        using namespace izenelib::ir::be_index;
+
         serialize(alpha, os);
         serialize(beta, os);
         serialize(lambda_1, os);
@@ -128,6 +132,8 @@ public:
 
     void load_binary(std::istream & is)
     {
+        using namespace izenelib::ir::be_index;
+
         deserialize(is, alpha);
         deserialize(is, beta);
         deserialize(is, lambda_1);
@@ -173,7 +179,7 @@ private:
     double lambda_1;
     double lambda_2;
 
-    AVMapper avMapper;
+    izenelib::ir::be_index::AVMapper avMapper;
     std::vector<std::vector<FTRLweights> > weights;
 };
 
