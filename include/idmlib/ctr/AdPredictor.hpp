@@ -17,10 +17,6 @@ namespace idmlib {
 
 class AdPredictor {
 public:
-    AdPredictor()
-    {
-    }
-
     AdPredictor(double m, double v, double b, double f): default_mean(m), default_variance(v), beta(b), forget_rate(f)
     {
     }
@@ -69,13 +65,22 @@ public:
         }
     }
 
-    double predict(const std::vector<std::pair<std::string, std::string> > & assignment)
+    double predict(const std::vector<std::pair<std::string, std::string> > & assignment_left,
+        const std::vector<std::pair<std::string, std::string> > & assignment_right)
     {
         double sum_of_mean = 0.0;
         double sum_of_variance = 0.0;
 
-        for (std::size_t i = 0; i != assignment.size(); ++i) {
-            std::pair<std::pair<uint32_t, bool>, std::pair<uint32_t, bool> > avResult = avMapper.has(assignment[i].first, assignment[i].second);
+        for (std::size_t i = 0; i < assignment_left.size(); ++i) {
+            std::pair<std::pair<uint32_t, bool>, std::pair<uint32_t, bool> > avResult = avMapper.has(assignment_left[i].first, assignment_left[i].second);
+            if (!(avResult.first.second == true && avResult.second.second == true)) {
+                continue;
+            }
+            sum_of_mean += weights[avResult.first.first][avResult.second.first].first;
+            sum_of_variance += weights[avResult.first.first][avResult.second.first].second;
+        }
+        for (std::size_t i = 0; i < assignment_right.size(); ++i) {
+            std::pair<std::pair<uint32_t, bool>, std::pair<uint32_t, bool> > avResult = avMapper.has(assignment_right[i].first, assignment_right[i].second);
             if (!(avResult.first.second == true && avResult.second.second == true)) {
                 continue;
             }
@@ -83,10 +88,17 @@ public:
             sum_of_variance += weights[avResult.first.first][avResult.second.first].second;
         }
 
+
         double upper_sigma_square = beta * beta + sum_of_variance;
         double upper_sigma = sqrt(upper_sigma_square);
         double temp = 1 * sum_of_mean / upper_sigma;
         return (1.0 + erf(temp / sqrt(2))) / 2.0;
+    }
+
+    double predict(const std::vector<std::pair<std::string, std::string> > & assignment)
+    {
+        static const std::vector<std::pair<std::string, std::string> > empty;
+        return predict(assignment, empty);
     }
 
     void toJson(Json::Value & root)
