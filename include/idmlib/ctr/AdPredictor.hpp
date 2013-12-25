@@ -19,14 +19,30 @@ public:
     {
     }
 
-    void update(const std::vector<std::pair<std::string, std::string> > & assignment, bool clicked)
+    void update(const std::vector<std::pair<std::string, std::string> > & assignment_left,
+       const std::vector<std::pair<std::string, std::string> >& assignment_right, bool clicked)
     {
-        std::vector<std::pair<uint32_t, uint32_t> > pos(assignment.size());
+        std::vector<std::pair<uint32_t, uint32_t> > pos(assignment_left.size() + assignment_right.size());
         double sum_of_mean = 0.0;
         double sum_of_variance = 0.0;
 
-        for (std::size_t i = 0; i != assignment.size(); ++i) {
-            std::pair<std::pair<uint32_t, bool>, std::pair<uint32_t, bool> > avResult = avMapper.insert(assignment[i].first, assignment[i].second);
+        for (std::size_t i = 0; i < assignment_left.size(); ++i) {
+            std::pair<std::pair<uint32_t, bool>, std::pair<uint32_t, bool> > avResult = avMapper.insert(assignment_left[i].first, assignment_left[i].second);
+            pos[i].first = avResult.first.first;
+            pos[i].second = avResult.second.first;
+
+            if (avResult.first.second == true) {    // new attribute
+                weights.resize(weights.size() + 1);
+                weights.back().push_back(std::make_pair(default_mean, default_variance));
+            } else if (avResult.second.second == true) {   // old attribute, but new value
+                weights[pos[i].first].push_back(std::make_pair(default_mean, default_variance));
+            }
+
+            sum_of_mean += weights[pos[i].first][pos[i].second].first;
+            sum_of_variance += weights[pos[i].first][pos[i].second].second;
+        }
+        for (std::size_t i = 0; i < assignment_right.size(); ++i) {
+            std::pair<std::pair<uint32_t, bool>, std::pair<uint32_t, bool> > avResult = avMapper.insert(assignment_right[i].first, assignment_right[i].second);
             pos[i].first = avResult.first.first;
             pos[i].second = avResult.second.first;
 
@@ -45,16 +61,22 @@ public:
         double upper_sigma = sqrt(upper_sigma_square);
         int flag = (clicked ? 1 : (-1));
         double temp = flag * sum_of_mean / upper_sigma;
-        for (std::size_t i = 0; i != assignment.size(); ++i) {
+        for (std::size_t i = 0; i < pos.size(); ++i) {
             weights[pos[i].first][pos[i].second].first += flag * (weights[pos[i].first][pos[i].second].second / upper_sigma) * v(temp);
             weights[pos[i].first][pos[i].second].second *= 1 - (weights[pos[i].first][pos[i].second].second / upper_sigma_square) * w(temp);
         }
     }
 
+    void update(const std::vector<std::pair<std::string, std::string> > & assignment, bool clicked)
+    {
+        static const std::vector<std::pair<std::string, std::string> > empty;
+        update(assignment, empty, clicked);
+    }
+
     void forget()
     {
-        for (std::size_t i = 0; i != weights.size(); ++i) {
-            for (std::size_t j = 0; j != weights[i].size(); ++j) {
+        for (std::size_t i = 0; i < weights.size(); ++i) {
+            for (std::size_t j = 0; j < weights[i].size(); ++j) {
                 double new_variance = default_variance * weights[i][j].second / ((1 - forget_rate) * default_variance + forget_rate * weights[i][j].second);
                 double new_mean = new_variance * ((1 - forget_rate) * weights[i][j].first / weights[i][j].second + forget_rate * default_mean / default_variance);
                 weights[i][j].first = new_mean;
