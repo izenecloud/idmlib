@@ -324,6 +324,7 @@ public:
     inline void SetFixK(uint8_t k)
     {
         fixk_ = k;
+        //if(fixk_>maxk_) maxk_ = fixk_;
     }
 
     inline void SetMaxProcessTable(uint32_t t)
