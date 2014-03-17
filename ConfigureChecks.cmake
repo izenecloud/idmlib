@@ -13,7 +13,7 @@ FIND_PACKAGE(izenelib REQUIRED
   izene_log
   procmeminfo
   leveldb
-  snappy
+  compressor
   luxio
   json
   )
