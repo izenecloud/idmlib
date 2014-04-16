@@ -76,6 +76,10 @@ FILE(GLOB_RECURSE  lshkit_SRCS
   "lshkit/*.cpp"
   "lshkit/*.c"
 )
+FILE(GLOB_RECURSE  b5m_SRC
+  "b5m/*.cpp"
+  "b5m/*.cc"
+)
 ADD_DEFINITIONS("-fopenmp -Wunused-variable") 
 ADD_LIBRARY(idmlib
   ${keyphrase_extraction_SRC}
@@ -95,6 +99,7 @@ ADD_LIBRARY(idmlib
   ${ise_SRC}
   ${topicmodels_SRC}
   ${lshkit_SRCS}
+  ${b5m_SRC}
 )
 
 INSTALL(TARGETS idmlib

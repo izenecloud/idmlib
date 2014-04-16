@@ -135,6 +135,7 @@ ${izenejma_INCLUDE_DIRS}
 ${wisekma_INCLUDE_DIRS}
 ${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
+${addrlib_INCLUDE_DIRS}
 ${XML2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
 ${LibCURL_INCLUDE_DIRS}
