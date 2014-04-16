@@ -9,7 +9,7 @@
 #include <am/sequence_file/ssfr.h>
 #include <boost/unordered_map.hpp>
 #include <sf1common/ScdWriter.h>
-#include <addrlib/address_extract.h>
+#include "address_extract.h"
 NS_IDMLIB_B5M_BEGIN
 
 
@@ -141,7 +141,7 @@ private:
     B5mM b5mm_;
     std::size_t limit_;
     idmlib::util::IDMAnalyzer* analyzer_;
-    addrlib::AddressExtract* ae_;
+    AddressExtract* ae_;
     std::string empty_city_;
     boost::shared_ptr<Writer> writer_;
     boost::shared_ptr<ScdWriter> owriter_;

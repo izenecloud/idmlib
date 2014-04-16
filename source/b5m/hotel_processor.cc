@@ -9,7 +9,7 @@ HotelProcessor::HotelProcessor(const B5mM& b5mm) : nsim_threshold_(0.9), b5mm_(b
     idmlib::util::IDMAnalyzerConfig csconfig = idmlib::util::IDMAnalyzerConfig::GetCommonConfig("","", "");
     csconfig.symbol = false;
     analyzer_ = new idmlib::util::IDMAnalyzer(csconfig);
-    ae_ = new addrlib::AddressExtract;
+    ae_ = new AddressExtract;
     if(!ae_->Train(b5mm_.addr_knowledge))
     {
         throw std::runtime_error("addr train error");
