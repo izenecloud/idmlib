@@ -1,7 +1,6 @@
 #ifndef IDMLIB_B5M_B5MOCHECKER_H_
 #define IDMLIB_B5M_B5MOCHECKER_H_
 
-#include <common/ScdParser.h>
 #include <string>
 #include <vector>
 #include "b5m_types.h"

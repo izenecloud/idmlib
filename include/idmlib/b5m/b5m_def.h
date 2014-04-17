@@ -21,6 +21,7 @@ using izenelib::Document;
 using izenelib::JsonDocument;
 using izenelib::ScdParser;
 using izenelib::ScdWriter;
+using izenelib::SCDDoc;
 using izenelib::ScdTypeWriter;
 using izenelib::PairwiseScdMerger;
 using izenelib::PropertyValue;

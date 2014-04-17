@@ -3,13 +3,15 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
-#include <util/scd_parser.h>
+#include <sf1common/ScdParser.h>
 #include <idmlib/similarity/term_similarity.h>
 #include "../TestResources.h"
 using namespace idmlib;
 using namespace idmlib::tdt;
 using namespace idmlib::util;
 using namespace boost::filesystem;
+using namespace izenelib;
+using izenelib::util::UString;
 namespace po = boost::program_options;
 
 int main(int ac, char** av)
@@ -75,10 +77,10 @@ int main(int ac, char** av)
       for (directory_iterator itr(scd_path); itr != kItrEnd; ++itr)
       {
           std::string file_name = itr->path().filename().string();
-          if (izenelib::util::ScdParser::checkSCDFormat(file_name) )
+          if (ScdParser::checkSCDFormat(file_name) )
           {
-            izenelib::util::SCD_TYPE scd_type = izenelib::util::ScdParser::checkSCDType(file_name);
-            if( scd_type == izenelib::util::INSERT_SCD ||scd_type == izenelib::util::UPDATE_SCD )
+            SCD_TYPE scd_type = ScdParser::checkSCDType(file_name);
+            if( scd_type == INSERT_SCD ||scd_type == UPDATE_SCD )
             {
               scdfile_list.push_back(itr->path().string() );
             }
@@ -175,32 +177,32 @@ int main(int ac, char** av)
   for(uint32_t i=0;i<scdfile_list.size();i++)
   {
     std::string scd_file = scdfile_list[i];
-    izenelib::util::ScdParser scd_parser(encoding);
+    ScdParser scd_parser(encoding);
     if(!scd_parser.load(scd_file) )
     {
       std::cerr<<"load scd file failed."<<std::endl;
       return -1;
     }
-    izenelib::util::ScdParser::iterator it = scd_parser.begin();
+    ScdParser::iterator it = scd_parser.begin();
     
     for( ;it!= scd_parser.end();++it )
     {
-      izenelib::util::SCDDocPtr doc = (*it);
+      SCDDocPtr doc = (*it);
       if(!doc)
       {
         std::cerr<<"scd parsing error"<<std::endl;
         break;
       }
-      std::vector<std::pair<izenelib::util::UString, izenelib::util::UString> >::iterator p;
+      std::vector<std::pair<std::string, std::string> >::iterator p;
       bool valid = true;
       for (p = doc->begin(); p != doc->end(); p++)
       {
-          if( p->second == izenelib::util::UString("null", encoding))
+          if( p->second == "null")
           {
               valid = false;
               break;
           }
-          if( p->second == izenelib::util::UString("(null)", encoding))
+          if( p->second == "(null)")
           {
               valid = false;
               break;
@@ -214,7 +216,7 @@ int main(int ac, char** av)
       boost::gregorian::date date;
       for (p = doc->begin(); p != doc->end(); p++)
       {
-        izenelib::util::UString property_name = p->first;
+        izenelib::util::UString property_name(p->first, izenelib::util::UString::UTF_8);
         property_name.toLowerString();
         if( property_name == izenelib::util::UString("docid", encoding) )
         {
@@ -227,16 +229,15 @@ int main(int ac, char** av)
         }
         else if( property_name == izenelib::util::UString("title", encoding))
         {
-            title = p->second;
+            title = UString(p->second, UString::UTF_8);
         }
         else if( property_name == izenelib::util::UString("content", encoding))
         {
-            content = p->second;
+            content = UString(p->second, UString::UTF_8);
         }
         else if( property_name == izenelib::util::UString("date", encoding))
         {
-            std::string date_str;
-            p->second.convertString(date_str, izenelib::util::UString::UTF_8);
+            std::string date_str = p->second;
 //             std::cout<<docid<<" "<<date_str<<std::endl;
             date = boost::gregorian::from_string(date_str);
             
@@ -245,7 +246,7 @@ int main(int ac, char** av)
         }
         else if( property_name == izenelib::util::UString("tdt", encoding))
         {
-            p->second.convertString(tdt_str, izenelib::util::UString::UTF_8);
+            tdt_str = p->second;
 //             std::cout<<docid<<" "<<date_str<<std::endl;
             
         }

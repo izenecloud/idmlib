@@ -2,7 +2,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-#include <util/scd_parser.h>
 
 #include "../TestResources.h"
 using namespace idmlib::qc;

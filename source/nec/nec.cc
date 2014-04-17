@@ -4,7 +4,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-#include <util/scd_parser.h>
 #include <util/ustring/UString.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>

@@ -8,6 +8,7 @@
 #include "temporal_kpe.h"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <idmlib/util/time_util.h>
+#include <sf1common/PropertyValue.h>
 
 NS_IDMLIB_TDT_BEGIN
 
@@ -95,7 +96,7 @@ class Integrator
 //                     std::string date_str;
 //                     date_value.convertString(date_str, izenelib::util::UString::UTF_8);
 //                     std::cout<<"got date : "<<date_str<<std::endl;
-                    date = ParseDate_(sf1r::propstr_to_ustr(date_value));
+                    date = ParseDate_(propstr_to_ustr(date_value));
 //                     std::cout<<"parse finished"<<std::endl;
 //                     if(date.is_not_a_date())
 //                     {
@@ -108,11 +109,11 @@ class Integrator
                 }
                 else if(property_name == "title")
                 {
-                    title = sf1r::propstr_to_ustr(property_it->second.getPropertyStrValue());
+                    title = propstr_to_ustr(property_it->second.getPropertyStrValue());
                 }
                 else if(property_name == "content")
                 {
-                    content = sf1r::propstr_to_ustr(property_it->second.getPropertyStrValue());
+                    content = propstr_to_ustr(property_it->second.getPropertyStrValue());
                 }
                 property_it++;
             }

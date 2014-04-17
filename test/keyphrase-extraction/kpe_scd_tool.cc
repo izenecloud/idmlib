@@ -2,13 +2,15 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-#include <util/scd_parser.h>
+#include <sf1common/ScdParser.h>
 
 #include "../TestResources.h"
 using namespace idmlib;
 using namespace idmlib::kpe;
 using namespace idmlib::util;
+using namespace izenelib;
 using namespace boost::filesystem;
+using izenelib::util::UString;
 namespace po = boost::program_options;
 
 
@@ -122,10 +124,10 @@ int main(int ac, char** av)
             std::cout<<file_name<<" in exclude list."<<std::endl;
             continue;
           }
-          if (izenelib::util::ScdParser::checkSCDFormat(file_name) )
+          if (ScdParser::checkSCDFormat(file_name) )
           {
-            izenelib::util::SCD_TYPE scd_type = izenelib::util::ScdParser::checkSCDType(file_name);
-            if( scd_type == izenelib::util::INSERT_SCD ||scd_type == izenelib::util::UPDATE_SCD )
+            SCD_TYPE scd_type = ScdParser::checkSCDType(file_name);
+            if( scd_type == INSERT_SCD ||scd_type == UPDATE_SCD )
             {
               scdfile_list.push_back(itr->path().string() );
             }
@@ -256,26 +258,26 @@ int main(int ac, char** av)
   for(uint32_t i=0;i<scdfile_list.size();i++)
   {
     std::string scd_file = scdfile_list[i];
-    izenelib::util::ScdParser scd_parser(encoding);
+    ScdParser scd_parser(encoding);
     if(!scd_parser.load(scd_file) )
     {
       std::cerr<<"load scd file failed."<<std::endl;
       return -1;
     }
-    izenelib::util::ScdParser::iterator it = scd_parser.begin();
+    ScdParser::iterator it = scd_parser.begin();
     
     while( it!= scd_parser.end() )
     {
-      izenelib::util::SCDDocPtr doc = (*it);
+      SCDDocPtr doc = (*it);
       if(!doc)
       {
         std::cerr<<"scd parsing error"<<std::endl;
         break;
       }
-      std::vector<std::pair<izenelib::util::UString, izenelib::util::UString> >::iterator p;
+      std::vector<std::pair<std::string, std::string> >::iterator p;
       for (p = doc->begin(); p != doc->end(); p++)
       {
-        izenelib::util::UString property_name = p->first;
+        izenelib::util::UString property_name(p->first, UString::UTF_8);
         property_name.toLowerString();
         if( property_name == izenelib::util::UString("docid", encoding) )
         {
@@ -290,7 +292,7 @@ int main(int ac, char** av)
         {
 //             la::TermList term_list;
 //             analyzer->GetTermList( p->second, term_list, false);
-            kpe->insert( p->second, docid);
+            kpe->insert( UString(p->second, UString::UTF_8), docid);
         }
       }
       ++it;

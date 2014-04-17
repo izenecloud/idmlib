@@ -1,6 +1,7 @@
 #include <idmlib/util/CollectionUtil.h>
 
 using namespace idmlib::util;
+using namespace izenelib;
 
 
 bool CollectionProcessor::processSCD()
@@ -24,7 +25,7 @@ bool CollectionProcessor::processSCD()
          }
 
          // check total count
-         std::vector<izenelib::util::UString> list;
+         std::vector<std::string> list;
          scdParser.getDocIdList(list);
          size_t totalDocNum = list.size();
 

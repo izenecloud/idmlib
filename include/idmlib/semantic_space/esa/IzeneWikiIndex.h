@@ -44,7 +44,7 @@ public:
     }
 
 public:
-    void insertDocument(SCDDocPtr& SCDDoc)
+    void insertDocument(izenelib::SCDDocPtr& SCDDoc)
     {
         IndexerDocument indexDocument;
         bool ret = prepareDocument_(SCDDoc, indexDocument);
@@ -73,15 +73,15 @@ public:
     }
 
 public:
-    bool prepareDocument_(SCDDocPtr& pDoc, IndexerDocument& indexDocument)
+    bool prepareDocument_(izenelib::SCDDocPtr& pDoc, IndexerDocument& indexDocument)
     {
         uint32_t docId = 0;
 
-        CollectionProcessor::doc_properties_iterator proIter;
+        std::vector<std::pair<std::string, std::string> >::iterator proIter;
         for (proIter = pDoc->begin(); proIter != pDoc->end(); proIter ++)
         {
-            izenelib::util::UString propertyName = proIter->first;
-            const izenelib::util::UString & propertyValue = proIter->second;
+            izenelib::util::UString propertyName(proIter->first, izenelib::util::UString::UTF_8);
+            izenelib::util::UString propertyValue(proIter->second, izenelib::util::UString::UTF_8);
             propertyName.toLowerString();
 
             // see IzeneIndexHelper::setIndexConfig()
