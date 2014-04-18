@@ -62,4 +62,7 @@ typedef unsigned __int64  uint64_t;
 #define NS_IDMLIB_TL_BEGIN namespace idmlib{ namespace tl{
 #define NS_IDMLIB_TL_END }}
 
+#define NS_IDMLIB_B5M_BEGIN namespace idmlib{ namespace b5m{
+#define NS_IDMLIB_B5M_END }}
+
 #endif

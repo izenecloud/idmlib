@@ -18,10 +18,8 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/index/LAInput.h>
 // prevent conflicting with ScdParser of sf1-revolution
-#ifndef __SCD__PARSER__H__
-#define __SCD__PARSER__H__
-#include <util/scd_parser.h>
-#endif
+#include <sf1common/ScdParser.h>
+#include <sf1common/PropertyValue.h>
 
 using namespace boost::filesystem;
 using namespace izenelib::ir::idmanager;
@@ -109,11 +107,11 @@ protected:
         content_.clear();
         bool hasDocid = false;
 
-        doc_properties_iterator proIter;
-        for (proIter = curSCDDoc_->begin(); proIter != curSCDDoc_->end(); proIter ++)
+        for (izenelib::SCDDoc::iterator proIter = curSCDDoc_->begin(); proIter != curSCDDoc_->end(); proIter ++)
         {
-            izenelib::util::UString propertyName = proIter->first;
-            const izenelib::util::UString & propertyValue = proIter->second;
+            std::string spropertyName = proIter->first;
+            izenelib::util::UString propertyName(spropertyName, izenelib::util::UString::UTF_8);
+            izenelib::util::UString propertyValue = propstr_to_ustr(proIter->second);
             propertyName.toLowerString();
 
             if ( propertyName == izenelib::util::UString("docid", encoding_) ) {
@@ -220,7 +218,7 @@ protected:
 
     // temporary: current document information
     uint32_t curDocId_;
-    SCDDocPtr curSCDDoc_;
+    izenelib::SCDDocPtr curSCDDoc_;
     izenelib::util::UString content_;
     boost::shared_ptr<TermIdList> pTermIdList_;
 };

@@ -115,10 +115,12 @@ void FuzzyPinyinSegmentor::InitRule_()
     AddPrefixFuzzy_("c", "ch");
     AddPrefixFuzzy_("s", "sh");
     AddPrefixFuzzy_("z", "zh");
+    AddPrefixFuzzy_("l", "n");
 
     AddPrefixFuzzy_("ch", "c");
     AddPrefixFuzzy_("sh", "s");
     AddPrefixFuzzy_("zh", "z");
+    AddPrefixFuzzy_("n" , "l");
 
     pinyin_correction_dict_.push_back(std::make_pair("gn", "ng"));
     pinyin_correction_dict_.push_back(std::make_pair("mg", "ng"));

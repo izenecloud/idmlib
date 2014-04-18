@@ -45,6 +45,8 @@ public:
 
     bool Load();
 
+    bool LoadFromDb(const std::list<QueryLogType>& queryList);
+
     bool ForceReload();
 
     bool Update(const std::list<QueryLogType>& queryList, const std::list<PropertyLabelType>& labelList, bool forceMode = false);
@@ -52,19 +54,40 @@ public:
     bool GetResult(const izenelib::util::UString& input, std::vector<izenelib::util::UString>& output);
 
     void GetPinyin(const izenelib::util::UString& cn_chars, std::vector<std::string>& result_list);
-//WANG QIAN
+
     void GetPinyin2(const izenelib::util::UString& cn_chars2, std::vector<std::string>& result_list);
     void GetRelativeList(const izenelib::util::UString& hanzi,std::vector<std::pair<izenelib::util::UString,uint32_t> >& ResultList);
-//...
-private:
+        
+    void Segment(const std::string& pinyin_str, std::vector<PinyinSegmentResult>& result_list)
+    {
+        pinyin_.Segment(pinyin_str, result_list);
+    }
 
+    void SegmentRaw(const std::string& pinyin_str, std::vector<std::string>& result_list)
+    {
+        pinyin_.SegmentRaw(pinyin_str, result_list);
+    }
+
+    void FuzzySegmentRaw(const std::string& pinyin_str, std::vector<std::pair<double, std::string> >& result_list)
+    {
+        pinyin_.FuzzySegmentRaw(pinyin_str, result_list);
+    }
+
+    void FuzzySegmentRaw(const std::string& pinyin_str, std::vector<std::string>& result_list)
+    {
+        pinyin_.FuzzySegmentRaw(pinyin_str, result_list);
+    }
+
+private:
     void LoadRawTextTransProb_(TransProbType& trans_prob, const std::string& file);
+
+    void LoadQueryList_(TransProbType& trans_prob, const std::list<QueryLogType>& queryList);
 
     void FlushRawTextTransProb_(const std::string& file, const TransProbType& trans_prob);
 
     double TransProb_(const izenelib::util::UCS2Char& from, const izenelib::util::UCS2Char& to);
 
-    void UpdateItem_(const uint32_t df, const izenelib::util::UString& text);
+    void UpdateItem_(TransProbType& trans_prob, const uint32_t df, const izenelib::util::UString& text);
 
     //trigram version only
     double TransProbT_(const izenelib::util::UString& from, const izenelib::util::UCS2Char& to);
@@ -100,8 +123,9 @@ private:
     double mid_threshold_;
     uint16_t max_pinyin_term_;
 
-    boost::mutex mutex_;
+    bool fromDb_;
 
+    boost::mutex mutex_;
 };
 
 NS_IDMLIB_QC_END

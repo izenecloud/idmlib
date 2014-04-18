@@ -135,7 +135,7 @@ ${izenejma_INCLUDE_DIRS}
 ${wisekma_INCLUDE_DIRS}
 ${ilplib_INCLUDE_DIRS}
 ${imllib_INCLUDE_DIRS}
-${xml2_INCLUDE_DIRS}
+${XML2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
 ${LibCURL_INCLUDE_DIRS}
 ${ImageMagick_INCLUDE_DIRS}
@@ -144,7 +144,7 @@ ${ImageMagick_INCLUDE_DIRS}
 SET(libs
   ${izenelib_LIBRARIES}
   ${ilplib_LIBRARIES}
-  ${xml2_LIBRARIES}
+  ${XML2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   ${LibCURL_LIBRARIES}
@@ -214,13 +214,13 @@ IF(VERBOSE)
     MESSAGE(STATUS "imllib: not found")
   ENDIF(imllib_FOUND)
 
-  IF(xml2_FOUND)
+  IF(XML2_FOUND)
     MESSAGE(STATUS "LIBXML2:")
-    MESSAGE(STATUS " header: ${xml2_INCLUDE_DIRS}")
-    MESSAGE(STATUS " lib: ${xml2_LIBRARIES}")
-  ELSE(xml2_FOUND)
+    MESSAGE(STATUS " header: ${XML2_INCLUDE_DIR}")
+    MESSAGE(STATUS " lib: ${XML2_LIBRARIES}")
+  ELSE(XML2_FOUND)
     MESSAGE(STATUS "LIBXML2: not found")
-  ENDIF(xml2_FOUND)
+  ENDIF(XML2_FOUND)
 
   IF(Threads_FOUND)
     MESSAGE(STATUS "Threads Library: ${CMAKE_THREAD_LIBS_INIT}")

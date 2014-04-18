@@ -13,8 +13,11 @@ FIND_PACKAGE(izenelib REQUIRED
   izene_log
   procmeminfo
   leveldb
-  snappy
+  compressor
   luxio
+  json
+  re2
+  sf1common
   )
 
 FIND_PACKAGE(wisekma REQUIRED)
@@ -22,7 +25,7 @@ FIND_PACKAGE(izenecma REQUIRED)
 FIND_PACKAGE(izenejma REQUIRED)
 FIND_PACKAGE(ilplib REQUIRED)
 FIND_PACKAGE(imllib REQUIRED)
-FIND_PACKAGE(xml2 REQUIRED)
+FIND_PACKAGE(XML2 REQUIRED)
 FIND_PACKAGE(LibCURL REQUIRED)
 FIND_PACKAGE(ImageMagick COMPONENTS Magick++)
 
