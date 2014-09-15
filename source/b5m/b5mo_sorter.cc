@@ -39,9 +39,76 @@ bool B5moSorter::StageOne()
     //}
     return true;
 }
-bool B5moSorter::StageTwo(const std::string& last_m, int thread_num)
+bool B5moSorter::StageTwoRtype_()
+{
+    LOG(INFO)<<"stage two rtype"<<std::endl;
+    std::string sorter_path = B5MHelper::GetB5moBlockPath(m_); 
+    std::string block_file = sorter_path+"/block";
+    bool has_block_file = true;
+    if(!boost::filesystem::exists(block_file))
+    {
+        LOG(ERROR)<<"block file not exists"<<std::endl;
+        has_block_file = false;
+    }
+    else
+    {
+        std::string line;
+        std::ifstream ifs(block_file.c_str());
+        static const std::size_t maxline = 10;
+        std::size_t i=0;
+        bool has_item = false;
+        while( getline(ifs, line))
+        {
+            boost::algorithm::trim(line);
+            if(!line.empty())
+            {
+                has_item = true;
+                break;
+            }
+            ++i;
+            if(i==maxline) break;
+        }
+        ifs.close();
+        if(!has_item)
+        {
+            LOG(ERROR)<<"block file empty"<<std::endl;
+            has_block_file = false;
+        }
+    }
+    if(!has_block_file)
+    {
+        //TODO,NO SCD generated.
+        return true;
+    }
+    std::string b5mp_path = b5mm_.b5mp_path;
+    B5MHelper::PrepareEmptyDir(b5mp_path);
+    pwriter_.reset(new ScdTypeWriter(b5mp_path));
+    std::ifstream ifs(block_file.c_str());
+    std::string line;
+    Json::Reader json_reader;
+    while(getline( ifs, line))
+    {
+        Value value;
+        value.Parse(line, &json_reader);
+        ScdDocument& odoc = value.doc;
+        odoc.eraseProperty("uuid");
+        std::string doctext;
+        ScdWriter::DocToString(odoc, doctext);
+        boost::unique_lock<MutexType> lock(mutex_);
+        pwriter_->Append(doctext, odoc.type);
+    }
+    ifs.close();
+    pwriter_->Close();
+    return true;
+}
+bool B5moSorter::StageTwo(const std::string& last_m)
 {
     namespace bfs=boost::filesystem;    
+    if(b5mm_.rtype)
+    {
+        return StageTwoRtype_();
+    }
+    int thread_num = b5mm_.thread_num;
     std::string tmp_path = B5MHelper::GetTmpPath(m_);
     B5MHelper::PrepareEmptyDir(tmp_path);
     std::string sorter_path = B5MHelper::GetB5moBlockPath(m_); 
@@ -57,12 +124,14 @@ bool B5moSorter::StageTwo(const std::string& last_m, int thread_num)
     LOG(INFO)<<"sorter bin : "<<sort_bin<<std::endl;
     std::string block_file = sorter_path+"/block";
     std::string sorted_block_file = sorter_path+"/block.sort";
+    std::string sort_done_file = sorter_path+"/sort.done";
     bool has_block_file = true;
     if(!boost::filesystem::exists(block_file))
     {
         LOG(ERROR)<<"block file not exists"<<std::endl;
         has_block_file = false;
     }
+    else
     {
         std::string line;
         std::ifstream ifs(block_file.c_str());
@@ -108,12 +177,15 @@ bool B5moSorter::StageTwo(const std::string& last_m, int thread_num)
             //}
         }
     }
-    if(has_block_file)
+    if(has_block_file&&!boost::filesystem::exists(sort_done_file))
     {
         std::string cmd = sort_bin+" --stable --field-separator='\t' -k1,1 --buffer-size="+buffer_size+" -T "+tmp_path+" "+block_file+" > "+sorted_block_file;
         LOG(INFO)<<"cmd : "<<cmd<<std::endl;
         int status = system(cmd.c_str());
         LOG(INFO)<<"cmd finished : "<<status<<std::endl;
+        std::ofstream done_ofs(sort_done_file.c_str());
+        done_ofs<<"a"<<std::endl;
+        done_ofs.close();
     }
     std::string mirror_path = B5MHelper::GetB5moMirrorPath(m_);
     B5MHelper::PrepareEmptyDir(mirror_path);
@@ -127,6 +199,12 @@ bool B5moSorter::StageTwo(const std::string& last_m, int thread_num)
         B5MHelper::PrepareEmptyDir(b5ma_path);
         awriter_.reset(new ScdTypeWriter(b5ma_path));
     }
+    //if(b5mm_.gen_oequi)
+    //{
+    //    LOG(INFO)<<"init oequi writer at "<<b5mp_path<<std::endl;
+    //    oequi_writer_.reset(new ScdTypeWriter(b5mp_path));
+    //    LOG(INFO)<<"init oequi writer finish"<<std::endl;
+    //}
     std::string mirror_file = mirror_path+"/block";
     ordered_writer_.reset(new OrderedWriter(mirror_file));
     //mirror_ofs_.open(mirror_file.c_str());
@@ -145,6 +223,7 @@ bool B5moSorter::StageTwo(const std::string& last_m, int thread_num)
     {
         is2.open(last_mirror_file.c_str());
     }
+    LOG(INFO)<<"start to parse lines"<<std::endl;
     while(true)
     {
         if(line1.empty()&&is1.good()) std::getline(is1, line1);
@@ -251,6 +330,8 @@ bool B5moSorter::StageTwo(const std::string& last_m, int thread_num)
     ordered_writer_->Finish();
     //mirror_ofs_.close();
     pwriter_->Close();
+    if(awriter_) awriter_->Close();
+    //if(oequi_writer_) oequi_writer_->Close();
     boost::filesystem::remove_all(tmp_path);
     return true;
 }
@@ -418,6 +499,8 @@ void B5moSorter::OBag_(PItem& pitem)
                 pgenerator_.Gen(prev_odocs, prev_pdoc);
             }
         }
+        GenExtraOProperties_(ovalues, pdoc);
+        GenExtraOProperties_(prev_ovalues, prev_pdoc);
         //SetAttributes_(ovalues, pdoc);
         //SetAttributes_(prev_ovalues, prev_pdoc);
         {
@@ -456,34 +539,30 @@ void B5moSorter::OBag_(PItem& pitem)
             GenOutputPDoc_(adoc, prev_pdoc, 4);
         }
         GenOutputPDoc_(pdoc, prev_pdoc, 2);
-        //if(pdoc.type==NOT_SCD)
+        //gen oequi count
+        //if(oequi_writer_)
         //{
-        //}
-        //else if(pdoc.type==DELETE_SCD)
-        //{
-        //}
-        //else
-        //{
+        //    int64_t itemcount=0;
         //    int64_t prev_itemcount=0;
+        //    pdoc.getProperty("itemcount", itemcount);
         //    prev_pdoc.getProperty("itemcount", prev_itemcount);
-        //    if(prev_itemcount>1)
+        //    if(itemcount!=prev_itemcount&&itemcount>0)
         //    {
-        //        pdoc.diff(prev_pdoc);
-        //    }
-        //    SCD_TYPE ptype = pdoc.type;
-        //    if(pdoc.getPropertySize()<2)
-        //    {
-        //        ptype = NOT_SCD;
-        //    }
-        //    else if(pdoc.getPropertySize()==2)//DATE only update
-        //    {
-        //        if(pdoc.hasProperty("DATE"))
+        //        int64_t oequi_count = itemcount-1;
+        //        for(std::size_t i=0;i<ovalues.size();i++)
         //        {
-        //            ptype = NOT_SCD;
+        //            const Value& v = ovalues[i];
+        //            if(v.doc.type!=UPDATE_SCD) continue;
+        //            ScdDocument oedoc(RTYPE_SCD);
+        //            oedoc.property("DOCID") = v.doc.property("DOCID");
+        //            oedoc.property(B5MHelper::GetOEquiCountPropertyName()) = oequi_count;
+        //            pitem.oequi_docs.push_back(oedoc);
         //        }
         //    }
-        //    pdoc.type = ptype;
         //}
+
+
+
     }
     for(uint32_t i=0;i<pitem.odocs.size();i++)
     {
@@ -503,6 +582,50 @@ void B5moSorter::OBag_(PItem& pitem)
     }
     WritePItem_(pitem);
     
+}
+void B5moSorter::GenExtraOProperties_(std::vector<Value>& values, const ScdDocument& pdoc)
+{
+    int64_t itemcount = 0;
+    pdoc.getProperty("itemcount", itemcount);
+    if(itemcount>0)
+    {
+        int64_t oequi_count = itemcount-1;
+        for(std::size_t i=0;i<values.size();i++)
+        {
+            ScdDocument& doc = values[i].doc;
+            if(doc.type!=UPDATE_SCD) continue;
+            doc.property(B5MHelper::GetOEquiCountPropertyName()) = oequi_count;
+        }
+    }
+    std::pair<int64_t, double> lowest_comp_price(-1, -1.0);
+    for(std::size_t i=0;i<values.size();i++)
+    {
+        ScdDocument& doc = values[i].doc;
+        if(doc.type!=UPDATE_SCD) continue;
+        std::string source;
+        doc.getString("Source", source);
+        if(source.empty()||source=="淘宝网") continue;
+        double price = ProductPrice::ParseDocPrice(doc);
+        if(price<=0.0) continue;
+        if(lowest_comp_price.second<0.0 || price<lowest_comp_price.second)
+        {
+            lowest_comp_price.first = i;
+            lowest_comp_price.second = price;
+        }
+    }
+    for(std::size_t i=0;i<values.size();i++)
+    {
+        ScdDocument& doc = values[i].doc;
+        if(doc.type!=UPDATE_SCD) continue;
+        if(itemcount>1&&(int64_t)i==lowest_comp_price.first)
+        {
+            doc.property(B5MHelper::GetIsLowCompPricePropertyName()) = (int64_t)1;
+        }
+        else
+        {
+            doc.property(B5MHelper::GetIsLowCompPricePropertyName()) = (int64_t)0;
+        }
+    }
 }
 void B5moSorter::SetAttributes_(std::vector<Value>& values, const ScdDocument& pdoc)
 {
@@ -614,6 +737,7 @@ void B5moSorter::WritePItem_(PItem& pitem)
     typedef std::pair<std::string, SCD_TYPE> WriteDoc;
     std::vector<WriteDoc> write_docs;
     std::vector<WriteDoc> awrite_docs;
+    std::vector<WriteDoc> oewrite_docs;
     uint32_t odoc_count=0;
     uint32_t odoc_precount=0;
     for(uint32_t i=0;i<pitem.odocs.size();i++)
@@ -623,7 +747,7 @@ void B5moSorter::WritePItem_(PItem& pitem)
         odoc_precount++;
         if(odoc.type!=UPDATE_SCD) continue;
         odoc_count++;
-        if(value.ts<ts_) continue;
+        //if(value.ts<ts_) continue;
         if(odoc.getPropertySize()<2) continue;
         odoc.property("itemcount") = (int64_t)1;
         std::string doctext;
@@ -663,6 +787,12 @@ void B5moSorter::WritePItem_(PItem& pitem)
         ScdWriter::DocToString(pitem.adoc, doctext);
         awrite_docs.push_back(std::make_pair(doctext, pitem.adoc.type));
     }
+    //for(std::size_t i=0;i<pitem.oequi_docs.size();i++)
+    //{
+    //    std::string doctext;
+    //    ScdWriter::DocToString(pitem.oequi_docs[i], doctext);
+    //    oewrite_docs.push_back(std::make_pair(doctext, pitem.oequi_docs[i].type));
+    //}
     //if(odoc_count>1)
     //{
     //    if(pitem.pdoc.type!=NOT_SCD)
@@ -699,6 +829,13 @@ void B5moSorter::WritePItem_(PItem& pitem)
                 awriter_->Append(awrite_docs[i].first, awrite_docs[i].second);
             }
         }
+        //if(oequi_writer_)
+        //{
+        //    for(uint32_t i=0;i<oewrite_docs.size();i++)
+        //    {
+        //        oequi_writer_->Append(oewrite_docs[i].first, oewrite_docs[i].second);
+        //    }
+        //}
     }
 }
 void B5moSorter::ODocMerge_(std::vector<ScdDocument>& vec, const ScdDocument& doc)

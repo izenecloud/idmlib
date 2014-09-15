@@ -9,6 +9,19 @@
 //#define ADDR_DEBUG
 
 NS_IDMLIB_B5M_BEGIN
+
+static const double kAddressWeight[] = 
+{
+		0.0,/*NOT USED*/
+		0.0,/*NOT_ADDR*/
+		0.05,/*PROVINCE*/
+		0.05,/*CITY*/
+		0.06,/*COUNTY*/
+		0.06,/*DISTRICT*/
+		0.2,/*ROAD*/
+		0.3 /*POI*/
+};
+
 class AddressExtract{
     enum SUFFIX_STATUS {NOT_SUFFIX, SUFFIX_NEXT, SUFFIX_BREAK, SUFFIX_DICT};
     enum ADDR_TYPE {NOT_ADDR = 1, PROVINCE, CITY, COUNTY, DISTRICT, ROAD, POI};
@@ -1305,8 +1318,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////
 //Addby wangbaobao@b5m.com begin------------------------------
 //define weight for each address type
-
-private:
+public:
 	//type common define
 	template<class _Ty>
 	class Weight
@@ -1323,7 +1335,6 @@ private:
 	//threshold define
 	static const double kChineseThreshold = 0.90;
 	static const double kEnglishThreshold = 0.75;
-	static const double kAddressWeight[];
 	
 	typedef std::pair<size_t,double> TypeAndWeight;
 	typedef std::pair<std::string,TypeAndWeight> TextAndType;
@@ -1333,7 +1344,6 @@ private:
 	typedef std::pair<std::string, TextAndTypeCollection> EvaluateResult;
 	typedef boost::unordered_map<TextAndType, Weight<double> > TextAndTypeMap;
 
-public:
 	typedef std::pair<std::string,std::string> TwoAddress;
 	typedef std::pair<size_t,size_t>	       AddressIndexPair;
 	typedef std::vector<std::string>		   AddressCollection;
@@ -1368,76 +1378,6 @@ private:
 		}
 	}
 
-	//@brief
-	EvaluateResult Evaluate_(const std::string& addr)
-	{        
-		std::string result;
-		TextAndTypeCollection collection;
-		
-		if(addr.length()>300) return std::make_pair(result,collection);
-        std::string address = Clean_(addr);
-        //word_t word;
-        //GetWord_(address, word);
-        //word_t rword(word.rbegin(), word.rend());
-        SuffixWord word;
-        GetSuffixWord_(address, word);
-#ifdef ADDR_DEBUG
-        std::cerr<<"[A]"<<address<<",["<<word.size()<<"]"<<std::endl;
-#endif
-        NodeList current;
-        NodeMatrix global;
-        Recursive_(word, 0, 0, current, global);
-        std::vector<std::size_t> covers(global.size());
-        for(uint32_t i=0;i<global.size();i++)
-        {
-			NodeList& nl = global[i];
-			covers[i] = PostProcessResult_(nl, word);
-        }
-        std::pair<double, std::size_t> select(0.0, 0);
-        for(uint32_t i=0;i<global.size();i++)
-        {
-            double score = 0.0;
-            const NodeList& nl = global[i];
-            for(uint32_t j=0;j<nl.size();j++)
-            {
-                const Node& node = nl[j];
-                score+=node.prob;
-            }
-#ifdef ADDR_DEBUG
-            std::string str = GetText_(nl, true);
-            std::cerr<<"[RESULT-SCORE]"<<str<<","<<score<<std::endl;
-#endif
-            if(score>select.first)
-            {
-                select.first = score;
-                select.second = i;
-            }
-        }
-
-        if(select.first>0.0)
-        {
-            const NodeList& nresult = global[select.second];
-            std::size_t cover = covers[select.second];
-            if(!LostTooMuch_(cover, word))
-            {
-                result = GetText_(nresult);
-				//build <Text,Type> collection
-				GetTextAndTypeCollection(nresult,collection);
-#ifdef ADDR_DEBUG
-                std::cerr<<"[FINALD]";
-                for(uint32_t i=0;i<nresult.size();i++)
-                {
-                    std::cerr<<"("<<nresult[i].text<<","<<nresult[i].type<<")";
-                }
-                std::cerr<<std::endl;
-#endif
-            }
-        }
-#ifdef ADDR_DEBUG
-        std::cerr<<"[FINAL]"<<result<<std::endl;
-#endif
-        return std::make_pair(result, collection);
-	}
 
 	//@brief: adjust weight for road and poi			
 	//      road: if contain more than one road type, we just 
@@ -1523,11 +1463,112 @@ private:
 			}
 		}		
 	}
+	//@brief:process those records not successed evaluated
+	//currently simplely consider them conform rules of english address
+	void BuildNotEvaluateRecord(const std::string& address, 
+								TextAndTypeCollection& collection)
+	{	
+		double weight = 1.0;
+		TextEngCollection eng_collection;
+		boost::split(eng_collection,address,boost::is_any_of(",|"));
+		collection.clear();
+		for(size_t i = 0; i < eng_collection.size(); ++i)
+		{
+			if(eng_collection[i].empty())
+			{
+				continue;
+			}
+			boost::to_lower(eng_collection[i]);
+			collection.push_back(std::make_pair(
+				eng_collection[i],TypeAndWeight(0,weight)));
+			weight /= 2.0;
+		}
+	}
+		
+public:
+	//@brief:normalize merchant address
+	EvaluateResult Evaluate_(const std::string& addr)
+	{        
+		std::string result;
+		TextAndTypeCollection collection;
+		
+		if(addr.length()>300) return std::make_pair(result,collection);
+        std::string address = Clean_(addr);
+        //word_t word;
+        //GetWord_(address, word);
+        //word_t rword(word.rbegin(), word.rend());
+        SuffixWord word;
+        GetSuffixWord_(address, word);
+#ifdef ADDR_DEBUG
+        std::cerr<<"[A]"<<address<<",["<<word.size()<<"]"<<std::endl;
+#endif
+        NodeList current;
+        NodeMatrix global;
+        Recursive_(word, 0, 0, current, global);
+        std::vector<std::size_t> covers(global.size());
+        for(uint32_t i=0;i<global.size();i++)
+        {
+			NodeList& nl = global[i];
+			covers[i] = PostProcessResult_(nl, word);
+        }
+        std::pair<double, std::size_t> select(0.0, 0);
+        for(uint32_t i=0;i<global.size();i++)
+        {
+            double score = 0.0;
+            const NodeList& nl = global[i];
+            for(uint32_t j=0;j<nl.size();j++)
+            {
+                const Node& node = nl[j];
+                score+=node.prob;
+            }
+#ifdef ADDR_DEBUG
+            std::string str = GetText_(nl, true);
+            std::cerr<<"[RESULT-SCORE]"<<str<<","<<score<<std::endl;
+#endif
+            if(score>select.first)
+            {
+                select.first = score;
+                select.second = i;
+            }
+        }
+
+        if(select.first>0.0)
+        {
+            const NodeList& nresult = global[select.second];
+            std::size_t cover = covers[select.second];
+            if(!LostTooMuch_(cover, word))
+            {
+                result = GetText_(nresult);
+				//build <Text,Type> collection
+				GetTextAndTypeCollection(nresult,collection);
+#ifdef ADDR_DEBUG
+                std::cerr<<"[FINALD]";
+                for(uint32_t i=0;i<nresult.size();i++)
+                {
+                    std::cerr<<"("<<nresult[i].text<<","<<nresult[i].type<<")";
+                }
+                std::cerr<<std::endl;
+#endif
+            }
+        }
+#ifdef ADDR_DEBUG
+        std::cerr<<"[FINAL]"<<result<<std::endl;
+#endif
+        return std::make_pair(result, collection);
+	}
+
+	//@brief:normalize merchant address
+	//@return xxx|xxx|xxx|xxx
+    std::string Evaluate(const std::string& address)
+    {
+		EvaluateResult evaluate_result = Evaluate_(address);
+		return evaluate_result.first;
+    }	
 
 	//@brief:calculate chinese merchant address similarity 
 	//		 using vector weight cos(collection1,collection2)
-	double Similarity_(TextAndTypeCollection& collection1, 
-					   TextAndTypeCollection& collection2)
+	double Similarity_(const TextAndTypeCollection& collection1, 
+					   const TextAndTypeCollection& collection2)
 	{
 		if(collection1.empty() || collection2.empty())
 		{
@@ -1566,37 +1607,6 @@ private:
 		similarity = temp1 / (sqrt(temp2 * temp3));
 		return similarity;
 	}
-
-	//@brief:process those records not successed evaluated
-	//currently simplely consider them conform rules of english address
-	void BuildNotEvaluateRecord(const std::string& address, 
-								TextAndTypeCollection& collection)
-	{	
-		double weight = 1.0;
-		TextEngCollection eng_collection;
-		boost::split(eng_collection,address,boost::is_any_of(",|"));
-		collection.clear();
-		for(size_t i = 0; i < eng_collection.size(); ++i)
-		{
-			if(eng_collection[i].empty())
-			{
-				continue;
-			}
-			boost::to_lower(eng_collection[i]);
-			collection.push_back(std::make_pair(
-				eng_collection[i],TypeAndWeight(0,weight)));
-			weight /= 2.0;
-		}
-	}
-		
-public:
-	//@brief:normalize merchant address
-	//@return xxx|xxx|xxx|xxx
-    std::string Evaluate(const std::string& address)
-    {
-		EvaluateResult evaluate_result = Evaluate_(address);
-		return evaluate_result.first;
-    }	
 
 	//@brief:calculate similarity of <addr_i,addr_j> (1<=i<=n,1<=j<=n)
 	//@return similar address index-pair vector
@@ -1740,18 +1750,6 @@ private:
     Prob suffix_prob_;
     std::vector<ADDR_TYPE> ADDR_LIST;
     TermText term_text_;
-};
-
-const double AddressExtract::kAddressWeight[] = 
-{
-		0.0,/*NOT USED*/
-		0.0,/*NOT_ADDR*/
-		0.05,/*PROVINCE*/
-		0.05,/*CITY*/
-		0.06,/*COUNTY*/
-		0.06,/*DISTRICT*/
-		0.2,/*ROAD*/
-		0.3 /*POI*/
 };
 
 NS_IDMLIB_B5M_END

@@ -10,7 +10,6 @@
 #include <sf1common/Utilities.h>
 #include <sf1common/split_ustr.h>
 #include <types.h>
-#include <3rdparty/udt/md5.h>
 
 NS_IDMLIB_B5M_BEGIN
 
@@ -135,6 +134,50 @@ public:
         boost::filesystem::create_directories(dir);
     }
 
+	static bool RemoveDir(const std::string &dir)
+	{
+		try 
+		{
+			boost::filesystem::remove_all(dir);
+			return true;
+		} 
+		catch (boost::filesystem::filesystem_error &e)
+		{	
+			return false;
+		}
+	}
+
+	static bool CopyFile(const boost::filesystem::path &src, 
+				         const boost::filesystem::path &dst)
+	{
+		try
+		{
+			if (!boost::filesystem::exists(dst))
+			{
+				boost::filesystem::create_directories(dst);
+			}
+			for (boost::filesystem::directory_iterator it(src); it != 
+					boost::filesystem::directory_iterator(); ++it)
+			{
+				const boost::filesystem::path new_src = it->path();
+				const boost::filesystem::path new_dst = dst / new_src.filename();
+				if (boost::filesystem::is_directory(new_src))
+				{
+					CopyFile(new_src, new_dst);
+				}
+				else if (boost::filesystem::is_regular_file(new_src))
+				{
+					boost::filesystem::copy_file(new_src, new_dst, 
+						boost::filesystem::copy_option::overwrite_if_exists);
+				}
+			}
+			return true;
+		} 
+		catch(boost::filesystem::filesystem_error &e)
+		{
+			return false;
+		}
+	} 
 
     static void SplitAttributeValue(const std::string& str, std::vector<std::string>& str_list)
     {
@@ -198,6 +241,17 @@ public:
         return p;
     }
 
+    static std::string GetSubPropPropertyName()
+    {
+        static std::string p("SubProp");
+        return p;
+    }
+    static std::string GetSubPropsPropertyName()
+    {
+        static std::string p("SubProps");
+        return p;
+    }
+
     static std::string GetSPTPropertyName()
     {
         static std::string p("SPTitle");
@@ -240,11 +294,53 @@ public:
         static std::string p("ProductType");
         return p;
     }
+    static std::string GetTagsPropertyName()
+    {
+        static std::string p("Tags");
+        return p;
+    }
+    static std::string GetOEquiCountPropertyName()
+    {
+        static std::string p("EquiCount");
+        return p;
+    }
+    static std::string GetIsLowCompPricePropertyName()
+    {
+        static std::string p("isLowCompPrice");
+        return p;
+    }
+    static std::string RefPricePN()
+    {
+        static std::string p("RefPrice");
+        return p;
+    }
+    static std::string RawRankPN()
+    {
+        static std::string p("RawRank");
+        return p;
+    }
 
     static std::string BookCategoryName()
     {
         static std::string name("书籍/杂志/报纸");
         return name;
+    }
+
+    static bool Is3cAccessoryCategory(const std::string& category)
+    {
+        if(boost::algorithm::starts_with(category, "手机数码>手机数码配件") || boost::algorithm::starts_with(category, "手机数码>相机配件"))
+        {
+            return true;
+        }
+        else return false;
+    }
+    static bool IsLooseMatchCategory(const std::string& category)
+    {
+        if(boost::algorithm::starts_with(category, "手机数码>手机数码配件") || boost::algorithm::starts_with(category, "手机数码>相机配件") || boost::algorithm::starts_with(category, "电脑办公>电脑外设"))
+        {
+            return true;
+        }
+        else return false;
     }
 
     static std::string GetPidByIsbn(const std::string& isbn)
@@ -316,6 +412,172 @@ public:
                 //attribute.values.push_back(gb_value);
             //}
             attributes.push_back(attribute);
+        }
+    }
+
+    static void LoadCategories(const std::string& file, CategoryManager& cm) 
+    {
+        std::string line;
+        std::ifstream ifs(file.c_str());
+        cm.data.resize(1);
+        cm.data[0].is_parent = true;
+        cm.data[0].depth = 0;
+        cm.data[0].cid = 0;
+        while(getline(ifs, line))
+        {
+            boost::algorithm::trim(line);
+            std::vector<std::string> vec;
+            boost::algorithm::split(vec, line, boost::algorithm::is_any_of(","));
+            if(vec.size()<1) continue;
+            const std::string& scategory = vec[0];
+            if(scategory.empty()) continue;
+            uint32_t cid = cm.data.size();
+            Category c;
+            c.name = scategory;
+            c.cid = cid;
+            c.parent_cid = 0;
+            c.is_parent = false;
+            c.has_spu = false;
+            c.offer_count = 0;
+            std::set<std::string> akeywords;
+            std::set<std::string> rkeywords;
+            for(uint32_t i=1;i<vec.size();i++)
+            {
+                std::string keyword = vec[i];
+                bool remove = false;
+                if(keyword.empty()) continue;
+                if(keyword[0]=='+')
+                {
+                    keyword = keyword.substr(1);
+                }
+                else if(keyword[0]=='-')
+                {
+                    keyword = keyword.substr(1);
+                    remove = true;
+                }
+                if(keyword.empty()) continue;
+                if(!remove)
+                {
+                    akeywords.insert(keyword);
+                }
+                else
+                {
+                    rkeywords.insert(keyword);
+                }
+            }
+            std::vector<std::string> cs_list;
+            boost::algorithm::split( cs_list, c.name, boost::algorithm::is_any_of(">") );
+            c.depth=cs_list.size();
+            std::vector<std::string> keywords_vec;
+            boost::algorithm::split( keywords_vec, cs_list.back(), boost::algorithm::is_any_of("/") );
+            for(uint32_t i=0;i<keywords_vec.size();i++)
+            {
+                akeywords.insert(keywords_vec[i]);
+            }
+            for(std::set<std::string>::const_iterator it = rkeywords.begin();it!=rkeywords.end();it++)
+            {
+                akeywords.erase(*it);
+            }
+            for(std::set<std::string>::const_iterator it = akeywords.begin();it!=akeywords.end();it++)
+            {
+                UString uc(*it, UString::UTF_8);
+                if(uc.length()<=1) continue;
+                c.keywords.push_back(*it);
+            }
+            if(c.depth>1)
+            {
+                std::string parent_name;
+                for(uint32_t i=0;i<c.depth-1;i++)
+                {
+                    if(!parent_name.empty())
+                    {
+                        parent_name+=">";
+                    }
+                    parent_name+=cs_list[i];
+                }
+                c.parent_cid = cm.index[parent_name];
+                //std::cerr<<"cid "<<c.cid<<std::endl;
+                //std::cerr<<"parent cid "<<c.parent_cid<<std::endl;
+            }
+            else
+            {
+                c.parent_cid = 0;
+            }
+            Category& pc = cm.data[c.parent_cid];
+            pc.is_parent = true;
+            pc.children.push_back(cid);
+            cm.index[scategory] = cid;
+            cm.data.push_back(c);
+        }
+        ifs.close();
+    }
+
+    static void GetAttributeBrand(const Document& doc, std::vector<std::string>& brand)
+    {
+        UString attribute;
+        doc.getString("Attribute", attribute);
+        if(attribute.empty()) return;
+        std::vector<Attribute> attributes;
+        ParseAttributes(attribute, attributes);
+        for(std::size_t i=0;i<attributes.size();i++)
+        {
+            const Attribute& a = attributes[i];
+            if(a.name=="品牌")
+            {
+                brand = a.values;
+                return;
+            }
+        }
+    }
+    static void GetBrandAndApplyto(const Document& doc, std::vector<std::string>& brand, std::string& applyto)
+    {
+        static const std::string pbrand("品牌");
+        static const std::string papplyto1("适用于");
+        static const std::string papplyto2("适用");
+        UString attribute;
+        doc.getString("Attribute", attribute);
+        if(attribute.empty()) return;
+        std::vector<Attribute> attributes;
+        ParseAttributes(attribute, attributes);
+        for(std::size_t i=0;i<attributes.size();i++)
+        {
+            const Attribute& a = attributes[i];
+            if(a.name==pbrand)
+            {
+                brand = a.values;
+            }
+            else if(a.name==papplyto1)
+            {
+                applyto = a.GetValue();
+            }
+            else if(a.name==papplyto2&&applyto.empty())
+            {
+                applyto = a.GetValue();
+            }
+        }
+        if(applyto=="其他"||applyto=="其它")
+        {
+            applyto.clear();
+        }
+        if(applyto.empty())
+        {
+            std::string title;
+            doc.getString("Title", title);
+            std::size_t len = papplyto1.length();
+            std::size_t pos = title.find(papplyto1);
+            if(pos==std::string::npos)
+            {
+                pos = title.find(papplyto2);
+                len = papplyto2.length();
+            }
+            if(pos!=std::string::npos)
+            {
+                std::string sleft = title.substr(pos+len);
+                UString left(sleft, UString::UTF_8);
+                std::size_t ulen = left.length()>4 ? 4 : left.length();
+                left = left.substr(0, ulen);
+                left.convertString(applyto, UString::UTF_8);
+            }
         }
     }
 

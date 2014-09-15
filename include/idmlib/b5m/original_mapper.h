@@ -38,6 +38,7 @@ public:
             mapper_[key] = value;
         }
         is_open_ = true;
+        LOG(INFO)<<"Omapper size "<<mapper_.size()<<std::endl;
         return true;
     }
 

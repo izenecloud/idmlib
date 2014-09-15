@@ -61,18 +61,6 @@ void IDMAnalyzer::InitWithConfig_(const IDMAnalyzerConfig& config)
         static_cast<la::EnglishAnalyzer*>(ema_analyzer.get())->setCaseSensitive(config.ema_config.case_sensitive, false);
     }
 
-    if(config.kma_config.path!="")
-    {
-        kma_analyzer.reset(new la::KoreanAnalyzer( config.kma_config.path ) );
-        la::KoreanAnalyzer* p_korean_analyzer = static_cast<la::KoreanAnalyzer*>(kma_analyzer.get());
-        p_korean_analyzer->setLabelMode();
-        //     p_korean_analyzer->setNBest(1);
-        p_korean_analyzer->setExtractEngStem( false );
-        p_korean_analyzer->setExtractSynonym(false);
-        p_korean_analyzer->setCaseSensitive(config.ema_config.case_sensitive, false);
-        ml_analyzer->setAnalyzer( la::MultiLanguageAnalyzer::KOREAN, kma_analyzer );
-    }
-
     if(config.cma_config.use_char)
     {
         cma_analyzer.reset(new la::CharAnalyzer() );

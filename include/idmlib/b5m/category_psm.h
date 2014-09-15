@@ -121,36 +121,36 @@ public:
         }
         if(!bmn_valid)
         {
-            std::string scategory;
-            std::string stitle;
-            std::string sattr;
-            doc.getString("Category", scategory);
-            doc.getString("Title", stitle);
-            doc.getString("Attribute", sattr);
-            ProductPrice price;
-            UString uprice;
-            doc.getString("Price", uprice);
-            price.Parse(uprice);
-            double dp = 0.0;
-            price.GetMid(dp);
-            if(dp>0.0)
-            {
-                std::string ap;
-                try {
-                    ap = attr_->cluster_detect(stitle, scategory, sattr, (float)dp);
-                }
-                catch(std::exception& ex)
-                {
-                    ap = "";
-                }
-                if(!ap.empty())
-                {
-                    //std::cerr<<"attr result "<<stitle<<" : "<<ap<<std::endl;
-                    product.spid = B5MHelper::GetPidByUrl(ap);
-                    product.type = Product::ATTRIB;
-                    return RESULT;
-                }
-            }
+            //NOW disable attrib based clustering
+            //std::string scategory;
+            //std::string stitle;
+            //std::string sattr;
+            //doc.getString("Category", scategory);
+            //doc.getString("Title", stitle);
+            //doc.getString("Attribute", sattr);
+            //ProductPrice price;
+            //UString uprice;
+            //doc.getString("Price", uprice);
+            //price.Parse(uprice);
+            //double dp = 0.0;
+            //price.GetMid(dp);
+            //if(dp>0.0)
+            //{
+            //    std::string ap;
+            //    try {
+            //        ap = attr_->cluster_detect(stitle, scategory, sattr, (float)dp);
+            //    }
+            //    catch(std::exception& ex)
+            //    {
+            //        ap = "";
+            //    }
+            //    if(!ap.empty())
+            //    {
+            //        product.spid = B5MHelper::GetPidByUrl(ap);
+            //        product.type = Product::ATTRIB;
+            //        return RESULT;
+            //    }
+            //}
             return NO;
         }
         else {

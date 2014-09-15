@@ -66,7 +66,7 @@ namespace lshkit {
 template <typename LSH, typename KEY>
 class ForestIndex
 {
-    BOOST_CONCEPT_ASSERT((LshConcept<LSH>));
+    //BOOST_CONCEPT_ASSERT((LshConcept<LSH>));
 public:
     typedef typename LSH::Parameter Parameter;
     typedef typename LSH::Domain Domain;

@@ -14,10 +14,8 @@ SET(libs
   idmlib
   ${ilplib_LIBRARIES}
   ${imllib_LIBRARIES}
-  ${wisekma_LIBRARIES}
   ${izenecma_LIBRARIES}
   ${izenejma_LIBRARIES}
-  ${iise_LIBRARIES}
   ${izenelib_LIBRARIES}
 
   #external
@@ -25,7 +23,6 @@ SET(libs
   ${TokyoCabinet_LIBRARIES}
   ${Glog_LIBRARIES}
   ${izenecma_LIBRARIES}
-  ${wisekma_LIBRARIES}
   ${XML2_LIBRARIES}
   ${LibCURL_LIBRARIES}
   ${ImageMagick_LIBRARIES}

@@ -25,16 +25,42 @@ struct SubDocSelector
 
 class B5mpDocGenerator
 {
+    struct SubPropsValue
+    {
+        SubPropsValue() : price(0.0)
+        {
+        }
+        SubPropsValue(const std::string& pname): name(pname), price(0.0)
+        {
+        }
+        std::string name;
+        double price;
+        std::vector<Document> docs;
+        static bool SizeCompare(const SubPropsValue& x, const SubPropsValue& y)
+        {
+            return x.docs.size()>y.docs.size();
+        }
+        static bool PriceCompare(const SubPropsValue& x, const SubPropsValue& y)
+        {
+            return x.price>y.price;
+        }
+    };
+
+    typedef boost::unordered_map<std::string, SubPropsValue> SubPropsMap;
+    typedef std::vector<SubPropsValue> SubProps;
 public:
     B5mpDocGenerator();
     void Gen(const std::vector<ScdDocument>& odocs, ScdDocument& pdoc);
 private:
     void SelectSubDocs_(std::vector<Document>& subdocs) const;
+    static bool DOCIDCompare_(const Document& x, const Document& y);
     static bool SubDocCompare_(const Document& x, const Document& y);
     static bool ReversePriceCompare_(const Document& x, const Document& y);
+    void GenSubProps_(const std::vector<ScdDocument>& odocs, SubProps& sp) const;
 
 private:
     boost::unordered_set<std::string> sub_doc_props_;
+    boost::unordered_set<std::string> subprops_props_;
     boost::unordered_map<std::string, int> subdoc_weighter_;
     boost::unordered_map<std::string, int> pic_weighter_;
     int default_source_weight_;

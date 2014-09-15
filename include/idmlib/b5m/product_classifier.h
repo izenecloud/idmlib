@@ -5,6 +5,7 @@
 #include "product_matcher.h"
 #include "ngram_processor.h"
 #include <sf1common/ScdWriter.h>
+#include <idmlib/maxent/maxentmodel.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -36,6 +37,7 @@ class ProductClassifier {
     typedef boost::unordered_map<term_t, std::size_t> CategoryCount;
     typedef izenelib::am::ssf::Reader<std::size_t> Reader;
     typedef izenelib::am::ssf::Writer<std::size_t> Writer;
+    typedef izenelib::am::ssf::Sorter<std::size_t, uint32_t, true> JointSorter;
     typedef std::pair<boost::atomic<std::size_t>, boost::atomic<std::size_t> > AtomicPair;
     struct AttributePostingItem
     {
@@ -72,6 +74,8 @@ class ProductClassifier {
     typedef NgramProcessor::NgramValue NgramValue;
     typedef NgramProcessor::NCI NCI;
     typedef NgramProcessor::NCIArray NCIArray;
+    typedef NgramDictionary<NgramValue> NgramDic;
+    typedef boost::unordered_map<word_t, NgramValue> JointDic;
     struct AnalyzeItem {
         AnalyzeItem(): price(0.0)
         {
@@ -81,9 +85,39 @@ class ProductClassifier {
         std::vector<NgramValue> ocvalues;
         double price;
     };
+
+    struct MaxentClassifier {
+
+        void Load(const std::string& model)
+        {
+            me.load(model);
+        }
+
+        void Evaluate(const std::vector<term_t>& id_list, CategoryScore& result)
+        {
+            std::vector<std::pair<std::string, float> > contexts(id_list.size());
+            for(std::size_t i=0;i<id_list.size();i++)
+            {
+                contexts[i].first = boost::lexical_cast<std::string>(id_list[i]);
+                contexts[i].second = 1.0f;
+            }
+            std::vector<std::pair<std::string, double> > me_results;
+            me.eval_all(contexts, me_results);
+            for(std::size_t i=0;i<me_results.size();i++)
+            {
+                term_t cid = boost::lexical_cast<term_t>(me_results[i].first);
+                result[cid] = me_results[i].second;
+            }
+        }
+
+    private:
+        maxent::MaxentModel me;
+
+    };
+
 public:
-    ProductClassifier(): analyzer_(NULL), oid_(1), ngram_processor_(NULL), dic_size_(0) 
-                         , p_(0), lastp_(0), time_(0.0)
+    ProductClassifier(): analyzer_(NULL), oid_(1), ngram_processor_(NULL), dic_(NULL), joint_dic_(NULL)
+                         , dic_size_(0) , p_(0), lastp_(0), time_(0.0)
     {
         recall_.push_back(NULL);
         for(std::size_t i=0;i<3;i++)
@@ -117,6 +151,10 @@ public:
         {
             if(recall_[i]!=NULL) delete recall_[i];
         }
+        for(std::size_t i=0;i<me_classifiers_.size();i++)
+        {
+            if(me_classifiers_[i]!=NULL) delete me_classifiers_[i];
+        }
     }
 
     void TryDicInsert_(Ngram& ngram)
@@ -134,6 +172,49 @@ public:
         //dic_->Insert(key, nv);
         dic_size_++;
     }
+    void TryDicInsertDirectly_(Ngram& ngram)
+    {
+        //std::cerr<<"[KEYTYPE]"<<ngram.type<<std::endl;
+        NgramValue nv(ngram);
+        nv.word = ngram.word;
+        NgramProcessor::ApplyCategoryCount(nv, category_list_);
+        if(!NgramFilter2_(nv, ngram.GetText())) return;
+        word_t key(1, nv.type);
+        key.insert(key.end(), nv.word.begin(), nv.word.end());
+        NgramProcessor::CalculateCategoryProb(nv, category_list_);
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        //dic_writer_->Append(nv);
+        dic_->Insert(key, nv);
+        dic_size_++;
+    }
+    void TryJointDicInsert_(Ngram& ngram)
+    {
+        //std::cerr<<"[KEYTYPE]"<<ngram.type<<std::endl;
+        NgramValue nv(ngram);
+        nv.word = ngram.word;
+        NgramProcessor::ApplyCategoryCount(nv, category_list_);
+        if(!DistributionFilter_(nv)) return;
+        NgramProcessor::CalculateCategoryProb(nv, category_list_);
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        joint_dic_->insert(std::make_pair(nv.word, nv));
+        dic_size_++;
+    }
+    void TryDicInsert2_(Ngram& ngram)
+    {
+        //std::cerr<<"[KEYTYPE]"<<ngram.type<<std::endl;
+        NgramValue nv(ngram);
+        nv.word = ngram.word;
+        NgramProcessor::ApplyCategoryCount(nv, category_list_);
+        if(!NgramFilter2_(nv, ngram.GetText())) return;
+        word_t key(1, nv.type);
+        key.insert(key.end(), nv.word.begin(), nv.word.end());
+        //does not minus sibling
+        NgramProcessor::CalculateCategoryProb2(nv, category_list_);
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        dic_size_++;
+        //nv.id = dic_size_;
+        dic_->Insert(key, nv);
+    }
 
     bool Load(const std::string& resource_dir)
     {
@@ -142,6 +223,7 @@ public:
         std::string dic_file= work_dir+"/dic";
         std::string file2 = work_dir+"/file2";
         std::string cid_file= work_dir+"/cid";
+        std::string maxent_done = work_dir+"/maxent/done";
         if(boost::filesystem::exists(cid_file))
         {
             Reader reader(cid_file);
@@ -165,14 +247,30 @@ public:
                 }
             }
         }
+        if(boost::filesystem::exists(maxent_done))
+        {
+            me_classifiers_.resize(category_list_.size(), NULL);
+            for(std::size_t i=0;i<category_list_.size();i++)
+            {
+                const Category& c = category_list_[i];
+                LOG(INFO)<<"[CATEGORY]"<<i<<","<<c.name<<std::endl;
+                std::string model_file = work_dir+"/maxent/"+boost::lexical_cast<std::string>(i)+".memodel";
+                if(boost::filesystem::exists(model_file))
+                {
+                    LOG(INFO)<<"Loading me model file "<<model_file<<std::endl;
+                    me_classifiers_[i] = new MaxentClassifier;
+                    me_classifiers_[i]->Load(model_file);
+                }
+            }
+        }
         if(boost::filesystem::exists(dic_file))
         {
-            ngram_processor_ = new NgramProcessor(work_dir);
+            //ngram_processor_ = new NgramProcessor(work_dir);
             Reader reader(dic_file);
             reader.Open();
             std::cerr<<"dic count "<<reader.Count()<<std::endl;
             NgramValue nv;
-            dic_ = &(ngram_processor_->GetNgramDic());
+            dic_ = new NgramDic;
             std::size_t p=0;
             while(reader.Next(nv))
             {
@@ -235,6 +333,7 @@ public:
 
     bool Train(const std::string& dir)
     {
+        //return MaxentTrain(dir);
         std::string category_file = dir+"/category";
         LoadCategoryInfo_(category_file);
         std::string spu_scd = dir+"/SPU.SCD";
@@ -300,37 +399,6 @@ public:
                     Evaluate(doc, category);
                     std::cerr<<"[CATEGORY]"<<category<<std::endl;
                 }
-                //if(dic_->Size()>0)
-                //{
-                //    std::string offer_scd = dir+"/OFFER.SCD";
-                //    ScdDocProcessor::ProcessorType p = boost::bind(&ProductClassifier::Test_, this, _1);
-                //    ScdDocProcessor sd_processor(p, 5);
-                //    sd_processor.AddInput(offer_scd);
-                //    sd_processor.Process();
-                //    for(std::size_t i=1;i<=3;i++)
-                //    {
-                //        double v = (double)recall_[i]->first/recall_[i]->second;
-                //        std::cerr<<"[STAT-RECALL]("<<i<<")"<<recall_[i]->first<<","<<recall_[i]->second<<","<<v<<std::endl;
-                //    }
-                //    for(std::size_t i=1;i<=3;i++)
-                //    {
-                //        double vaccuracy = (double)accuracy_[i]->first/accuracy_[i]->second;
-                //        std::cerr<<"[STAT-ACCURACY]("<<i<<")"<<accuracy_[i]->first<<","<<accuracy_[i]->second<<","<<vaccuracy<<std::endl;
-                //    }
-                //    double average_time = time_/recall_[1]->second;
-                //    double qps = (double)recall_[1]->second/time_;
-                //    std::cerr<<"[STAT-TIME]"<<time_<<","<<average_time<<","<<qps<<std::endl;
-                //    std::vector<std::pair<std::size_t, term_t> > error_list;
-                //    for(CategoryCount::const_iterator it = error_.begin();it!=error_.end();++it)
-                //    {
-                //        error_list.push_back(std::make_pair(it->second, it->first));
-                //    }
-                //    std::sort(error_list.begin(), error_list.end());
-                //    for(std::size_t i=0;i<error_list.size();i++)
-                //    {
-                //        std::cerr<<"[ERROR]"<<category_list_[error_list[i].second].name<<","<<error_list[i].first<<std::endl;
-                //    }
-                //}
                 return true;
             }
             else
@@ -352,6 +420,212 @@ public:
         }
         delete ngram_processor_;
         return true;
+    }
+    bool MaxentTrain(const std::string& dir)
+    {
+        std::string category_file = dir+"/category";
+        LoadCategoryInfo_(category_file);
+        std::string resource_dir = dir+"/resource";
+        if(boost::filesystem::exists(resource_dir))
+        {
+            if(!Load(resource_dir)) return false;
+        }
+        else return false;
+        std::string work_dir = resource_dir+"/work_dir";
+        std::string maxent_dir = work_dir+"/maxent";
+        if(!boost::filesystem::exists(maxent_dir))
+        {
+            boost::filesystem::create_directories(maxent_dir);
+        }
+        maxent_ofs_list_.resize(category_list_.size(), NULL);
+        for(std::size_t i=0;i<maxent_ofs_list_.size();i++)
+        {
+            const Category& c = category_list_[i];
+            if(c.is_parent)
+            {
+                std::string file = maxent_dir+"/"+boost::lexical_cast<std::string>(i)+".meinput";
+                maxent_ofs_list_[i] = new std::ofstream(file.c_str());
+            }
+        }
+        std::string offer_scd = dir+"/OFFER.SCD";
+        ScdDocProcessor::ProcessorType p = boost::bind(&ProductClassifier::OfferMaxent_, this, _1);
+        ScdDocProcessor sd_processor(p, 5);
+        sd_processor.AddInput(offer_scd);
+        sd_processor.Process();
+        for(std::size_t i=0;i<maxent_ofs_list_.size();i++)
+        {
+            if(maxent_ofs_list_[i]!=NULL)
+            {
+                maxent_ofs_list_[i]->close();
+            }
+        }
+        return true;
+    }
+    //train in second stage
+    bool JointTrain(const std::string& dir)
+    {
+        std::string category_file = dir+"/category";
+        LoadCategoryInfo_(category_file);
+        std::string resource_dir = dir+"/resource";
+        std::string work_dir = resource_dir+"/work_dir";
+        std::string mid_file = work_dir+"/mid";
+        std::string cid_file= work_dir+"/cid";
+        std::string spu_scd = dir+"/SPU.SCD";
+        std::string offer_scd = dir+"/OFFER.SCD";
+        if(boost::filesystem::exists(cid_file))
+        {
+            Reader reader(cid_file);
+            reader.Open();
+            std::pair<term_t, std::size_t> v;
+            while(reader.Next(v))
+            {
+                category_list_[v.first].offer_count = v.second;
+            }
+            reader.Close();
+            for(std::size_t i=1;i<category_list_.size();i++)
+            {
+                Category* c = &(category_list_[i]);
+                std::size_t count = c->offer_count;
+                while(true)
+                {
+                    Category* pc = &(category_list_[c->parent_cid]);
+                    pc->offer_count += count;
+                    c = pc;
+                    if(c->cid==0) break;
+                }
+            }
+        }
+        else return false;
+        std::string joint_path = work_dir+"/joint";
+        std::string file2 = joint_path+"/file2";
+        std::string joint_mid_file = joint_path+"/mid";
+        if(boost::filesystem::exists(joint_mid_file))
+        {
+            {
+                //joint_dic_ = new JointDic;
+                //NgramProcessor::Reader reader(joint_mid_file);
+                //reader.Open();
+                //std::cerr<<"TOTAL COUNT: "<<reader.Count()<<std::endl;
+                //B5mThreadPool<Ngram> pool(5, boost::bind(&ProductClassifier::TryJointDicInsert_, this, _1));
+                //Ngram* ngram = new Ngram;
+                //std::size_t p=0;
+                //dic_size_ = 0;
+                //while(reader.Next( (*ngram) ))
+                //{
+                //    ++p;
+                //    if(p%100000==0)
+                //    {
+                //        std::cerr<<"joint mid loading "<<p<<","<<dic_size_<<std::endl;
+                //    }
+                //    pool.schedule(ngram);
+                //    ngram = new Ngram;
+                //}
+                //reader.Close();
+                //pool.wait();
+            }
+            {
+                dic_size_ = 0;
+                NgramProcessor::Reader reader(mid_file);
+                reader.Open();
+                dic_ = new NgramDic;
+                std::cerr<<"TOTAL COUNT: "<<reader.Count()<<std::endl;
+                B5mThreadPool<Ngram> pool(5, boost::bind(&ProductClassifier::TryDicInsertDirectly_, this, _1));
+                Ngram* ngram = new Ngram;
+                std::size_t p=0;
+                while(reader.Next( (*ngram) ))
+                {
+                    ++p;
+                    if(p%100000==0)
+                    {
+                        std::cerr<<"mid loading "<<p<<","<<dic_size_<<std::endl;
+                    }
+                    pool.schedule(ngram);
+                    ngram = new Ngram;
+                }
+                reader.Close();
+                pool.wait();
+            }
+            Test(offer_scd, 5);
+            return true;
+        }
+        else if(boost::filesystem::exists(file2))
+        {
+            //if(boost::filesystem::exists(mid_file))
+            //{
+            //    boost::filesystem::remove_all(mid_file);
+            //}
+            ngram_processor_ = new NgramProcessor(joint_path);
+            ngram_processor_->SetMaxContextProp(1.0);//never ignore any ngram
+            ngram_processor_->Finish(boost::bind(&ProductClassifier::JointNgramProcess_, this, _1));
+            delete ngram_processor_;
+            return true;
+        }
+        if(boost::filesystem::exists(mid_file))
+        {
+            //ngram_processor_->ApplyCategory(category_list_);
+            NgramProcessor::Reader reader(mid_file);
+            reader.Open();
+            std::cerr<<"TOTAL COUNT: "<<reader.Count()<<std::endl;
+            B5mThreadPool<Ngram> pool(5, boost::bind(&ProductClassifier::TryDicInsert2_, this, _1));
+            Ngram* ngram = new Ngram;
+            std::size_t p=0;
+            dic_ = new NgramDic;
+            while(reader.Next( (*ngram) ))
+            {
+                ++p;
+                if(p%100000==0)
+                {
+                    std::cerr<<"mid loading "<<p<<","<<dic_size_<<std::endl;
+                }
+                pool.schedule(ngram);
+                ngram = new Ngram;
+            }
+            reader.Close();
+            pool.wait();
+        }
+        else return false;
+        ngram_processor_ = new NgramProcessor(joint_path);
+        ngram_processor_->SetMaxContextProp(1.0);//never ignore any ngram
+        ScdDocProcessor::ProcessorType p = boost::bind(&ProductClassifier::OfferTrain2_, this, _1);
+        ScdDocProcessor sd_processor(p, 5);
+        sd_processor.AddInput(offer_scd);
+        sd_processor.Process();
+        ngram_processor_->Finish(boost::bind(&ProductClassifier::JointNgramProcess_, this, _1));
+        delete ngram_processor_;
+        return true;
+    }
+    void Test(const std::string& scd, int thread_num = 1)
+    {
+        if(dic_->Size()>0)
+        {
+            ScdDocProcessor::ProcessorType p = boost::bind(&ProductClassifier::Test_, this, _1);
+            ScdDocProcessor sd_processor(p, thread_num);
+            sd_processor.AddInput(scd);
+            sd_processor.Process();
+            for(std::size_t i=1;i<=3;i++)
+            {
+                double v = (double)recall_[i]->first/recall_[i]->second;
+                std::cerr<<"[STAT-RECALL]("<<i<<")"<<recall_[i]->first<<","<<recall_[i]->second<<","<<v<<std::endl;
+            }
+            for(std::size_t i=1;i<=3;i++)
+            {
+                double vaccuracy = (double)accuracy_[i]->first/accuracy_[i]->second;
+                std::cerr<<"[STAT-ACCURACY]("<<i<<")"<<accuracy_[i]->first<<","<<accuracy_[i]->second<<","<<vaccuracy<<std::endl;
+            }
+            double average_time = time_/recall_[1]->second;
+            double qps = (double)recall_[1]->second/time_;
+            std::cerr<<"[STAT-TIME]"<<time_<<","<<average_time<<","<<qps<<std::endl;
+            std::vector<std::pair<std::size_t, term_t> > error_list;
+            for(CategoryCount::const_iterator it = error_.begin();it!=error_.end();++it)
+            {
+                error_list.push_back(std::make_pair(it->second, it->first));
+            }
+            std::sort(error_list.begin(), error_list.end());
+            for(std::size_t i=0;i<error_list.size();i++)
+            {
+                std::cerr<<"[ERROR]"<<category_list_[error_list[i].second].name<<","<<error_list[i].first<<std::endl;
+            }
+        }
     }
     void Evaluate(const Document& doc, std::string& category)
     {
@@ -670,31 +944,7 @@ private:
             doc.getString("Title", query);
             word_t word;
             GetWord_(query, word);
-            ngram_processor_->DicTest(word, 1, item.tvalues);
-            //for(std::size_t i=0;i<item.tvalues.size();i++)
-            //{
-            //    item.tvalues[i].weight = 0.5;
-            //}
-
-
-
-
-            //std::cerr<<"[WORD]";
-            //for(std::size_t i=0;i<word.size();i++)
-            //{
-            //    std::cerr<<word[i]<<",";
-            //}
-            //std::cerr<<std::endl;
-            //for(std::size_t v=0;v<item.tvalues.size();v++)
-            //{
-            //    const word_t& vword = item.tvalues[v].word;
-            //    std::cerr<<"[TWORD]";
-            //    for(std::size_t i=0;i<vword.size();i++)
-            //    {
-            //        std::cerr<<vword[i]<<",";
-            //    }
-            //    std::cerr<<std::endl;
-            //}
+            dic_->Search(word, 1, item.tvalues);
         }
         if(param[1])
         {
@@ -706,7 +956,8 @@ private:
             {
                 const Word& word = sentence[i];
                 std::vector<NgramValue> values;
-                ngram_processor_->DicTest(word.word, 2, values);
+                dic_->Search(word.word, 2, values);
+                //ngram_processor_->DicTest(word.word, 2, values);
                 item.ocvalues.insert(item.ocvalues.end(), values.begin(), values.end());
                 //std::vector<NgramValue> tvalues;
                 //ngram_processor_->DicTest(word.word, 1, tvalues);
@@ -715,7 +966,7 @@ private:
         }
         if(param[2])
         {
-            //item.price = ProductPrice::ParseDocPrice(doc, "Price");
+            item.price = ProductPrice::ParseDocPrice(doc, "Price");
         }
         //std::cerr<<"[A]"<<item.tvalues.size()<<","<<item.ocvalues.size()<<std::endl;
         
@@ -923,6 +1174,36 @@ private:
             NgramValue& nv = item.ocvalues[i];
             Calculate_(item, nv, pcid, cscore);
         }
+        if(!me_classifiers_.empty()&& (!item.tvalues.empty()||!item.ocvalues.empty()))
+        {
+            MaxentClassifier* mc = me_classifiers_[pcid];
+            //mc = NULL;
+            if(mc!=NULL)
+            {
+                std::vector<term_t> ids(item.tvalues.size());
+                ids.reserve(item.tvalues.size()+item.ocvalues.size());
+                for(std::size_t i=0;i<item.tvalues.size();i++)
+                {
+                    term_t id = GenNVID_(item.tvalues[i].word, false);
+                    ids.push_back(id);
+                }
+                for(std::size_t i=0;i<item.ocvalues.size();i++)
+                {
+                    term_t id = GenNVID_(item.ocvalues[i].word, true);
+                    ids.push_back(id);
+                }
+                CategoryScore me_score;
+                mc->Evaluate(ids, me_score);
+                for(CategoryScore::iterator it=cscore.begin();it!=cscore.end();++it)
+                {
+                    double mes = 0.0;
+                    CategoryScore::const_iterator meit = me_score.find(it->first);
+                    if(meit!=me_score.end()) mes = meit->second;
+                    //it->second *= mes*mes;
+                    it->second *= mes;
+                }
+            }
+        }
         std::pair<double, term_t> max(0.0, 0);
         for(CategoryScore::iterator it=cscore.begin();it!=cscore.end();++it)
         {
@@ -980,6 +1261,9 @@ private:
         std::string line;
         std::ifstream ifs(file.c_str());
         category_list_.resize(1);
+        category_list_[0].is_parent = true;
+        category_list_[0].depth = 0;
+        category_list_[0].cid = 0;
         while(getline(ifs, line))
         {
             boost::algorithm::trim(line);
@@ -1216,13 +1500,114 @@ private:
         }
         ngram_processor_->Insert(ngram_list);
     }
-    void Test_(ScdDocument& doc)
+    term_t GenNVID_(const word_t& word, bool is_oc) const
     {
-        std::size_t p = p_.fetch_add(1)+1;
+        word_t key;
+        if(is_oc) key.push_back(0);
+        key.insert(key.end(), word.begin(), word.end());
+        return hasher_(key);
+    }
+    void OfferTrain2_(ScdDocument& doc)
+    {
+        AnalyzeItem item;
+        std::bitset<3> param;
+        param[0] = true;
+        param[1] = false;
+        param[2] = false;
+        Analyze_(doc, param, item);
+        word_t ids;
+        for(std::size_t i=0;i<item.tvalues.size();i++)
+        {
+            term_t id = GenNVID_(item.tvalues[i].word, false);
+            ids.push_back(id);
+            //std::cerr<<"[ID]"<<ids.back()<<std::endl;
+        }
+        //std::cerr<<std::endl;
+        if(ids.size()<2) return;
+        std::sort(ids.begin(), ids.end());
+        std::string category;
+        std::string title;
+        doc.getString("Category", category);
+        doc.getString("Title", title);
+        term_t cid=0;
+        if(!GetCategoryId_(category, cid)) return;
+        double price = ProductPrice::ParseDocPrice(doc, "Price");
+        term_t oid = oid_.fetch_add(1);
+        Ngram ngram;
+        ngram.word = ids;
+        ngram.type = 1;
+        ngram.freq = 1;
+        ngram.oid = oid;
+        NCI nci;
+        nci.cid = cid;
+        nci.freq = 1;
+        nci.price = price;
+        ngram.nci_array.push_back(nci);
+        std::vector<Ngram> ngram_list(1, ngram);
+        ngram_processor_->Insert(ngram_list);
+    }
+
+    void OfferMaxent_(ScdDocument& doc)
+    {
         static boost::mt19937 gen;
         boost::uniform_int<term_t> dist(1, 100);
         term_t rv = dist(gen);
-        if(rv!=1) return;
+        if(rv>5) return;
+        std::string category;
+        std::string title;
+        std::string original_category;
+        doc.getString("Category", category);
+        term_t cid=0;
+        if(!GetCategoryId_(category, cid)) return;
+        std::vector<term_t> cid_list;
+        while(true)
+        {
+            cid_list.push_back(cid);
+            if(cid==0) break;
+            cid = category_list_[cid].parent_cid;
+        }
+        std::reverse(cid_list.begin(), cid_list.end());
+        AnalyzeItem item;
+        std::bitset<3> param;
+        param[0] = true;
+        param[1] = true;
+        param[2] = false;
+        Analyze_(doc, param, item);
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        if(!item.tvalues.empty()||!item.ocvalues.empty())
+        {
+            for(std::size_t i=0;i<cid_list.size()-1;i++)
+            {
+                term_t cid = cid_list[i];
+                //const Category& c = category_list_[cid];
+                //if(c.depth==0&&rv>5) continue;
+                //if(c.depth==1&&rv>20) continue;
+                //if(c.depth==2&&rv>50) continue;
+                term_t child = cid_list[i+1];
+                std::ofstream& ofs = *(maxent_ofs_list_[cid]);
+                ofs<<child;
+                for(std::size_t i=0;i<item.tvalues.size();i++)
+                {
+                    term_t id = GenNVID_(item.tvalues[i].word, false);
+                    ofs<<" "<<id;
+                }
+                for(std::size_t i=0;i<item.ocvalues.size();i++)
+                {
+                    term_t id = GenNVID_(item.ocvalues[i].word, true);
+                    ofs<<" "<<id;
+                }
+                ofs<<std::endl;
+            }
+        }
+    }
+
+    void Test_(ScdDocument& doc)
+    {
+        std::size_t p = p_.fetch_add(1)+1;
+        //static boost::mt19937 gen;
+        //boost::uniform_int<term_t> dist(1, 100);
+        //term_t rv = dist(gen);
+        //if(rv!=1) return;
         std::string category;
         std::string title;
         std::string original_category;
@@ -1237,7 +1622,7 @@ private:
         if(!GetCategoryId_(category, cid)) return;
         //if(boost::algorithm::starts_with(category, book_category_)) return;
         int64_t level = 3;
-        int64_t method = 2;
+        int64_t method = 1;
         doc.property("Level") = level;
         doc.property("Method") = method;
         std::string tcategory;
@@ -1310,6 +1695,12 @@ private:
         }
     }
 
+    bool JointNgramProcess_(Ngram& ngram)
+    {
+        uint32_t freq = ngram.dfreq;
+        if(freq<30) return false;
+        return true;
+    }
 
     bool NgramProcess_(Ngram& ngram)
     {
@@ -1511,6 +1902,57 @@ private:
         return true;
 
     }
+    bool DistributionFilter_(const NgramValue& nv, double en_limit_enlarge = 1.0)
+    {
+        CategoryScore cid_score;
+        for(std::size_t i=1;i<category_list_.size();i++)
+        {
+            const Category& c = category_list_[i];
+            term_t cid = c.cid;
+            if(c.depth!=2) continue;
+            cid_score[cid] = 0.0;
+        }
+        double csize = cid_score.size();
+        double en_max = std::log(csize)/std::log(2.0);
+        double en_limit = en_max*0.3*en_limit_enlarge;
+        double prop_sum = 0.0;
+        double max_prop = 0.0;
+        for(std::size_t i=1;i<category_list_.size();i++)
+        {
+            const Category& c = category_list_[i];
+            term_t cid = c.cid;
+            if(c.depth!=2) continue;
+            NgramValue::const_iterator it = nv.find(cid);
+            if(it==nv.end()) continue;
+            const NCI& nci = it->second;
+            //double score = nv.category_distrib[n].second;
+            std::size_t count = nci.freq;
+            double prop = (double)count/c.offer_count;
+            //std::cerr<<"[D]"<<cid<<","<<c.name<<","<<count<<","<<c.offer_count<<std::endl;
+            if(prop>max_prop) max_prop = prop;
+            prop_sum += prop;
+            cid_score[cid] = prop;
+        }
+        double max_prop_limit = 1e-5;
+        //std::cerr<<"[S0]"<<max_prop<<","<<prop_sum<<std::endl;
+        double en = 0.0;
+        for(CategoryScore::iterator it = cid_score.begin();it!=cid_score.end();++it)
+        {
+            it->second /= prop_sum;
+            double p = it->second;
+            if(p>0.0)
+            {
+                en += p*std::log(p)/std::log(2.0);
+            }
+        }
+        en *= -1.0;
+        //std::cerr<<"[ENLIMIT]"<<text<<","<<cid_score.size()<<","<<en_max<<","<<en_limit<<","<<en<<","<<max_prop<<std::endl;
+        if(max_prop<max_prop_limit) return false;
+        //std::cerr<<"[S]"<<first_level_count<<","<<en<<","<<max_prop<<","<<prop_sum<<std::endl;
+        if(en>en_limit) return false;
+        //if(ut.length()==2 && en>0.5) return false;
+        return true;
+    }
     bool NgramFilter2_(const NgramValue& nv, const std::string& text)
     {
         UString ut(text, UString::UTF_8);
@@ -1583,6 +2025,7 @@ private:
             //else return true;
             en_limit_enlarge = 1.2;
         }
+        return DistributionFilter_(nv, en_limit_enlarge);
         CategoryScore cid_score;
         for(std::size_t i=1;i<category_list_.size();i++)
         {
@@ -1655,6 +2098,10 @@ private:
     NgramProcessor* ngram_processor_;
     Writer* dic_writer_;
     NgramProcessor::NgramDic* dic_;
+    JointDic* joint_dic_;
+    std::vector<std::ofstream*> maxent_ofs_list_;
+    std::vector<MaxentClassifier*> me_classifiers_;
+    izenelib::util::HashIDTraits<word_t, term_t> hasher_;
     std::vector<Category> category_list_;
     CategoryIndex category_index_;
     std::string book_category_;

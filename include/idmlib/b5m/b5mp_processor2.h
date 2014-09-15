@@ -46,9 +46,30 @@ public:
             sorter.SetSorterBin(b5mm_.sorter_bin);
         }
 
-        bool succ = sorter.StageTwo(last_m, b5mm_.thread_num);
+        bool succ = sorter.StageTwo(last_m);
         LOG(INFO)<<"b5mp merger finish with succ status : "<<succ<<std::endl;
-        return succ;
+        if(!succ) return false;
+        if(b5mm_.gen_b5mq&&!b5mm_.rtype)
+        {
+            const std::string& b5mq_path = b5mm_.b5mq_path;
+            B5MHelper::PrepareEmptyDir(b5mq_path);
+            LOG(INFO)<<"start b5mq on "<<b5mq_path<<std::endl;
+            const std::string& b5mo_path = b5mm_.b5mo_path;
+            std::string cmd = "/opt/b5mq_preprocess/do.sh -i "+b5mo_path+" -o "+b5mq_path+" -n "+boost::lexical_cast<std::string>(b5mm_.thread_num)+" -t /opt/b5mq_preprocess/working_dir";
+            if(b5mm_.mode>0)
+            {
+                cmd += " -r";
+            }
+            LOG(INFO)<<"[cmd]"<<cmd<<std::endl;
+            int status = system(cmd.c_str());
+            if(status!=0)
+            {
+                LOG(ERROR)<<"cmd error"<<std::endl;
+                return false;
+            }
+            LOG(INFO)<<"b5mq end"<<std::endl;
+        }
+        return true;
     }
 
 private:

@@ -10,7 +10,6 @@ SET(libs
   idmlib
   ${ilplib_LIBRARIES}
   ${imllib_LIBRARIES}
-  ${wisekma_LIBRARIES}
   ${izenecma_LIBRARIES}
   ${izenejma_LIBRARIES}
   ${izenelib_LIBRARIES}

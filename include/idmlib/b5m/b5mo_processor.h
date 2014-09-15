@@ -13,7 +13,12 @@
 #include "matcher_status.h"
 #include "b5m_m.h"
 #include <knlp/attr_normalize.h>
+#include <knlp/get_tags.h>
+#include <idmlib/maxent_title/maxent_title.h>
+#include <util/BloomFilter.h>
 #include <boost/atomic.hpp>
+#include <3rdparty/msgpack/rpc/client.h>
+#include <3rdparty/msgpack/rpc/session_pool.h>
 //#include <sf1r-net/RpcServerConnectionConfig.h>
 
 NS_IDMLIB_B5M_BEGIN
@@ -45,6 +50,7 @@ private:
     void PendingProcess_(ScdDocument& doc);
 
     bool OMap_(const OriginalMapper& omapper, Document& doc) const;
+    void RankProcess_(ScdDocument& doc);
 
 private:
     B5mM b5mm_;
@@ -64,10 +70,15 @@ private:
     boost::unordered_set<uint128_t> changed_match_;
     boost::shared_mutex mutex_;
     ilplib::knlp::AttributeNormalize* attr_;
+    ilplib::knlp::GetTags* tag_extractor_;
+    izenelib::util::BloomFilter<std::string>* rank_filter_;
+    idmlib::knlp::Maxent_title* maxent_title_;
+
     MatcherStatus status_;
-    //boost::atomic<uint32_t> stat1_;
-    //boost::atomic<uint32_t> stat2_;
-    //boost::atomic<uint32_t> stat3_;
+    boost::atomic<uint32_t> spumatch_count_;
+    boost::shared_ptr<msgpack::rpc::client> classifier_;
+    boost::shared_ptr<msgpack::rpc::client> comment_;
+    msgpack::rpc::session_pool* sp_;
 };
 
 NS_IDMLIB_B5M_END

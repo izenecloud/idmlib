@@ -20,16 +20,100 @@ B5mpDocGenerator::B5mpDocGenerator()
     sub_doc_props_.insert("isFreeDelivery");
     sub_doc_props_.insert("isCOD");
     sub_doc_props_.insert("isGenuine");
-    //sub_doc_props_.clear();
+    subprops_props_.insert("DOCID");
+    subprops_props_.insert("Title");
+    subprops_props_.insert("Price");
+    subprops_props_.insert("Url");
+    subprops_props_.insert("Source");
     default_source_weight_ = 1;
-    subdoc_weighter_.insert(std::make_pair("卓越亚马逊", 10));
+    subdoc_weighter_.insert(std::make_pair("亚马逊", 10));
     subdoc_weighter_.insert(std::make_pair("京东商城", 9));
     subdoc_weighter_.insert(std::make_pair("天猫", 8));
     subdoc_weighter_.insert(std::make_pair("淘宝网", 0));
-    pic_weighter_.insert(std::make_pair("卓越亚马逊", 10));
+    pic_weighter_.insert(std::make_pair("亚马逊", 10));
     pic_weighter_.insert(std::make_pair("京东商城", 9));
     pic_weighter_.insert(std::make_pair("天猫", 0));
     pic_weighter_.insert(std::make_pair("淘宝网", 0));
+}
+void B5mpDocGenerator::GenSubProps_(const std::vector<ScdDocument>& odocs, SubProps& sp) const
+{
+    static const std::size_t max_size = 3u;
+    SubPropsMap spm;
+    for(std::size_t i=0;i<odocs.size();i++)
+    {
+        const ScdDocument& doc = odocs[i];
+        if(doc.type==NOT_SCD||doc.type==DELETE_SCD)
+        {
+            continue;
+        }
+        Document subdoc;
+        for(ScdDocument::property_const_iterator it=doc.propertyBegin();it!=doc.propertyEnd();++it)
+        {
+            if(subprops_props_.find(it->first)!=subprops_props_.end())
+            {
+                const std::string& svalue = it->second.get<std::string>();
+                if(svalue.empty()) continue;
+                subdoc.property(it->first) = it->second;
+            }
+        }
+        if(subdoc.getPropertySize()!=subprops_props_.size()) continue;
+        //std::string sdocid;
+        //subdoc.getString("DOCID", sdocid);
+        //std::string sprice;
+        //subdoc.getString("Price", sprice);
+        //std::cerr<<"(AAA)"<<sdocid<<","<<sprice<<std::endl;
+        std::string subprop;
+        doc.getString(B5MHelper::GetSubPropPropertyName(), subprop);
+        SubPropsMap::iterator it = spm.find(subprop);
+        if(it==spm.end())
+        {
+            SubPropsValue v(subprop);
+            v.docs.push_back(subdoc);
+            spm.insert(std::make_pair(subprop, v));
+        }
+        else
+        {
+            it->second.docs.push_back(subdoc);
+        }
+    }
+    //do some filtering here.
+    for(SubPropsMap::iterator it = spm.begin();it!=spm.end();it++)
+    {
+        SubPropsValue& v = it->second;
+        std::sort(v.docs.begin(), v.docs.end(), DOCIDCompare_);
+        if(v.docs.size()>1)
+        {
+            sp.push_back(v);
+        }
+    }
+    std::sort(sp.begin(), sp.end(), SubPropsValue::SizeCompare);
+    if(sp.size()>max_size)
+    {
+        sp.resize(max_size);
+    }
+
+    for(SubProps::iterator it = sp.begin();it!=sp.end();it++)
+    {
+        double min_price = 0.0;
+        for(std::size_t i=0;i<it->docs.size();i++)
+        {
+            const Document& doc = it->docs[i];
+            double price = ProductPrice::ParseDocPrice(doc);
+            if(min_price==0.0 || price<min_price)
+            {
+                min_price = price;
+            }
+            //const Document& subdoc = doc;
+            //std::string sdocid;
+            //subdoc.getString("DOCID", sdocid);
+            //std::string sprice;
+            //subdoc.getString("Price", sprice);
+            //std::cerr<<"(BBB)"<<sdocid<<","<<sprice<<std::endl;
+        }
+        it->price = min_price;
+        SelectSubDocs_(it->docs);
+    }
+    std::sort(sp.begin(), sp.end(), SubPropsValue::PriceCompare);
 }
 void B5mpDocGenerator::Gen(const std::vector<ScdDocument>& odocs, ScdDocument& pdoc)
 {
@@ -54,6 +138,8 @@ void B5mpDocGenerator::Gen(const std::vector<ScdDocument>& odocs, ScdDocument& p
     std::size_t comment_count=0;
     std::size_t comment_count_number = 0;
     std::vector<Attribute> attributes;
+    std::vector<double> price_list;
+    price_list.reserve(odocs.size());
     //std::cerr<<"b5mp gen "<<pid<<","<<odocs.size()<<std::endl;
     for(uint32_t i=0;i<odocs.size();i++)
     {
@@ -83,7 +169,7 @@ void B5mpDocGenerator::Gen(const std::vector<ScdDocument>& odocs, ScdDocument& p
                     subdoc.property(it->first) = it->second;
                 }
             }
-            if(subdoc.getPropertySize()>0)
+            if(subdoc.getPropertySize()>0&&subdoc.hasProperty("Title"))
             {
                 subdocs.push_back(subdoc);
             }
@@ -127,6 +213,7 @@ void B5mpDocGenerator::Gen(const std::vector<ScdDocument>& odocs, ScdDocument& p
                 url = uurl;
             }
         }
+        price_list.push_back(price.Mid());
         if(usource.length()>0)
         {
             std::string ssource = propstr_to_str(usource);
@@ -163,6 +250,13 @@ void B5mpDocGenerator::Gen(const std::vector<ScdDocument>& odocs, ScdDocument& p
                 //std::cerr<<"comment count error: ["<<ccount<<"] on oid "<<oid<<std::endl;
             }
         }
+    }
+    if(!price_list.empty())
+    {
+        std::sort(price_list.begin(), price_list.end(), std::greater<double>());
+        uint32_t ref_pos = (uint32_t)(0.25*price_list.size());
+        if(ref_pos>=price_list.size()) ref_pos = price_list.size()-1;
+        pdoc.property(B5MHelper::RefPricePN()) = price_list[ref_pos];
     }
     UString uattrib = ProductMatcher::AttributesText(attributes);
     if(!uattrib.empty())
@@ -227,6 +321,34 @@ void B5mpDocGenerator::Gen(const std::vector<ScdDocument>& odocs, ScdDocument& p
         JsonDocument::ToJsonText(subdocs, text);
         pdoc.property(B5MHelper::GetSubDocsPropertyName()) = ustr_to_propstr(text);
     }
+    //gen subprops
+    if(itemcount>1)
+    {
+        SubProps sp;
+        GenSubProps_(odocs, sp);
+        Json::Value json(Json::arrayValue);
+        json.resize(sp.size());
+        std::size_t p=0;
+        std::size_t vcount=0;
+        for(SubProps::const_iterator it = sp.begin(); it!=sp.end();it++,p++)
+        {
+            const SubPropsValue& v = *it;
+            Json::Value& ijson = json[p];
+            ijson["name"] = v.name;
+            ijson["price"] = v.price;
+            Json::Value docs_json(Json::arrayValue);
+            JsonDocument::ToJson(v.docs, docs_json);
+            ijson["docs"] = docs_json;
+            if(!v.name.empty()) vcount++;
+        }
+        if(vcount>=2)//when no debug, set vcount>=0
+        {
+            std::string json_str;
+            JsonDocument::JsonToString(json, json_str);
+            pdoc.property(B5MHelper::GetSubPropsPropertyName()) = str_to_propstr(json_str);
+        }
+        pdoc.eraseProperty(B5MHelper::GetSubPropPropertyName());
+    }
 
     pdoc.property("DOCID") = pid;
     pdoc.property("itemcount") = itemcount;
@@ -263,6 +385,14 @@ void B5mpDocGenerator::Gen(const std::vector<ScdDocument>& odocs, ScdDocument& p
         pdoc.type=DELETE_SCD;
         pdoc.clearExceptDOCID();
     }
+}
+bool B5mpDocGenerator::DOCIDCompare_(const Document& x, const Document& y)
+{
+    std::string xstr;
+    std::string ystr;
+    x.getString("DOCID", xstr);
+    y.getString("DOCID", ystr);
+    return xstr<ystr;
 }
 
 bool B5mpDocGenerator::SubDocCompare_(const Document& x, const Document& y)

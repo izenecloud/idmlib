@@ -35,6 +35,26 @@ struct Category
         ar & name & cid & parent_cid & is_parent & depth & has_spu;
     }
 };
+struct CategoryManager {
+    typedef boost::unordered_map<std::string, uint32_t> Index;
+    std::vector<Category> data;
+    Index index;
+    bool GetCategoryId_(const std::string& category, uint32_t& cid) const
+    {
+        if(boost::algorithm::ends_with(category, ">"))
+        {
+            std::string str = category.substr(0, category.length()-1);
+            Index::const_iterator it = index.find(str);
+            if(it==index.end()) return false;
+            cid = it->second;
+            return true;
+        }
+        Index::const_iterator it = index.find(category);
+        if(it==index.end()) return false;
+        cid = it->second;
+        return true;
+    }
+};
 struct Attribute
 {
     std::string name;
@@ -90,12 +110,14 @@ struct Product
     double score;
     //int type;
     Type type;
+    std::string sub_prop;
+    boost::regex sub_prop_regex;
     std::string why;
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-        ar & spid & stitle & scategory & spic & surl & smarket_time & cid & price & attributes & display_attributes & filter_attributes & sbrand & aweight & tweight & title_obj;
+        ar & spid & stitle & scategory & spic & surl & smarket_time & cid & price & attributes & display_attributes & filter_attributes & sbrand & aweight & tweight & title_obj & sub_prop;
     }
 
     static bool FCategoryCompare(const Product& p1, const Product& p2)

@@ -795,9 +795,15 @@ void HotelProcessor::ProcessDoc_(ScdDocument& doc)
 void HotelProcessor::GenP_(const std::vector<Document>& docs, Document& pdoc)
 {
     pdoc.property("DOCID") = docs.front().property("uuid");
+    double min_price = -1.0;
     for(std::size_t i=0;i<docs.size();i++)
     {
         pdoc.merge(docs[i], false);
+        double price = ProductPrice::ParseDocPrice(docs[i], "SalesPrice");
+        if(min_price<0.0 || price<min_price)
+        {
+            min_price = price;
+        }
     }
     for(std::size_t i=0;i<docs.size();i++)
     {
@@ -808,6 +814,10 @@ void HotelProcessor::GenP_(const std::vector<Document>& docs, Document& pdoc)
             pdoc.property("Img") = str_to_propstr(img);
             break;
         }
+    }
+    if(min_price>=0.0)
+    {
+        pdoc.property("SalesPrice") = min_price;
     }
     int64_t spread=0;
     bool spread_set = false;

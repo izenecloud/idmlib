@@ -87,6 +87,7 @@ public:
         std::vector<ScdDocument> diff_odocs;
         ScdDocument pdoc;
         ScdDocument adoc;
+        //std::vector<ScdDocument> oequi_docs;
     };
     B5moSorter(const std::string& m, uint32_t mcount=100000);
 
@@ -104,9 +105,10 @@ public:
     void Append(const ScdDocument& doc, const std::string& ts, int flag=0);
 
     bool StageOne();
-    bool StageTwo(const std::string& last_m, int thread_num=1);
+    bool StageTwo(const std::string& last_m);
 
 private:
+    bool StageTwoRtype_();
     void WriteValue_(std::ofstream& ofs, const Value& value);
     static bool PidCompare_(const Value& doc1, const Value& doc2)
     {
@@ -144,6 +146,7 @@ private:
     static void ODocMerge_(std::vector<ScdDocument>& vec, const ScdDocument& doc);
     static void ODocMerge_(std::vector<Value>& vec, const Value& doc);
     static void SetAttributes_(std::vector<Value>& values, const ScdDocument& pdoc);
+    void GenExtraOProperties_(std::vector<Value>& values, const ScdDocument& pdoc);
     bool GenMirrorBlock_(const std::string& mirror_path);
     bool GenMBlock_();
     void GenOutputPDoc_(ScdDocument& pdoc, const ScdDocument& prev_pdoc, uint32_t min_ic=1);
@@ -166,6 +169,7 @@ private:
     boost::shared_ptr<OrderedWriter> ordered_writer_;
     boost::shared_ptr<ScdTypeWriter> pwriter_;
     boost::shared_ptr<ScdTypeWriter> awriter_;
+    //boost::shared_ptr<ScdTypeWriter> oequi_writer_;
     B5mpDocGenerator pgenerator_;
     Json::Reader json_reader_;
     MutexType mutex_;

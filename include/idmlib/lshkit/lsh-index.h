@@ -30,6 +30,7 @@
 #include "common.h"
 #include "topk.h"
 #include "archive.h"
+#include <boost/thread/mutex.hpp>
 
 namespace lshkit {
 
@@ -53,13 +54,28 @@ public:
 
 protected:
     typedef std::vector<Key> Bin;
-
+    const static int N_MTX = 512;
     std::vector<LSH> lshs_;
     std::vector<std::vector<Bin> > tables_;
-
+    std::vector<boost::mutex*>* mtx_;
 public:
     /// Constructor.
-    LshIndex() {
+    LshIndex() 
+    {
+        mtx_ = new std::vector<boost::mutex*>(N_MTX, NULL);
+        for (int i = 0; i < N_MTX; ++i)
+        {
+            (*mtx_)[i] = new boost::mutex();
+        }
+    }
+
+    ~LshIndex()
+    {
+        for (int i = 0; i < N_MTX; ++i)
+        {
+            delete (*mtx_)[i];
+        }
+        delete mtx_;
     }
 
     /// Initialize the hash tables.
@@ -149,7 +165,10 @@ public:
     {
         for (unsigned i = 0; i < lshs_.size(); ++i) {
             unsigned index = lshs_[i](value);
-            tables_[i][index].push_back(key);
+            {
+                boost::unique_lock<boost::mutex> uniqueLock(*(*mtx_)[(i * index) % N_MTX]);
+                tables_[i][index].push_back(key);
+            }
         }
     }
 

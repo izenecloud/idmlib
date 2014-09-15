@@ -8,10 +8,6 @@ FILE(GLOB duplicate-detection_SRC
   "duplicate-detection/*.cc"
   )
 
-FILE(GLOB nec_SRC
-  "nec/*.cpp"
-  "nec/*.cc"
-)
 
 FILE(GLOB keyphrase_extraction_SRC
   "keyphrase-extraction/*.cpp"
@@ -29,11 +25,6 @@ FILE(GLOB concept-clustering_SRC
 FILE(GLOB query-suggestion_SRC
   "query-suggestion/*.cpp"
   "query-suggestion/*.cc"
-)
-
-FILE(GLOB dc_SRC
-  "dc/*.cpp"
-  "dc/*.cc"
 )
 
 FILE(GLOB itemset_SRC
@@ -80,15 +71,20 @@ FILE(GLOB_RECURSE  b5m_SRC
   "b5m/*.cpp"
   "b5m/*.cc"
 )
+FILE(GLOB_RECURSE  para2vec_SRC
+  "para2vec/*.cpp"
+)
+FILE(GLOB_RECURSE  maxent_SRC
+  "maxent/*.cpp"
+  "maxent/*.cc"
+)
 ADD_DEFINITIONS("-fopenmp -Wunused-variable") 
 ADD_LIBRARY(idmlib
   ${keyphrase_extraction_SRC}
   ${duplicate-detection_SRC}
-  ${nec_SRC}
   ${query-correction_SRC}
   ${concept-clustering_SRC}
   ${query-suggestion_SRC}
-  ${dc_SRC}
   ${itemset_SRC}
   ${util_SRC}
   ${wiki_SRC}
@@ -100,6 +96,8 @@ ADD_LIBRARY(idmlib
   ${topicmodels_SRC}
   ${lshkit_SRCS}
   ${b5m_SRC}
+  ${para2vec_SRC}
+  ${maxent_SRC}
 )
 
 INSTALL(TARGETS idmlib

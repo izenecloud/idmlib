@@ -31,7 +31,7 @@ class Apss
       {
         if(x%100==0)
         {
-          std::cout<<"x:"<<x<<std::endl;
+          std::cerr<<"x:"<<x<<std::endl;
         }
         std::vector<double> score(x, 0.0);
         const izenelib::am::SparseVector<double, KK>& vec = matrix[x];
@@ -43,7 +43,7 @@ class Apss
           izenelib::am::SparseVector<double, K>& index_col = inverted_index[col];
           for(K i=0;i<index_col.value.size();i++)
           {
-//             std::cout<<"score index:"<<index_col.value[i].first<<std::endl;
+//             std::cerr<<"score index:"<<index_col.value[i].first<<std::endl;
             score[index_col.value[i].first] += value*index_col.value[i].second;
           }
         }
@@ -75,7 +75,7 @@ class Apss
       {
         return;
       }
-      std::cout<<"x count : "<<normal_matrix_reader.Count()<<std::endl;
+      std::cerr<<"x count : "<<normal_matrix_reader.Count()<<std::endl;
       IdType x = 0;
 //       IdType id;
 //       izenelib::am::SparseVector<double, KK> vec;
@@ -83,7 +83,7 @@ class Apss
       {
         if(x%100==0)
         {
-          std::cout<<"x:"<<x<<std::endl;
+          std::cerr<<"x:"<<x<<std::endl;
         }
 
         std::vector<double> score(x, 0.0);
@@ -138,7 +138,7 @@ class Apss
       {
         return;
       }
-      std::cout<<"x count : "<<normal_matrix_reader.Count()<<std::endl;
+      std::cerr<<"x count : "<<normal_matrix_reader.Count()<<std::endl;
       IdType x = 0;
       IdType id;
 //       izenelib::am::SparseVector<double, KK> vec;
@@ -146,7 +146,7 @@ class Apss
       {
         if(x%100==0)
         {
-          std::cout<<"x:"<<x<<std::endl;
+          std::cerr<<"x:"<<x<<std::endl;
         }
 
         std::vector<double> score;
@@ -212,7 +212,7 @@ class Apss
       {
         return;
       }
-      std::cout<<"x count : "<<normal_matrix_reader.Count()<<std::endl;
+      std::cerr<<"x count : "<<normal_matrix_reader.Count()<<std::endl;
       std::size_t x = 0;
 //       IdType id;
 //       izenelib::am::SparseVector<double, KK> vec;
@@ -220,7 +220,7 @@ class Apss
       {
         if(x%100==0)
         {
-          std::cout<<"m1:"<<x<<std::endl;
+          std::cerr<<"m1:"<<x<<std::endl;
         }
         for(uint32_t i=0;i<vec.value.size();i++)
         {
@@ -231,7 +231,7 @@ class Apss
       normal_matrix_reader.Close();
       mapper1.Close();
       izenelib::am::ssf::Sorter<uint32_t, KK>::Sort(mapper1.GetPath());
-      std::cout<<"mapper 1 finished"<<std::endl;
+      std::cerr<<"mapper 1 finished"<<std::endl;
       
       //mapper2
       izenelib::am::ssf::Writer<> mapper2(work_dir+"/map2");
@@ -248,9 +248,9 @@ class Apss
         {
             if(x%1==0)
             {
-                std::cout<<"j1: "<<x<<std::endl;
+                std::cerr<<"j1: "<<x<<std::endl;
             }
-            std::cout<<"j1 size:"<<value_list.size()<<std::endl;
+            std::cerr<<"j1 size:"<<value_list.size()<<std::endl;
             for(uint32_t i=0;i<value_list.size();i++)
             {
                 for(uint32_t j=i+1;j<value_list.size();j++)
@@ -272,7 +272,7 @@ class Apss
       }
       mapper2.Close();
       izenelib::am::ssf::Sorter<uint32_t, std::pair<IdType, IdType> >::Sort(mapper2.GetPath());
-      std::cout<<"mapper 2 finished"<<std::endl;
+      std::cerr<<"mapper 2 finished"<<std::endl;
       {
         izenelib::am::ssf::Joiner<uint32_t, std::pair<IdType, IdType>, float > joiner2(mapper2.GetPath());
         joiner2.Open();
@@ -284,10 +284,10 @@ class Apss
         {
             if(x%100000==0)
             {
-                std::cout<<"j2: "<<x<<std::endl;
+                std::cerr<<"j2: "<<x<<std::endl;
             }
             float sum = 0;
-//             std::cout<<"j2:"<<key_pair.first<<","<<key_pair.second<<std::endl;
+//             std::cerr<<"j2:"<<key_pair.first<<","<<key_pair.second<<std::endl;
             for(uint32_t i=0;i<value_list.size();i++)
             {
                 sum+=value_list[i];
@@ -309,7 +309,7 @@ class Apss
       {
         if(i%100==0)
         {
-          std::cout<<"ComputeNaive "<<i<<" , "<<time_string_()<<std::endl;
+          std::cerr<<"ComputeNaive "<<i<<" , "<<time_string_()<<std::endl;
         }
 
   //       VectorType& vec = RIType::GetVector(i);

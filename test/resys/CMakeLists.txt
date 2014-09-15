@@ -11,10 +11,8 @@ SET(libs
   idmlib
   ${ilplib_LIBRARIES}
   ${imllib_LIBRARIES}
-  ${wisekma_LIBRARIES}
   ${izenecma_LIBRARIES}
   ${izenejma_LIBRARIES}
-  ${iise_LIBRARIES}
   ${izenelib_LIBRARIES}
   ${TokyoCabinet_LIBRARIES}
   ${XML2_LIBRARIES}

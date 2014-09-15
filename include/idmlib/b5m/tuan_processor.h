@@ -9,6 +9,8 @@
 #include <boost/unordered_map.hpp>
 #include <sf1common/ScdWriter.h>
 #include <sf1common/PairwiseScdMerger.h>
+#include "address_extract.h"
+
 NS_IDMLIB_B5M_BEGIN
 
 class TuanProcessor{
@@ -39,7 +41,7 @@ class TuanProcessor{
             double min = std::min(mid1, mid2);
             if(min<=0.0) return false;
             double ratio = max/min;
-            if(ratio>2.0) return false;
+            if(ratio>1.01) return false;
             if(area_array.empty()&&other.area_array.empty()) return true;
             bool found = false;
             uint32_t i=0,j=0;
@@ -98,6 +100,68 @@ private:
     uint128_t GetOid_(const Document& doc);
     void ProductMerge_(SValueType& value, const SValueType& another_value);
 
+
+//add by wangbaobao@b5m.com begin---------------------------------------------------------
+	
+	//pre-process shop-system scd files
+	//only store the useful information like merchant area merchant address shop name and docid.
+	struct ShopSystemAux
+	{
+		std::string					   docid;
+		std::string					   address;
+		std::string					   shop_name;
+		AddressExtract::EvaluateResult address_evaluate;
+	};
+	
+	struct Frequence
+	{
+		Frequence()
+		{
+			freq[0] = 0;
+			freq[1] = 0;
+		}
+		size_t freq[2];
+	};
+
+	typedef std::pair<std::string, std::string>            CityAreaPair;
+	typedef boost::unordered_map<CityAreaPair, std::vector<ShopSystemAux> > ShopSystemMap;
+	typedef boost::unordered_set<std::string>			   NGramSet;
+	typedef boost::unordered_map<std::string, std::string> ShopTuanMap;
+	typedef boost::unordered_map<std::string, Frequence>   WordFreqMap;
+
+private:
+	size_t UTF8Length(char z);
+
+	inline void BuildShopids(std::string &shopids, const std::string &id)
+	{
+		shopids += id;
+		shopids += ",";
+	}
+
+	int InitAddressModule(const std::string &knowledge_path);
+
+	int  PreprocessShopSystem(const std::string& scd_path);
+
+	void MatchShop();
+
+	void Ngram(const std::string &value, size_t max_size, std::vector<std::string> &out_ngram);
+	
+	bool JudgeSimilar(const std::string &name1, const std::string &name2);
+
+	bool JudgeSimilar_v2(const std::string &name1, const std::string &name2);
+	
+private:
+	bool		   is_init_;
+	//train knowledge path
+	//std::string	   knowledge_path_;
+	//shop docid mapping tuan docid
+	ShopTuanMap   shop_tuan_map_;
+	//shop system cache
+	ShopSystemMap shop_cache_;
+	//address normalization module
+	AddressExtract address_extractor_;
+	
+//add by wangbaobao@b5m.com end-------------------------------------------------------------------------
 private:
     B5mM b5mm_;
     std::string cma_path_;

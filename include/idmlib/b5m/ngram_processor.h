@@ -198,7 +198,10 @@ public:
             std::cerr<<"[INDEX]"<<index<<std::endl;
 #endif
             NgramSer ns;
-            ns.text.assign(text.begin()+index, text.end());
+            if(index<text.size())
+            {
+                ns.text.assign(text.begin()+index, text.end());
+            }
             ns.nci_array = nci_array;
             
             int64_t li = index;
@@ -412,7 +415,7 @@ public:
     typedef boost::function<bool (Ngram& ngram)> Processor;
     typedef NgramDictionary<NgramValue> NgramDic;
 
-    NgramProcessor(const std::string& path): path_(path), suffix_count_(0), mid_size_(0)
+    NgramProcessor(const std::string& path): path_(path), max_context_prop_(0.9), suffix_count_(0), mid_size_(0)
     {
         if(!boost::filesystem::exists(path_))
         {
@@ -442,6 +445,11 @@ public:
         //    }
         //    reader.Close();
         //}
+    }
+
+    void SetMaxContextProp(double v)
+    {
+        max_context_prop_ = v;
     }
 
     NgramDic& GetNgramDic()
@@ -561,6 +569,38 @@ public:
                 //std::cerr<<"pc c offer_count "<<pc.offer_count<<","<<c.offer_count<<std::endl;
                 rscore = (double)(pcount-count)/(pc.offer_count-c.offer_count);
             }
+            double score = (double)count/c.offer_count;
+            score -= rscore;
+            nci.prob = score;
+        }
+    }
+    //does not minus the prob of sibling
+    static void CalculateCategoryProb2(NgramValue& nv, const std::vector<Category>& category_list)
+    {
+        for(NgramValue::iterator it = nv.begin();it!=nv.end();++it)
+        {
+            term_t cid = it->first;
+            if(cid==0) continue;
+            NCI& nci = it->second;
+            std::size_t count = nci.freq;
+            const Category& c = category_list[cid];
+            //const Category& pc = category_list[c.parent_cid];
+            std::size_t pcount = count;
+            NgramValue::const_iterator pit = nv.find(c.parent_cid);
+            if(pit==nv.end())
+            {
+                std::cerr<<"!!!!!err "<<cid<<","<<c.parent_cid<<std::endl;
+            }
+            else
+            {
+                pcount = pit->second.freq;
+            }
+            double rscore = 0.0;
+            //if(pc.offer_count>c.offer_count)
+            //{
+            //    //std::cerr<<"pc c offer_count "<<pc.offer_count<<","<<c.offer_count<<std::endl;
+            //    rscore = (double)(pcount-count)/(pc.offer_count-c.offer_count);
+            //}
             double score = (double)count/c.offer_count;
             score -= rscore;
             nci.prob = score;
@@ -775,7 +815,10 @@ private:
                 Ngram ngram;
                 ngram.type = base_ngram.type;
                 ngram.word.assign(base_ngram.word.begin(), base_ngram.word.begin()+r);
-                ngram.text.assign(base_ngram.text.begin(), base_ngram.text.begin()+r);
+                if(base_ngram.text.size()>=r)
+                {
+                    ngram.text.assign(base_ngram.text.begin(), base_ngram.text.begin()+r);
+                }
                 for(std::size_t j=i;j<input.size();j++)
                 {
                     const Ngram& ngramj = input[j];
@@ -816,7 +859,7 @@ private:
                 }
                 double max_lc_prop = (double)max_lc/ngram.freq;
                 double max_rc_prop = (double)max_rc/ngram.freq;
-                if(max_lc_prop>=0.9||max_rc_prop>=0.9) continue;
+                if(max_lc_prop>max_context_prop_||max_rc_prop>max_context_prop_) continue;
                 TryOutput_(ngram);
                 //if(stack.empty())
                 //{
@@ -889,6 +932,7 @@ private:
 private:
     std::string path_;
     std::string dic_path_;
+    double max_context_prop_;
     std::string suffix_path_;
     std::size_t suffix_count_;
     //std::ofstream suffix_writer_;

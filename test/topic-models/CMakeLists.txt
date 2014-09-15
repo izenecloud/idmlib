@@ -21,7 +21,6 @@ SET(libs
   ${TokyoCabinet_LIBRARIES}
   ${Glog_LIBRARIES}
   ${izenecma_LIBRARIES}
-  ${wisekma_LIBRARIES}
   ${izenejma_LIBRARIES}
   ${XML2_LIBRARIES}
   ${LibCURL_LIBRARIES}

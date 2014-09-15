@@ -5,6 +5,7 @@
 #include "b5m_types.h"
 #include "brand_manager.h"
 #include "category_psm.h"
+#include "spu_matcher.h"
 #include <boost/regex.hpp>
 #include <boost/atomic.hpp>
 #include <boost/unordered_map.hpp>
@@ -595,30 +596,26 @@ public:
         is_open_ = true;
     }
     bool OpenPsm(const std::string& path);
+    void SetBrandExtractor(const boost::shared_ptr<msgpack::rpc::client>& be)
+    {
+        spu_matcher_->SetBrandExtractor(be);
+    }
     //static void Clear(const std::string& path, int mode=3);
     static std::string GetVersion(const std::string& path);
     static std::string GetAVersion(const std::string& path);
     static std::string GetRVersion(const std::string& path);
     bool Index(const std::string& path, const std::string& scd_path, int mode, int thread_num);
-    bool IndexPost(const std::string& path, const std::string& scd_path, int thread_num);
-    void Test(const std::string& scd_path);
-    bool OutputCategoryMap(const std::string& scd_path, const std::string& output_file);
     bool DoMatch(const std::string& scd_path, const std::string& output_file="");
-    bool FuzzyDiff(const std::string& scd_path, const std::string& output_file="");
-    bool Process(const Document& doc, Product& result_product, bool use_fuzzy = false, bool use_psm=true);
-    bool Process(const Document& doc, uint32_t limit, std::vector<Product>& result_products, bool use_fuzzy = false, bool use_psm=true);
-    void GetFrontendCategory(const UString& text, uint32_t limit, std::vector<UString>& results);
+    bool Process(const Document& doc, Product& result_product);
     static bool GetIsbnAttribute(const Document& doc, std::string& isbn);
     static bool ProcessBookStatic(const Document& doc, Product& result_product);
     bool ProcessBook(const Document& doc, Product& result_product);
-    bool GetProduct(const std::string& pid, Product& product);
+    //bool GetProduct(const std::string& pid, Product& product);
     static void ParseAttributes(const UString& ustr, std::vector<Attribute>& attributes);
     static void MergeAttributes(std::vector<Attribute>& eattributes, const std::vector<Attribute>& attributes);
     static UString AttributesText(const std::vector<Attribute>& attributes);
-    //return true if this is a complete match, else false: to return parent nodes
-    bool GetFrontendCategory(UString& backend, UString& frontend) const;
     bool GetKeyword(const UString& text, KeywordTag& tag);
-    void GetKeywords(const ATermList& term_list, KeywordVector& keyword_vector, bool bfuzzy = false, cid_t cid=0);
+    void GetKeywords(const ATermList& term_list, KeywordVector& keyword_vector, cid_t cid=0);
     void GetKeywords(const UString& text, KeywordVector& keywords);
     void ExtractKeywordsFromPage(const UString& text, std::list<std::pair<UString, std::pair<uint32_t, uint32_t> > >&res_ca, std::list<std::pair<UString, std::pair<uint32_t, uint32_t> > >&res_brand, std::list<std::pair<UString, std::pair<uint32_t, uint32_t> > >&res_model);
     void ExtractKeywordsFromPage(const UString& text, std::list<std::pair<UString, std::pair<uint32_t, uint32_t> > >& res);
@@ -692,13 +689,9 @@ private:
 
     //void AnalyzeImpl_(idmlib::util::IDMAnalyzer* analyzer, const izenelib::util::UString& text, std::vector<izenelib::util::UString>& result);
 
+    void ProcessSubProp_(const Document& doc, Product& product);
 
     void GetPsmKeywords_(const KeywordVector& keywords, const std::string& scategory, std::vector<std::string>& brands, std::vector<std::string>& ckeywords) const;
-    void IndexOffer_(const std::string& offer_scd, int thread_num);
-    void OfferProcess_(ScdDocument& doc);
-    void PostProcess_(ScdDocument& doc);
-    void IndexFuzzy_();
-    void ProcessFuzzy_(const std::pair<uint32_t, uint32_t>& range);
 
     void GenSuffixes_(const std::vector<term_t>& term_list, Suffixes& suffixes);
     void GenSuffixes_(const std::string& text, Suffixes& suffixes);
@@ -710,38 +703,13 @@ private:
     void GetTerms_(const std::string& text, std::vector<term_t>& term_list);
     void GetTerms_(const UString& text, std::vector<term_t>& term_list);
     void GetTermsString_(const UString& text, std::string& str);//analyzing first, then combine
-    bool NeedFuzzy_(const std::string& value);
     void ConstructKeywords_();
     void AddKeyword_(const UString& text);
     void ConstructKeywordTrie_(const TrieType& suffix_trie);
-    void GetFuzzyKeywords_(const ATermList& term_list, KeywordVector& keyword_vector, cid_t cid);
-    void SearchKeywordsFilter_(std::vector<KeywordTag>& keywords);
-    bool EqualOrIsParent_(uint32_t parent, uint32_t child) const;
-    void GenCategoryContributor_(const KeywordTag& tag, CategoryContributor& cc);
-    void MergeCategoryContributor_(CategoryContributor& cc, const CategoryContributor& cc2);
-    void GenSpuContributor_(const KeywordTag& tag, SpuContributor& sc);
-    void Compute_(const Document& doc, const std::vector<Term>& term_list, KeywordVector& keyword_vector, uint32_t limit, std::vector<Product>& p);
-    void Compute2_(const Document& doc, const std::vector<Term>& term_list, KeywordVector& keywords, uint32_t limit, std::vector<Product>& result_products, std::string& why);
-    void ComputeT_(const Document& doc, const std::vector<Term>& term_list, KeywordVector& keywords, uint32_t limit, std::vector<Product>& result_products);
     uint32_t GetCidBySpuId_(uint32_t spu_id);
     uint32_t GetCidByMaxDepth_(uint32_t cid);
     cid_t GetCid_(const UString& category) const;
 
-    bool IsSpuMatch_(const Product& p, const SpuContributorValue& scv, double query_len) const;
-    bool SpuMatched_(const WeightType& weight, const Product& p) const;
-    int SelectKeyword_(const KeywordTag& tag1, const KeywordTag& tag2) const;
-    bool IsFuzzyMatched_(const ATermList& keyword, const FuzzyApp& app) const;
-
-    cid_t GetLevelCid_(const std::string& scategory, uint32_t level) const;
-    void GenFeatureVector_(const std::vector<KeywordTag>& keywords, FeatureVector& feature_vector) const;
-    void FeatureVectorAdd_(FeatureVector& o, const FeatureVector& a) const;
-    void FeatureVectorNorm_(FeatureVector& v) const;
-    void GenFeatureVector_(const std::vector<KeywordTag>& keywords, NFeatureVector& feature_vector) const;
-    void FeatureVectorAdd_(NFeatureVector& o, const NFeatureVector& a) const;
-    void FeatureVectorAdd_(NFeatureVector& o, const std::vector<KeywordTag>& keywords) const;
-    void FeatureVectorNorm_(NFeatureVector& v) const;
-    void FeatureVectorConvert_(const NFeatureVector& n, FeatureVector& v) const;
-    double Cosine_(const FeatureVector& v1, const FeatureVector& v2) const;
 
     static uint32_t TextLength_(const std::string& text)
     {
@@ -815,8 +783,6 @@ private:
         }
     }
 
-    void SetProductsPrice_(bool use_offer);
-
     bool IsBrand_(const std::string& scategory, const KeywordTag& k) const;
 
 
@@ -863,6 +829,7 @@ private:
     boost::regex type_regex_;
     boost::regex vol_regex_;
     std::string book_category_;
+    boost::unordered_set<std::string> invalid_isbn_;
 
     std::map<string, size_t> synonym_map_;
     std::vector<std::vector<string> > synonym_dict_;
@@ -877,6 +844,7 @@ private:
     //NgramFrequent nf_;
     bool use_psm_;
     //std::vector<CategoryPsm*> psms_;
+    SpuMatcher* spu_matcher_;
     CategoryPsm* psm_;
     BrandManager* brand_manager_;
     boost::unordered_map<uint128_t, uint128_t> psm_result_;

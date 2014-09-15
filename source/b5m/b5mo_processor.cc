@@ -17,7 +17,7 @@ using namespace idmlib::b5m;
 
 B5moProcessor::B5moProcessor(const B5mM& b5mm)
 :b5mm_(b5mm), odb_(NULL), matcher_(NULL), sorter_(NULL), omapper_(NULL), mode_(0)
-,attr_(NULL)
+,attr_(NULL), tag_extractor_(NULL), rank_filter_(NULL), maxent_title_(NULL), sp_(NULL)
 {
     status_.AddCategoryGroup("^电脑办公.*$","电脑办公", 0.001);
     status_.AddCategoryGroup("^手机数码>手机$","手机", 0.001);
@@ -33,6 +33,10 @@ B5moProcessor::~B5moProcessor()
 {
     if(odb_!=NULL) delete odb_;
     if(matcher_!=NULL) delete matcher_;
+    if(tag_extractor_!=NULL) delete tag_extractor_;
+    if(rank_filter_!=NULL) delete rank_filter_;
+    if(maxent_title_!=NULL) delete maxent_title_;
+    if(sp_!=NULL) delete sp_;
 }
 void B5moProcessor::LoadMobileSource(const std::string& file)
 {
@@ -75,6 +79,14 @@ void B5moProcessor::Process(ScdDocument& doc)
     {
         type = NOT_SCD;
         return;
+    }
+
+    if(type==UPDATE_SCD&&rank_filter_!=NULL)
+    {
+        if(rank_filter_->Get(sdocid))
+        {
+            doc.property(B5MHelper::RawRankPN()) = (int64_t)10000;
+        }
     }
 
     //format Price property
@@ -173,37 +185,48 @@ void B5moProcessor::PendingProcess_(ScdDocument& doc)
 }
 void B5moProcessor::ProcessIUProduct_(ScdDocument& doc, Product& product, const std::string& old_spid)
 {
+    if(product.type==Product::PENDING)
+    {
+        doc.type = NOT_SCD;
+        return;
+    }
+    if(product.type==Product::SPU&&!product.stitle.empty())
+    {
+        //if(boost::algorithm::starts_with(product.scategory, "美容美妆"))
+        //{
+        //    spumatch_count_.fetch_add(1);
+        //}
+        spumatch_count_.fetch_add(1);
+        //std::cerr<<"[M]"<<title<<","<<product.stitle<<"\t["<<sdocid<<","<<scategory<<","<<product.spid<<"]"<<std::endl;
+    }
     SCD_TYPE type = UPDATE_SCD;
     std::string sdocid;
     doc.getString("DOCID", sdocid);
     std::string title;
     doc.getString("Title", title);
+    std::string scategory;
+    doc.getString("Category", scategory);
     std::string spid;
-    if(product.type==Product::BOOK)
-    {
-        doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("BOOK");
-    }
-    else if(product.type==Product::SPU)
-    {
-        doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("SPU");
-    }
-    else if(product.type==Product::FASHION)
-    {
-        doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("FASHION");
-    }
-    else if(product.type==Product::ATTRIB)
-    {
-        doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("ATTRIB");
-    }
-    else if(product.type==Product::PENDING)
-    {
-        doc.type = NOT_SCD;
-        return;
-    }
-    else
-    {
-        doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("NOTP");
-    }
+    //if(product.type==Product::BOOK)
+    //{
+    //    doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("BOOK");
+    //}
+    //else if(product.type==Product::SPU)
+    //{
+    //    doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("SPU");
+    //}
+    //else if(product.type==Product::FASHION)
+    //{
+    //    doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("FASHION");
+    //}
+    //else if(product.type==Product::ATTRIB)
+    //{
+    //    doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("ATTRIB");
+    //}
+    //else
+    //{
+    //    doc.property(B5MHelper::GetProductTypePropertyName()) = str_to_propstr("NOTP");
+    //}
     std::string original_attribute;
     doc.getString("Attribute", original_attribute);
     if(!product.spid.empty())
@@ -255,16 +278,56 @@ void B5moProcessor::ProcessIUProduct_(ScdDocument& doc, Product& product, const 
     {
         spid = sdocid;
     }
+    std::string knn;
+    doc.getString("KNN", knn);
+    if(!knn.empty())
+    {
+        std::string sattrib;
+        doc.getString("Attribute", sattrib);
+        if(!sattrib.empty())
+        {
+            sattrib = sattrib+",KNN:"+knn;
+        }
+        else
+        {
+            sattrib = "KNN:"+knn;
+        }
+        doc.property("Attribute") = str_to_propstr(sattrib);
+        doc.eraseProperty("KNN");
+    }
     if(!product.stitle.empty() && !title.empty())
     {
         doc.property(B5MHelper::GetSPTPropertyName()) = str_to_propstr(product.stitle);
     }
-    std::string scategory;
-    doc.getString("Category", scategory);
     if(!scategory.empty()) 
     {
         scategory+=">";
         doc.property("Category") = str_to_propstr(scategory);
+    }
+    if(!title.empty()&&tag_extractor_!=NULL)
+    {
+        std::vector<std::string> tags;
+        try {
+            tags = tag_extractor_->get_tags(title);
+        }
+        catch(std::exception& ex)
+        {
+            LOG(ERROR)<<"get tags error for "<<title<<std::endl;
+        }
+        if(!tags.empty())
+        {
+            std::stringstream ss;
+            for(std::size_t i=0;i<tags.size();i++)
+            {
+                if(i>0) ss<<",";
+                ss<<tags[i];
+            }
+            std::string tag_str = ss.str();
+            if(!tag_str.empty())
+            {
+                doc.property(B5MHelper::GetTagsPropertyName()) = str_to_propstr(tag_str);
+            }
+        }
     }
     if(!product.spic.empty() && !title.empty())
     {
@@ -289,6 +352,10 @@ void B5moProcessor::ProcessIUProduct_(ScdDocument& doc, Product& product, const 
     {
         doc.property(B5MHelper::GetBrandPropertyName()) = str_to_propstr(product.sbrand);
     }
+    if(!product.sub_prop.empty() && !title.empty())
+    {
+        doc.property(B5MHelper::GetSubPropPropertyName()) = str_to_propstr(product.sub_prop);
+    }
     doc.property("uuid") = str_to_propstr(spid);
     if(old_spid!=spid)
     {
@@ -304,31 +371,50 @@ void B5moProcessor::ProcessIUProduct_(ScdDocument& doc, Product& product, const 
     }
     ScdDocument sdoc(doc, type);
     sorter_->Append(sdoc, ts_);
+    if(spid==old_spid)
+    {
+        doc.eraseProperty("uuid");
+    }
 }
 void B5moProcessor::EstimateSA_(ScdDocument& doc)
 {
+    std::size_t count = 0;
+    std::string scount;
+    doc.getString(B5MHelper::GetCommentCountPropertyName(), scount);
+    if(!scount.empty())
+    {
+        try {
+            count = boost::lexical_cast<std::size_t>(scount);
+        }
+        catch(std::exception& ex)
+        {
+            count = 0;
+        }
+    }
+    if(count==0&&mode_>0&&!b5mm_.comment_ip.empty())
+    {
+        std::string docid;
+        doc.getString("DOCID", docid);
+        msgpack::rpc::session se = sp_->get_session(b5mm_.comment_ip, b5mm_.comment_port);
+        uint32_t icount = se.call("get",docid).get<uint32_t>();
+        count = icount;
+        if(count!=0)
+        {
+            //std::cerr<<"[C]"<<docid<<","<<count<<std::endl;
+            doc.property(B5MHelper::GetCommentCountPropertyName()) = boost::lexical_cast<std::string>(count);
+        }
+    }
     std::string source;
     doc.getString("Source", source);
-    if(!source.empty()&&source!="淘宝网"&&source!="天猫")
+    if(count>0&&!source.empty()&&source!="淘宝网"&&source!="天猫")
     {
-        std::string ccount;
-        doc.getString(B5MHelper::GetCommentCountPropertyName(), ccount);
         std::string samount;
         doc.getString(B5MHelper::GetSalesAmountPropertyName(), samount);
-        if(!ccount.empty()&&samount.empty())
+        if(samount.empty())
         {
-            try {
-                std::size_t m = boost::lexical_cast<std::size_t>(ccount);
-                if(m>0)
-                {
-                    int64_t sa = B5MHelper::CommentCountToSalesAmount(m);
-                    doc.property(B5MHelper::GetSalesAmountPropertyName()) = 
-                      str_to_propstr(boost::lexical_cast<std::string>(sa));
-                }
-            }
-            catch(std::exception& ex)
-            {
-            }
+            int64_t sa = B5MHelper::CommentCountToSalesAmount(count);
+            doc.property(B5MHelper::GetSalesAmountPropertyName()) = 
+              str_to_propstr(boost::lexical_cast<std::string>(sa));
         }
     }
 }
@@ -342,21 +428,29 @@ void B5moProcessor::ProcessIU_(ScdDocument& doc, bool force_match)
     doc.eraseProperty("FilterAttribute");
     doc.eraseProperty("DisplayAttribute");
     doc.eraseProperty(B5MHelper::GetBrandPropertyName());
-    Document::doc_prop_value_strtype category;
-    doc.getProperty("Category", category);
+    std::string category;
+    doc.getString("Category", category);
     if(category.empty()&&omapper_!=NULL)
     {
         OMap_(*omapper_, doc);
     }
+    category.clear();
+    doc.getString("Category", category);
     EstimateSA_(doc);
+    //{
+    //    if(category.empty())
+    //    {
+    //        uint32_t debug2 = debug2_.fetch_add(1);
+    //        if(debug2%100000==0)
+    //        {
+    //            LOG(INFO)<<"un-categorized "<<debug2<<std::endl;
+    //        }
+    //    }
+    //}
     //Document::doc_prop_value_strtype title;
     //doc.getProperty("Title", title);
     std::string title;
     doc.getString("Title", title);
-    if(!title.empty())
-    {
-        force_match = true;
-    }
     //std::string stitle = propstr_to_str(title);
     //brand.convertString(sbrand, UString::UTF_8);
     //std::cerr<<"[ABRAND]"<<sbrand<<std::endl;
@@ -400,6 +494,10 @@ void B5moProcessor::ProcessIU_(ScdDocument& doc, bool force_match)
     {
         need_do_match = true;
     }
+    else if(!title.empty()&&!category.empty())
+    {
+        need_do_match = true;
+    }
     if(attr_!=NULL)
     {
         std::string sattr;
@@ -419,17 +517,57 @@ void B5moProcessor::ProcessIU_(ScdDocument& doc, bool force_match)
     Product product;
     if(need_do_match)
     {
-        matcher_->Process(doc, product, true);
+        std::string oc;
+        doc.getString("OriginalCategory", oc);
+        //process maxent title
+        if(maxent_title_!=NULL)
+        {
+            std::string source;
+            doc.getString("Source", source);
+            double price = ProductPrice::ParseDocPrice(doc);
+            try{
+                std::string mt = maxent_title_->predict(title, category, oc, (float)price, source);
+                if(!mt.empty())
+                {
+                    doc.property("KNN") = str_to_propstr(mt);
+                }
+            }
+            catch(std::exception& ex)
+            {
+            }
+        }
+        if(category.empty()&&!b5mm_.classifier_ip.empty())
+        {
+            msgpack::rpc::session se = sp_->get_session(b5mm_.classifier_ip, b5mm_.classifier_port);
+            double price = ProductPrice::ParseDocPrice(doc);
+            if(price<0.0) price = 0.0;
+            try {
+                std::string ecategory = se.call("classify",title, oc, price, 1, 1).get<std::string>();
+                doc.property("Category") = str_to_propstr(ecategory);
+            }
+            catch(std::exception& ex)
+            {
+                //maybe server down, ignore;
+            }
+        }
+        matcher_->Process(doc, product);
+        if(product.type==Product::SPU&&!product.spid.empty())//spu matched
+        {
+            if(category.empty())
+            {
+                doc.property("Category") = str_to_propstr(product.scategory);
+            }
+        }
+        else if(category.empty())
+        {
+            doc.property("Category") = str_to_propstr("");
+        }
         status_.Insert(doc, product);
     }
     else
     {
         product.spid = spid;
-        //if(!spid.empty()&&spid!=sdocid)//maybe a book
-        //{
-        //    product.spid = spid;
-        //}
-        matcher_->GetProduct(spid, product);
+        //matcher_->GetProduct(spid, product);
     }
     ProcessIUProduct_(doc, product, old_spid);
     //if(debug)
@@ -467,6 +605,32 @@ bool B5moProcessor::Generate(const std::string& mdb_instance, const std::string&
     const std::string& scd_path = b5mm_.scd_path;
     int thread_num = b5mm_.thread_num;
     //thread_num = 1;
+    mode_ = b5mm_.mode;
+    spumatch_count_ = 0;
+    LOG(INFO)<<"B5moGenerator start, mode "<<mode_<<", thread_num "<<thread_num<<", scd "<<scd_path<<std::endl;
+    if(mode_>0&&!b5mm_.rank_scd_path.empty())
+    {
+        LOG(INFO)<<"start to load rank scd"<<std::endl;
+        std::string rscd;
+        if(!B5mM::GetLatestScdPath(b5mm_.rank_scd_path, rscd))
+        {
+            LOG(INFO)<<"no rank scd available"<<std::endl;
+        }
+        else
+        {
+            std::size_t count = ScdParser::getScdDocCount(rscd);
+            double prob = 1.0/count;
+            rank_filter_ = new izenelib::util::BloomFilter<std::string>(count, prob);
+            ScdDocProcessor::ProcessorType p = boost::bind(&B5moProcessor::RankProcess_, this, _1);
+            ScdDocProcessor sd_processor(p, 1);
+            sd_processor.AddInput(rscd);
+            sd_processor.Process();
+        }
+    }
+    if(!b5mm_.maxent_title_knowledge.empty())
+    {
+        maxent_title_ = new idmlib::knlp::Maxent_title(b5mm_.maxent_title_knowledge);
+    }
     const std::string& knowledge = b5mm_.knowledge;
     matcher_ = new ProductMatcher;
     matcher_->SetCmaPath(b5mm_.cma_path);
@@ -474,10 +638,21 @@ bool B5moProcessor::Generate(const std::string& mdb_instance, const std::string&
     else
     {
         if(!matcher_->Open(knowledge)) return false;
+        if(!b5mm_.brand_ip.empty())
+        {
+            LOG(INFO)<<"start to init brand msgpack rpc at "<<b5mm_.brand_ip<<":"<<b5mm_.brand_port<<std::endl;
+            try {
+                boost::shared_ptr<msgpack::rpc::client> be(new msgpack::rpc::client(b5mm_.brand_ip, b5mm_.brand_port));
+                matcher_->SetBrandExtractor(be);
+            }
+            catch(std::exception& ex)
+            {
+                LOG(ERROR)<<"brand init error "<<ex.what()<<std::endl;
+                return false;
+            }
+        }
     }
     attr_ = matcher_->GetAttributeNormalize();
-    mode_ = b5mm_.mode;
-    LOG(INFO)<<"B5moGenerator start, mode "<<mode_<<", thread_num "<<thread_num<<", scd "<<scd_path<<std::endl;
     std::string odb_path = B5MHelper::GetOdbPath(mdb_instance);
     if(bfs::exists(odb_path))
     {
@@ -503,11 +678,14 @@ bool B5moProcessor::Generate(const std::string& mdb_instance, const std::string&
             return false;
         }
         LOG(INFO)<<"copying "<<last_odb_path<<" to "<<odb_path<<std::endl;
-        izenelib::util::filesystem::copy_directory(last_odb_path, odb_path);
+        izenelib::util::filesystem::recursive_copy_directory(last_odb_path, odb_path);
         LOG(INFO)<<"copy finished"<<std::endl;
-        LOG(INFO)<<"copying "<<last_psm_path<<" to "<<psm_path<<std::endl;
-        izenelib::util::filesystem::copy_directory(last_psm_path, psm_path);
-        LOG(INFO)<<"copy finished"<<std::endl;
+        if(!b5mm_.rtype)
+        {
+            LOG(INFO)<<"copying "<<last_psm_path<<" to "<<psm_path<<std::endl;
+            izenelib::util::filesystem::recursive_copy_directory(last_psm_path, psm_path);
+            LOG(INFO)<<"copy finished"<<std::endl;
+        }
     }
     odb_ = new OfferDb(odb_path);
     odb_->set_lazy_mode();
@@ -527,12 +705,47 @@ bool B5moProcessor::Generate(const std::string& mdb_instance, const std::string&
     }
     if(!knowledge.empty())
     {
+        std::cerr<<"before open psm"<<std::endl;
         if(!matcher_->OpenPsm(psm_path))
         {
             LOG(ERROR)<<"open psm error"<<std::endl;
             return false;
         }
     }
+    sp_ = new msgpack::rpc::session_pool();
+    if(b5mm_.mode>0)
+    {
+        sp_->start(b5mm_.thread_num*2+2);
+    }
+    else
+    {
+        sp_->start(b5mm_.thread_num+2);
+    }
+    //if(!b5mm_.classifier_ip.empty())
+    //{
+    //    LOG(INFO)<<"start to init classifier msgpack rpc at "<<b5mm_.classifier_ip<<":"<<b5mm_.classifier_port<<std::endl;
+    //    try {
+    //        classifier_.reset(new msgpack::rpc::client(b5mm_.classifier_ip, b5mm_.classifier_port));
+    //    }
+    //    catch(std::exception& ex)
+    //    {
+    //        LOG(ERROR)<<"classifier init error "<<ex.what()<<std::endl;
+    //        classifier_.reset();
+    //    }
+    //}
+    //if(!b5mm_.comment_ip.empty())
+    //{
+    //    LOG(INFO)<<"start to init comment msgpack rpc at "<<b5mm_.comment_ip<<":"<<b5mm_.comment_port<<std::endl;
+    //    try {
+    //        comment_.reset(new msgpack::rpc::client(b5mm_.comment_ip, b5mm_.comment_port));
+    //    }
+    //    catch(std::exception& ex)
+    //    {
+    //        LOG(ERROR)<<"comment init error "<<ex.what()<<std::endl;
+    //        comment_.reset();
+    //        return false;
+    //    }
+    //}
     //std::string output_dir = B5MHelper::GetB5moPath(mdb_instance);
     std::string output_dir = b5mm_.b5mo_path;
     B5MHelper::PrepareEmptyDir(output_dir);
@@ -547,58 +760,67 @@ bool B5moProcessor::Generate(const std::string& mdb_instance, const std::string&
         omapper_->Open(omapper_path);
         LOG(INFO)<<"Omapper opened"<<std::endl;
     }
+    if(b5mm_.gen_tags&&!b5mm_.rtype)
+    {
+        if(b5mm_.tag_knowledge.empty())
+        {
+            LOG(ERROR)<<"tag knowledge does not specify"<<std::endl;
+            return false;
+        }
+        tag_extractor_ = new ilplib::knlp::GetTags(b5mm_.tag_knowledge);
+    }
     writer_.reset(new ScdTypeWriter(output_dir));
     ts_ = bfs::path(mdb_instance).filename().string();
     last_ts_="";
     if(!last_mdb_instance.empty())
     {
         last_ts_ = bfs::path(last_mdb_instance).filename().string();
-        std::string last_omapper_path = B5MHelper::GetOMapperPath(last_mdb_instance);
-        if(bfs::exists(last_omapper_path))
-        {
-            OriginalMapper last_omapper;
-            last_omapper.Open(last_omapper_path);
-            if(bfs::exists(omapper_path))
-            {
-                last_omapper.Diff(omapper_path);
-                if(last_omapper.Size()>0)
-                {
-                    LOG(INFO)<<"Omapper changed, size "<<last_omapper.Size()<<std::endl;
-                    last_omapper.Show();
-                    std::string last_mirror = B5MHelper::GetB5moMirrorPath(last_mdb_instance);
-                    std::string last_block = last_mirror+"/block";
-                    std::ifstream ifs(last_block.c_str());
-                    std::string line;
-                    B5mThreadPool<LastOMapperItem> pool(thread_num, boost::bind(&B5moProcessor::OMapperChange_, this, _1));
-                    std::size_t p=0;
-                    while( getline(ifs, line))
-                    {
-                        ++p;
-                        if(p%100000==0)
-                        {
-                            LOG(INFO)<<"Processing omapper change "<<p<<std::endl;
-                        }
-                        LastOMapperItem* item = new LastOMapperItem;
-                        item->last_omapper = &last_omapper;
-                        item->writer = writer_.get();
-                        item->text = line;
-                        pool.schedule(item);
-                        //boost::algorithm::trim(line);
-                        //B5moSorter::Value value;
-                        //if(!value.Parse(line, &json_reader)) continue;
-                        //if(!OMap_(last_omapper, value.doc)) continue;
-                        //value.doc.type = UPDATE_SCD;
-                        //ProcessIU_(value.doc, true);
-                        //writer->Append(value.doc, value.doc.type);
-                    }
-                    pool.wait();
-                    ifs.close();
-                    odb_->flush();
-                    LOG(INFO)<<"Omapper changing finished"<<std::endl;
-                }
-            }
+        //std::string last_omapper_path = B5MHelper::GetOMapperPath(last_mdb_instance);
+        //if(bfs::exists(last_omapper_path))
+        //{
+        //    OriginalMapper last_omapper;
+        //    last_omapper.Open(last_omapper_path);
+        //    if(bfs::exists(omapper_path))
+        //    {
+        //        last_omapper.Diff(omapper_path);
+        //        if(last_omapper.Size()>0)
+        //        {
+        //            LOG(INFO)<<"Omapper changed, size "<<last_omapper.Size()<<std::endl;
+        //            last_omapper.Show();
+        //            std::string last_mirror = B5MHelper::GetB5moMirrorPath(last_mdb_instance);
+        //            std::string last_block = last_mirror+"/block";
+        //            std::ifstream ifs(last_block.c_str());
+        //            std::string line;
+        //            B5mThreadPool<LastOMapperItem> pool(thread_num, boost::bind(&B5moProcessor::OMapperChange_, this, _1));
+        //            std::size_t p=0;
+        //            while( getline(ifs, line))
+        //            {
+        //                ++p;
+        //                if(p%100000==0)
+        //                {
+        //                    LOG(INFO)<<"Processing omapper change "<<p<<std::endl;
+        //                }
+        //                LastOMapperItem* item = new LastOMapperItem;
+        //                item->last_omapper = &last_omapper;
+        //                item->writer = writer_.get();
+        //                item->text = line;
+        //                pool.schedule(item);
+        //                //boost::algorithm::trim(line);
+        //                //B5moSorter::Value value;
+        //                //if(!value.Parse(line, &json_reader)) continue;
+        //                //if(!OMap_(last_omapper, value.doc)) continue;
+        //                //value.doc.type = UPDATE_SCD;
+        //                //ProcessIU_(value.doc, true);
+        //                //writer->Append(value.doc, value.doc.type);
+        //            }
+        //            pool.wait();
+        //            ifs.close();
+        //            odb_->flush();
+        //            LOG(INFO)<<"Omapper changing finished"<<std::endl;
+        //        }
+        //    }
 
-        }
+        //}
     }
 
     //if(!matcher_->IsOpen())
@@ -673,22 +895,38 @@ bool B5moProcessor::Generate(const std::string& mdb_instance, const std::string&
             u_scd_list.push_back(scd);
         }
     }
-    if(!r_scd_list.empty()||!d_scd_list.empty())
+    if(b5mm_.rtype)
     {
-        ScdDocProcessor::ProcessorType p = boost::bind(&B5moProcessor::Process, this, _1);
-        ScdDocProcessor sd_processor(p, 1);
-        sd_processor.AddInput(r_scd_list);
-        sd_processor.AddInput(d_scd_list);
-        sd_processor.SetOutput(writer_);
-        sd_processor.Process();
+        if(!r_scd_list.empty()||!d_scd_list.empty())
+        {
+            ScdDocProcessor::ProcessorType p = boost::bind(&B5moProcessor::Process, this, _1);
+            ScdDocProcessor sd_processor(p, 1);
+            sd_processor.AddInput(r_scd_list);
+            sd_processor.AddInput(d_scd_list);
+            sd_processor.SetOutput(writer_);
+            sd_processor.Process();
+        }
     }
-    if(!u_scd_list.empty())
+    else
     {
-        ScdDocProcessor::ProcessorType p = boost::bind(&B5moProcessor::Process, this, _1);
-        ScdDocProcessor sd_processor(p, thread_num);
-        sd_processor.AddInput(u_scd_list);
-        sd_processor.SetOutput(writer_);
-        sd_processor.Process();
+        if(!r_scd_list.empty()||!d_scd_list.empty())
+        {
+            ScdDocProcessor::ProcessorType p = boost::bind(&B5moProcessor::Process, this, _1);
+            ScdDocProcessor sd_processor(p, 1);
+            sd_processor.AddInput(r_scd_list);
+            sd_processor.AddInput(d_scd_list);
+            sd_processor.SetOutput(writer_);
+            sd_processor.Process();
+        }
+        if(!u_scd_list.empty())
+        {
+            ScdDocProcessor::ProcessorType p = boost::bind(&B5moProcessor::Process, this, _1);
+            ScdDocProcessor sd_processor(p, thread_num);
+            //sd_processor.SetLimit(1000000ul);
+            sd_processor.AddInput(u_scd_list);
+            sd_processor.SetOutput(writer_);
+            sd_processor.Process();
+        }
     }
     matcher_->PendingFinish(boost::bind(&B5moProcessor::PendingProcess_, this, _1), thread_num);
     LOG(INFO)<<"start to close scd writer"<<std::endl;
@@ -699,6 +937,7 @@ bool B5moProcessor::Generate(const std::string& mdb_instance, const std::string&
     LOG(INFO)<<"start to flush odb"<<std::endl;
     odb_->flush();
     LOG(INFO)<<"finished"<<std::endl;
+    LOG(INFO)<<"Spu match count: "<<spumatch_count_<<std::endl;
     if(sorter_!=NULL)
     {
         sorter_->StageOne();
@@ -712,6 +951,7 @@ bool B5moProcessor::Generate(const std::string& mdb_instance, const std::string&
     }
     std::string status_path = mdb_instance+"/status";
     status_.Flush(status_path);
+    sp_->end();
     return true;
 }
 
@@ -734,4 +974,13 @@ bool B5moProcessor::OMap_(const OriginalMapper& omapper, Document& doc) const
         return false;
     }
 }
+
+void B5moProcessor::RankProcess_(ScdDocument& doc)
+{
+    std::string docid;
+    doc.getString("DOCID", docid);
+    if(docid.empty()) return;
+    rank_filter_->Insert(docid);
+}
+
 
