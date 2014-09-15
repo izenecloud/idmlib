@@ -9,7 +9,6 @@ INCLUDE_DIRECTORIES(
 SET(libs
   idmlib
   ${ilplib_LIBRARIES}
-  ${imllib_LIBRARIES}
   ${izenecma_LIBRARIES}
   ${izenejma_LIBRARIES}
   ${izenelib_LIBRARIES}

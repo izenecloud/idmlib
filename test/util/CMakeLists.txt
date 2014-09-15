@@ -13,7 +13,6 @@ ${Glog_INCLUDE_DIRS}
 SET(libs
   idmlib
   ${ilplib_LIBRARIES}
-  ${imllib_LIBRARIES}
   ${izenelib_LIBRARIES}
 
   #external

@@ -132,9 +132,7 @@ ${Boost_INCLUDE_DIRS}
 ${izenelib_INCLUDE_DIRS}
 ${izenecma_INCLUDE_DIRS}
 ${izenejma_INCLUDE_DIRS}
-${wisekma_INCLUDE_DIRS}
 ${ilplib_INCLUDE_DIRS}
-${imllib_INCLUDE_DIRS}
 ${XML2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
 ${LibCURL_INCLUDE_DIRS}
@@ -205,14 +203,6 @@ IF(VERBOSE)
   ELSE(ilplib_FOUND)
     MESSAGE(STATUS "ilplib library: not found")
   ENDIF(ilplib_FOUND)
-
-  IF(imllib_FOUND)
-    MESSAGE(STATUS "imllib:")
-    MESSAGE(STATUS "  header: ${imllib_INCLUDE_DIRS}")
-    MESSAGE(STATUS "  lib: ${imllib_LIBRARIES}")
-  ELSE(imllib_FOUND)
-    MESSAGE(STATUS "imllib: not found")
-  ENDIF(imllib_FOUND)
 
   IF(XML2_FOUND)
     MESSAGE(STATUS "LIBXML2:")
