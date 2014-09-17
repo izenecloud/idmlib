@@ -136,7 +136,7 @@ ${ilplib_INCLUDE_DIRS}
 ${XML2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
 ${LibCURL_INCLUDE_DIRS}
-${ImageMagick_INCLUDE_DIRS}
+#${ImageMagick_INCLUDE_DIRS}
 )
 
 SET(libs
@@ -146,7 +146,7 @@ SET(libs
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   ${LibCURL_LIBRARIES}
-  ${ImageMagick_LIBRARIES}
+#  ${ImageMagick_LIBRARIES}
 )
 
 MESSAGE(STATUS "include path: ${include_directories}")
@@ -186,7 +186,6 @@ IF(VERBOSE)
   MESSAGE(STATUS "----------------------------------------")
 
   MESSAGE(STATUS "${izenecma_INCLUDE_DIRS}")
-  MESSAGE(STATUS "${wisekma_INCLUDE_DIRS}")
 
   IF(Boost_FOUND)
     MESSAGE(STATUS "BOOST:")
@@ -259,4 +258,4 @@ CONFIGURE_FILE(
   @ONLY
   )
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS
-  "libboost-dev, libc6-dev, libxml2-dev, izenelib, ilplib, imllib, icma")
+  "libboost-dev, libc6-dev, libxml2-dev, izenelib, ilplib, icma")

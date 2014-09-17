@@ -26,7 +26,6 @@ FIND_PACKAGE(izenejma REQUIRED)
 FIND_PACKAGE(ilplib REQUIRED)
 FIND_PACKAGE(XML2 REQUIRED)
 FIND_PACKAGE(LibCURL REQUIRED)
-FIND_PACKAGE(ImageMagick COMPONENTS Magick++)
 
 ##################################################
 # Other Libraries
