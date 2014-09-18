@@ -15,7 +15,6 @@
 #include <util/filesystem.h>
 #include <idmlib/idm_types.h>
 
-using namespace boost::filesystem;
 
 NS_IDMLIB_UTIL_BEGIN
     
@@ -71,7 +70,7 @@ NS_IDMLIB_UTIL_BEGIN
             
             static void copy(const std::string& from, const std::string& to)
             {
-                izenelib::util::recursive_copy_directory(path(from),path(to));
+                izenelib::util::recursive_copy_directory(boost::filesystem::path(from),boost::filesystem::path(to));
             }
             
             static bool exists(const std::string& path)
@@ -81,7 +80,7 @@ NS_IDMLIB_UTIL_BEGIN
             
             static void createDir(const std::string& path)
             {
-                if( exists(path) )
+                if( boost::filesystem::exists(path) )
                 {
                     if( !boost::filesystem::is_directory(path) )
                     {
@@ -95,7 +94,7 @@ NS_IDMLIB_UTIL_BEGIN
                     {
 //                         throw FileOperationException(path+" can not be created");
                     }
-                    if( !exists(path) )
+                    if( !boost::filesystem::exists(path) )
                     {
 //                         throw FileOperationException(path+" can not be created");
                     }

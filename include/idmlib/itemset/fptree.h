@@ -16,7 +16,6 @@
 #include <list>
 #include <vector>
 #include <queue>
-using namespace std;
 
 namespace idmlib{
 
@@ -77,7 +76,7 @@ private:
 
     DataSourceIterator* data_;
 
-    ofstream out_;
+    std::ofstream out_;
     
     void find_freq_items();     // impact on freq_items_
 

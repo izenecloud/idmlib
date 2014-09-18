@@ -181,7 +181,7 @@ void FPtree::insert_tree( std::queue<int>& item_ids,FPnode* parent )
         }
         else
         {
-            cerr<<"head table is bad!"<<endl;
+            std::cerr<<"head table is bad!"<<std::endl;
             exit(1);
         }
 
@@ -325,7 +325,7 @@ void FPtree::project_path( FPnode* p,std::list<Head>& cheads )
             }
             if ( pos == cheads.end() )
             {
-                cerr<< "condition head table is bad!"<<endl;
+                std::cerr<< "condition head table is bad!"<<std::endl;
             }
             else
             {
@@ -467,20 +467,20 @@ bool FPtree::is_single_path( std::list<Head>& heads )
 void FPtree::generate_rules( std::list<Head>& heads,std::list<Item>& suffix )
 {
 #ifdef DEBUG
-    cout<<"rule been generated: ";
+    std::cout<<"rule been generated: ";
     for ( std::list<Head>::reverse_iterator pos = heads.rbegin();
             pos != heads.rend();
             pos++)
     {
-        cout<<pos->item_id<<"("<< pos->sup<<")"<<" ";
+        std::cout<<pos->item_id<<"("<< pos->sup<<")"<<" ";
     }
     for ( std::list<Item>::iterator pos = suffix.begin();
             pos != suffix.end();
             pos++)
     {
-        cout<<pos->item_id<<"("<< pos->sup<<")"<<" ";;
+        std::cout<<pos->item_id<<"("<< pos->sup<<")"<<" ";;
     }
-    cout<<endl;
+    std::cout<<endl;
 #endif
 
     for ( std::list<Head>::reverse_iterator pos = heads.rbegin();
@@ -495,7 +495,7 @@ void FPtree::generate_rules( std::list<Head>& heads,std::list<Item>& suffix )
     {
         out_<<pos->item_id<<" ";
     }
-    out_<<endl;
+    out_<<std::endl;
 }
 
 // remove condition fp-tree

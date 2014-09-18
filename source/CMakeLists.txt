@@ -67,10 +67,6 @@ FILE(GLOB_RECURSE  lshkit_SRCS
   "lshkit/*.cpp"
   "lshkit/*.c"
 )
-FILE(GLOB_RECURSE  b5m_SRC
-  "b5m/*.cpp"
-  "b5m/*.cc"
-)
 FILE(GLOB_RECURSE  para2vec_SRC
   "para2vec/*.cpp"
 )
@@ -95,7 +91,6 @@ ADD_LIBRARY(idmlib
 #  ${ise_SRC}
   ${topicmodels_SRC}
   ${lshkit_SRCS}
-  ${b5m_SRC}
   ${para2vec_SRC}
   ${maxent_SRC}
 )
