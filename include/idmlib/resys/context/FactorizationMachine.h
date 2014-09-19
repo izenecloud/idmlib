@@ -91,9 +91,9 @@ class FactorizationMachine
     ///edge_data) will follow accordingly
     FactorContainerType ** factors_;
 
-    static const float minval_ = -1e100;
+    static const float minval_ ;
 
-    static const float maxval_ = 1e100;
+    static const float maxval_ ;
 public:
     float reg0_;
 
@@ -442,6 +442,26 @@ protected:
     }
 
 };
+
+
+template<
+    int NLATENT,
+    typename VertexDataType ,
+    typename EdgeDataType , 
+    bool HASIMPLICIT ,
+    typename FactorContainerType 
+>
+const float FactorizationMachine<NLATENT, VertexDataType, EdgeDataType, HASIMPLICIT, FactorContainerType>::minval_ = -1e100;
+
+ 
+template<
+    int NLATENT,
+    typename VertexDataType ,
+    typename EdgeDataType , 
+    bool HASIMPLICIT ,
+    typename FactorContainerType 
+>
+const float FactorizationMachine<NLATENT, VertexDataType, EdgeDataType, HASIMPLICIT, FactorContainerType>::maxval_ = 1e100;
 
 
 }}

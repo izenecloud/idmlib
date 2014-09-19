@@ -108,7 +108,7 @@ public:
     }
 
 private:
-    static const float thresholdWegt_ = 0.01f;
+    static const float thresholdWegt_ ;
 
     size_t docCount_;
     std::string docSetDir_;

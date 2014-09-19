@@ -2,6 +2,9 @@
 
 using namespace idmlib::ssp;
 
+const float DocumentRepresentor::thresholdWegt_ = 0.01f;
+
+
 void DocumentRepresentor::gatherTFDF()
 {
     term_tf_map_.clear();

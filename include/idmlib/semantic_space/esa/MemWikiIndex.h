@@ -285,7 +285,7 @@ public:
     */
 
 private:
-    static const float thresholdWegt_ = 0.02f; // 0.015 ~ 0.02 ?
+    static const float thresholdWegt_ ; // 0.015 ~ 0.02 ?
 
     typedef SparseVectorItemType InvertItem;
     typedef SparseVectorType InvertedList;

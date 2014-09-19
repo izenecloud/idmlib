@@ -20,7 +20,7 @@ void createInput(int maxItem, int recordsNum, const string& output_path)
 {
     boost::uniform_int<> distribution(0, maxItem) ;
     boost::mt19937 engine ;
-    boost::variate_generator<mt19937, uniform_int<> > myrandom (engine, distribution);
+    boost::variate_generator<boost::mt19937, boost::uniform_int<> > myrandom (engine, distribution);
 
     FILE* output_file = fopen(output_path.c_str(), "wb");
 

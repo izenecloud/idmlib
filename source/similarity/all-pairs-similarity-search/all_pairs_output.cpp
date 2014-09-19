@@ -1,6 +1,10 @@
+#include <iostream>
+#include <idmlib/tdt/similb.h>
 #include <idmlib/similarity/all-pairs-similarity-search/all_pairs_output.h>
 
 using namespace idmlib::sim;
+
+const double idmlib::tdt::SimilB::SQRT_2 = 1.41421356237;
 
 
 void DocSimOutput::getSimilarDocIdScoreList(

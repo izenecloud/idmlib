@@ -8,6 +8,9 @@ using namespace std;
 using namespace idmlib::ssp;
 using namespace idmlib::util;
 
+const float MemWikiIndex::thresholdWegt_ = 0.02f; // 0.015 ~ 0.02 ?
+
+
 static double sTotalTime = 0;
 //#define DOC_SIM_TEST
 

@@ -21,7 +21,7 @@ NS_IDMLIB_TDT_BEGIN
 class SimilB
 {
     public:
-        static const double SQRT_2 = 1.41421356237;
+        static const double SQRT_2 ;
         
         template<typename T>
         static void GetPsi(const std::vector<T>& s1, const std::vector<T>& s2, std::size_t start, std::size_t end, std::vector<double>& result)

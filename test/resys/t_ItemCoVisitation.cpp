@@ -34,13 +34,13 @@ struct RandomGenerators
 {
     boost::mt19937 engine ;
     boost::uniform_int<> itemDistribution ;
-    boost::variate_generator<mt19937, uniform_int<> > itemRandom;
+    boost::variate_generator<boost::mt19937, boost::uniform_int<> > itemRandom;
     boost::uniform_int<> userDistribution;
-    boost::variate_generator<mt19937, uniform_int<> > userRandom;
+    boost::variate_generator<boost::mt19937, boost::uniform_int<> > userRandom;
     boost::uniform_int<> oldVisitDistribution;
-    boost::variate_generator<mt19937, uniform_int<> > oldVisitRandom;
+    boost::variate_generator< boost::mt19937, boost::uniform_int<> > oldVisitRandom;
     boost::uniform_int<> newVisitDistribution;
-    boost::variate_generator<mt19937, uniform_int<> > newVisitRandom;
+    boost::variate_generator<boost::mt19937, boost::uniform_int<> > newVisitRandom;
 
     RandomGenerators(int ITEMLIMIT, int USERLIMIT, int OLDVISITLIMIT, int NEWVISITLIMIT)
         :itemDistribution(1, ITEMLIMIT)
