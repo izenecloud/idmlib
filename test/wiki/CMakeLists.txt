@@ -24,6 +24,7 @@ SET(libs
   ${izenecma_LIBRARIES}
   ${XML2_LIBRARIES}
   ${LibCURL_LIBRARIES}
+  ${OpenSSL_LIBRARIES}
   ${ImageMagick_LIBRARIES}
   )
 SET(Boost_USE_STATIC_LIBS OFF)

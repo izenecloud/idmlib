@@ -20,6 +20,7 @@ SET(libs
   ${izenejma_LIBRARIES}
   ${XML2_LIBRARIES}
   ${LibCURL_LIBRARIES}
+  ${OpenSSL_LIBRARIES}
   ${ImageMagick_LIBRARIES}
   bz2
   )

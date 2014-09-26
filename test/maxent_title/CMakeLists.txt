@@ -25,6 +25,7 @@ SET(libs
   ${izenejma_LIBRARIES}
   ${XML2_LIBRARIES}
   ${LibCURL_LIBRARIES}
+  ${OpenSSL_LIBRARIES}
   ${ImageMagick_LIBRARIES}
   bz2
   )
@@ -48,5 +49,3 @@ TARGET_LINK_LIBRARIES(maxent_title_util
 SET_TARGET_PROPERTIES(maxent_title_util PROPERTIES
 RUNTIME_OUTPUT_DIRECTORY ${IDMLIB_SOURCE_DIR}/testbin
 )
-
-

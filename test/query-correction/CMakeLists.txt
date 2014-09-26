@@ -18,6 +18,7 @@ SET(libs
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   ${LibCURL_LIBRARIES}
+  ${OpenSSL_LIBRARIES}
   ${ImageMagick_LIBRARIES}
   )
 

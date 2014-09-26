@@ -136,6 +136,7 @@ ${ilplib_INCLUDE_DIRS}
 ${XML2_INCLUDE_DIRS}
 ${Glog_INCLUDE_DIRS}
 ${LibCURL_INCLUDE_DIRS}
+${OpenSSL_INCLUDE_DIRS}
 #${ImageMagick_INCLUDE_DIRS}
 )
 
@@ -146,6 +147,7 @@ SET(libs
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
   ${LibCURL_LIBRARIES}
+  ${OpenSSL_LIBRARIES}
 #  ${ImageMagick_LIBRARIES}
 )
 
@@ -232,6 +234,14 @@ IF(VERBOSE)
   ELSE(LibCURL_FOUND)
     MESSAGE(STATUS "libcurl: not found!")
   ENDIF(LibCURL_FOUND)
+
+  IF(OpenSSL_FOUND)
+    MESSAGE(STATUS "openssl:")
+    MESSAGE(STATUS "  header: ${OpenSSL_INCLUDE_DIRS}")
+    MESSAGE(STATUS "  lib: ${OpenSSL_LIBRARIES}")
+  ELSE(OpenSSL_FOUND)
+    MESSAGE(STATUS "openssl: not found!")
+  ENDIF(OpenSSL_FOUND)
 
   MESSAGE(STATUS "----------------------------------------")
   MESSAGE(STATUS "COMPONENTS BUILD:")
