@@ -5,6 +5,8 @@ Data mining libraries
 ### Features
 * _Keyphrase Extraction_. We've implemented two kinds of keyphrase extraction approaches. One refers to the translation model from thesis work of [Zhiyuan Liu](http://nlp.csai.tsinghua.edu.cn/~lzy/), the other comes from our innovatin which uses Wiki data as the semantic knowledge base.
 
+* _Taxonomy Generation_. 
+
 * _Duplicate Detection_.  Read the paper `Detecting Near-Duplicates for Web Crawling` firstly then we could understand the algorithm. We used the famous Charikar simhash fingerprints generation approach and set the dimensions(f) to 64.
 
 * _Ctr Prediction_. We've implemented both [AdPredictor](http://machinelearning.wustl.edu/mlpapers/paper_files/icml2010_GraepelCBH10.pdf) and [FTRL](https://research.google.com/pubs/archive/41159.pdf).
